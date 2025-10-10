@@ -113,11 +113,16 @@
                             <label for="cooperative" class="block text-sm font-medium text-gray-700 mb-1">
                                 Farmer's Cooperative
                             </label>
-                            <input type="text" 
-                                   id="cooperative" 
-                                   name="cooperative" 
-                                   value="{{ old('cooperative', $farmer->cooperative) }}"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <select id="cooperative" 
+                                    name="cooperative"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="">Select Cooperative</option>
+                                <option value="Benguet Highland Farmers Cooperative" {{ old('cooperative', $farmer->cooperative) == 'Benguet Highland Farmers Cooperative' ? 'selected' : '' }}>Benguet Highland Farmers Cooperative</option>
+                                <option value="La Trinidad Vegetable Growers Association" {{ old('cooperative', $farmer->cooperative) == 'La Trinidad Vegetable Growers Association' ? 'selected' : '' }}>La Trinidad Vegetable Growers Association</option>
+                                <option value="Northern Benguet Agri Cooperative" {{ old('cooperative', $farmer->cooperative) == 'Northern Benguet Agri Cooperative' ? 'selected' : '' }}>Northern Benguet Agri Cooperative</option>
+                                <option value="Kabayan Organic Farmers Cooperative" {{ old('cooperative', $farmer->cooperative) == 'Kabayan Organic Farmers Cooperative' ? 'selected' : '' }}>Kabayan Organic Farmers Cooperative</option>
+                                <option value="Tuba Agro-Enterprise Cooperative" {{ old('cooperative', $farmer->cooperative) == 'Tuba Agro-Enterprise Cooperative' ? 'selected' : '' }}>Tuba Agro-Enterprise Cooperative</option>
+                            </select>
                         </div>
                     </div>
 

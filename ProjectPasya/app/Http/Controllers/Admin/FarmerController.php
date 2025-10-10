@@ -55,7 +55,7 @@ class FarmerController extends Controller
      */
     public function create()
     {
-        $municipalities = ['BENGUET', 'LA TRINIDAD', 'ITOGON', 'SABLAN', 'TUBA', 'TUBLAY', 'BAGUIO CITY', 'ATOK', 'BAKUN', 'BOKOD', 'BUGUIAS', 'KABAYAN', 'KAPANGAN', 'KIBUNGAN', 'MANKAYAN'];
+        $municipalities = ['LA TRINIDAD', 'ITOGON', 'SABLAN', 'TUBA', 'TUBLAY', 'ATOK', 'BAKUN', 'BOKOD', 'BUGUIAS', 'KABAYAN', 'KAPANGAN', 'KIBUNGAN', 'MANKAYAN'];
         return view('admin.farmer-create', compact('municipalities'));
     }
 
