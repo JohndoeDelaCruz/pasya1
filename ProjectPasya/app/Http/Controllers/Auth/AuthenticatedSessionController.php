@@ -28,14 +28,19 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Redirect admin users to admin dashboard (check web guard first)
+        if (Auth::guard('web')->check() && Auth::user()->email === 'opagadmin@gmail.com') {
+            return redirect()->intended(route('admin.dashboard', absolute: false));
+        }
+
+        // Check if logged in as regular web user
+        if (Auth::guard('web')->check()) {
+            return redirect()->intended(route('dashboard', absolute: false));
+        }
+
         // Check if logged in as farmer
         if (Auth::guard('farmer')->check()) {
             return redirect()->intended(route('farmers.dashboard', absolute: false));
-        }
-
-        // Redirect admin users to admin dashboard
-        if (Auth::check() && Auth::user()->email === 'opagadmin@gmail.com') {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 
         return redirect()->intended(route('dashboard', absolute: false));

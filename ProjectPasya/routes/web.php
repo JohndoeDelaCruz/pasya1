@@ -18,10 +18,24 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Farmer Dashboard
-Route::get('/farmer/dashboard', function () {
-    return view('farmers.dashboard');
-})->middleware(['auth:farmer'])->name('farmers.dashboard');
+// Farmer Routes
+Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('farmers.dashboard');
+    })->name('dashboard');
+    
+    Route::get('/calendar', function () {
+        return view('farmers.calendar');
+    })->name('calendar');
+    
+    Route::get('/price-watch', function () {
+        return view('farmers.price-watch');
+    })->name('price-watch');
+    
+    Route::get('/harvest-history', function () {
+        return view('farmers.harvest-history');
+    })->name('harvest-history');
+});
 
 // Admin Routes
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {

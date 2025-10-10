@@ -41,6 +41,10 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
+        // Ensure all guards are logged out before attempting new login
+        Auth::guard('web')->logout();
+        Auth::guard('farmer')->logout();
+
         $loginInput = $this->input('email');
         
         // Try to authenticate as admin user first (email or username)
