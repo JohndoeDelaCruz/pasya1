@@ -187,8 +187,8 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farm Type</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Area Planted</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Production</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Area Harvested (ha)</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Production (mt)</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity</th>
                         </tr>
                     </thead>
@@ -200,8 +200,8 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->farm_type }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->year }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->month }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->area_planted, 2) }} ha</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->production, 2) }} mt</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->area_planted, 2) }} </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->production, 2) }} </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->productivity, 2) }} mt/ha</td>
                             </tr>
                         @empty
