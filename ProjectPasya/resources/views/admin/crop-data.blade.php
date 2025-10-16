@@ -9,10 +9,17 @@
                 <p class="text-gray-600">View and manage imported crop data</p>
             </div>
             <div class="flex gap-3">
+                <button onclick="openAddSingleDataModal()" 
+                   class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Add Single Data
+                </button>
                 <a href="{{ route('admin.crop-data.upload') }}" 
                    class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
                     Import Data
                 </a>
@@ -227,4 +234,165 @@
             @endif
         </div>
     </div>
+
+    {{-- Add Single Data Modal --}}
+    <div id="addSingleDataModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-10 mx-auto p-8 border w-full max-w-4xl shadow-2xl rounded-2xl bg-white">
+            <div class="mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">Add Single Data Entry</h3>
+                <p class="text-sm text-gray-600 mt-1">All required fields are marked with *</p>
+            </div>
+            
+            <form action="{{ route('admin.crop-data.store') }}" method="POST">
+                @csrf
+                
+                {{-- First Row --}}
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+                    <div>
+                        <label for="municipality" class="block text-sm font-semibold text-gray-900 mb-2">Municipality*</label>
+                        <select id="municipality" name="municipality" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                            <option value="">Municipality</option>
+                            @foreach($filters['municipalities'] as $municipality)
+                                <option value="{{ $municipality }}">{{ $municipality }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="farm_type" class="block text-sm font-semibold text-gray-900 mb-2">Farm Type*</label>
+                        <select id="farm_type" name="farm_type" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                            <option value="">Select farm type</option>
+                            <option value="Irrigated">Irrigated</option>
+                            <option value="Rainfed">Rainfed</option>
+                            <option value="Upland">Upland</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="year" class="block text-sm font-semibold text-gray-900 mb-2">Year*</label>
+                        <select id="year" name="year" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                            <option value="">Year</option>
+                            @for($y = date('Y'); $y >= 2000; $y--)
+                                <option value="{{ $y }}">{{ $y }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="crop" class="block text-sm font-semibold text-gray-900 mb-2">Crop*</label>
+                        <select id="crop" name="crop" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                            <option value="">Crop</option>
+                            @foreach($filters['crops'] as $cropName)
+                                <option value="{{ $cropName }}">{{ $cropName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                {{-- Second Row --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label for="month" class="block text-sm font-semibold text-gray-900 mb-2">Month*</label>
+                        <select id="month" name="month" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                            <option value="">Select month</option>
+                            <option value="January">January</option>
+                            <option value="February">February</option>
+                            <option value="March">March</option>
+                            <option value="April">April</option>
+                            <option value="May">May</option>
+                            <option value="June">June</option>
+                            <option value="July">July</option>
+                            <option value="August">August</option>
+                            <option value="September">September</option>
+                            <option value="October">October</option>
+                            <option value="November">November</option>
+                            <option value="December">December</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="area_harvested" class="block text-sm font-semibold text-gray-900 mb-2">Area Harvested (ha)*</label>
+                        <input type="number" id="area_harvested" name="area_harvested" step="0.01" min="0" required
+                               placeholder="Enter a number"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                    </div>
+                </div>
+
+                {{-- Third Row --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <div>
+                        <label for="area_planted" class="block text-sm font-semibold text-gray-900 mb-2">Area Planted (ha)*</label>
+                        <input type="number" id="area_planted" name="area_planted" step="0.01" min="0" required
+                               placeholder="Enter a number"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                    </div>
+                    
+                    <div>
+                        <label for="production" class="block text-sm font-semibold text-gray-900 mb-2">Production (mt)*</label>
+                        <input type="number" id="production" name="production" step="0.01" min="0" required
+                               placeholder="Enter a number"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                    </div>
+                </div>
+
+                {{-- Fourth Row --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label for="productivity" class="block text-sm font-semibold text-gray-900 mb-2">Productivity (mt/ha)</label>
+                        <input type="number" id="productivity" name="productivity" step="0.01" min="0"
+                               placeholder="Enter a number"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
+                    </div>
+                </div>
+                
+                <div class="flex justify-start gap-3 pt-4">
+                    <button type="submit"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                        Submit
+                    </button>
+                    <button type="button" onclick="closeAddSingleDataModal()"
+                            class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-8 rounded-lg transition-all duration-200">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddSingleDataModal() {
+            document.getElementById('addSingleDataModal').classList.remove('hidden');
+        }
+
+        function closeAddSingleDataModal() {
+            document.getElementById('addSingleDataModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addSingleDataModal');
+            if (event.target === modal) {
+                closeAddSingleDataModal();
+            }
+        }
+
+        // Auto-calculate productivity when production and area_harvested are entered
+        document.getElementById('production').addEventListener('input', calculateProductivity);
+        document.getElementById('area_harvested').addEventListener('input', calculateProductivity);
+
+        function calculateProductivity() {
+            const production = parseFloat(document.getElementById('production').value) || 0;
+            const areaHarvested = parseFloat(document.getElementById('area_harvested').value) || 0;
+            
+            if (areaHarvested > 0) {
+                const productivity = (production / areaHarvested).toFixed(2);
+                document.getElementById('productivity').value = productivity;
+            }
+        }
+    </script>
 </x-admin-layout>

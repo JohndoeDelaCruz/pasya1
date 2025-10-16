@@ -138,6 +138,41 @@ class CropDataController extends Controller
     }
 
     /**
+     * Store a single crop data entry
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'municipality' => 'required|string|max:255',
+            'farm_type' => 'required|string|max:255',
+            'year' => 'required|integer|min:2000|max:' . (date('Y') + 1),
+            'month' => 'required|string|max:50',
+            'crop' => 'required|string|max:255',
+            'area_planted' => 'required|numeric|min:0',
+            'area_harvested' => 'required|numeric|min:0',
+            'production' => 'required|numeric|min:0',
+            'productivity' => 'nullable|numeric|min:0',
+        ]);
+
+        // Calculate productivity if not provided
+        if (!isset($validated['productivity']) || $validated['productivity'] == 0) {
+            if ($validated['area_harvested'] > 0) {
+                $validated['productivity'] = $validated['production'] / $validated['area_harvested'];
+            } else {
+                $validated['productivity'] = 0;
+            }
+        }
+
+        // Add the uploader
+        $validated['uploaded_by'] = auth()->id();
+
+        Crop::create($validated);
+
+        return redirect()->route('admin.crop-data.index')
+            ->with('success', 'Crop data entry added successfully!');
+    }
+
+    /**
      * Delete a crop record
      */
     public function destroy(Crop $crop)
