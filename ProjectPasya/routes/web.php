@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\CropDataController;
 use App\Http\Controllers\Admin\FarmerController;
+use App\Http\Controllers\Admin\CropManagementController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +63,15 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/crop-statistics', [CropDataController::class, 'statistics'])->name('crop-statistics');
     Route::delete('/crop-data/{crop}', [CropDataController::class, 'destroy'])->name('crop-data.destroy');
     Route::delete('/crop-data', [CropDataController::class, 'deleteAll'])->name('crop-data.delete-all');
+    
+    // Crop Management Routes (Crop Types & Municipalities)
+    Route::get('/crop-management', [CropManagementController::class, 'index'])->name('crop-management.index');
+    Route::post('/crop-types', [CropManagementController::class, 'storeCropType'])->name('crop-types.store');
+    Route::put('/crop-types/{cropType}', [CropManagementController::class, 'updateCropType'])->name('crop-types.update');
+    Route::delete('/crop-types/{cropType}', [CropManagementController::class, 'destroyCropType'])->name('crop-types.destroy');
+    Route::post('/municipalities', [CropManagementController::class, 'storeMunicipality'])->name('municipalities.store');
+    Route::put('/municipalities/{municipality}', [CropManagementController::class, 'updateMunicipality'])->name('municipalities.update');
+    Route::delete('/municipalities/{municipality}', [CropManagementController::class, 'destroyMunicipality'])->name('municipalities.destroy');
     
     Route::get('/recommendations', function () {
         return view('admin.recommendations');

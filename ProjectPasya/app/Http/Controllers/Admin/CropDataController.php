@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Imports\CropsImport;
 use App\Models\Crop;
+use App\Models\CropType;
+use App\Models\Municipality;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -63,10 +65,14 @@ class CropDataController extends Controller
 
         $crops = $query->paginate(50)->withQueryString();
 
-        // Get filter options
+        // Get filter options from managed tables (includes both imported and manually added)
         $filters = [
-            'municipalities' => Crop::distinct('municipality')->orderBy('municipality')->pluck('municipality'),
-            'crops' => Crop::distinct('crop')->orderBy('crop')->pluck('crop'),
+            'municipalities' => Municipality::active()
+                ->orderBy('name')
+                ->pluck('name'),
+            'crops' => CropType::active()
+                ->orderBy('name')
+                ->pluck('name'),
         ];
 
         // Calculate stats based on filtered results
