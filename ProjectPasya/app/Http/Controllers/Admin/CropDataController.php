@@ -39,6 +39,9 @@ class CropDataController extends Controller
             $query->where('crop', $request->crop);
         }
 
+        // Clone query for stats calculation before sorting
+        $statsQuery = clone $query;
+
         // View filter (sorting)
         switch ($request->view) {
             case 'recent':
@@ -66,11 +69,12 @@ class CropDataController extends Controller
             'crops' => Crop::distinct('crop')->orderBy('crop')->pluck('crop'),
         ];
 
+        // Calculate stats based on filtered results
         $stats = [
-            'total_records' => Crop::count(),
-            'total_municipalities' => Crop::distinct('municipality')->count(),
-            'total_crops' => Crop::distinct('crop')->count(),
-            'years_covered' => Crop::distinct('year')->pluck('year')->sort()->values(),
+            'total_records' => $statsQuery->count(),
+            'total_municipalities' => $statsQuery->distinct('municipality')->count('municipality'),
+            'total_crops' => $statsQuery->distinct('crop')->count('crop'),
+            'years_covered' => $statsQuery->distinct('year')->pluck('year')->sort()->values(),
         ];
 
         return view('admin.crop-data', compact('crops', 'stats', 'filters'));

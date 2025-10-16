@@ -112,9 +112,21 @@
 
             {{-- Instructions --}}
             <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">📋 CSV Requirements</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">📋 CSV Requirements</h2>
+                    <button 
+                        type="button"
+                        onclick="toggleRequirements()"
+                        class="bg-white hover:bg-yellow-50 text-yellow-600 hover:text-yellow-700 p-2 rounded-lg transition-all duration-200 shadow-sm border border-gray-200 hover:border-yellow-300"
+                        title="Toggle requirements"
+                    >
+                        <svg id="lightbulb-icon" class="w-6 h-6 transition-all duration-200" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
+                        </svg>
+                    </button>
+                </div>
                 
-                <div class="space-y-4 text-sm">
+                <div id="requirements-content" class="space-y-4 text-sm">
                     <div>
                         <h3 class="font-semibold text-gray-700 mb-2">Required Columns:</h3>
                         <ul class="space-y-1 text-gray-600">
@@ -150,4 +162,27 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Start with requirements hidden
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('requirements-content').style.display = 'none';
+            document.getElementById('lightbulb-icon').style.opacity = '0.5';
+        });
+
+        function toggleRequirements() {
+            const content = document.getElementById('requirements-content');
+            const lightbulb = document.getElementById('lightbulb-icon');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                lightbulb.style.opacity = '1';
+                lightbulb.style.filter = 'drop-shadow(0 0 8px rgba(234, 179, 8, 0.6))';
+            } else {
+                content.style.display = 'none';
+                lightbulb.style.opacity = '0.5';
+                lightbulb.style.filter = 'none';
+            }
+        }
+    </script>
 </x-admin-layout>
