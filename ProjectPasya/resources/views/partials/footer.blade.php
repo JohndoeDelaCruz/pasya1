@@ -2,9 +2,9 @@
     <div class="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
         <div class="md:flex md:justify-between">
             <div class="mb-6 md:mb-0">
-                <a href="{{ url('/') }}" class="flex items-center">
-                    <img src="{{ asset('images/pasya.png') }}" class="h-16 me-3" alt="Pasya Logo" />
-                    <img src="{{ asset('images/title.png') }}" class="h-16 me-3" alt="Pasya" />
+                <a href="{{ url('/') }}" class="flex items-center space-x-2">
+                    <img src="{{ asset('images/PASYA.png') }}" class="h-20" alt="PASYA Logo" />
+                    <img src="{{ asset('images/titleh.png') }}" class="h-16" alt="PASYA Title" />
                 </a>
             </div>
             <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">

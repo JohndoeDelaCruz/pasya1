@@ -102,17 +102,15 @@
             <!-- Top Navigation Bar -->
             <header class="bg-white shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 py-4">
-                    <!-- Mobile menu button -->
-                    <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 hover:text-gray-900">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        </svg>
-                    </button>
-
                     <!-- Logo -->
-                    <div class="flex items-center space-x-2">
-                        <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="w-8 h-8">
-                        <span class="text-xl font-bold text-green-800">PASYA</span>
+                    <div class="flex items-center space-x-3">
+                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 hover:text-gray-900 mr-4">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
+                        </button>
+                        <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="h-12 w-auto">
+                        <img src="{{ asset('images/titleh.png') }}" alt="PASYA Title" class="h-12 w-auto">
                     </div>
 
                     <!-- Right side icons -->
@@ -159,5 +157,7 @@
          x-transition:leave-end="opacity-0"
          class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
          style="display: none;"></div>
+    
+    @stack('scripts')
 </body>
 </html>

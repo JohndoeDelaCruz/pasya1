@@ -4,8 +4,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\CropDataController;
 use App\Http\Controllers\Admin\FarmerController;
 use App\Http\Controllers\Admin\CropManagementController;
+use App\Http\Controllers\Admin\DataAnalyticsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PredictionController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -40,9 +42,8 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
 
 // Admin Routes
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.data-analytics');
-    })->name('dashboard');
+    Route::get('/dashboard', [DataAnalyticsController::class, 'index'])->name('dashboard');
+    Route::get('/export-summary', [DataAnalyticsController::class, 'exportSummary'])->name('export-summary');
     
     Route::get('/crop-trends', function () {
         return view('admin.crop-trends');
@@ -84,5 +85,25 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::prefix('predictions')->group(function () {
+    // Make a single prediction
+    Route::post('/', [PredictionController::class, 'predict']);
+    
+    // Get valid categorical values
+    Route::get('/valid-values', [PredictionController::class, 'getValidValues']);
+    
+    // Health check
+    Route::get('/health', [PredictionController::class, 'healthCheck']);
+    
+    // Batch predictions
+    Route::post('/batch', [PredictionController::class, 'predictBatch']);
+});
+
+// Test page for predictions (remove in production)
+Route::get('/test-prediction', function () {
+    return view('test-prediction');
+})->name('test-prediction');
+
 
 require __DIR__.'/auth.php';
