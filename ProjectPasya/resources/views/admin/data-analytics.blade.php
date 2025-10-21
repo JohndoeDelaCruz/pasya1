@@ -443,39 +443,54 @@
                 </div>
 
                 @if(!empty($predictions['predictions']))
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($predictions['predictions'] as $prediction)
-                            <div class="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div class="flex-1">
-                                        <h3 class="font-semibold text-gray-800 text-lg">{{ $prediction['crop'] }}</h3>
-                                        <p class="text-sm text-gray-500">{{ $prediction['municipality'] }}</p>
-                                    </div>
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                                        {{ $prediction['month'] }}
-                                    </span>
-                                </div>
-                                
-                                <div class="space-y-2 mb-3">
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">Area Harvested:</span>
-                                        <span class="font-semibold text-gray-800">{{ number_format($prediction['area_harvested'], 2) }} ha</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm">
-                                        <span class="text-gray-600">Predicted Production:</span>
-                                        <span class="font-bold text-green-600 text-lg">{{ number_format($prediction['predicted_production'], 2) }} kg</span>
-                                    </div>
-                                </div>
+                    @php
+                        // Group predictions by year and municipality
+                        $groupedPredictions = collect($predictions['predictions'])
+                            ->groupBy(function($pred) {
+                                return $pred['year'] ?? date('Y');
+                            });
+                    @endphp
 
-                                <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
-                                    <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                    </svg>
-                                    <span class="text-xs text-green-700 font-medium">{{ $prediction['confidence'] }} Confidence</span>
+                    @foreach($groupedPredictions as $year => $yearPredictions)
+                        <div class="mb-6">
+                            <!-- Year Header -->
+                            <div class="bg-gray-800 text-white px-4 py-2 rounded-t-lg">
+                                <h3 class="font-bold text-lg">{{ $year }}</h3>
+                            </div>
+
+                            <!-- Municipality Predictions -->
+                            <div class="bg-white border border-gray-200 rounded-b-lg p-4">
+                                @php
+                                    $municipalityTotals = collect($yearPredictions)->groupBy('municipality');
+                                @endphp
+
+                                <div class="space-y-2">
+                                    @foreach($municipalityTotals as $municipality => $predictions)
+                                        @php
+                                            $totalProduction = collect($predictions)->sum('predicted_production');
+                                            $totalProductionMt = $totalProduction / 1000;
+                                            
+                                            // Assign colors to municipalities
+                                            $colors = [
+                                                'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
+                                                'bg-purple-500', 'bg-pink-500', 'bg-orange-500',
+                                                'bg-red-500', 'bg-indigo-500', 'bg-teal-500', 
+                                                'bg-cyan-500', 'bg-amber-500', 'bg-lime-500'
+                                            ];
+                                            $colorIndex = crc32($municipality) % count($colors);
+                                            $color = $colors[$colorIndex];
+                                        @endphp
+                                        
+                                        <div class="flex items-center gap-3 py-2 hover:bg-gray-50 rounded px-2">
+                                            <div class="w-4 h-4 {{ $color }} rounded-sm flex-shrink-0"></div>
+                                            <span class="font-medium text-gray-800 flex-1">{{ $municipality }}:</span>
+                                            <span class="font-bold text-gray-900">{{ number_format($totalProductionMt, 2) }} mt</span>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
+                        </div>
+                    @endforeach
 
                     <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
                         <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

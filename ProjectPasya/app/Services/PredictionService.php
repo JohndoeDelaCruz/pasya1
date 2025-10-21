@@ -32,7 +32,7 @@ class PredictionService
     {
         // Set API URL from .env or use default
         $this->apiUrl = env('PREDICTION_API_URL', 'http://localhost:5000');
-        $this->timeout = env('PREDICTION_API_TIMEOUT', 30);
+        $this->timeout = env('PREDICTION_API_TIMEOUT', 10); // Reduced to 10 seconds
     }
 
     /**
@@ -50,6 +50,7 @@ class PredictionService
     {
         try {
             $response = Http::timeout($this->timeout)
+                ->retry(2, 100) // Retry up to 2 times with 100ms delay
                 ->post("{$this->apiUrl}/api/predict", $data);
 
             if ($response->successful()) {
@@ -66,15 +67,20 @@ class PredictionService
                 'error' => $response->json()['error'] ?? 'Unknown error occurred'
             ];
 
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            // Connection timeout or failure
+            return [
+                'success' => false,
+                'error' => 'ML service unavailable'
+            ];
         } catch (\Exception $e) {
             Log::error('Prediction Service Exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'message' => $e->getMessage()
             ]);
 
             return [
                 'success' => false,
-                'error' => 'Failed to connect to prediction service: ' . $e->getMessage()
+                'error' => 'Prediction service error'
             ];
         }
     }

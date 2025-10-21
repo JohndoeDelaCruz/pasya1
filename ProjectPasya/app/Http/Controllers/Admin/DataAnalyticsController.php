@@ -253,8 +253,9 @@ class DataAnalyticsController extends Controller
         }
         
         $predictions = [];
+        $targetYear = ($year ?? date('Y')) + 1; // Predict for next year
         
-        // Get recent historical data to base predictions on
+        // Get municipalities to predict for
         $query = Crop::query();
         
         if ($municipality) {
@@ -265,41 +266,70 @@ class DataAnalyticsController extends Controller
             $query->where('crop', $crop);
         }
         
-        // Get average area harvested for predictions
-        $recentData = $query
+        // Get average area harvested by municipality ONLY (aggregate all crops and months)
+        // This significantly reduces the number of predictions needed
+        $municipalityData = $query
             ->where('year', '>=', ($year ?? date('Y')) - 2)
-            ->select('municipality', 'crop', 'farm_type', 'month', DB::raw('AVG(area_harvested) as avg_area'))
-            ->groupBy('municipality', 'crop', 'farm_type', 'month')
+            ->select(
+                'municipality', 
+                'farm_type',
+                DB::raw('AVG(area_harvested) as avg_area'),
+                DB::raw('MAX(crop) as sample_crop'),
+                DB::raw('MAX(month) as sample_month')
+            )
+            ->groupBy('municipality', 'farm_type')
+            ->limit(15) // Limit to 15 predictions to prevent timeout
             ->get();
         
-        if ($recentData->isEmpty()) {
+        if ($municipalityData->isEmpty()) {
             return [
                 'available' => false,
                 'message' => 'Insufficient historical data for predictions'
             ];
         }
         
-        // Generate predictions for top combinations
-        foreach ($recentData->take(5) as $data) {
+        // Generate predictions for each municipality-farm_type combination
+        foreach ($municipalityData as $data) {
+            // Validate input data matches ML model expectations
             $predictionInput = [
-                'municipality' => $data->municipality,
-                'farm_type' => $data->farm_type ?? 'IRRIGATED',
-                'month' => $data->month,
-                'crop' => $data->crop,
-                'area_harvested' => round($data->avg_area, 2)
+                'municipality' => strtoupper($data->municipality), // Ensure uppercase for ML model
+                'farm_type' => strtoupper($data->farm_type ?? 'IRRIGATED'), // Ensure uppercase
+                'month' => strtoupper($data->sample_month ?? 'JAN'), // Use sample month
+                'crop' => strtoupper($data->sample_crop ?? 'CABBAGE'), // Use sample crop
+                'area_harvested' => (float) round($data->avg_area, 2) // Ensure float type
             ];
             
-            $result = $predictionService->predictProduction($predictionInput);
-            
-            if (isset($result['success']) && $result['success'] && isset($result['predicted_production'])) {
-                $predictions[] = [
-                    'municipality' => ucwords(strtolower($data->municipality)),
-                    'crop' => ucwords(strtolower($data->crop)),
-                    'month' => $data->month,
-                    'area_harvested' => round($data->avg_area, 2),
-                    'predicted_production' => round($result['predicted_production'], 2),
-                    'confidence' => 'High'
-                ];
+            try {
+                $result = $predictionService->predictProduction($predictionInput);
+                
+                // Validate ML response structure
+                if (isset($result['success']) && $result['success'] === true && isset($result['predicted_production'])) {
+                    // Ensure predicted production is a valid number
+                    $predictedProduction = (float) $result['predicted_production'];
+                    
+                    if ($predictedProduction > 0) {
+                        $predictions[] = [
+                            'municipality' => ucwords(strtolower($data->municipality)),
+                            'crop' => ucwords(strtolower($data->sample_crop)),
+                            'month' => $data->sample_month,
+                            'farm_type' => $data->farm_type ?? 'IRRIGATED',
+                            'area_harvested' => round($data->avg_area, 2),
+                            'predicted_production' => round($predictedProduction, 2),
+                            'year' => $targetYear,
+                            'confidence' => isset($result['confidence']) ? $result['confidence'] : 'High',
+                            // Include ML model details if available
+                            'model_version' => $result['model_version'] ?? null,
+                            'features_used' => $result['features_used'] ?? null
+                        ];
+                    }
+                }
+            } catch (\Exception $e) {
+                // Skip failed predictions and continue
+                \Log::warning('ML Prediction Failed', [
+                    'input' => $predictionInput,
+                    'error' => $e->getMessage()
+                ]);
+                continue;
             }
         }
         
