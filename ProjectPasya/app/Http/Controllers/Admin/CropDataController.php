@@ -104,6 +104,10 @@ class CropDataController extends Controller
         ]);
 
         try {
+            // Increase execution time and memory for large imports
+            set_time_limit(300); // 5 minutes
+            ini_set('memory_limit', '512M');
+            
             $startTime = microtime(true);
             
             Excel::import(new CropsImport, $request->file('file'));

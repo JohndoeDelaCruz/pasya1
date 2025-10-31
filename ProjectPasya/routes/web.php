@@ -9,13 +9,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
 
+// Debug route
+require __DIR__.'/debug.php';
+
 Route::get('/', function () {
     return view('welcome');
 });
 
 Route::get('/dashboard', function () {
     // Redirect admin users to admin dashboard
-    if (Auth::check() && Auth::user()->email === 'opagadmin@gmail.com') {
+    if (Auth::check() && Auth::user()->email === 'DAadmin@gmail.com') {
         return redirect()->route('admin.dashboard');
     }
     return view('dashboard');

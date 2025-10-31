@@ -24,8 +24,8 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-sm">OPAG Admin</h3>
-                            <p class="text-xs text-green-300">opagadmin@gmail.com</p>
+                            <h3 class="font-bold text-sm">DA Admin</h3>
+                            <p class="text-xs text-green-300">DAadmin@gmail.com</p>
                         </div>
                     </div>
                 </div>

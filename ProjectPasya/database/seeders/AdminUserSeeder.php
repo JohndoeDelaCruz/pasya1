@@ -14,16 +14,16 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'name' => 'OPAG Admin',
-            'username' => 'opagadmin',
-            'email' => 'opagadmin@gmail.com',
+            'name' => 'DA Admin',
+            'username' => 'DAadmin',
+            'email' => 'DAadmin@gmail.com',
             'email_verified_at' => now(),
             'password' => Hash::make('admin123'),
         ]);
 
         $this->command->info('Admin user created successfully!');
-        $this->command->info('Username: opagadmin');
-        $this->command->info('Email: opagadmin@gmail.com');
+        $this->command->info('Username: DAadmin');
+        $this->command->info('Email: DAadmin@gmail.com');
         $this->command->info('Password: admin123');
     }
 }

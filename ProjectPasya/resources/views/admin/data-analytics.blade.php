@@ -158,11 +158,11 @@
             
             <!-- Chart Container -->
             @if(count($years) > 0 && count($municipalities) > 0)
-                <div class="h-80 relative">
+                <div class="h-[600px] relative">
                     <canvas id="trendChart"></canvas>
                 </div>
             @else
-                <div class="h-80 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                <div class="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
                     <div class="text-center px-4">
                         <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -187,23 +187,6 @@
                     </div>
                 </div>
             @endif
-            
-            <!-- Chart Legend - Dynamically generated from database -->
-            <div class="flex flex-wrap items-center gap-4 mt-4 justify-center">
-                @php
-                    $legendColors = [
-                        'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
-                        'bg-purple-500', 'bg-pink-500', 'bg-orange-500',
-                        'bg-sky-500', 'bg-violet-500', 'bg-rose-500', 'bg-amber-500'
-                    ];
-                @endphp
-                @foreach($municipalities as $index => $municipality)
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-1 {{ $legendColors[$index % count($legendColors)] }}"></div>
-                        <span class="text-xs text-gray-600">{{ ucwords(strtolower($municipality)) }}</span>
-                    </div>
-                @endforeach
-            </div>
 
             <!-- Production Trend Indicator -->
             @if(count($years) > 0 && $productionTrend !== null)
@@ -236,26 +219,7 @@
         </div>
 
         <!-- Key Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Number of Farmers -->
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-medium text-gray-600">Number of Farmers</h3>
-                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="text-3xl font-bold text-gray-800">{{ $totalFarmers ?? 0 }}</div>
-                <div class="flex items-center gap-1 mt-2">
-                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                    </svg>
-                    <span class="text-xs text-gray-400">Updated {{ $lastUpdate->format('F Y') ?? 'July 2025' }}</span>
-                </div>
-            </div>
-
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Total Area Planted/Harvested -->
             <div class="bg-white rounded-xl shadow-md p-6">
                 <div class="flex items-center justify-between mb-2">
@@ -377,51 +341,6 @@
                 </div>
             </div>
 
-            <!-- Demand Chart -->
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h2 class="text-lg font-semibold text-gray-800">Monthly Production</h2>
-                        <p class="text-sm text-gray-500">{{ $selectedYear ?? date('Y') }} Production Data</p>
-                    </div>
-                    <button class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Bar Chart -->
-                @if(array_sum($monthlyDemand) > 0)
-                    <div class="h-64">
-                        <canvas id="demandChart"></canvas>
-                    </div>
-
-                    <div class="mt-4">
-                        @php
-                            $monthValues = array_values($monthlyDemand);
-                            $nonZeroMonths = array_filter($monthValues);
-                            $avgProduction = count($nonZeroMonths) > 0 ? array_sum($nonZeroMonths) / count($nonZeroMonths) : 0;
-                        @endphp
-                        <p class="text-sm text-gray-600">
-                            Total production: {{ number_format(array_sum($monthlyDemand), 2) }} kg
-                        </p>
-                        <p class="text-xs text-gray-400 mt-1">Showing monthly production for {{ $selectedYear ?? date('Y') }}</p>
-                    </div>
-                @else
-                    <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                        <div class="text-center">
-                            <svg class="w-16 h-16 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                            </svg>
-                            <p class="text-gray-500 font-medium">No monthly data for {{ $selectedYear ?? date('Y') }}</p>
-                            <p class="text-sm text-gray-400 mt-1">Upload crop data or try a different filter</p>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-
         <!-- ML Predictions Section -->
         @if(isset($predictions) && $predictions['available'])
             <div id="predictions-section" class="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-md p-6 border border-green-200">
@@ -529,60 +448,85 @@
             return {
                 init() {
                     this.initTrendChart();
-                    this.initDemandChart();
                 },
 
                 initTrendChart() {
                     const ctx = document.getElementById('trendChart');
-                    if (!ctx) return;
+                    if (!ctx) {
+                        console.log('Chart canvas not found');
+                        return;
+                    }
 
-                    // Get actual data from database
-                    const years = @json($years);
-                    const municipalities = @json($municipalities);
-                    const trendData = @json($trendChartData);
+                    // Get actual data from database (already formatted)
+                    const chartData = @json($trendChartData);
+                    console.log('Chart Data:', chartData);
+                    console.log('Labels:', chartData.labels);
+                    console.log('Datasets count:', chartData.datasets.length);
                     
-                    // Color palette for municipalities
-                    const colors = [
-                        'rgb(59, 130, 246)',   // Blue
-                        'rgb(34, 197, 94)',    // Green
-                        'rgb(234, 179, 8)',    // Yellow
-                        'rgb(168, 85, 247)',   // Purple
-                        'rgb(236, 72, 153)',   // Pink
-                        'rgb(249, 115, 22)',   // Orange
-                        'rgb(14, 165, 233)',   // Sky
-                        'rgb(139, 92, 246)',   // Violet
-                        'rgb(244, 63, 94)',    // Rose
-                        'rgb(251, 146, 60)',   // Amber
-                    ];
-                    
-                    // Build datasets from actual database data
-                    const datasets = municipalities.map((municipality, index) => {
-                        const color = colors[index % colors.length];
-                        return {
-                            label: municipality,
-                            data: trendData[municipality] || [],
-                            borderColor: color,
-                            backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
-                            tension: 0.4
-                        };
+                    // Log each dataset details
+                    chartData.datasets.forEach((dataset, index) => {
+                        console.log(`Dataset ${index} (${dataset.label}):`, dataset.data);
+                        console.log(`  - Has data:`, dataset.data.some(val => val > 0));
+                        console.log(`  - Max value:`, Math.max(...dataset.data));
+                        console.log(`  - Sum:`, dataset.data.reduce((a, b) => a + b, 0));
                     });
+                    
+                    if (!chartData || !chartData.labels || !chartData.datasets) {
+                        console.error('Invalid chart data structure');
+                        return;
+                    }
+
+                    if (chartData.labels.length === 0 || chartData.datasets.length === 0) {
+                        console.log('No data to display');
+                        return;
+                    }
+                    
+                    // Ensure all datasets have proper configuration
+                    chartData.datasets = chartData.datasets.map(dataset => ({
+                        ...dataset,
+                        borderWidth: 3,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointHitRadius: 10,
+                        fill: false
+                    }));
+                    
+                    console.log('Final chart data being passed to Chart.js:', chartData);
                     
                     new Chart(ctx, {
                         type: 'line',
-                        data: {
-                            labels: years,
-                            datasets: datasets
-                        },
+                        data: chartData,
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
                             plugins: {
                                 legend: {
-                                    display: false
+                                    display: true,
+                                    position: 'bottom',
+                                    labels: {
+                                        padding: 10,
+                                        font: {
+                                            size: 11,
+                                            weight: '400'
+                                        },
+                                        usePointStyle: true,
+                                        pointStyle: 'circle',
+                                        boxWidth: 8,
+                                        boxHeight: 8
+                                    }
                                 },
                                 tooltip: {
                                     mode: 'index',
                                     intersect: false,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    padding: 12,
+                                    titleFont: {
+                                        size: 14,
+                                        weight: 'bold'
+                                    },
+                                    bodyFont: {
+                                        size: 13
+                                    },
                                     callbacks: {
                                         label: function(context) {
                                             let label = context.dataset.label || '';
@@ -602,20 +546,39 @@
                                         display: true,
                                         text: 'Production (mt)',
                                         font: {
-                                            size: 12,
+                                            size: 15,
                                             weight: 'bold'
-                                        }
+                                        },
+                                        padding: { top: 0, bottom: 10 }
                                     },
                                     ticks: {
+                                        font: {
+                                            size: 13
+                                        },
                                         callback: function(value) {
                                             return value.toLocaleString() + ' mt';
                                         }
                                     },
                                     grid: {
-                                        color: 'rgba(0, 0, 0, 0.05)'
+                                        color: 'rgba(0, 0, 0, 0.08)',
+                                        lineWidth: 1
                                     }
                                 },
                                 x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Year',
+                                        font: {
+                                            size: 15,
+                                            weight: 'bold'
+                                        },
+                                        padding: { top: 10, bottom: 0 }
+                                    },
+                                    ticks: {
+                                        font: {
+                                            size: 13
+                                        }
+                                    },
                                     grid: {
                                         display: false
                                     }
@@ -625,86 +588,6 @@
                                 mode: 'nearest',
                                 axis: 'x',
                                 intersect: false
-                            }
-                        }
-                    });
-                },
-
-                initDemandChart() {
-                    const ctx = document.getElementById('demandChart');
-                    if (!ctx) return;
-
-                    // Get actual monthly production data from database
-                    const monthlyData = @json($monthlyDemand);
-                    const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    const monthKeys = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-                    
-                    // Extract values from database data
-                    const demandValues = monthKeys.map(key => monthlyData[key] || 0);
-                    
-                    // Color bars based on value (high = green, medium = yellow, low = gray)
-                    const maxValue = Math.max(...demandValues);
-                    const colors = demandValues.map(value => {
-                        if (value === 0) return 'rgba(156, 163, 175, 0.3)';
-                        const ratio = value / maxValue;
-                        if (ratio > 0.7) return 'rgb(34, 197, 94)';
-                        if (ratio > 0.4) return 'rgba(234, 179, 8, 0.7)';
-                        return 'rgba(156, 163, 175, 0.5)';
-                    });
-
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: monthLabels,
-                            datasets: [
-                                {
-                                    label: 'Production (mt)',
-                                    data: demandValues,
-                                    backgroundColor: colors,
-                                    borderRadius: 4
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return 'Production: ' + context.parsed.y.toLocaleString() + ' mt';
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Production (mt)',
-                                        font: {
-                                            size: 12,
-                                            weight: 'bold'
-                                        }
-                                    },
-                                    ticks: {
-                                        callback: function(value) {
-                                            return value.toLocaleString() + ' mt';
-                                        }
-                                    },
-                                    grid: {
-                                        color: 'rgba(0, 0, 0, 0.05)'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        display: false
-                                    }
-                                }
                             }
                         }
                     });
