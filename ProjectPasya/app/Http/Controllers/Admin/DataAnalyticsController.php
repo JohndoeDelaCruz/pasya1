@@ -27,7 +27,8 @@ class DataAnalyticsController extends Controller
             'crop' => $request->input('crop'),
             'municipality' => $request->input('municipality'),
             'month' => $request->input('month'),
-            'year' => $request->input('year')
+            'year' => $request->input('year'),
+            'farm_type' => $request->input('farm_type')
         ];
 
         // Base query for crops
@@ -45,6 +46,9 @@ class DataAnalyticsController extends Controller
         }
         if ($filters['year']) {
             $query->where('year', $filters['year']);
+        }
+        if ($filters['farm_type']) {
+            $query->where('farm_type', $filters['farm_type']);
         }
 
         // Get data for charts - Group by municipality and year for trend analysis
@@ -85,11 +89,11 @@ class DataAnalyticsController extends Controller
                 'data' => $data,
                 'borderColor' => $colors[$index % count($colors)],
                 'backgroundColor' => 'transparent',
-                'borderWidth' => 3,
+                'borderWidth' => 2,
                 'tension' => 0.4,
                 'fill' => false,
-                'pointRadius' => 5,
-                'pointHoverRadius' => 8
+                'pointRadius' => 4,
+                'pointHoverRadius' => 7
             ];
         }
 
@@ -176,6 +180,7 @@ class DataAnalyticsController extends Controller
             'filterMunicipality' => $filters['municipality'],
             'filterMonth' => $filters['month'],
             'filterYear' => $filters['year'] ?? date('Y'),
+            'filterFarmType' => $filters['farm_type'],
             'selectedYear' => $filters['year'] ?? date('Y'),
             'chartMode' => $chartMode,
             'chartData' => $chartData,
@@ -301,12 +306,24 @@ class DataAnalyticsController extends Controller
                             ->where('crop', $cropType)
                             ->avg('area_harvested') ?? 100;
 
-                        $prediction = $this->predictionService->predictProduction(
-                            $municipality,
-                            $cropType,
-                            $year,
-                            round($avgArea, 2)
-                        );
+                        // Get farm_type and month for prediction
+                        $topFarmType = Crop::where('municipality', $municipality)
+                            ->where('crop', $cropType)
+                            ->select('farm_type', DB::raw('COUNT(*) as count'))
+                            ->groupBy('farm_type')
+                            ->orderByDesc('count')
+                            ->value('farm_type') ?? 'Rainfed';
+
+                        // Use current month or first available month
+                        $currentMonth = strtoupper(date('M'));
+
+                        $prediction = $this->predictionService->predictProduction([
+                            'municipality' => $municipality,
+                            'farm_type' => $topFarmType,
+                            'month' => $currentMonth,
+                            'crop' => $cropType,
+                            'area_harvested' => round($avgArea, 2)
+                        ]);
 
                         if ($prediction && isset($prediction['predicted_production'])) {
                             $predictions[] = [

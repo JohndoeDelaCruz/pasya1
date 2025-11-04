@@ -102,6 +102,20 @@
                     </div>
                 </div>
                 
+                <!-- Farm Type Filter -->
+                <div class="relative">
+                    <select name="farm_type" onchange="document.getElementById('filterForm').submit()" class="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer min-w-[150px]">
+                        <option value="">Farm Type</option>
+                        <option value="Rainfed" {{ $filterFarmType == 'Rainfed' ? 'selected' : '' }}>Rainfed</option>
+                        <option value="Irrigated" {{ $filterFarmType == 'Irrigated' ? 'selected' : '' }}>Irrigated</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
+                </div>
+                
                 <!-- Reset Button -->
                 <a href="{{ route('admin.dashboard') }}" class="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm whitespace-nowrap">
                     Reset
@@ -158,11 +172,11 @@
             
             <!-- Chart Container -->
             @if(count($years) > 0 && count($municipalities) > 0)
-                <div class="h-[600px] relative">
+                <div class="h-[900px] relative">
                     <canvas id="trendChart"></canvas>
                 </div>
             @else
-                <div class="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                <div class="h-[900px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
                     <div class="text-center px-4">
                         <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -292,10 +306,10 @@
                             <h3 class="font-semibold text-gray-800 mb-1">Top 3 Crops</h3>
                             <ul class="text-sm text-gray-600 space-y-1">
                                 @if(isset($topCrops) && $topCrops->count() > 0)
-                                    @foreach($topCrops as $index => $crop)
+                                    @foreach($topCrops->take(3) as $index => $crop)
                                         <li class="flex items-center gap-2">
                                             <span class="font-medium text-green-600">{{ $index + 1 }}.</span>
-                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} kg</span> produced</span>
+                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} mt</span></span>
                                         </li>
                                     @endforeach
                                 @else
@@ -484,9 +498,9 @@
                     // Ensure all datasets have proper configuration
                     chartData.datasets = chartData.datasets.map(dataset => ({
                         ...dataset,
-                        borderWidth: 3,
-                        pointRadius: 5,
-                        pointHoverRadius: 8,
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
                         pointHitRadius: 10,
                         fill: false
                     }));
@@ -504,28 +518,28 @@
                                     display: true,
                                     position: 'bottom',
                                     labels: {
-                                        padding: 10,
+                                        padding: 12,
                                         font: {
-                                            size: 11,
-                                            weight: '400'
+                                            size: 13,
+                                            weight: '500'
                                         },
                                         usePointStyle: true,
                                         pointStyle: 'circle',
-                                        boxWidth: 8,
-                                        boxHeight: 8
+                                        boxWidth: 10,
+                                        boxHeight: 10
                                     }
                                 },
                                 tooltip: {
                                     mode: 'index',
                                     intersect: false,
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 12,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                    padding: 16,
                                     titleFont: {
-                                        size: 14,
+                                        size: 16,
                                         weight: 'bold'
                                     },
                                     bodyFont: {
-                                        size: 13
+                                        size: 15
                                     },
                                     callbacks: {
                                         label: function(context) {
@@ -546,21 +560,21 @@
                                         display: true,
                                         text: 'Production (mt)',
                                         font: {
-                                            size: 15,
+                                            size: 18,
                                             weight: 'bold'
                                         },
-                                        padding: { top: 0, bottom: 10 }
+                                        padding: { top: 0, bottom: 12 }
                                     },
                                     ticks: {
                                         font: {
-                                            size: 13
+                                            size: 15
                                         },
                                         callback: function(value) {
                                             return value.toLocaleString() + ' mt';
                                         }
                                     },
                                     grid: {
-                                        color: 'rgba(0, 0, 0, 0.08)',
+                                        color: 'rgba(0, 0, 0, 0.1)',
                                         lineWidth: 1
                                     }
                                 },
@@ -569,14 +583,14 @@
                                         display: true,
                                         text: 'Year',
                                         font: {
-                                            size: 15,
+                                            size: 18,
                                             weight: 'bold'
                                         },
-                                        padding: { top: 10, bottom: 0 }
+                                        padding: { top: 12, bottom: 0 }
                                     },
                                     ticks: {
                                         font: {
-                                            size: 13
+                                            size: 15
                                         }
                                     },
                                     grid: {

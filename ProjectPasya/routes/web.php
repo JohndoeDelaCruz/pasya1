@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\CropDataController;
 use App\Http\Controllers\Admin\FarmerController;
 use App\Http\Controllers\Admin\CropManagementController;
 use App\Http\Controllers\Admin\DataAnalyticsController;
+use App\Http\Controllers\Admin\CropTrendsController;
+use App\Http\Controllers\Admin\RecommendationsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
@@ -48,9 +50,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/dashboard', [DataAnalyticsController::class, 'index'])->name('dashboard');
     Route::get('/export-summary', [DataAnalyticsController::class, 'exportSummary'])->name('export-summary');
     
-    Route::get('/crop-trends', function () {
-        return view('admin.crop-trends');
-    })->name('crop-trends');
+    Route::get('/crop-trends', [CropTrendsController::class, 'index'])->name('crop-trends');
+    Route::post('/crop-trends/predict', [CropTrendsController::class, 'predict'])->name('crop-trends.predict');
     
     // Farmer Account Management Routes
     Route::get('/farmers', [FarmerController::class, 'index'])->name('farmers.index');
@@ -78,9 +79,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::put('/municipalities/{municipality}', [CropManagementController::class, 'updateMunicipality'])->name('municipalities.update');
     Route::delete('/municipalities/{municipality}', [CropManagementController::class, 'destroyMunicipality'])->name('municipalities.destroy');
     
-    Route::get('/recommendations', function () {
-        return view('admin.recommendations');
-    })->name('recommendations');
+    Route::get('/recommendations', [RecommendationsController::class, 'index'])->name('recommendations');
+    Route::post('/subsidies', [RecommendationsController::class, 'storeSubsidy'])->name('subsidies.store');
 });
 
 Route::middleware('auth')->group(function () {
