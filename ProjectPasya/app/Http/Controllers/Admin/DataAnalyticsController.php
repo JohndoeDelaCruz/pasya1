@@ -267,74 +267,87 @@ class DataAnalyticsController extends Controller
     private function generatePredictions($filters)
     {
         try {
-            // Check if ML API is available
-            if (!$this->predictionService->checkHealth()) {
-                Log::warning('ML API is not available');
-                return [];
+            // Check if ML API is available - but don't wait too long
+            // Skip health check to speed up page load
+            // if (!$this->predictionService->checkHealth()) {
+            //     Log::warning('ML API is not available');
+            //     return [];
+            // }
+
+            // Skip predictions if no filters applied (for faster initial load)
+            if (!$filters['crop'] && !$filters['municipality']) {
+                return []; // Don't generate predictions for unfiltered view
             }
 
             $predictions = [];
             $predictionCount = 0;
-            $maxPredictions = 15; // Limit to prevent timeout
+            $maxPredictions = 3; // Reduced to 3 for much faster loading
 
             // Get valid values for predictions
             $validValues = $this->predictionService->getValidValues();
             
-            // Get municipalities to predict for
+            // Get municipalities to predict for - only 1 municipality
             $municipalities = $filters['municipality'] 
                 ? [$filters['municipality']] 
-                : Municipality::pluck('name')->take(5)->toArray(); // Limit to 5 municipalities
+                : Crop::select('municipality')
+                    ->groupBy('municipality')
+                    ->orderByDesc(DB::raw('COUNT(*)'))
+                    ->limit(1)
+                    ->pluck('municipality')
+                    ->toArray();
 
-            // Get crop types to predict for
+            // Get crop types to predict for - only 1 crop
             $cropTypes = $filters['crop']
                 ? [$filters['crop']]
-                : CropType::pluck('name')->take(3)->toArray(); // Limit to 3 crops
+                : Crop::select('crop')
+                    ->groupBy('crop')
+                    ->orderByDesc(DB::raw('COUNT(*)'))
+                    ->limit(1)
+                    ->pluck('crop')
+                    ->toArray();
 
-            // Predict for next 1-2 years
-            $startYear = $filters['year'] ?? now()->year;
-            $endYear = $startYear + 1; // Only predict 2 years ahead
+            // Only predict for current year (not multiple years)
+            $year = $filters['year'] ?? now()->year;
 
-            foreach (range($startYear, $endYear) as $year) {
-                foreach ($municipalities as $municipality) {
-                    foreach ($cropTypes as $cropType) {
-                        if ($predictionCount >= $maxPredictions) {
-                            break 3; // Exit all loops
-                        }
+            foreach ($municipalities as $municipality) {
+                foreach ($cropTypes as $cropType) {
+                    if ($predictionCount >= $maxPredictions) {
+                        break 2; // Exit both loops
+                    }
 
-                        // Use actual area_harvested from database or default
-                        $avgArea = Crop::where('municipality', $municipality)
-                            ->where('crop', $cropType)
-                            ->avg('area_harvested') ?? 100;
+                    // Use actual area_harvested from database or default
+                    $avgArea = Crop::where('municipality', $municipality)
+                        ->where('crop', $cropType)
+                        ->avg('area_harvested') ?? 100;
 
-                        // Get farm_type and month for prediction
-                        $topFarmType = Crop::where('municipality', $municipality)
-                            ->where('crop', $cropType)
-                            ->select('farm_type', DB::raw('COUNT(*) as count'))
-                            ->groupBy('farm_type')
-                            ->orderByDesc('count')
-                            ->value('farm_type') ?? 'Rainfed';
+                    // Get farm_type and month for prediction
+                    $topFarmType = Crop::where('municipality', $municipality)
+                        ->where('crop', $cropType)
+                        ->select('farm_type', DB::raw('COUNT(*) as count'))
+                        ->groupBy('farm_type')
+                        ->orderByDesc('count')
+                        ->value('farm_type') ?? 'Rainfed';
 
-                        // Use current month or first available month
-                        $currentMonth = strtoupper(date('M'));
+                    // Use current month or first available month
+                    $currentMonth = strtoupper(date('M'));
 
-                        $prediction = $this->predictionService->predictProduction([
+                    $prediction = $this->predictionService->predictProduction([
+                        'municipality' => $municipality,
+                        'farm_type' => $topFarmType,
+                        'month' => $currentMonth,
+                        'crop' => $cropType,
+                        'area_harvested' => round($avgArea, 2)
+                    ]);
+
+                    if ($prediction && isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
+                        $predictions[] = [
+                            'year' => $year,
                             'municipality' => $municipality,
-                            'farm_type' => $topFarmType,
-                            'month' => $currentMonth,
-                            'crop' => $cropType,
-                            'area_harvested' => round($avgArea, 2)
-                        ]);
-
-                        if ($prediction && isset($prediction['predicted_production'])) {
-                            $predictions[] = [
-                                'year' => $year,
-                                'municipality' => $municipality,
-                                'crop_type' => $cropType,
-                                'area_harvested' => round($avgArea, 2),
-                                'predicted_production' => round($prediction['predicted_production'] / 1000, 2) // Convert to mt
-                            ];
-                            $predictionCount++;
-                        }
+                            'crop_type' => $cropType,
+                            'area_harvested' => round($avgArea, 2),
+                            'predicted_production' => round($prediction['prediction']['production_mt'], 2) // Already in MT
+                        ];
+                        $predictionCount++;
                     }
                 }
             }

@@ -7,10 +7,6 @@
     </style>
     @endpush
 
-    @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    @endpush
-
     <div class="space-y-6" x-data="cropTrends()">
         <!-- Page Header -->
         <div class="flex items-center justify-between">
@@ -150,13 +146,13 @@
 
         <!-- Predict More Button -->
         <div class="flex justify-end">
-            <button @click="$dispatch('open-modal', 'prediction-modal')" class="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm">
+            <button type="button" @click="$dispatch('open-modal', 'prediction-modal')" class="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm">
                 Predict More
             </button>
         </div>
 
         <!-- Prediction Modal -->
-        <div x-data="{ show: false }" 
+        <div x-data="{ show: {{ $errors->any() ? 'true' : 'false' }} }" 
              @open-modal.window="if ($event.detail === 'prediction-modal') show = true"
              @close-modal.window="show = false"
              @keydown.escape.window="show = false"
@@ -192,8 +188,27 @@
                         <h3 class="text-xl font-bold text-gray-800">Prediction</h3>
                     </div>
 
+                    <!-- Validation Errors -->
+                    @if ($errors->any())
+                        <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                </svg>
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-semibold text-red-800">Please fix the following errors:</h4>
+                                    <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+                                        @foreach ($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Prediction Form -->
-                    <form method="POST" action="{{ route('admin.crop-trends.predict') }}" class="space-y-4">
+                    <form method="POST" action="{{ route('admin.crop-trends.predict') }}" class="space-y-4" x-data="{ submitting: false }" @submit="submitting = true">
                         @csrf
                         
                         <!-- Municipality -->
@@ -288,11 +303,17 @@
 
                         <!-- Submit Button -->
                         <div class="flex items-center justify-between gap-3 pt-2">
-                            <button type="button" @click="show = false" class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium">
+                            <button type="button" @click="show = false" class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium" :disabled="submitting">
                                 Cancel
                             </button>
-                            <button type="submit" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-md transition-colors">
-                                Submit
+                            <button type="submit" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-800 font-semibold rounded-md transition-colors flex items-center gap-2" :disabled="submitting">
+                                <span x-show="submitting">
+                                    <svg class="animate-spin h-5 w-5 text-gray-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                                <span x-text="submitting ? 'Processing...' : 'Submit'">Submit</span>
                             </button>
                         </div>
                     </form>
@@ -302,26 +323,52 @@
     </div>
 
     @push('scripts')
+    <!-- Load Chart.js first -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script>
         function cropTrends() {
             return {
                 init() {
-                    this.initForecastChart();
-                    this.initDemandChart();
+                    console.log('=== CROP TRENDS PAGE LOADED ===');
+                    console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+                    
+                    // Wait for next tick to ensure DOM is ready
+                    this.$nextTick(() => {
+                        this.initForecastChart();
+                        this.initDemandChart();
+                    });
                 },
 
                 initForecastChart() {
                     const ctx = document.getElementById('forecastChart');
-                    if (!ctx) return;
+                    console.log('Forecast Chart Canvas:', ctx);
+                    
+                    if (!ctx) {
+                        console.error('Forecast chart canvas not found!');
+                        return;
+                    }
+                    
+                    if (typeof Chart === 'undefined') {
+                        console.error('Chart.js not loaded!');
+                        return;
+                    }
 
                     const months = @json($months);
                     const historical = @json($historicalYields);
                     const predicted = @json($predictedYields);
 
+                    console.log('Forecast Chart Data:');
+                    console.log('- Months:', months);
+                    console.log('- Historical Yields:', historical);
+                    console.log('- Predicted Yields:', predicted);
+
                     const monthLabels = months.map(m => {
                         const monthMap = { JAN: 'Jan', FEB: 'Feb', MAR: 'Mar', APR: 'Apr', MAY: 'May', JUN: 'Jun' };
                         return monthMap[m] || m;
                     });
+
+                    console.log('- Month Labels:', monthLabels);
 
                     new Chart(ctx, {
                         type: 'line',
@@ -355,6 +402,17 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            animation: {
+                                duration: 1200,
+                                easing: 'easeInOutCubic',
+                                delay: (context) => {
+                                    let delay = 0;
+                                    if (context.type === 'data' && context.mode === 'default') {
+                                        delay = context.dataIndex * 50 + context.datasetIndex * 150;
+                                    }
+                                    return delay;
+                                }
+                            },
                             plugins: {
                                 legend: {
                                     display: false
@@ -426,6 +484,17 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeInOutQuart',
+                                delay: (context) => {
+                                    let delay = 0;
+                                    if (context.type === 'data' && context.mode === 'default') {
+                                        delay = context.dataIndex * 80 + context.datasetIndex * 100;
+                                    }
+                                    return delay;
+                                }
+                            },
                             plugins: {
                                 legend: {
                                     display: false

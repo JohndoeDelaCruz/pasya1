@@ -70,9 +70,10 @@ class CropTrendsController extends Controller
                     'prediction' => $prediction
                 ]);
                 
-                if (isset($prediction['success']) && $prediction['success'] && isset($prediction['predicted_production'])) {
-                    // Prediction returns production in kg, convert to productivity (kg/ha)
-                    $productivity = $prediction['predicted_production'] / $avgAreaHarvested;
+                if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
+                    // Prediction returns production in MT, convert to kg then to productivity (kg/ha)
+                    $productionKg = $prediction['prediction']['production_mt'] * 1000;
+                    $productivity = $productionKg / $avgAreaHarvested;
                     $predictedYields[] = round($productivity, 2);
                 } else {
                     // Fallback to historical average if prediction fails
@@ -103,9 +104,9 @@ class CropTrendsController extends Controller
                     'area_harvested' => $avgAreaHarvested
                 ]);
                 
-                if (isset($prediction['success']) && $prediction['success'] && isset($prediction['predicted_production'])) {
-                    // Convert to metric tons
-                    $demandData[] = round($prediction['predicted_production'] / 1000, 2);
+                if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
+                    // Prediction returns production in MT
+                    $demandData[] = round($prediction['prediction']['production_mt'], 2);
                 } else {
                     // Fallback: use historical average
                     $avgProduction = Crop::where('month', $month)
@@ -246,9 +247,11 @@ class CropTrendsController extends Controller
                 $predictedProductivity = null;
                 $predictedProduction = null;
 
-                if (isset($prediction['success']) && $prediction['success'] && isset($prediction['predicted_production'])) {
-                    $predictedProductivity = $prediction['predicted_production'] / $avgAreaHarvested;
-                    $predictedProduction = $prediction['predicted_production'] / 1000; // Convert to MT
+                if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
+                    // Prediction returns production in MT
+                    $predictedProduction = round($prediction['prediction']['production_mt'], 2);
+                    // Calculate productivity: convert MT to kg, then divide by area
+                    $predictedProductivity = round(($predictedProduction * 1000) / $avgAreaHarvested, 2);
                 } else {
                     // Fallback to historical average if ML prediction fails
                     if ($historical) {
@@ -309,6 +312,12 @@ class CropTrendsController extends Controller
             'total_predictions' => count($predictions),
             'predictions_with_historical' => collect($predictions)->whereNotNull('historical_productivity')->count(),
             'predictions_with_ml' => collect($predictions)->whereNotNull('predicted_productivity')->count()
+        ]);
+
+        // Add debug log to verify view is being returned
+        Log::info('Returning crop-trends-results view', [
+            'predictions_count' => count($predictions),
+            'chart_labels_count' => count($chartLabels)
         ]);
 
         return view('admin.crop-trends-results', [

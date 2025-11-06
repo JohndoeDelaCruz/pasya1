@@ -168,15 +168,26 @@
                     @endif
                     <span class="text-xs text-gray-400">Showing year-over-year comparison</span>
                 </div>
+                
+                <!-- Zoom Controls -->
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="resetZoom()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Reset Zoom
+                    </button>
+                    <span class="text-xs text-gray-500">💡 Scroll to zoom • Drag to pan</span>
+                </div>
             </div>
             
             <!-- Chart Container -->
             @if(count($years) > 0 && count($municipalities) > 0)
-                <div class="h-[900px] relative">
+                <div class="h-[600px] relative">
                     <canvas id="trendChart"></canvas>
                 </div>
             @else
-                <div class="h-[900px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                <div class="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
                     <div class="text-center px-4">
                         <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -440,24 +451,25 @@
                     </div>
                 @endif
             </div>
-        @elseif(isset($predictions) && !$predictions['available'])
-            <div class="bg-yellow-50 rounded-xl shadow-sm p-6 border border-yellow-200">
-                <div class="flex items-start gap-3">
-                    <svg class="w-6 h-6 text-yellow-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                    <div>
-                        <h3 class="font-semibold text-yellow-900 mb-1">Predictions Unavailable</h3>
-                        <p class="text-sm text-yellow-800">{{ $predictions['message'] ?? 'Unable to generate predictions at this time.' }}</p>
-                    </div>
-                </div>
-            </div>
         @endif
     </div>
 
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script>
+        // Global variable to store chart instance
+        let trendChartInstance = null;
+        
+        // Reset zoom function
+        function resetZoom() {
+            if (trendChartInstance) {
+                trendChartInstance.resetZoom();
+                console.log('Chart zoom reset');
+            }
+        }
+        
         function dataAnalytics() {
             return {
                 init() {
@@ -507,12 +519,38 @@
                     
                     console.log('Final chart data being passed to Chart.js:', chartData);
                     
-                    new Chart(ctx, {
+                    // Store chart instance globally for zoom reset
+                    trendChartInstance = new Chart(ctx, {
                         type: 'line',
                         data: chartData,
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeInOutQuart',
+                                delay: (context) => {
+                                    let delay = 0;
+                                    if (context.type === 'data' && context.mode === 'default') {
+                                        delay = context.dataIndex * 30 + context.datasetIndex * 100;
+                                    }
+                                    return delay;
+                                }
+                            },
+                            transitions: {
+                                zoom: {
+                                    animation: {
+                                        duration: 500,
+                                        easing: 'easeInOutQuart'
+                                    }
+                                },
+                                pan: {
+                                    animation: {
+                                        duration: 300,
+                                        easing: 'easeInOutQuad'
+                                    }
+                                }
+                            },
                             plugins: {
                                 legend: {
                                     display: true,
@@ -550,6 +588,29 @@
                                             label += context.parsed.y.toLocaleString() + ' mt';
                                             return label;
                                         }
+                                    }
+                                },
+                                zoom: {
+                                    zoom: {
+                                        wheel: {
+                                            enabled: true,
+                                            speed: 0.05
+                                        },
+                                        pinch: {
+                                            enabled: true
+                                        },
+                                        mode: 'xy'
+                                    },
+                                    pan: {
+                                        enabled: true,
+                                        mode: 'xy',
+                                        onPanComplete: function({chart}) {
+                                            console.log('Pan completed');
+                                        }
+                                    },
+                                    limits: {
+                                        x: {min: 'original', max: 'original', minRange: 2},
+                                        y: {min: 0, max: 'original', minRange: 50}
                                     }
                                 }
                             },

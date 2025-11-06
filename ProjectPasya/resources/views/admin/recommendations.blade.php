@@ -7,7 +7,7 @@
     </style>
     @endpush
 
-    <div class="space-y-6" x-data="{ showSubsidyModal: false }">
+    <div class="space-y-6" x-data="{ showSubsidyModal: {{ $errors->any() ? 'true' : 'false' }} }">
         <!-- Success Message -->
         @if(session('success'))
             <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg" role="alert">
@@ -20,125 +20,109 @@
             </div>
         @endif
 
+        <!-- Validation Errors -->
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg" role="alert">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <div>
+                        <h4 class="font-semibold">Please fix the following errors:</h4>
+                        <ul class="mt-2 list-disc list-inside text-sm">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Page Header -->
         <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+            <h1 class="text-2xl font-bold text-gray-800">Recommendations</h1>
         </div>
 
-        <!-- Recommendations Section -->
+        <!-- Climate Resilience Section -->
         <div>
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Recommendations</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-6">Climate Resilience</h2>
             
-            <!-- Weather Cards Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                
-                <!-- Climate Resilience Card -->
-                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-md p-6 border border-green-200">
-                    <h3 class="text-lg font-bold text-gray-800 mb-3">Climate Resilience</h3>
+            <!-- Municipality Weather Cards -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     
-                    <!-- Today's Weather -->
-                    <div class="mb-4">
-                        <div class="text-sm text-gray-600 mb-2">Today</div>
-                        <div class="flex items-center gap-4">
-                            <div class="text-5xl">☀️</div>
+                    @foreach($municipalityWeather as $weather)
+                    <!-- {{ $weather['municipality'] }} -->
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-4">
                             <div>
-                                <div class="text-3xl font-bold text-gray-800">31°</div>
-                                <div class="text-sm text-gray-600">H: 31° L: 27°</div>
+                                <div class="text-sm font-semibold text-gray-800">BENGUET</div>
+                                <div class="text-xs text-gray-600">{{ $weather['municipality'] }}</div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- 4-Day Forecast -->
-                    <div class="grid grid-cols-4 gap-2 mb-4">
-                        <div class="text-center">
-                            <div class="text-xs text-gray-600 mb-1">Mon 4</div>
-                            <div class="text-2xl mb-1">☀️</div>
-                            <div class="text-xs font-medium text-gray-700">33°</div>
-                            <div class="text-xs text-gray-500">27°</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xs text-gray-600 mb-1">Tue 5</div>
-                            <div class="text-2xl mb-1">⛅</div>
-                            <div class="text-xs font-medium text-gray-700">32°</div>
-                            <div class="text-xs text-gray-500">28°</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xs text-gray-600 mb-1">Wed 6</div>
-                            <div class="text-2xl mb-1">🌧️</div>
-                            <div class="text-xs font-medium text-gray-700">30°</div>
-                            <div class="text-xs text-gray-500">26°</div>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-xs text-gray-600 mb-1">Thu 7</div>
-                            <div class="text-2xl mb-1">☁️</div>
-                            <div class="text-xs font-medium text-gray-700">31°</div>
-                            <div class="text-xs text-gray-500">27°</div>
+                        
+                        <!-- 4-Day Forecast -->
+                        <div class="grid grid-cols-4 gap-2">
+                            @foreach($weather['forecast'] as $day)
+                            <div class="text-center">
+                                <div class="text-xs text-gray-600 mb-1">{{ $day['day'] }}</div>
+                                <div class="text-xs text-gray-500 mb-2">{{ $day['date'] }}</div>
+                                <div class="text-3xl mb-2">{{ $day['icon'] }}</div>
+                                <div class="text-xs font-semibold text-gray-800">{{ $day['condition'] }}</div>
+                                <div class="text-xs font-medium text-gray-700 mt-1">{{ $day['temp'] }}</div>
+                                <div class="text-xs text-gray-500">AQI {{ $day['aqi'] }}</div>
+                            </div>
+                            @endforeach
                         </div>
                     </div>
+                    @endforeach
 
-                    <p class="text-sm text-gray-600 mb-3">Climate resilience is very important especially in farm. These are the things you should do...</p>
-                    <button class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                        Read More
-                    </button>
                 </div>
+            </div>
 
-                <!-- Disaster Planting Window Card -->
-                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Disaster Planting Window</h3>
+            <!-- Hourly Forecast & Recommendations -->
+            <div class="bg-gradient-to-r from-gray-400 to-gray-300 rounded-xl p-6 mb-6">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     
-                    <!-- Weekly Weather -->
-                    <div class="mb-4">
-                        <div class="flex justify-between items-end mb-2">
-                            <div class="text-center">
-                                <div class="text-2xl mb-1">☁️</div>
-                                <div class="text-xs font-medium text-gray-700">19°</div>
+                    <!-- Hourly Weather -->
+                    <div class="lg:col-span-2">
+                        <div class="grid grid-cols-6 gap-3 mb-4">
+                            @foreach($hourlyForecast as $hour)
+                            <div class="text-center text-white">
+                                <div class="text-sm font-medium mb-2">{{ $hour['time'] }}</div>
+                                <div class="text-3xl mb-2">{{ $hour['icon'] }}</div>
+                                <div class="text-lg font-semibold">{{ $hour['temp'] }}</div>
                             </div>
-                            <div class="text-center">
-                                <div class="text-2xl mb-1">☁️</div>
-                                <div class="text-xs font-medium text-gray-700">19°</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl mb-1">⛅</div>
-                                <div class="text-xs font-medium text-gray-700">22°</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl mb-1">⛅</div>
-                                <div class="text-xs font-medium text-gray-700">23°</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl mb-1">⛅</div>
-                                <div class="text-xs font-medium text-gray-700">24°</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl mb-1">⛅</div>
-                                <div class="text-xs font-medium text-gray-700">24°</div>
-                            </div>
+                            @endforeach
                         </div>
-                        <div class="text-xs text-gray-500 text-center">Climate area highly significant status for next...</div>
+                        
+                        <!-- Municipality Search -->
+                        <input type="text" placeholder="Check municipality weather per hour" 
+                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500">
                     </div>
 
-                    <p class="text-sm text-gray-600 mb-3">A disaster is coming, you should not plant in Bocaue, Bulacan...</p>
-                    <button class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                        See More
-                    </button>
-                </div>
+                    <!-- Recommendations Panel -->
+                    <div class="lg:col-span-2 bg-white rounded-lg p-4">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <div class="text-sm font-semibold text-gray-700 mb-1">Optimal Planting Window</div>
+                                <div class="text-xs text-gray-600">{{ $optimalWindow }}</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-semibold text-gray-700 mb-1">Best Crops</div>
+                                <div class="text-xs text-gray-600">{{ $bestCrops }}</div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="text-sm font-semibold text-gray-700 mb-1">Climate Risk</div>
+                            <div class="text-2xl font-bold text-gray-800">{{ $climateRisk }}%</div>
+                        </div>
+                        <button class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
+                            Recommend Now
+                        </button>
+                    </div>
 
-                <!-- Best Crops Card -->
-                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Best Crops</h3>
-                    <p class="text-sm text-gray-600 mb-3 min-h-[120px]">Best crops for your area based on climate and soil conditions. Rice, Corn, and Vegetables are recommended.</p>
-                    <button class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                        View Details
-                    </button>
-                </div>
-
-                <!-- Climate Rule Card -->
-                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-200 lg:col-span-3">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Climate Rule</h3>
-                    <p class="text-sm text-gray-600 mb-3">The climate is hot in Bocaue, do not plant crops that are sensitive to heat...</p>
-                    <button class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                        See More
-                    </button>
                 </div>
             </div>
         </div>
@@ -194,46 +178,56 @@
         <div class="bg-white rounded-xl shadow-md p-6">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-800">Policy Dashboard</h2>
-                <button @click="showSubsidyModal = true" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                    Create Subsidy
+                <button type="button" @click="showSubsidyModal = true" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Allocate Subsidy
                 </button>
             </div>
-                    Create Subsidy
-                </button>
-            </div>
 
-            <!-- Filters -->
-            <form method="GET" action="{{ route('admin.recommendations') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                <!-- Full Name Filter -->
-                <div>
-                    <input type="text" name="full_name" placeholder="Full Name" value="{{ request('full_name') }}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-                </div>
+            <!-- Filters and Actions Row -->
+            <form method="GET" action="{{ route('admin.recommendations') }}" class="mb-6">
+                <div class="flex items-center gap-3">
+                    <!-- Crop Filter -->
+                    <div class="flex-1">
+                        <input type="text" name="crop" placeholder="Crop" value="{{ $filterCrop }}" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
 
-                <!-- Crop Filter -->
-                <div>
-                    <input type="text" name="crop" placeholder="Crop" value="{{ request('crop') }}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-                </div>
+                    <!-- Status Filter -->
+                    <div class="flex-1">
+                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Status</option>
+                            <option value="Approved" {{ $filterStatus == 'Approved' ? 'selected' : '' }}>Approved</option>
+                            <option value="Pending" {{ $filterStatus == 'Pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="Rejected" {{ $filterStatus == 'Rejected' ? 'selected' : '' }}>Rejected</option>
+                        </select>
+                    </div>
 
-                <!-- Location Filter -->
-                <div>
-                    <input type="text" name="location" placeholder="Location" value="{{ request('location') }}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
-                </div>
+                    <!-- Reset Button -->
+                    <div>
+                        <a href="{{ route('admin.recommendations') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 font-medium transition-colors">
+                            Reset
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </a>
+                    </div>
 
-                <!-- Reset Button -->
-                <div>
-                    <a href="{{ route('admin.recommendations') }}" class="block w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-md text-center transition-colors">
-                        Reset
-                    </a>
-                </div>
+                    <!-- View Button -->
+                    <div class="text-sm text-gray-600">
+                        <button type="button" class="px-3 py-2 text-gray-500 hover:text-gray-700">
+                            View
+                        </button>
+                    </div>
 
-                <!-- Submit Button -->
-                <div>
-                    <button type="submit" class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-md transition-colors">
-                        Generate
-                    </button>
+                    <!-- Allocate Subsidy Button (duplicate for design) -->
+                    <div>
+                        <button type="button" @click="showSubsidyModal = true" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
+                            Allocate Subsidy
+                        </button>
+                    </div>
                 </div>
             </form>
 
@@ -242,11 +236,25 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left">
+                            <th class="px-6 py-3 text-left w-10">
                                 <input type="checkbox" class="rounded border-gray-300">
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Full Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crop</th>
+                            <th class="px-6 py-3 text-left">
+                                <button class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700">
+                                    Full Name
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                                    </svg>
+                                </button>
+                            </th>
+                            <th class="px-6 py-3 text-left">
+                                <button class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700">
+                                    Crop
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
+                                    </svg>
+                                </button>
+                            </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subsidy Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subsidy Amt</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
@@ -254,53 +262,118 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        <!-- Example Row 1 -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <input type="checkbox" class="rounded border-gray-300">
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Maria Angelica M. Torres</div>
-                                <div class="text-xs text-gray-500">ID: 123-456</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Cabbage</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                                    Approved
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">₱5,000</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">2025-06-10</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <button class="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
-                            </td>
-                        </tr>
-                        <!-- Example Row 2 -->
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <input type="checkbox" class="rounded border-gray-300">
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm font-medium text-gray-900">Juan D. Cruz</div>
-                                <div class="text-xs text-gray-500">ID: 789-012</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Broccoli</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
-                                    Pending
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">₱3,000</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">2025-06-08</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <button class="text-blue-600 hover:text-blue-800 font-medium">Edit</button>
-                            </td>
-                        </tr>
+                        @forelse($subsidies as $subsidy)
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <input type="checkbox" class="rounded border-gray-300">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ $subsidy->full_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ $subsidy->farmer_id }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-700">{{ $subsidy->crop }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if($subsidy->subsidy_status == 'Approved')
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                            Approved
+                                        </span>
+                                    @elseif($subsidy->subsidy_status == 'Pending')
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
+                                            Rejected
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-700">
+                                        @if($subsidy->subsidy_amount)
+                                            ₱{{ number_format($subsidy->subsidy_amount, 0) }}
+                                        @else
+                                            <span class="text-gray-400">N/A</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-700">{{ $subsidy->updated_at->format('Y-m-d') }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <button class="text-gray-400 hover:text-gray-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <p class="mt-2 text-sm">No subsidy records found.</p>
+                                    <p class="text-xs text-gray-400 mt-1">Try adjusting your filters or click "Allocate Subsidy" to create a new record.</p>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <!-- Footer Info -->
+            <!-- Pagination Footer -->
+            <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
+                <div class="text-sm text-gray-500">
+                    @if($subsidies->total() > 0)
+                        0 of {{ $subsidies->total() }} row(s) selected.
+                    @else
+                        0 of 0 row(s) selected.
+                    @endif
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">Rows per page</span>
+                        <select class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option>10</option>
+                            <option>25</option>
+                            <option>50</option>
+                            <option>100</option>
+                        </select>
+                    </div>
+
+                    <div class="text-sm text-gray-600">
+                        Page {{ $subsidies->currentPage() }} of {{ $subsidies->lastPage() }}
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <a href="{{ $subsidies->url(1) }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                            </svg>
+                        </a>
+                        <a href="{{ $subsidies->previousPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </a>
+                        <a href="{{ $subsidies->nextPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                        <a href="{{ $subsidies->url($subsidies->lastPage()) }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>            <!-- Footer Info -->
             <div class="mt-6 flex items-center justify-between text-sm text-gray-600">
                 <div>0 of 50 row(s) selected</div>
                 <div class="flex items-center gap-4">
@@ -384,35 +457,38 @@
 
                         <!-- Form Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Full Name -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Full Name<span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" name="full_name" required placeholder="Enter full name" value="{{ old('full_name') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                            </div>
+
+                            <!-- Farmer ID -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Farmer ID<span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" name="farmer_id" required placeholder="e.g., ID-COOP-0001" value="{{ old('farmer_id') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                            </div>
+
                             <!-- Municipality -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
                                     Municipality<span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="municipality" required placeholder="Municipality"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                            </div>
-
-                            <!-- Farm Type -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Farm Type<span class="text-red-500">*</span>
-                                </label>
-                                <select name="farm_type" required
+                                <select name="municipality" required
                                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                                    <option value="">Select farm type</option>
-                                    <option value="Rainfed">Rainfed</option>
-                                    <option value="Irrigated">Irrigated</option>
+                                    <option value="">Select municipality</option>
+                                    @foreach($municipalities as $municipality)
+                                        <option value="{{ $municipality }}" {{ old('municipality') == $municipality ? 'selected' : '' }}>
+                                            {{ $municipality }}
+                                        </option>
+                                    @endforeach
                                 </select>
-                            </div>
-
-                            <!-- Year -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Year<span class="text-red-500">*</span>
-                                </label>
-                                <input type="number" name="year" required placeholder="Year" min="2020" max="2050"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
                             </div>
 
                             <!-- Crop -->
@@ -420,49 +496,106 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
                                     Crop<span class="text-red-500">*</span>
                                 </label>
-                                <input type="text" name="crop" required placeholder="Crop"
+                                <select name="crop" required
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                    <option value="">Select crop</option>
+                                    @foreach($crops as $crop)
+                                        <option value="{{ $crop }}" {{ old('crop') == $crop ? 'selected' : '' }}>
+                                            {{ $crop }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Subsidy Status -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Subsidy Status
+                                </label>
+                                <select name="subsidy_status"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                    <option value="Pending" {{ old('subsidy_status', 'Pending') == 'Pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="Approved" {{ old('subsidy_status') == 'Approved' ? 'selected' : '' }}>Approved</option>
+                                    <option value="Rejected" {{ old('subsidy_status') == 'Rejected' ? 'selected' : '' }}>Rejected</option>
+                                </select>
+                            </div>
+
+                            <!-- Subsidy Amount -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Subsidy Amount (₱)
+                                </label>
+                                <input type="number" name="subsidy_amount" placeholder="Enter amount" step="0.01" min="0" value="{{ old('subsidy_amount') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                            </div>
+
+                            <!-- Farm Type -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Farm Type
+                                </label>
+                                <select name="farm_type"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                    <option value="">Select farm type</option>
+                                    <option value="Rainfed" {{ old('farm_type') == 'Rainfed' ? 'selected' : '' }}>Rainfed</option>
+                                    <option value="Irrigated" {{ old('farm_type') == 'Irrigated' ? 'selected' : '' }}>Irrigated</option>
+                                    <option value="Upland" {{ old('farm_type') == 'Upland' ? 'selected' : '' }}>Upland</option>
+                                    <option value="Lowland" {{ old('farm_type') == 'Lowland' ? 'selected' : '' }}>Lowland</option>
+                                </select>
+                            </div>
+
+                            <!-- Year -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Year
+                                </label>
+                                <input type="number" name="year" placeholder="e.g., {{ date('Y') }}" min="2000" max="{{ date('Y') + 5 }}" value="{{ old('year', date('Y')) }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
                             </div>
 
                             <!-- Area Planted (ha) -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Area Planted (ha)<span class="text-red-500">*</span>
+                                    Area Planted (ha)
                                 </label>
-                                <input type="number" name="area_planted" required placeholder="Enter a number" step="0.01" min="0"
+                                <input type="number" name="area_planted" placeholder="Enter area in hectares" step="0.01" min="0" value="{{ old('area_planted') }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
                             </div>
 
                             <!-- Area Harvested (ha) -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Area Harvested (ha)<span class="text-red-500">*</span>
+                                    Area Harvested (ha)
                                 </label>
-                                <input type="number" name="area_harvested" required placeholder="Enter a number" step="0.01" min="0"
+                                <input type="number" name="area_harvested" placeholder="Enter area in hectares" step="0.01" min="0" value="{{ old('area_harvested') }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
                             </div>
 
                             <!-- Production (mt) -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Production (mt)<span class="text-red-500">*</span>
+                                    Production (MT)
                                 </label>
-                                <input type="number" name="production" required placeholder="Enter a number" step="0.01" min="0"
+                                <input type="number" name="production" placeholder="Enter production in metric tons" step="0.01" min="0" value="{{ old('production') }}"
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
                             </div>
 
-                            <!-- Productivity (mt/ha) -->
+                            <!-- Productivity (kg/ha) - Auto-calculated -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Productivity (mt/ha)
+                                    Productivity (kg/ha)
                                 </label>
-                                <input type="number" name="productivity" placeholder="Enter a number" step="0.01" min="0"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                <input type="number" name="productivity" placeholder="Auto-calculated" step="0.01" min="0" value="{{ old('productivity') }}"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                <p class="mt-1 text-xs text-gray-500">Leave blank to auto-calculate from production/area harvested</p>
                             </div>
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="flex justify-start pt-4">
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button type="button" @click="showSubsidyModal = false" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-md transition-colors">
+                                Cancel
+                            </button>
                             <button type="submit" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-md transition-colors">
                                 Submit
                             </button>
@@ -477,17 +610,27 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== RECOMMENDATIONS PAGE LOADED ===');
+            
             // Allocation vs Need Bar Chart
             const ctx = document.getElementById('allocationChart');
             if (ctx) {
+                console.log('Loading allocation chart...');
+                
+                const labels = @json($allocationData['labels']);
+                const needed = @json($allocationData['needed']);
+                const allocated = @json($allocationData['allocated']);
+                
+                console.log('Chart Data:', { labels, needed, allocated });
+                
                 new Chart(ctx, {
                     type: 'bar',
                     data: {
-                        labels: ['Cabbage', 'Carrot', 'Broccoli', 'Lettuce', 'Beans', 'Potato'],
+                        labels: labels,
                         datasets: [
                             {
                                 label: 'Needed Seeds (kg)',
-                                data: [850, 1100, 950, 450, 1000, 1050],
+                                data: needed,
                                 backgroundColor: 'rgba(234, 179, 8, 0.8)', // Yellow
                                 borderColor: 'rgb(234, 179, 8)',
                                 borderWidth: 1,
@@ -495,7 +638,7 @@
                             },
                             {
                                 label: 'Allocated Seeds (kg)',
-                                data: [550, 900, 650, 850, 700, 850],
+                                data: allocated,
                                 backgroundColor: 'rgba(249, 115, 22, 0.8)', // Orange
                                 borderColor: 'rgb(249, 115, 22)',
                                 borderWidth: 1,
@@ -506,6 +649,17 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: {
+                            duration: 1200,
+                            easing: 'easeInOutQuart',
+                            delay: (context) => {
+                                let delay = 0;
+                                if (context.type === 'data' && context.mode === 'default') {
+                                    delay = context.dataIndex * 100 + context.datasetIndex * 150;
+                                }
+                                return delay;
+                            }
+                        },
                         plugins: {
                             legend: {
                                 display: false // Using custom legend

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Crop;
+use App\Models\Subsidy;
+use App\Services\WeatherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -11,93 +13,86 @@ use Illuminate\Support\Facades\Log;
 
 class RecommendationsController extends Controller
 {
+    protected $weatherService;
+
+    public function __construct(WeatherService $weatherService)
+    {
+        $this->weatherService = $weatherService;
+    }
+
     public function index(Request $request)
     {
-        // Get filter parameters
-        $selectedMunicipality = $request->input('municipality');
-        $selectedCrop = $request->input('crop');
-        $selectedSubsidy = $request->input('subsidy_status');
-        $selectedSubsidyAmount = $request->input('subsidy_amount');
+        // Get filter parameters for subsidies
+        $filterCrop = $request->input('crop');
+        $filterStatus = $request->input('status');
 
-        // Get unique municipalities and crops for filters
-        $municipalities = Crop::distinct()->pluck('municipality')->sort()->values();
+        // Get unique crops for filter dropdown
         $crops = Crop::distinct()->pluck('crop')->sort()->values();
+        
+        // Get unique municipalities
+        $municipalities = Crop::distinct()->pluck('municipality')->sort()->values();
 
-        // Build query for policy dashboard data
-        $query = Crop::select(
-            'municipality',
-            'crop',
-            DB::raw('COUNT(DISTINCT CONCAT(year, "-", month)) as record_count'),
-            DB::raw('AVG(area_planted) as avg_area_planted'),
-            DB::raw('AVG(area_harvested) as avg_area_harvested'),
-            DB::raw('AVG(production) as avg_production'),
-            DB::raw('AVG(productivity) as avg_productivity')
-        );
+        // Build query for subsidy data
+        $subsidyQuery = Subsidy::query();
 
         // Apply filters
-        if ($selectedMunicipality) {
-            $query->where('municipality', $selectedMunicipality);
+        if ($filterCrop) {
+            $subsidyQuery->where('crop', $filterCrop);
         }
-        if ($selectedCrop) {
-            $query->where('crop', $selectedCrop);
+        if ($filterStatus) {
+            $subsidyQuery->where('subsidy_status', $filterStatus);
         }
 
-        $policyData = $query->groupBy('municipality', 'crop')
-            ->orderByDesc('avg_production')
-            ->paginate(10);
-
-        // Get weather data (mock data for now)
-        $weatherData = $this->getWeatherData();
-
-        // Get climate resilience recommendations
-        $climateResilience = $this->getClimateResilience($selectedMunicipality);
-
-        // Get disaster warning
-        $disasterWarning = $this->getDisasterWarning();
-
-        // Get best crops recommendation
-        $bestCrops = $this->getBestCrops($selectedMunicipality);
-
-        // Get climate rule recommendation
-        $climateRule = $this->getClimateRule();
+        // Get paginated subsidy data
+        $subsidies = $subsidyQuery->orderByDesc('updated_at')->paginate(10);
 
         // Get allocation data for bar chart
-        $allocationData = $this->getAllocationData($selectedMunicipality);
+        $allocationData = $this->getAllocationData();
+
+        // Get weather data for Benguet municipalities
+        $municipalityWeather = [
+            $this->weatherService->getForecast('Atok'),
+            $this->weatherService->getForecast('Bakun'),
+            $this->weatherService->getForecast('Bokod')
+        ];
+
+        // Get hourly forecast (using first municipality)
+        $hourlyForecast = $this->weatherService->getHourlyForecast('Atok');
+
+        // Get optimal planting window and climate risk
+        $optimalWindow = $this->weatherService->getOptimalPlantingWindow($hourlyForecast);
+        $climateRisk = $this->weatherService->getClimateRisk($municipalityWeather[0]['forecast']);
+
+        // Best crops for the region
+        $bestCrops = $this->getBestCrops();
 
         return view('admin.recommendations', [
-            'municipalities' => $municipalities,
             'crops' => $crops,
-            'selectedMunicipality' => $selectedMunicipality,
-            'selectedCrop' => $selectedCrop,
-            'selectedSubsidy' => $selectedSubsidy,
-            'selectedSubsidyAmount' => $selectedSubsidyAmount,
-            'policyData' => $policyData,
-            'weatherData' => $weatherData,
-            'climateResilience' => $climateResilience,
-            'disasterWarning' => $disasterWarning,
-            'bestCrops' => $bestCrops,
-            'climateRule' => $climateRule,
-            'allocationData' => $allocationData
+            'municipalities' => $municipalities,
+            'filterCrop' => $filterCrop,
+            'filterStatus' => $filterStatus,
+            'subsidies' => $subsidies,
+            'allocationData' => $allocationData,
+            'municipalityWeather' => $municipalityWeather,
+            'hourlyForecast' => $hourlyForecast,
+            'optimalWindow' => $optimalWindow,
+            'climateRisk' => $climateRisk,
+            'bestCrops' => $bestCrops
         ]);
     }
 
-    private function getAllocationData($municipality = null)
+    private function getAllocationData()
     {
         // Calculate seed allocation based on crop data
-        $query = Crop::select(
+        $cropData = Crop::select(
             'crop',
             DB::raw('AVG(area_planted) as avg_area'),
             DB::raw('COUNT(*) as records')
-        );
-
-        if ($municipality) {
-            $query->where('municipality', $municipality);
-        }
-
-        $cropData = $query->groupBy('crop')
-            ->orderByDesc('avg_area')
-            ->limit(6)
-            ->get();
+        )
+        ->groupBy('crop')
+        ->orderByDesc('avg_area')
+        ->limit(6)
+        ->get();
 
         $labels = [];
         $needed = [];
@@ -120,108 +115,35 @@ class RecommendationsController extends Controller
         ];
     }
 
-    private function getWeatherData()
+    private function getBestCrops()
     {
-        // Mock weather data - in production, integrate with weather API
-        return [
-            'today' => [
-                'high' => 31,
-                'low' => 27,
-                'condition' => 'Sunny',
-                'icon' => '☀️'
-            ],
-            'forecast' => [
-                ['day' => 'Mon 4', 'high' => 33, 'low' => 27, 'condition' => 'Partly Cloudy'],
-                ['day' => 'Tue 5', 'high' => 32, 'low' => 28, 'condition' => 'Rainy'],
-                ['day' => 'Wed 6', 'high' => 30, 'low' => 26, 'condition' => 'Cloudy'],
-                ['day' => 'Thu 7', 'high' => 31, 'low' => 27, 'condition' => 'Partly Cloudy'],
-            ],
-            'weekly' => [
-                ['date' => '12/1', 'temp' => 19, 'condition' => 'Cloudy'],
-                ['date' => '13/1', 'temp' => 19, 'condition' => 'Cloudy'],
-                ['date' => '14/1', 'temp' => 22, 'condition' => 'Partly Cloudy'],
-                ['date' => '15/1', 'temp' => 23, 'condition' => 'Partly Cloudy'],
-                ['date' => '16/1', 'temp' => 24, 'condition' => 'Partly Cloudy'],
-                ['date' => '17/1', 'temp' => 24, 'condition' => 'Partly Cloudy'],
-            ]
-        ];
-    }
-
-    private function getClimateResilience($municipality = null)
-    {
-        return [
-            'title' => 'Climate Resilience',
-            'description' => 'Climate resilience is very important especially in farm. These are the things you should do...',
-            'action' => 'Read More'
-        ];
-    }
-
-    private function getDisasterWarning()
-    {
-        return [
-            'title' => 'Disaster Planting Window',
-            'description' => 'A disaster is coming, you should not plant in Bocaue, Bulacan...',
-            'action' => 'See More'
-        ];
-    }
-
-    private function getBestCrops($municipality = null)
-    {
-        // Get top performing crops
-        $query = Crop::select(
-            'crop',
-            DB::raw('AVG(productivity) as avg_productivity'),
-            DB::raw('SUM(production) as total_production')
-        );
-
-        if ($municipality) {
-            $query->where('municipality', $municipality);
-        }
-
-        $topCrops = $query->groupBy('crop')
+        // Get top performing crops based on productivity
+        $topCrops = Crop::select('crop', DB::raw('AVG(productivity) as avg_productivity'))
+            ->groupBy('crop')
             ->orderByDesc('avg_productivity')
             ->limit(3)
-            ->get();
+            ->get()
+            ->pluck('crop')
+            ->toArray();
 
-        return [
-            'title' => 'Best Crops',
-            'description' => 'Best crops for ' . ($municipality ?: 'your area') . ': ' . $topCrops->pluck('crop')->implode(', '),
-            'action' => 'View Details'
-        ];
-    }
+        if (empty($topCrops)) {
+            return 'Beans, Cabbage, Broccoli'; // Default
+        }
 
-    private function getClimateRule()
-    {
-        return [
-            'title' => 'Climate Rule',
-            'description' => 'The climate is hot in Bocaue, do not plant crops that are...',
-            'action' => 'See More'
-        ];
-    }
-
-    public function updateSubsidy(Request $request, $id)
-    {
-        $request->validate([
-            'subsidy_status' => 'required|in:Approved,Pending,Rejected',
-            'subsidy_amount' => 'nullable|numeric|min:0'
-        ]);
-
-        // Update logic here (you'll need to create a subsidies table)
-        // For now, just return success
-        
-        return response()->json([
-            'success' => true,
-            'message' => 'Subsidy updated successfully'
-        ]);
+        return implode(', ', $topCrops);
     }
 
     public function storeSubsidy(Request $request)
     {
         $request->validate([
+            'full_name' => 'required|string|max:255',
+            'farmer_id' => 'required|string|unique:subsidies,farmer_id',
+            'crop' => 'required|string',
+            'subsidy_status' => 'nullable|in:Approved,Pending,Rejected',
+            'subsidy_amount' => 'nullable|numeric|min:0',
             'municipality' => 'required|string',
             'farm_type' => 'required|in:Rainfed,Irrigated',
             'year' => 'required|integer|min:2020|max:2050',
-            'crop' => 'required|string',
             'area_planted' => 'required|numeric|min:0',
             'area_harvested' => 'required|numeric|min:0',
             'production' => 'required|numeric|min:0',
@@ -231,20 +153,22 @@ class RecommendationsController extends Controller
         // Calculate productivity if not provided
         $productivity = $request->productivity;
         if (!$productivity && $request->area_harvested > 0) {
-            $productivity = $request->production / $request->area_harvested;
+            $productivity = ($request->production * 1000) / $request->area_harvested;
         }
 
-        // Store subsidy data (you can create a subsidies table or add to crops table)
-        // For now, we'll create a crop record as a placeholder
-        Crop::create([
+        // Create subsidy record
+        Subsidy::create([
+            'full_name' => $request->full_name,
+            'farmer_id' => $request->farmer_id,
+            'crop' => $request->crop,
+            'subsidy_status' => $request->subsidy_status ?? 'Pending',
+            'subsidy_amount' => $request->subsidy_amount,
             'municipality' => $request->municipality,
             'farm_type' => $request->farm_type,
             'year' => $request->year,
-            'month' => strtoupper(date('M')), // Current month
-            'crop' => $request->crop,
             'area_planted' => $request->area_planted,
             'area_harvested' => $request->area_harvested,
-            'production' => $request->production * 1000, // Convert to kg
+            'production' => $request->production,
             'productivity' => $productivity
         ]);
 

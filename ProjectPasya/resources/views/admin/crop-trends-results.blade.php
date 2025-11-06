@@ -348,15 +348,23 @@
 
     @push('scripts')
     <script>
+        // Debug: Verify this page is loading
+        console.log('=== PREDICTION RESULTS PAGE LOADED ===');
+        console.log('Total Predictions:', {{ count($predictions) }});
+        
         function predictionResults() {
             return {
                 init() {
+                    console.log('Initializing prediction results...');
                     this.initChart();
                 },
 
                 initChart() {
                     const ctx = document.getElementById('predictionChart');
-                    if (!ctx) return;
+                    if (!ctx) {
+                        console.error('Chart canvas not found!');
+                        return;
+                    }
 
                     const labels = @json($chartLabels);
                     const historical = @json($historicalData);
