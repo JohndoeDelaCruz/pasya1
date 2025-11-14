@@ -4,8 +4,16 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\CropDataController;
 use App\Http\Controllers\Admin\FarmerController;
 use App\Http\Controllers\Admin\CropManagementController;
+use App\Http\Controllers\Admin\CropMappingController;
+use App\Http\Controllers\Admin\DataAnalyticsController;
+use App\Http\Controllers\Admin\CropTrendsController;
+use App\Http\Controllers\Admin\RecommendationsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PredictionController;
+
+// Debug route
+require __DIR__.'/debug.php';
 
 Route::get('/', function () {
     return view('welcome');
@@ -13,7 +21,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     // Redirect admin users to admin dashboard
-    if (Auth::check() && Auth::user()->email === 'opagadmin@gmail.com') {
+    if (Auth::check() && Auth::user()->email === 'DAadmin@gmail.com') {
         return redirect()->route('admin.dashboard');
     }
     return view('dashboard');
@@ -40,13 +48,11 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
 
 // Admin Routes
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.data-analytics');
-    })->name('dashboard');
+    Route::get('/dashboard', [DataAnalyticsController::class, 'index'])->name('dashboard');
+    Route::get('/export-summary', [DataAnalyticsController::class, 'exportSummary'])->name('export-summary');
     
-    Route::get('/crop-trends', function () {
-        return view('admin.crop-trends');
-    })->name('crop-trends');
+    Route::get('/crop-trends', [CropTrendsController::class, 'index'])->name('crop-trends');
+    Route::post('/crop-trends/predict', [CropTrendsController::class, 'predict'])->name('crop-trends.predict');
     
     // Farmer Account Management Routes
     Route::get('/farmers', [FarmerController::class, 'index'])->name('farmers.index');
@@ -60,6 +66,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/crop-data', [CropDataController::class, 'index'])->name('crop-data.index');
     Route::get('/crop-data/upload', [CropDataController::class, 'uploadForm'])->name('crop-data.upload');
     Route::post('/crop-data/import', [CropDataController::class, 'import'])->name('crop-data.import');
+    Route::post('/crop-data/store', [CropDataController::class, 'store'])->name('crop-data.store');
     Route::get('/crop-statistics', [CropDataController::class, 'statistics'])->name('crop-statistics');
     Route::delete('/crop-data/{crop}', [CropDataController::class, 'destroy'])->name('crop-data.destroy');
     Route::delete('/crop-data', [CropDataController::class, 'deleteAll'])->name('crop-data.delete-all');
@@ -73,9 +80,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::put('/municipalities/{municipality}', [CropManagementController::class, 'updateMunicipality'])->name('municipalities.update');
     Route::delete('/municipalities/{municipality}', [CropManagementController::class, 'destroyMunicipality'])->name('municipalities.destroy');
     
-    Route::get('/recommendations', function () {
-        return view('admin.recommendations');
-    })->name('recommendations');
+    // Crop Name Mappings Routes (ML API Integration)
+    Route::get('/crop-mappings', [CropMappingController::class, 'index'])->name('crop-mappings.index');
+    Route::post('/crop-mappings', [CropMappingController::class, 'store'])->name('crop-mappings.store');
+    Route::put('/crop-mappings/{cropMapping}', [CropMappingController::class, 'update'])->name('crop-mappings.update');
+    Route::delete('/crop-mappings/{cropMapping}', [CropMappingController::class, 'destroy'])->name('crop-mappings.destroy');
+    Route::post('/crop-mappings/{cropMapping}/toggle', [CropMappingController::class, 'toggle'])->name('crop-mappings.toggle');
+    Route::post('/crop-mappings/auto-map', [CropMappingController::class, 'autoMap'])->name('crop-mappings.auto-map');
+    
+    Route::get('/recommendations', [RecommendationsController::class, 'index'])->name('recommendations');
+    Route::post('/subsidies', [RecommendationsController::class, 'storeSubsidy'])->name('subsidies.store');
 });
 
 Route::middleware('auth')->group(function () {
@@ -83,5 +97,25 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::prefix('predictions')->group(function () {
+    // Make a single prediction
+    Route::post('/', [PredictionController::class, 'predict']);
+    
+    // Get valid categorical values
+    Route::get('/valid-values', [PredictionController::class, 'getValidValues']);
+    
+    // Health check
+    Route::get('/health', [PredictionController::class, 'healthCheck']);
+    
+    // Batch predictions
+    Route::post('/batch', [PredictionController::class, 'predictBatch']);
+});
+
+// Test page for predictions (remove in production)
+Route::get('/test-prediction', function () {
+    return view('test-prediction');
+})->name('test-prediction');
+
 
 require __DIR__.'/auth.php';

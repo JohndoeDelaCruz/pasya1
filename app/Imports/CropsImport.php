@@ -94,7 +94,7 @@ class CropsImport implements
      */
     public function batchSize(): int
     {
-        return 1000;
+        return 2000; // Increased from 1000 for faster imports
     }
 
     /**
@@ -102,6 +102,6 @@ class CropsImport implements
      */
     public function chunkSize(): int
     {
-        return 1000;
+        return 2000; // Increased from 1000 for faster processing
     }
 }

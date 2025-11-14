@@ -104,6 +104,10 @@ class CropDataController extends Controller
         ]);
 
         try {
+            // Increase execution time and memory for large imports
+            set_time_limit(300); // 5 minutes
+            ini_set('memory_limit', '512M');
+            
             $startTime = microtime(true);
             
             Excel::import(new CropsImport, $request->file('file'));
@@ -135,6 +139,41 @@ class CropDataController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Import failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Store a single crop data entry
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'municipality' => 'required|string|max:255',
+            'farm_type' => 'required|string|max:255',
+            'year' => 'required|integer|min:2000|max:' . (date('Y') + 1),
+            'month' => 'required|string|max:50',
+            'crop' => 'required|string|max:255',
+            'area_planted' => 'required|numeric|min:0',
+            'area_harvested' => 'required|numeric|min:0',
+            'production' => 'required|numeric|min:0',
+            'productivity' => 'nullable|numeric|min:0',
+        ]);
+
+        // Calculate productivity if not provided
+        if (!isset($validated['productivity']) || $validated['productivity'] == 0) {
+            if ($validated['area_harvested'] > 0) {
+                $validated['productivity'] = $validated['production'] / $validated['area_harvested'];
+            } else {
+                $validated['productivity'] = 0;
+            }
+        }
+
+        // Add the uploader
+        $validated['uploaded_by'] = auth()->id();
+
+        Crop::create($validated);
+
+        return redirect()->route('admin.crop-data.index')
+            ->with('success', 'Crop data entry added successfully!');
     }
 
     /**

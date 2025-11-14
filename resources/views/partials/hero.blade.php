@@ -2,7 +2,7 @@
     <section class="bg-cover bg-no-repeat relative" style="background-image: url('{{ asset('images/rice-terraces.jpg') }}');">
         <div class="absolute inset-0 bg-gray-900 bg-opacity-60 animate-fade-in"></div>
         <div class="px-4 mx-auto max-w-screen-xl text-center py-24 lg:py-56 relative z-10">
-            <img class="h-auto max-w-sm mx-auto animate-fade-in-down" style="animation-delay: 0.2s;" src="{{ asset('images/pasya.png') }}" alt="image description"/>
+            <img class="h-auto max-w-sm mx-auto animate-fade-in-down" style="animation-delay: 0.2s;" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
             <h1 class="mb-4 text-2xl font-extrabold tracking-tight leading-none text-green-500 md:text-2xl lg:text-3xl dark:text-white animate-fade-in-up" style="animation-delay: 0.4s;">PASYA: Predictive Analytics for Sustainable Agriculture and Yield Advancement </h1>
             <p class="mb-8 text-md font-normal text-gray-300 lg:text-xl sm:px-16 lg:px-42 dark:text-gray-400 animate-fade-in-up" style="animation-delay: 0.6s;">A Decision Support System for Highland Vegetable Agriculture in Benguet</p>
             <div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 animate-fade-in-up" style="animation-delay: 0.8s;">
