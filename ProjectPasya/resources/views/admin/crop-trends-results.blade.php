@@ -98,7 +98,7 @@
                     </h2>
                     <p class="text-sm text-gray-500 mt-1">
                         <span class="font-medium text-cyan-600">Historical Yields</span> vs 
-                        <span class="font-medium text-green-600">Predicted Yields</span> (kg/ha)
+                        <span class="font-medium text-green-600">Predicted Yields</span> (MT/ha)
                     </p>
                 </div>
                 
@@ -157,6 +157,8 @@
                         Predicted values are generated using {{ $mlApiHealthy ? 'ML predictions' : 'historical averages' }} based on your filters.
                         @if(!$mlApiHealthy)
                             <span class="text-yellow-700">(ML API is currently unavailable, using fallback data)</span>
+                        @elseif(collect($predictions)->whereNotNull('confidence_score')->count() === 0)
+                            <span class="text-yellow-700">(Note: This crop may not be supported by the ML model. Using historical data as predictions.)</span>
                         @endif
                     </div>
                 </div>
@@ -167,10 +169,11 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Historical Productivity (kg/ha)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Productivity (kg/ha)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Historical Productivity (MT/ha)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Productivity (MT/ha)</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Historical Production (MT)</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Production (MT)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -203,6 +206,18 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                                     @if($prediction['predicted_production'])
                                         <span class="text-green-600 font-medium">{{ number_format($prediction['predicted_production'], 2) }}</span>
+                                    @else
+                                        <span class="text-gray-400">N/A</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    @if(isset($prediction['confidence_score']) && $prediction['confidence_score'] !== null)
+                                        @php
+                                            $c = $prediction['confidence_score'];
+                                            // If confidence is given as 0-1 float, convert to percent
+                                            $display = $c < 1 ? $c * 100 : $c;
+                                        @endphp
+                                        <span class="text-gray-800 font-medium">{{ number_format($display, 2) }}%</span>
                                     @else
                                         <span class="text-gray-400">N/A</span>
                                     @endif
@@ -381,7 +396,7 @@
                             labels: labels,
                             datasets: [
                                 {
-                                    label: 'Historical Yields (kg/ha)',
+                                    label: 'Historical Yields (MT/ha)',
                                     data: historical,
                                     borderColor: 'rgb(34, 211, 238)',
                                     backgroundColor: 'rgba(34, 211, 238, 0.2)',
@@ -396,7 +411,7 @@
                                     pointBorderWidth: 2
                                 },
                                 {
-                                    label: 'Predicted Yields (kg/ha)',
+                                    label: 'Predicted Yields (MT/ha)',
                                     data: predicted,
                                     borderColor: 'rgb(34, 197, 94)',
                                     backgroundColor: 'rgba(34, 197, 94, 0.2)',
@@ -444,7 +459,7 @@
                                                 label += ': ';
                                             }
                                             if (context.parsed.y !== null) {
-                                                label += context.parsed.y.toFixed(2) + ' kg/ha';
+                                                label += context.parsed.y.toFixed(2) + ' MT/ha';
                                             } else {
                                                 label += 'N/A';
                                             }
@@ -458,7 +473,7 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Productivity (kg/ha)',
+                                        text: 'Productivity (MT/ha)',
                                         font: {
                                             size: 14,
                                             weight: 'bold'

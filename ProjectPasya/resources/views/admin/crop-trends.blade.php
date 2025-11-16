@@ -30,7 +30,7 @@
 
         <!-- Crop Yield Forecasting Chart -->
         <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center justify-between mb-4">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,6 +53,8 @@
                     </div>
                 </div>
             </div>
+            
+            {{-- Data source banner removed as requested --}}
 
             <!-- Forecast Chart -->
             <div class="h-[350px] relative">
@@ -84,7 +86,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h4 class="font-semibold text-gray-800">Summary of Demand</h4>
-                        <p class="text-sm text-gray-500">January - June 2025</p>
+                        <p class="text-sm text-gray-500">January - June 2025 • Production in Metric Tons (MT)</p>
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2">
@@ -219,7 +221,9 @@
                             <select name="municipality" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="">Select municipality</option>
                                 @foreach($municipalities as $municipality)
-                                    <option value="{{ $municipality }}">{{ $municipality }}</option>
+                                    <option value="{{ $municipality }}" {{ strtoupper($municipality) === strtoupper($selectedMunicipality) ? 'selected' : '' }}>
+                                        {{ $municipality }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -231,8 +235,8 @@
                             </label>
                             <select name="farm_type" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="">Select farm type</option>
-                                <option value="Rainfed">Rainfed</option>
-                                <option value="Irrigated">Irrigated</option>
+                                <option value="Rainfed" {{ strtoupper($selectedFarmType) === 'RAINFED' ? 'selected' : '' }}>Rainfed</option>
+                                <option value="Irrigated" {{ strtoupper($selectedFarmType) === 'IRRIGATED' ? 'selected' : '' }}>Irrigated</option>
                             </select>
                         </div>
 
@@ -242,7 +246,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <select name="month_from" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="">Month</option>
-                                    <option value="JAN">January</option>
+                                    <option value="JAN" selected>January</option>
                                     <option value="FEB">February</option>
                                     <option value="MAR">March</option>
                                     <option value="APR">April</option>
@@ -266,7 +270,7 @@
                                 <option value="MAR">March</option>
                                 <option value="APR">April</option>
                                 <option value="MAY">May</option>
-                                <option value="JUN">June</option>
+                                <option value="JUN" selected>June</option>
                                 <option value="JUL">July</option>
                                 <option value="AUG">August</option>
                                 <option value="SEP">September</option>
@@ -280,12 +284,12 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Year</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <input type="number" name="year_from" required min="2000" max="2050" placeholder="Year" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <input type="number" name="year_from" required min="2000" max="2050" value="{{ date('Y') }}" placeholder="Year" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <div class="flex items-center justify-center">
                                     <span class="text-gray-500 text-sm">to</span>
                                 </div>
                             </div>
-                            <input type="number" name="year_to" required min="2000" max="2050" placeholder="Year" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2">
+                            <input type="number" name="year_to" required min="2000" max="2050" value="{{ date('Y') }}" placeholder="Year" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2">
                         </div>
 
                         <!-- Crop -->
@@ -296,7 +300,9 @@
                             <select name="crop" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <option value="">Select a crop</option>
                                 @foreach($crops as $crop)
-                                    <option value="{{ $crop }}">{{ $crop }}</option>
+                                    <option value="{{ $crop }}" {{ strtoupper($crop) === strtoupper($selectedCrop) ? 'selected' : '' }}>
+                                        {{ $crop }}
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
@@ -466,14 +472,14 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Predicted',
+                                    label: 'Predicted (MT)',
                                     data: predicted,
                                     backgroundColor: 'rgb(34, 197, 94)',
                                     borderRadius: 4,
                                     barThickness: 20
                                 },
                                 {
-                                    label: 'Recorded',
+                                    label: 'Recorded (MT)',
                                     data: recorded,
                                     backgroundColor: 'rgb(209, 213, 219)',
                                     borderRadius: 4,
@@ -503,12 +509,32 @@
                                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
                                     padding: 10,
                                     titleFont: { size: 12 },
-                                    bodyFont: { size: 11 }
+                                    bodyFont: { size: 11 },
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += context.parsed.y.toFixed(2) + ' MT';
+                                            }
+                                            return label;
+                                        }
+                                    }
                                 }
                             },
                             scales: {
                                 y: {
                                     beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Production (MT)',
+                                        font: {
+                                            size: 11,
+                                            weight: 'bold'
+                                        }
+                                    },
                                     grid: {
                                         color: 'rgba(0, 0, 0, 0.05)'
                                     },

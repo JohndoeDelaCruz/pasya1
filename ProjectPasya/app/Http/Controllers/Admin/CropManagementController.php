@@ -78,7 +78,7 @@ class CropManagementController extends Controller
             Municipality::firstOrCreate(
                 ['name' => $municipalityName],
                 [
-                    'province' => 'Negros Occidental',
+                    'province' => 'Benguet',
                     'description' => 'Auto-imported from crop data',
                     'is_active' => true
                 ]

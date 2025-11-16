@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\CropDataController;
 use App\Http\Controllers\Admin\FarmerController;
 use App\Http\Controllers\Admin\CropManagementController;
+use App\Http\Controllers\Admin\CropMappingController;
 use App\Http\Controllers\Admin\DataAnalyticsController;
 use App\Http\Controllers\Admin\CropTrendsController;
 use App\Http\Controllers\Admin\RecommendationsController;
@@ -79,8 +80,17 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::put('/municipalities/{municipality}', [CropManagementController::class, 'updateMunicipality'])->name('municipalities.update');
     Route::delete('/municipalities/{municipality}', [CropManagementController::class, 'destroyMunicipality'])->name('municipalities.destroy');
     
+    // Crop Name Mappings Routes (ML API Integration)
+    Route::get('/crop-mappings', [CropMappingController::class, 'index'])->name('crop-mappings.index');
+    Route::post('/crop-mappings', [CropMappingController::class, 'store'])->name('crop-mappings.store');
+    Route::put('/crop-mappings/{cropMapping}', [CropMappingController::class, 'update'])->name('crop-mappings.update');
+    Route::delete('/crop-mappings/{cropMapping}', [CropMappingController::class, 'destroy'])->name('crop-mappings.destroy');
+    Route::post('/crop-mappings/{cropMapping}/toggle', [CropMappingController::class, 'toggle'])->name('crop-mappings.toggle');
+    Route::post('/crop-mappings/auto-map', [CropMappingController::class, 'autoMap'])->name('crop-mappings.auto-map');
+    
     Route::get('/recommendations', [RecommendationsController::class, 'index'])->name('recommendations');
     Route::post('/subsidies', [RecommendationsController::class, 'storeSubsidy'])->name('subsidies.store');
+    Route::post('/resources', [RecommendationsController::class, 'storeResource'])->name('resources.store');
 });
 
 Route::middleware('auth')->group(function () {

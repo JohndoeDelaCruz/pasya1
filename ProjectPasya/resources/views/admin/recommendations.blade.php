@@ -7,7 +7,13 @@
     </style>
     @endpush
 
-    <div class="space-y-6" x-data="{ showSubsidyModal: {{ $errors->any() ? 'true' : 'false' }} }">
+    <div class="space-y-6" 
+         x-data="{ 
+             showSubsidyModal: {{ $errors->any() ? 'true' : 'false' }},
+             showResourceModal: false 
+         }"
+         @open-resource-modal.window="showResourceModal = true"
+         x-init="console.log('Alpine initialized. showResourceModal:', showResourceModal)">
         <!-- Success Message -->
         @if(session('success'))
             <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg" role="alert">
@@ -162,6 +168,12 @@
 
             <!-- Export Button -->
             <div class="mt-4 flex justify-end gap-2">
+                <button type="button"
+                        x-data
+                        @click="$dispatch('open-resource-modal')"
+                        class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors">
+                    Allocate Resources
+                </button>
                 <select class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
                     <option>Type of file</option>
                     <option>PDF</option>
@@ -178,7 +190,10 @@
         <div class="bg-white rounded-xl shadow-md p-6">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-800">Policy Dashboard</h2>
-                <button type="button" @click="showSubsidyModal = true" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors flex items-center gap-2">
+                <button type="button" 
+                        @click="showSubsidyModal = true" 
+                        onclick="alert('Subsidy button clicked! Alpine: ' + (typeof Alpine !== 'undefined' ? 'loaded' : 'not loaded'))"
+                        class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -189,15 +204,31 @@
             <!-- Filters and Actions Row -->
             <form method="GET" action="{{ route('admin.recommendations') }}" class="mb-6">
                 <div class="flex items-center gap-3">
+                    <!-- Name Filter -->
+                    <div class="flex-1">
+                        <input type="text" name="name" placeholder="Name" value="{{ request('name') }}" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    </div>
+
+                    <!-- ID Filter -->
+                    <div class="flex-1">
+                        <input type="text" name="id" placeholder="ID" value="{{ request('id') }}" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    </div>
+
                     <!-- Crop Filter -->
                     <div class="flex-1">
-                        <input type="text" name="crop" placeholder="Crop" value="{{ $filterCrop }}" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <select name="crop" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            <option value="">Crop</option>
+                            @foreach($crops as $crop)
+                                <option value="{{ $crop }}" {{ $filterCrop == $crop ? 'selected' : '' }}>{{ ucwords(strtolower($crop)) }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <!-- Status Filter -->
                     <div class="flex-1">
-                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
                             <option value="">Status</option>
                             <option value="Approved" {{ $filterStatus == 'Approved' ? 'selected' : '' }}>Approved</option>
                             <option value="Pending" {{ $filterStatus == 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -205,27 +236,16 @@
                         </select>
                     </div>
 
-                    <!-- Reset Button -->
-                    <div>
-                        <a href="{{ route('admin.recommendations') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 font-medium transition-colors">
+                    <!-- Reset and Filter Buttons -->
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.recommendations') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 text-sm transition-colors">
                             Reset
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </a>
-                    </div>
-
-                    <!-- View Button -->
-                    <div class="text-sm text-gray-600">
-                        <button type="button" class="px-3 py-2 text-gray-500 hover:text-gray-700">
+                        <button type="submit" class="px-4 py-2 text-gray-600 text-sm hover:text-gray-800">
                             View
-                        </button>
-                    </div>
-
-                    <!-- Allocate Subsidy Button (duplicate for design) -->
-                    <div>
-                        <button type="button" @click="showSubsidyModal = true" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                            Allocate Subsidy
                         </button>
                     </div>
                 </div>
@@ -234,13 +254,13 @@
             <!-- Data Table -->
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                    <thead class="bg-white border-b border-gray-200">
                         <tr>
                             <th class="px-6 py-3 text-left w-10">
                                 <input type="checkbox" class="rounded border-gray-300">
                             </th>
                             <th class="px-6 py-3 text-left">
-                                <button class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700">
+                                <button class="flex items-center gap-1 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900">
                                     Full Name
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
@@ -248,17 +268,17 @@
                                 </button>
                             </th>
                             <th class="px-6 py-3 text-left">
-                                <button class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700">
+                                <button class="flex items-center gap-1 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900">
                                     Crop
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
                                     </svg>
                                 </button>
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subsidy Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subsidy Amt</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Subsidy Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Subsidy Amt</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Last Updated</th>
+                            <th class="px-6 py-3 text-left w-10"></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -272,7 +292,7 @@
                                     <div class="text-xs text-gray-500">{{ $subsidy->farmer_id }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-700">{{ $subsidy->crop }}</div>
+                                    <div class="text-sm text-gray-900">{{ $subsidy->crop }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($subsidy->subsidy_status == 'Approved')
@@ -290,21 +310,21 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-700">
+                                    <div class="text-sm text-gray-900">
                                         @if($subsidy->subsidy_amount)
                                             ₱{{ number_format($subsidy->subsidy_amount, 0) }}
                                         @else
-                                            <span class="text-gray-400">N/A</span>
+                                            <span class="text-gray-400">—</span>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-700">{{ $subsidy->updated_at->format('Y-m-d') }}</div>
+                                    <div class="text-sm text-gray-900">{{ $subsidy->updated_at->format('Y-m-d') }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
                                     <button class="text-gray-400 hover:text-gray-600">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
                                         </svg>
                                     </button>
                                 </td>
@@ -326,7 +346,7 @@
 
             <!-- Pagination Footer -->
             <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-gray-700">
                     @if($subsidies->total() > 0)
                         0 of {{ $subsidies->total() }} row(s) selected.
                     @else
@@ -336,8 +356,8 @@
                 
                 <div class="flex items-center gap-6">
                     <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">Rows per page</span>
-                        <select class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <span class="text-sm text-gray-700">Rows per page</span>
+                        <select class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-300">
                             <option>10</option>
                             <option>25</option>
                             <option>50</option>
@@ -345,68 +365,31 @@
                         </select>
                     </div>
 
-                    <div class="text-sm text-gray-600">
+                    <div class="text-sm text-gray-700">
                         Page {{ $subsidies->currentPage() }} of {{ $subsidies->lastPage() }}
                     </div>
 
                     <div class="flex items-center gap-1">
-                        <a href="{{ $subsidies->url(1) }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->url(1) }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                             </svg>
                         </a>
-                        <a href="{{ $subsidies->previousPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->previousPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                             </svg>
                         </a>
-                        <a href="{{ $subsidies->nextPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->nextPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                         </a>
-                        <a href="{{ $subsidies->url($subsidies->lastPage()) }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->url($subsidies->lastPage()) }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                             </svg>
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>            <!-- Footer Info -->
-            <div class="mt-6 flex items-center justify-between text-sm text-gray-600">
-                <div>0 of 50 row(s) selected</div>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <span>Rows per page:</span>
-                        <select class="border border-gray-300 rounded px-2 py-1 text-sm">
-                            <option>10</option>
-                            <option>25</option>
-                            <option>50</option>
-                        </select>
-                    </div>
-                    <span>Page 1 of 5</span>
-                    <div class="flex items-center gap-1">
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                            </svg>
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                            </svg>
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
-                            </svg>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -416,22 +399,27 @@
         <div x-show="showSubsidyModal" 
              x-cloak
              @keydown.escape.window="showSubsidyModal = false"
-             class="fixed inset-0 z-50 overflow-y-auto"
-             style="display: none;">
-            
-            <!-- Backdrop -->
-            <div x-show="showSubsidyModal" 
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="ease-in duration-200"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-                 @click="showSubsidyModal = false"></div>
+             class="fixed inset-0 z-50 overflow-y-auto" 
+             aria-labelledby="modal-title" 
+             role="dialog" 
+             aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div x-show="showSubsidyModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     @click="showSubsidyModal = false"
+                     class="fixed inset-0 bg-black bg-opacity-60 transition-opacity" 
+                     aria-hidden="true"></div>
 
-            <!-- Modal Content -->
-            <div class="flex min-h-full items-center justify-center p-4">
+                <!-- Center modal -->
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <!-- Modal panel -->
                 <div x-show="showSubsidyModal"
                      x-transition:enter="ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
@@ -439,168 +427,333 @@
                      x-transition:leave="ease-in duration-200"
                      x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                      x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                     class="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+                     class="inline-block align-bottom bg-white rounded-lg text-left overflow-visible shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full"
+                     @click.away="showSubsidyModal = false">
                     
-                    <!-- Modal Header -->
-                    <div class="mb-6">
-                        <h3 class="text-xl font-bold text-gray-800">(Form) Allocate Subsidy</h3>
-                    </div>
+                    <div class="bg-white px-10 py-8 rounded-lg">
+                        <form method="POST" action="{{ route('admin.subsidies.store') }}" class="space-y-6">
+                            @csrf
 
-                    <!-- Subsidy Form -->
-                    <form method="POST" action="{{ route('admin.subsidies.store') }}" class="space-y-6">
-                        @csrf
-                        
-                        <div>
-                            <h4 class="text-base font-semibold text-gray-800 mb-4">Allocate Subsidy</h4>
-                            <p class="text-sm text-gray-600 mb-4">All required fields are marked with *</p>
-                        </div>
-
-                        <!-- Form Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Full Name -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Full Name<span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" name="full_name" required placeholder="Enter full name" value="{{ old('full_name') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                            <!-- Header -->
+                            <div class="pb-3 border-b border-gray-200">
+                                <h3 class="text-base font-semibold text-gray-900">Allocate Subsidy</h3>
+                                <p class="text-sm text-gray-600 mt-1">All required fields are marked with *</p>
                             </div>
 
-                            <!-- Farmer ID -->
+                            @if(session('success'))
+                                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                                    {{ session('success') }}
+                                </div>
+                            @endif
+
+                            @if($errors->any())
+                                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                                    <ul class="list-disc list-inside text-sm">
+                                        @foreach($errors->all() as $error)
+                                            <li>{{ $error }}</li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+
+                            <!-- Row 1: Full Name, Farmer ID -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <!-- Full Name -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Full Name*
+                                    </label>
+                                    <input type="text" 
+                                           name="full_name" 
+                                           value="{{ old('full_name') }}" 
+                                           required 
+                                           placeholder="Enter full name"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+
+                                <!-- Farmer ID -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Farmer ID*
+                                    </label>
+                                    <input type="text" 
+                                           name="farmer_id" 
+                                           value="{{ old('farmer_id') }}" 
+                                           required 
+                                           placeholder="ID-COOP-XXXX"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Municipality, Farm Type, Year, Crop -->
+                            <div class="grid grid-cols-4 gap-6">
+                                <!-- Municipality -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Municipality*
+                                    </label>
+                                    <select name="municipality" 
+                                            required 
+                                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                        <option value="" class="text-gray-400">Municipality</option>
+                                        @foreach($municipalities as $municipality)
+                                            <option value="{{ $municipality }}" class="text-gray-700" {{ old('municipality') == $municipality ? 'selected' : '' }}>
+                                                {{ ucwords(strtolower($municipality)) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Farm Type -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Farm Type*
+                                    </label>
+                                    <select name="farm_type" 
+                                            required 
+                                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                        <option value="" class="text-gray-400">Select farm type</option>
+                                        <option value="Rainfed" class="text-gray-700" {{ old('farm_type') == 'Rainfed' ? 'selected' : '' }}>Rainfed</option>
+                                        <option value="Irrigated" class="text-gray-700" {{ old('farm_type') == 'Irrigated' ? 'selected' : '' }}>Irrigated</option>
+                                    </select>
+                                </div>
+
+                                <!-- Year -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Year*
+                                    </label>
+                                    <input type="number" 
+                                           name="year" 
+                                           value="{{ old('year', date('Y')) }}" 
+                                           required 
+                                           min="2000" 
+                                           max="2050"
+                                           placeholder="Year"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+
+                                <!-- Crop -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Crop*
+                                    </label>
+                                    <select name="crop" 
+                                            required 
+                                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                        <option value="" class="text-gray-400">Crop</option>
+                                        @foreach($crops as $crop)
+                                            <option value="{{ $crop }}" class="text-gray-700" {{ old('crop') == $crop ? 'selected' : '' }}>
+                                                {{ ucwords(strtolower($crop)) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Row 3: Area Planted, Area Harvested -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <!-- Area Planted (ha) -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Area Planted (ha)*
+                                    </label>
+                                    <input type="number" 
+                                           name="area_planted" 
+                                           value="{{ old('area_planted') }}" 
+                                           required 
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="Enter a number"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+
+                                <!-- Area Harvested (ha) -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Area Harvested (ha)*
+                                    </label>
+                                    <input type="number" 
+                                           name="area_harvested" 
+                                           value="{{ old('area_harvested') }}" 
+                                           required 
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="Enter a number"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+                            </div>
+
+                            <!-- Row 4: Production, Productivity -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <!-- Production (mt) -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Production (mt)*
+                                    </label>
+                                    <input type="number" 
+                                           name="production" 
+                                           value="{{ old('production') }}" 
+                                           required 
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="Enter a number"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+
+                                <!-- Productivity (mt/ha) -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Productivity (mt/ha)
+                                    </label>
+                                    <input type="number" 
+                                           name="productivity" 
+                                           value="{{ old('productivity') }}" 
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="Enter a number"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="pt-2">
+                                <button type="submit" 
+                                        class="px-8 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold rounded-md transition-colors shadow-sm">
+                                    Submit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resource Allocation Modal -->
+        <div x-show="showResourceModal" 
+             x-cloak
+             @keydown.escape.window="showResourceModal = false"
+             class="fixed inset-0 z-50 overflow-y-auto" 
+             aria-labelledby="modal-title" 
+             role="dialog" 
+             aria-modal="true">
+            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div x-show="showResourceModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     @click="showResourceModal = false"
+                     class="fixed inset-0 bg-black bg-opacity-60 transition-opacity" 
+                     aria-hidden="true"></div>
+
+                <!-- Center modal -->
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <!-- Modal panel -->
+                <div x-show="showResourceModal"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                     class="inline-block align-bottom bg-white rounded-lg text-left overflow-visible shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                     @click.away="showResourceModal = false">
+                    
+                    <div class="bg-white px-10 py-8 rounded-lg">
+                        <form method="POST" action="{{ route('admin.resources.store') }}" class="space-y-6">
+                            @csrf
+
+                            <!-- Modal Header -->
+                            <div class="mb-6">
+                                <h3 class="text-xl font-bold text-gray-900">Resource Allocation</h3>
+                            </div>
+
+                            <!-- Type of Resource -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Farmer ID<span class="text-red-500">*</span>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                    Type of Resource*
                                 </label>
-                                <input type="text" name="farmer_id" required placeholder="e.g., ID-COOP-0001" value="{{ old('farmer_id') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                                <select name="resource_type" 
+                                        required 
+                                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                    <option value="" class="text-gray-400">Select type of resource</option>
+                                    <option value="Seeds" class="text-gray-700">Seeds</option>
+                                    <option value="Fertilizer" class="text-gray-700">Fertilizer</option>
+                                    <option value="Equipment" class="text-gray-700">Equipment</option>
+                                    <option value="Tools" class="text-gray-700">Tools</option>
+                                    <option value="Other" class="text-gray-700">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Quantity -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                    Quantity*
+                                </label>
+                                <input type="number" 
+                                       name="quantity" 
+                                       required 
+                                       step="0.01"
+                                       min="0"
+                                       placeholder="Enter a number"
+                                       class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
                             </div>
 
                             <!-- Municipality -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Municipality<span class="text-red-500">*</span>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                    Municipality*
                                 </label>
-                                <select name="municipality" required
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                                    <option value="">Select municipality</option>
+                                <select name="municipality" 
+                                        required 
+                                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                    <option value="" class="text-gray-400">Municipality</option>
                                     @foreach($municipalities as $municipality)
-                                        <option value="{{ $municipality }}" {{ old('municipality') == $municipality ? 'selected' : '' }}>
-                                            {{ $municipality }}
+                                        <option value="{{ $municipality }}" class="text-gray-700">
+                                            {{ ucwords(strtolower($municipality)) }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            <!-- Crop -->
+                            <!-- Created by (auto-filled) -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Crop<span class="text-red-500">*</span>
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                    Created by (auto-filled)*
                                 </label>
-                                <select name="crop" required
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                                    <option value="">Select crop</option>
-                                    @foreach($crops as $crop)
-                                        <option value="{{ $crop }}" {{ old('crop') == $crop ? 'selected' : '' }}>
-                                            {{ $crop }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <input type="text" 
+                                       name="created_by" 
+                                       value="{{ auth()->user()->name ?? 'admin' }}" 
+                                       readonly
+                                       class="w-full px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
                             </div>
 
-                            <!-- Subsidy Status -->
+                            <!-- Created at (auto-filled) -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Subsidy Status
+                                <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                    Created at (auto-filled)*
                                 </label>
-                                <select name="subsidy_status"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                                    <option value="Pending" {{ old('subsidy_status', 'Pending') == 'Pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="Approved" {{ old('subsidy_status') == 'Approved' ? 'selected' : '' }}>Approved</option>
-                                    <option value="Rejected" {{ old('subsidy_status') == 'Rejected' ? 'selected' : '' }}>Rejected</option>
-                                </select>
+                                <input type="text" 
+                                       name="created_at_display" 
+                                       value="{{ date('m/d/Y') }}" 
+                                       readonly
+                                       class="w-full px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
                             </div>
 
-                            <!-- Subsidy Amount -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Subsidy Amount (₱)
-                                </label>
-                                <input type="number" name="subsidy_amount" placeholder="Enter amount" step="0.01" min="0" value="{{ old('subsidy_amount') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
+                            <!-- Submit Button -->
+                            <div class="flex justify-start pt-4">
+                                <button type="submit"
+                                        class="px-8 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold rounded-md transition-colors shadow-sm">
+                                    Submit
+                                </button>
                             </div>
-
-                            <!-- Farm Type -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Farm Type
-                                </label>
-                                <select name="farm_type"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                                    <option value="">Select farm type</option>
-                                    <option value="Rainfed" {{ old('farm_type') == 'Rainfed' ? 'selected' : '' }}>Rainfed</option>
-                                    <option value="Irrigated" {{ old('farm_type') == 'Irrigated' ? 'selected' : '' }}>Irrigated</option>
-                                    <option value="Upland" {{ old('farm_type') == 'Upland' ? 'selected' : '' }}>Upland</option>
-                                    <option value="Lowland" {{ old('farm_type') == 'Lowland' ? 'selected' : '' }}>Lowland</option>
-                                </select>
-                            </div>
-
-                            <!-- Year -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Year
-                                </label>
-                                <input type="number" name="year" placeholder="e.g., {{ date('Y') }}" min="2000" max="{{ date('Y') + 5 }}" value="{{ old('year', date('Y')) }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                            </div>
-
-                            <!-- Area Planted (ha) -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Area Planted (ha)
-                                </label>
-                                <input type="number" name="area_planted" placeholder="Enter area in hectares" step="0.01" min="0" value="{{ old('area_planted') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                            </div>
-
-                            <!-- Area Harvested (ha) -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Area Harvested (ha)
-                                </label>
-                                <input type="number" name="area_harvested" placeholder="Enter area in hectares" step="0.01" min="0" value="{{ old('area_harvested') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                            </div>
-
-                            <!-- Production (mt) -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Production (MT)
-                                </label>
-                                <input type="number" name="production" placeholder="Enter production in metric tons" step="0.01" min="0" value="{{ old('production') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                            </div>
-
-                            <!-- Productivity (kg/ha) - Auto-calculated -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">
-                                    Productivity (kg/ha)
-                                </label>
-                                <input type="number" name="productivity" placeholder="Auto-calculated" step="0.01" min="0" value="{{ old('productivity') }}"
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent">
-                                <p class="mt-1 text-xs text-gray-500">Leave blank to auto-calculate from production/area harvested</p>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="flex justify-end gap-3 pt-4">
-                            <button type="button" @click="showSubsidyModal = false" class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-md transition-colors">
-                                Cancel
-                            </button>
-                            <button type="submit" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-md transition-colors">
-                                Submit
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -682,10 +835,12 @@
                         },
                         scales: {
                             y: {
-                                beginAtZero: true,
+                                type: 'logarithmic',
+                                beginAtZero: false,
+                                min: 0.1,
                                 title: {
                                     display: true,
-                                    text: 'Seeds (kg)',
+                                    text: 'Seeds (kg) - Log Scale',
                                     font: {
                                         size: 12,
                                         weight: 'bold'
@@ -697,6 +852,12 @@
                                 ticks: {
                                     font: {
                                         size: 11
+                                    },
+                                    callback: function(value, index, ticks) {
+                                        if (value === 0.1 || value === 1 || value === 10 || value === 100 || value === 1000 || value === 10000 || value === 100000) {
+                                            return value.toLocaleString() + ' kg';
+                                        }
+                                        return '';
                                     }
                                 }
                             },

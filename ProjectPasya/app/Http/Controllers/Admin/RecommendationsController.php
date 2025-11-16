@@ -23,6 +23,8 @@ class RecommendationsController extends Controller
     public function index(Request $request)
     {
         // Get filter parameters for subsidies
+        $filterName = $request->input('name');
+        $filterId = $request->input('id');
         $filterCrop = $request->input('crop');
         $filterStatus = $request->input('status');
 
@@ -36,6 +38,12 @@ class RecommendationsController extends Controller
         $subsidyQuery = Subsidy::query();
 
         // Apply filters
+        if ($filterName) {
+            $subsidyQuery->where('full_name', 'like', '%' . $filterName . '%');
+        }
+        if ($filterId) {
+            $subsidyQuery->where('farmer_id', 'like', '%' . $filterId . '%');
+        }
         if ($filterCrop) {
             $subsidyQuery->where('crop', $filterCrop);
         }
@@ -83,29 +91,71 @@ class RecommendationsController extends Controller
 
     private function getAllocationData()
     {
-        // Calculate seed allocation based on crop data
+        // Get the latest year from database for predictions
+        $latestYear = Crop::max('year') ?? now()->year;
+        $currentMonth = now()->month;
+        
+        // Get top crops by historical area planted (last 2 years)
         $cropData = Crop::select(
             'crop',
-            DB::raw('AVG(area_planted) as avg_area'),
-            DB::raw('COUNT(*) as records')
+            DB::raw('SUM(area_planted) as total_area_planted'),
+            DB::raw('AVG(area_planted) as avg_area_planted'),
+            DB::raw('SUM(production) as total_production')
         )
+        ->where('year', '>=', $latestYear - 1)
         ->groupBy('crop')
-        ->orderByDesc('avg_area')
-        ->limit(6)
+        ->orderByDesc('total_area_planted')
+        ->limit(7)
         ->get();
 
         $labels = [];
         $needed = [];
         $allocated = [];
 
+        // Seed rates (kg per hectare) based on crop type
+        $seedRates = [
+            'whitepotato' => 1500,  // White potato: 1500 kg/ha
+            'cabbage' => 0.5,        // Cabbage: 0.5 kg/ha
+            'carrots' => 3,          // Carrots: 3 kg/ha
+            'chinesecabbage' => 2,   // Chinese cabbage: 2 kg/ha
+            'snapbeans' => 50,       // Snap beans: 50 kg/ha
+            'sweetpepper' => 1,      // Sweet pepper: 1 kg/ha
+            'lettuce' => 1.5,        // Lettuce: 1.5 kg/ha
+        ];
+
         foreach ($cropData as $crop) {
-            $labels[] = $crop->crop;
-            // Mock calculation: area * seed rate
-            $neededAmount = $crop->avg_area * 10; // 10kg per hectare
-            $allocatedAmount = $neededAmount * 0.7; // 70% allocated
+            $cropName = strtolower(str_replace(' ', '', $crop->crop));
+            $labels[] = strtoupper($crop->crop);
             
-            $needed[] = round($neededAmount);
-            $allocated[] = round($allocatedAmount);
+            // Get seed rate for this crop, default to 10 kg/ha if not specified
+            $seedRate = $seedRates[$cropName] ?? 10;
+            
+            // Calculate needed seeds based on projected area to be planted next year
+            // Use average area from recent years as projection
+            $projectedArea = $crop->avg_area_planted;
+            $neededAmount = $projectedArea * $seedRate;
+            
+            // Calculate allocated seeds from subsidy records
+            // Subsidy amount is in pesos, estimate seed allocation based on actual records
+            $subsidyRecords = Subsidy::where('crop', $crop->crop)
+                ->where('subsidy_status', 'Approved')
+                ->get();
+            
+            if ($subsidyRecords->count() > 0) {
+                // Calculate allocated based on subsidy area planted
+                $totalSubsidyArea = $subsidyRecords->sum('area_planted');
+                $allocatedAmount = $totalSubsidyArea * $seedRate;
+            } else {
+                // If no subsidy data, allocate 50-80% based on crop priority
+                // Priority based on production success rate
+                $successRate = min(0.80, max(0.50, 
+                    $crop->total_production / ($crop->total_area_planted * 1000)
+                ));
+                $allocatedAmount = $neededAmount * $successRate;
+            }
+            
+            $needed[] = round($neededAmount, 2);
+            $allocated[] = round($allocatedAmount, 2);
         }
 
         return [
@@ -174,5 +224,28 @@ class RecommendationsController extends Controller
 
         return redirect()->route('admin.recommendations')
             ->with('success', 'Subsidy allocated successfully!');
+    }
+
+    public function storeResource(Request $request)
+    {
+        $request->validate([
+            'resource_type' => 'required|string',
+            'quantity' => 'required|numeric|min:0',
+            'municipality' => 'required|string'
+        ]);
+
+        // Store resource allocation in database
+        // You can create a Resource model or store in a resources table
+        DB::table('resource_allocations')->insert([
+            'resource_type' => $request->resource_type,
+            'quantity' => $request->quantity,
+            'municipality' => $request->municipality,
+            'created_by' => auth()->user()->name ?? 'admin',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
+        return redirect()->route('admin.recommendations')
+            ->with('success', 'Resource allocated successfully!');
     }
 }
