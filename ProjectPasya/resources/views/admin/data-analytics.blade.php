@@ -3,6 +3,7 @@
 
     <div class="space-y-6" x-data="{ 
         showMunicipalityModal: false,
+        showResourceModal: false,
         selectedMunicipality: '{{ $filterMunicipality ?? '' }}',
         openMunicipalityModal(municipality) {
             this.selectedMunicipality = municipality;
@@ -35,7 +36,9 @@
             <!-- Filter Controls and Action Buttons -->
             <div class="flex flex-wrap items-center gap-3">
                 <!-- Allocate Resource Button -->
-                <button type="button" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm hover-lift animate-fade-in animate-delay-100">
+                <button type="button" 
+                        @click="showResourceModal = true"
+                        class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm hover-lift animate-fade-in animate-delay-100">
                     Allocate Resource
                 </button>
                 
@@ -703,6 +706,135 @@
                 @endif
             </div>
         @endif
+    </div>
+
+    <!-- Resource Allocation Modal -->
+    <div x-show="showResourceModal" 
+         x-cloak
+         @keydown.escape.window="showResourceModal = false"
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div x-show="showResourceModal"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 @click="showResourceModal = false"
+                 class="fixed inset-0 bg-black bg-opacity-60 transition-opacity" 
+                 aria-hidden="true"></div>
+
+            <!-- Center modal -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal panel -->
+            <div x-show="showResourceModal"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-visible shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                 @click.away="showResourceModal = false">
+                
+                <div class="bg-white px-10 py-8 rounded-lg">
+                    <form method="POST" action="{{ route('admin.resources.store') }}" class="space-y-6">
+                        @csrf
+
+                        <!-- Modal Header -->
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold text-gray-900">Resource Allocation</h3>
+                        </div>
+
+                        <!-- Type of Resource -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Type of Resource*
+                            </label>
+                            <select name="resource_type" 
+                                    required 
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                <option value="" class="text-gray-400">Select type of resource</option>
+                                <option value="Seeds" class="text-gray-700">Seeds</option>
+                                <option value="Fertilizer" class="text-gray-700">Fertilizer</option>
+                                <option value="Equipment" class="text-gray-700">Equipment</option>
+                                <option value="Tools" class="text-gray-700">Tools</option>
+                                <option value="Other" class="text-gray-700">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Quantity*
+                            </label>
+                            <input type="number" 
+                                   name="quantity" 
+                                   required 
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="Enter a number"
+                                   class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                        </div>
+
+                        <!-- Municipality -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Municipality*
+                            </label>
+                            <select name="municipality" 
+                                    required 
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                <option value="" class="text-gray-400">Municipality</option>
+                                @foreach($allMunicipalities as $municipality)
+                                    <option value="{{ $municipality }}" class="text-gray-700">
+                                        {{ ucwords(strtolower($municipality)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Created by (auto-filled) -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Created by (auto-filled)*
+                            </label>
+                            <input type="text" 
+                                   name="created_by" 
+                                   value="{{ auth()->user()->name ?? 'admin' }}" 
+                                   readonly
+                                   class="w-full px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
+                        </div>
+
+                        <!-- Created at (auto-filled) -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Created at (auto-filled)*
+                            </label>
+                            <input type="text" 
+                                   name="created_at_display" 
+                                   value="{{ date('m/d/Y') }}" 
+                                   readonly
+                                   class="w-full px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex justify-start pt-4">
+                            <button type="submit"
+                                    class="px-8 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold rounded-md transition-colors shadow-sm">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     @push('scripts')
