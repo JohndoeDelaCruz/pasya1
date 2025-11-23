@@ -58,14 +58,25 @@ class CropManagementController extends Controller
             ->pluck('crop');
         
         foreach ($uniqueCrops as $cropName) {
-            CropType::firstOrCreate(
-                ['name' => $cropName],
-                [
-                    'category' => $this->guessCropCategory($cropName),
-                    'description' => 'Auto-imported from crop data',
-                    'is_active' => true
-                ]
-            );
+            // Normalize the crop name (remove extra spaces, trim)
+            $normalizedName = trim($cropName);
+            
+            // Check if a similar crop type already exists (case-insensitive, ignore spaces)
+            $existingCrop = CropType::whereRaw('REPLACE(LOWER(name), " ", "") = ?', [
+                str_replace(' ', '', strtolower($normalizedName))
+            ])->first();
+            
+            // Only create if it doesn't exist
+            if (!$existingCrop) {
+                CropType::firstOrCreate(
+                    ['name' => $normalizedName],
+                    [
+                        'category' => $this->guessCropCategory($normalizedName),
+                        'description' => 'Auto-imported from crop data',
+                        'is_active' => true
+                    ]
+                );
+            }
         }
         
         // Get unique municipalities from imported data
@@ -75,14 +86,25 @@ class CropManagementController extends Controller
             ->pluck('municipality');
         
         foreach ($uniqueMunicipalities as $municipalityName) {
-            Municipality::firstOrCreate(
-                ['name' => $municipalityName],
-                [
-                    'province' => 'Benguet',
-                    'description' => 'Auto-imported from crop data',
-                    'is_active' => true
-                ]
-            );
+            // Normalize the municipality name
+            $normalizedName = trim($municipalityName);
+            
+            // Check if already exists
+            $existingMunicipality = Municipality::whereRaw('REPLACE(LOWER(name), " ", "") = ?', [
+                str_replace(' ', '', strtolower($normalizedName))
+            ])->first();
+            
+            // Only create if it doesn't exist
+            if (!$existingMunicipality) {
+                Municipality::firstOrCreate(
+                    ['name' => $normalizedName],
+                    [
+                        'province' => 'Benguet',
+                        'description' => 'Auto-imported from crop data',
+                        'is_active' => true
+                    ]
+                );
+            }
         }
     }
 
@@ -119,18 +141,34 @@ class CropManagementController extends Controller
     public function storeCropType(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:crop_types,name',
+            'name' => 'required|string|max:255',
             'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
+        // Check for duplicate crop type
+        $exists = CropType::where('name', $validated['name'])->exists();
+        if ($exists) {
+            return back()->withInput()->with('error', 
+                'This crop type "' . $validated['name'] . '" already exists! Please use a different name.');
+        }
+
         $validated['is_active'] = $request->has('is_active') ? true : false;
 
-        CropType::create($validated);
+        try {
+            CropType::create($validated);
 
-        return redirect()->route('admin.crop-management.index')
-            ->with('success', 'Crop type added successfully!');
+            return redirect()->route('admin.crop-management.index')
+                ->with('success', 'Crop type added successfully!');
+                
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return back()->withInput()->with('error', 
+                    'This crop type already exists in the database.');
+            }
+            return back()->withInput()->with('error', 'Failed to add crop type: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -170,18 +208,34 @@ class CropManagementController extends Controller
     public function storeMunicipality(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:municipalities,name',
+            'name' => 'required|string|max:255',
             'province' => 'required|string|max:255',
             'description' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
 
+        // Check for duplicate municipality
+        $exists = Municipality::where('name', $validated['name'])->exists();
+        if ($exists) {
+            return back()->withInput()->with('error', 
+                'This municipality "' . $validated['name'] . '" already exists! Please use a different name.');
+        }
+
         $validated['is_active'] = $request->has('is_active') ? true : false;
 
-        Municipality::create($validated);
+        try {
+            Municipality::create($validated);
 
-        return redirect()->route('admin.crop-management.index')
-            ->with('success', 'Municipality added successfully!');
+            return redirect()->route('admin.crop-management.index')
+                ->with('success', 'Municipality added successfully!');
+                
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return back()->withInput()->with('error', 
+                    'This municipality already exists in the database.');
+            }
+            return back()->withInput()->with('error', 'Failed to add municipality: ' . $e->getMessage());
+        }
     }
 
     /**

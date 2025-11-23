@@ -4,19 +4,29 @@ namespace App\Imports;
 
 use App\Models\Crop;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\BeforeImport;
+use Maatwebsite\Excel\Events\AfterImport;
 
 class CropsImport implements 
     ToModel, 
     WithHeadingRow, 
     WithBatchInserts, 
     WithChunkReading,
-    SkipsEmptyRows
+    SkipsEmptyRows,
+    SkipsOnError,
+    WithEvents
 {
+    public $importedCount = 0;
+    public $skippedCount = 0;
+    public $duplicateCount = 0;
     /**
     * @param array $row
     *
@@ -34,12 +44,33 @@ class CropsImport implements
             return '';
         };
 
+        $municipality = strtoupper($getValue('municipality'));
+        $farmType = strtoupper($getValue(['farmtype', 'farm_type']));
+        $year = (int) ($getValue('year') ?: 0);
+        $month = strtoupper($getValue('month'));
+        $crop = strtoupper($getValue('crop'));
+
+        // Check if this exact combination already exists (skip duplicates)
+        $exists = Crop::where('municipality', $municipality)
+                     ->where('farm_type', $farmType)
+                     ->where('year', $year)
+                     ->where('month', $month)
+                     ->where('crop', $crop)
+                     ->exists();
+
+        if ($exists) {
+            $this->duplicateCount++;
+            return null; // Skip this row
+        }
+
+        $this->importedCount++;
+
         return new Crop([
-            'municipality'    => strtoupper($getValue('municipality')),
-            'farm_type'       => strtoupper($getValue(['farmtype', 'farm_type'])),
-            'year'            => (int) ($getValue('year') ?: 0),
-            'month'           => strtoupper($getValue('month')),
-            'crop'            => strtoupper($getValue('crop')),
+            'municipality'    => $municipality,
+            'farm_type'       => $farmType,
+            'year'            => $year,
+            'month'           => $month,
+            'crop'            => $crop,
             'area_planted'    => (float) ($getValue(['areaplantedha', 'areaplanted_ha', 'area_plantedha']) ?: 0),
             'area_harvested'  => (float) ($getValue(['areaharvestedha', 'areaharvested_ha', 'area_harvestedha']) ?: 0),
             'production'      => (float) ($getValue(['productionmt', 'production_mt']) ?: 0),
@@ -94,7 +125,30 @@ class CropsImport implements
      */
     public function batchSize(): int
     {
-        return 2000; // Increased from 1000 for faster imports
+        return 500; // Reduced for better duplicate checking performance
+    }
+
+    /**
+     * Handle errors during import (skip invalid rows)
+     */
+    public function onError(\Throwable $e)
+    {
+        $this->skippedCount++;
+        // Skip the error and continue importing
+    }
+
+    /**
+     * Register events for tracking
+     */
+    public function registerEvents(): array
+    {
+        return [
+            BeforeImport::class => function(BeforeImport $event) {
+                $this->importedCount = 0;
+                $this->skippedCount = 0;
+                $this->duplicateCount = 0;
+            },
+        ];
     }
 
     /**

@@ -187,7 +187,7 @@ class RecommendationsController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'farmer_id' => 'required|string|unique:subsidies,farmer_id',
+            'farmer_id' => 'required|string',
             'crop' => 'required|string',
             'subsidy_status' => 'nullable|in:Approved,Pending,Rejected',
             'subsidy_amount' => 'nullable|numeric|min:0',
@@ -200,30 +200,50 @@ class RecommendationsController extends Controller
             'productivity' => 'nullable|numeric|min:0'
         ]);
 
+        // Check if farmer_id already exists
+        $existingSubsidy = Subsidy::where('farmer_id', $request->farmer_id)->first();
+        if ($existingSubsidy) {
+            return back()->withInput()->with('error', 
+                'This Farmer ID (' . $request->farmer_id . ') already exists! ' .
+                'Farmer: ' . $existingSubsidy->full_name . '. ' .
+                'Please use a different Farmer ID or update the existing record.');
+        }
+
         // Calculate productivity if not provided
         $productivity = $request->productivity;
         if (!$productivity && $request->area_harvested > 0) {
             $productivity = ($request->production * 1000) / $request->area_harvested;
         }
 
-        // Create subsidy record
-        Subsidy::create([
-            'full_name' => $request->full_name,
-            'farmer_id' => $request->farmer_id,
-            'crop' => $request->crop,
-            'subsidy_status' => $request->subsidy_status ?? 'Pending',
-            'subsidy_amount' => $request->subsidy_amount,
-            'municipality' => $request->municipality,
-            'farm_type' => $request->farm_type,
-            'year' => $request->year,
-            'area_planted' => $request->area_planted,
-            'area_harvested' => $request->area_harvested,
-            'production' => $request->production,
-            'productivity' => $productivity
-        ]);
+        try {
+            // Create subsidy record
+            Subsidy::create([
+                'full_name' => $request->full_name,
+                'farmer_id' => $request->farmer_id,
+                'crop' => $request->crop,
+                'subsidy_status' => $request->subsidy_status ?? 'Pending',
+                'subsidy_amount' => $request->subsidy_amount,
+                'municipality' => $request->municipality,
+                'farm_type' => $request->farm_type,
+                'year' => $request->year,
+                'area_planted' => $request->area_planted,
+                'area_harvested' => $request->area_harvested,
+                'production' => $request->production,
+                'productivity' => $productivity
+            ]);
 
-        return redirect()->route('admin.recommendations')
-            ->with('success', 'Subsidy allocated successfully!');
+            return redirect()->route('admin.recommendations')
+                ->with('success', 'Subsidy allocated successfully!');
+                
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint violation at database level
+            if ($e->getCode() == 23000) {
+                return back()->withInput()->with('error', 
+                    'This Farmer ID already exists in the database. Please use a different Farmer ID.');
+            }
+            
+            return back()->withInput()->with('error', 'Failed to allocate subsidy: ' . $e->getMessage());
+        }
     }
 
     public function storeResource(Request $request)

@@ -30,6 +30,15 @@
                     </svg>
                     Statistics
                 </a>
+                @if($stats['total_records'] > 0)
+                <button onclick="confirmDeleteAll()" 
+                   class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Delete All Data
+                </button>
+                @endif
             </div>
         </div>
 
@@ -197,6 +206,7 @@
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Area Harvested (ha)</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Production (mt)</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -210,10 +220,21 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->area_planted, 2) }} </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->production, 2) }} </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->productivity, 2) }} mt/ha</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-center">
+                                    <form action="{{ route('admin.crop-data.destroy', $crop) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this crop record?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-800 transition">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                                <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                                     <svg class="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                                     </svg>
@@ -392,6 +413,30 @@
             if (areaHarvested > 0) {
                 const productivity = (production / areaHarvested).toFixed(2);
                 document.getElementById('productivity').value = productivity;
+            }
+        }
+
+        function confirmDeleteAll() {
+            if (confirm('⚠️ WARNING: This will permanently delete ALL crop data ({{ number_format($stats['total_records']) }} records).\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to continue?')) {
+                // Create and submit form for delete all
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route('admin.crop-data.delete-all') }}';
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+                
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'DELETE';
+                
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>
