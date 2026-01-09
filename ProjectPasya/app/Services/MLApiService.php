@@ -25,8 +25,8 @@ class MLApiService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(env('PREDICTION_API_URL', 'http://localhost:5000'), '/');
-        $this->timeout = (int) env('PREDICTION_API_TIMEOUT', 30);
+        $this->baseUrl = rtrim(env('ML_API_URL', 'http://127.0.0.1:5000'), '/');
+        $this->timeout = (int) env('ML_API_TIMEOUT', 30);
         $this->cacheEnabled = (bool) env('ML_API_CACHE_ENABLED', true);
         $this->cacheTtl = (int) env('ML_API_CACHE_TTL', 300); // 5 minutes default
     }
@@ -37,7 +37,7 @@ class MLApiService
     public function getAvailableCrops(): array
     {
         return $this->cachedRequest('ml_crops', 3600, function () {
-            return $this->get('/api/crops');
+            return $this->get('/crops');
         });
     }
 
@@ -47,7 +47,7 @@ class MLApiService
     public function getAvailableMunicipalities(): array
     {
         return $this->cachedRequest('ml_municipalities', 3600, function () {
-            return $this->get('/api/municipalities');
+            return $this->get('/municipalities');
         });
     }
 
@@ -57,7 +57,7 @@ class MLApiService
     public function getAvailableOptions(): array
     {
         return $this->cachedRequest('ml_available_options', 3600, function () {
-            return $this->get('/api/available-options');
+            return $this->get('/available-options');
         });
     }
 
@@ -69,7 +69,7 @@ class MLApiService
         $cacheKey = "ml_forecast_{$crop}_{$municipality}";
         
         return $this->cachedRequest($cacheKey, 3600, function () use ($crop, $municipality) {
-            return $this->get("/api/forecast/{$crop}/{$municipality}");
+            return $this->get("/forecast/{$crop}/{$municipality}");
         });
     }
 
@@ -84,7 +84,7 @@ class MLApiService
         // Don't cache predictions - they should be real-time
         try {
             $response = Http::timeout($this->timeout)
-                ->post("{$this->baseUrl}/api/predict", $data);
+                ->post("{$this->baseUrl}/predict", $data);
 
             if ($response->successful()) {
                 return $response->json();
@@ -122,7 +122,7 @@ class MLApiService
     {
         try {
             $response = Http::timeout($this->timeout * 2) // Double timeout for batch
-                ->post("{$this->baseUrl}/api/batch-predict", [
+                ->post("{$this->baseUrl}/batch-predict", [
                     'predictions' => $predictions
                 ]);
 
@@ -169,7 +169,7 @@ class MLApiService
 
         try {
             $response = Http::timeout($this->timeout)
-                ->get("{$this->baseUrl}/api/production/history", $queryParams);
+                ->get("{$this->baseUrl}/production/history", $queryParams);
 
             if ($response->successful()) {
                 return $response->json();
@@ -199,7 +199,7 @@ class MLApiService
     public function getStatistics(): array
     {
         return $this->cachedRequest('ml_statistics', 600, function () {
-            return $this->get('/api/statistics');
+            return $this->get('/statistics');
         });
     }
 
@@ -211,7 +211,7 @@ class MLApiService
     {
         try {
             $response = Http::timeout($this->timeout)
-                ->post("{$this->baseUrl}/api/cache/clear");
+                ->post("{$this->baseUrl}/cache/clear");
 
             // Also clear Laravel cache
             Cache::tags(['ml_api'])->flush();
@@ -227,11 +227,12 @@ class MLApiService
 
     /**
      * Check ML API health status
+     * Uses root endpoint which returns API info and status
      */
     public function checkHealth(): array
     {
         try {
-            $response = Http::timeout(5)->get("{$this->baseUrl}/api/health");
+            $response = Http::timeout(5)->get("{$this->baseUrl}/");
             
             return [
                 'success' => $response->successful(),

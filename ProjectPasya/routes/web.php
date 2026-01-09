@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\CropMappingController;
 use App\Http\Controllers\Admin\DataAnalyticsController;
 use App\Http\Controllers\Admin\CropTrendsController;
 use App\Http\Controllers\Admin\RecommendationsController;
+use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Farmer\FarmerDashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
@@ -29,21 +31,14 @@ Route::get('/dashboard', function () {
 
 // Farmer Routes
 Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('farmers.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [FarmerDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/calendar', [FarmerDashboardController::class, 'calendar'])->name('calendar');
+    Route::get('/price-watch', [FarmerDashboardController::class, 'priceWatch'])->name('price-watch');
+    Route::get('/harvest-history', [FarmerDashboardController::class, 'harvestHistory'])->name('harvest-history');
     
-    Route::get('/calendar', function () {
-        return view('farmers.calendar');
-    })->name('calendar');
-    
-    Route::get('/price-watch', function () {
-        return view('farmers.price-watch');
-    })->name('price-watch');
-    
-    Route::get('/harvest-history', function () {
-        return view('farmers.harvest-history');
-    })->name('harvest-history');
+    // API routes for farmer data
+    Route::get('/api/events', [FarmerDashboardController::class, 'getEvents'])->name('api.events');
+    Route::get('/api/prices', [FarmerDashboardController::class, 'getPrices'])->name('api.prices');
 });
 
 // Admin Routes
@@ -91,6 +86,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/recommendations', [RecommendationsController::class, 'index'])->name('recommendations');
     Route::post('/subsidies', [RecommendationsController::class, 'storeSubsidy'])->name('subsidies.store');
     Route::post('/resources', [RecommendationsController::class, 'storeResource'])->name('resources.store');
+    
+    // Announcement Routes
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('/announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
+    Route::get('/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcements.edit');
+    Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
+    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::patch('/announcements/{announcement}/toggle-status', [AnnouncementController::class, 'toggleStatus'])->name('announcements.toggle-status');
 });
 
 Route::middleware('auth')->group(function () {

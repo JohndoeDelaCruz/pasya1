@@ -399,8 +399,15 @@ class CropTrendsController extends Controller
                     $predictedProduction = round($prediction['prediction']['production_mt'], 2);
                     // Calculate productivity in MT/ha (production_mt / area_ha)
                     $predictedProductivity = round($prediction['prediction']['production_mt'] / $avgAreaHarvested, 2);
-                    // Capture confidence score if provided by the ML service
-                    $confidenceScore = isset($prediction['prediction']['confidence_score']) ? round($prediction['prediction']['confidence_score'], 4) : (isset($prediction['prediction']['confidence']) ? round($prediction['prediction']['confidence'], 4) : null);
+                    // Capture confidence score from model_quality.r2_score (ML API returns R² as confidence)
+                    $confidenceScore = null;
+                    if (isset($prediction['model_quality']['r2_score'])) {
+                        $confidenceScore = round($prediction['model_quality']['r2_score'], 4);
+                    } elseif (isset($prediction['prediction']['confidence_score'])) {
+                        $confidenceScore = round($prediction['prediction']['confidence_score'], 4);
+                    } elseif (isset($prediction['prediction']['confidence'])) {
+                        $confidenceScore = round($prediction['prediction']['confidence'], 4);
+                    }
                     
                     Log::info('ML Prediction Success', [
                         'month' => $month,

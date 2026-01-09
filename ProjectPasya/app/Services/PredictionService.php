@@ -36,8 +36,8 @@ class PredictionService
     public function __construct()
     {
         // Set API URL from .env or use default
-        $this->apiUrl = env('PREDICTION_API_URL', 'http://localhost:5000');
-        $this->timeout = env('PREDICTION_API_TIMEOUT', 10); // Reduced to 10 seconds
+        $this->apiUrl = env('ML_API_URL', 'http://127.0.0.1:5000');
+        $this->timeout = env('ML_API_TIMEOUT', 10); // Reduced to 10 seconds
         
         // Initialize ML API Service for database-backed predictions
         $this->mlApi = new MLApiService();
@@ -188,14 +188,14 @@ class PredictionService
                 ]);
             }
             
-            // Convert Laravel format to ML API format (new model requirements)
+            // Convert Laravel format to ML API format (lowercase keys required)
             $mlData = [
-                'MUNICIPALITY' => strtoupper($data['municipality'] ?? ''),
-                'FARM_TYPE' => strtoupper($data['farm_type'] ?? ''),
-                'YEAR' => $data['year'] ?? date('Y'),
-                'MONTH' => strtoupper($data['month'] ?? ''),
-                'CROP' => $normalizedCrop,
-                'Area_planted_ha' => floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0)
+                'municipality' => strtoupper($data['municipality'] ?? ''),
+                'farm_type' => strtoupper($data['farm_type'] ?? ''),
+                'year' => (int) ($data['year'] ?? date('Y')),
+                'month' => strtoupper($data['month'] ?? ''),
+                'crop' => $normalizedCrop,
+                'area_planted' => floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0)
             ];
             
             // Use MLApiService for prediction (supports database-backed predictions)
@@ -275,18 +275,18 @@ class PredictionService
     public function predictBatch(array $batchData)
     {
         try {
-            // Normalize all crop names
+            // Normalize all crop names and format data with lowercase keys
             $processedData = array_map(function($data) {
                 $originalCrop = strtoupper($data['crop'] ?? '');
                 $normalizedCrop = $this->normalizeCropName($originalCrop);
                 
                 return [
-                    'MUNICIPALITY' => strtoupper($data['municipality'] ?? ''),
-                    'FARM_TYPE' => strtoupper($data['farm_type'] ?? ''),
-                    'YEAR' => $data['year'] ?? date('Y'),
-                    'MONTH' => strtoupper($data['month'] ?? ''),
-                    'CROP' => $normalizedCrop,
-                    'Area_planted_ha' => floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0)
+                    'municipality' => strtoupper($data['municipality'] ?? ''),
+                    'farm_type' => strtoupper($data['farm_type'] ?? ''),
+                    'year' => (int) ($data['year'] ?? date('Y')),
+                    'month' => strtoupper($data['month'] ?? ''),
+                    'crop' => $normalizedCrop,
+                    'area_planted' => floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0)
                 ];
             }, $batchData);
             
