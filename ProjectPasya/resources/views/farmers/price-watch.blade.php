@@ -241,29 +241,9 @@
                 showDetailModal: false,
                 selectedPrice: null,
                 
-                prices: @json($prices ?? [
-                    { name: 'Cabbage', emoji: '🥬', price: 77.43, change: -24.00, unit: 'kg', category: 'Leafy Vegetables' },
-                    { name: 'Chinese Cabbage', emoji: '🥬', price: 149.00, change: 16.00, unit: 'kg', category: 'Leafy Vegetables' },
-                    { name: 'Carrots', emoji: '🥕', price: 80.00, change: -3.00, unit: 'kg', category: 'Root Vegetables' },
-                    { name: 'Potatoes', emoji: '🥔', price: 65.00, change: 5.00, unit: 'kg', category: 'Root Vegetables' },
-                    { name: 'Tomatoes', emoji: '🍅', price: 45.00, change: -8.00, unit: 'kg', category: 'Fruit Vegetables' },
-                    { name: 'Bell Pepper', emoji: '🫑', price: 120.00, change: 10.00, unit: 'kg', category: 'Fruit Vegetables' },
-                    { name: 'Broccoli', emoji: '🥦', price: 95.00, change: -5.00, unit: 'kg', category: 'Cruciferous' },
-                    { name: 'Cauliflower', emoji: '🥬', price: 85.00, change: 3.00, unit: 'kg', category: 'Cruciferous' },
-                    { name: 'Lettuce', emoji: '🥗', price: 55.00, change: -2.00, unit: 'kg', category: 'Leafy Vegetables' },
-                    { name: 'Sayote', emoji: '🥒', price: 35.00, change: 0.00, unit: 'kg', category: 'Fruit Vegetables' },
-                    { name: 'String Beans', emoji: '🫛', price: 60.00, change: 8.00, unit: 'kg', category: 'Legumes' },
-                    { name: 'Snap Peas', emoji: '🫛', price: 90.00, change: -12.00, unit: 'kg', category: 'Legumes' },
-                ]),
+                prices: @json($prices),
                 
-                trendData: @json($trends ?? [
-                    'labels' => ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                    'datasets' => [
-                        [ 'label' => 'Cabbage', 'data' => [85, 92, 88, 101, 95, 77], 'color' => '#22c55e' ],
-                        [ 'label' => 'Carrots', 'data' => [75, 78, 82, 79, 83, 80], 'color' => '#f97316' ],
-                        [ 'label' => 'Potatoes', 'data' => [55, 58, 62, 60, 63, 65], 'color' => '#eab308' ],
-                    ]
-                ]),
+                trendData: @json($trends),
                 
                 get filteredPrices() {
                     return this.prices.filter(price => {

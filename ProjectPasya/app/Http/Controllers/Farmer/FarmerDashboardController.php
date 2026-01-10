@@ -223,20 +223,23 @@ class FarmerDashboardController extends Controller
      */
     private function getAllPrices()
     {
-        // More comprehensive price list
+        // More comprehensive price list with specifications
         return [
-            ['name' => 'Cabbage', 'emoji' => '🥬', 'price' => 77.43, 'change' => -24.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
-            ['name' => 'Chinese Cabbage', 'emoji' => '🥬', 'price' => 149.00, 'change' => 16.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
-            ['name' => 'Carrots', 'emoji' => '🥕', 'price' => 80.00, 'change' => -3.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
-            ['name' => 'Potatoes', 'emoji' => '🥔', 'price' => 65.00, 'change' => 5.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
-            ['name' => 'Tomatoes', 'emoji' => '🍅', 'price' => 45.00, 'change' => -8.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
-            ['name' => 'Bell Pepper', 'emoji' => '🫑', 'price' => 120.00, 'change' => 10.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
-            ['name' => 'Broccoli', 'emoji' => '🥦', 'price' => 95.00, 'change' => -5.00, 'unit' => 'kg', 'category' => 'Cruciferous'],
-            ['name' => 'Cauliflower', 'emoji' => '🥬', 'price' => 85.00, 'change' => 3.00, 'unit' => 'kg', 'category' => 'Cruciferous'],
-            ['name' => 'Lettuce', 'emoji' => '🥗', 'price' => 55.00, 'change' => -2.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
-            ['name' => 'Sayote', 'emoji' => '🥒', 'price' => 35.00, 'change' => 0.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
-            ['name' => 'String Beans', 'emoji' => '🫛', 'price' => 60.00, 'change' => 8.00, 'unit' => 'kg', 'category' => 'Legumes'],
-            ['name' => 'Snap Peas', 'emoji' => '🫛', 'price' => 90.00, 'change' => -12.00, 'unit' => 'kg', 'category' => 'Legumes'],
+            ['name' => 'Cabbage', 'emoji' => '🥬', 'specification' => '2 heads/kg', 'price' => 77.43, 'change' => -24.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
+            ['name' => 'Chinese Cabbage', 'emoji' => '🥬', 'specification' => '1 pc/kg', 'price' => 149.00, 'change' => 10.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
+            ['name' => 'Carrots', 'emoji' => '🥕', 'specification' => '6 pcs/kg', 'price' => 80.00, 'change' => -3.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
+            ['name' => 'Sweet Peas', 'emoji' => '🫛', 'specification' => '50 pcs/kg', 'price' => 680.00, 'change' => 62.00, 'unit' => 'kg', 'category' => 'Legumes'],
+            ['name' => 'Potato', 'emoji' => '🥔', 'specification' => '4 pcs/kg', 'price' => 145.45, 'change' => -2.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
+            ['name' => 'Baguio Beans', 'emoji' => '🫛', 'specification' => '60 pcs/kg', 'price' => 119.31, 'change' => -1.00, 'unit' => 'kg', 'category' => 'Legumes'],
+            ['name' => 'Cauliflower', 'emoji' => '🥦', 'specification' => '2 heads/kg', 'price' => 237.00, 'change' => 30.00, 'unit' => 'kg', 'category' => 'Cruciferous'],
+            ['name' => 'Lettuce', 'emoji' => '🥗', 'specification' => '4 pcs/kg', 'price' => 160.00, 'change' => -70.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
+            ['name' => 'Broccoli', 'emoji' => '🥦', 'specification' => '2 heads/kg', 'price' => 380.00, 'change' => 46.00, 'unit' => 'kg', 'category' => 'Cruciferous'],
+            ['name' => 'Radish', 'emoji' => '🥕', 'specification' => '5 pcs/kg', 'price' => 229.00, 'change' => 0.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
+            ['name' => 'Tomatoes', 'emoji' => '🍅', 'specification' => '8 pcs/kg', 'price' => 45.00, 'change' => -8.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
+            ['name' => 'Bell Pepper', 'emoji' => '🫑', 'specification' => '5 pcs/kg', 'price' => 120.00, 'change' => 10.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
+            ['name' => 'Sayote', 'emoji' => '🥒', 'specification' => '3 pcs/kg', 'price' => 35.00, 'change' => 0.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
+            ['name' => 'String Beans', 'emoji' => '🫛', 'specification' => '40 pcs/kg', 'price' => 60.00, 'change' => 8.00, 'unit' => 'kg', 'category' => 'Legumes'],
+            ['name' => 'Snap Peas', 'emoji' => '🫛', 'specification' => '45 pcs/kg', 'price' => 90.00, 'change' => -12.00, 'unit' => 'kg', 'category' => 'Legumes'],
         ];
     }
     
