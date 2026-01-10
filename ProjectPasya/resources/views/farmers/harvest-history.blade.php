@@ -22,7 +22,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <template x-for="(record, index) in harvestHistory" :key="index">
+                                <template x-if="harvestHistory.length === 0">
+                                    <tr>
+                                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                            <div class="flex flex-col items-center">
+                                                <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                                </svg>
+                                                <p class="font-medium">No crop plans yet</p>
+                                                <p class="text-sm mt-1">Go to <a href="{{ route('farmers.calendar') }}" class="text-green-600 hover:underline">Calendar</a> to plan your first crop!</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                                <template x-for="(record, index) in harvestHistory" :key="record.id || index">
                                     <tr class="border-b border-green-200 hover:bg-green-50 transition">
                                         <td class="px-4 py-3 text-sm text-green-700 font-medium" x-text="index + 1"></td>
                                         <td class="px-4 py-3 text-sm text-green-700 font-medium" x-text="record.cropType"></td>
@@ -61,18 +74,26 @@
                 <!-- Crop Cards -->
                 <div class="bg-green-100 rounded-2xl p-6 border-2 border-green-400">
                     <div class="flex space-x-4 overflow-x-auto pb-2">
-                        <template x-for="crop in cropList" :key="crop.name">
-                            <div @click="showCropDetails(crop)" 
+                        <template x-for="crop in cropList" :key="crop.id || crop.name">
+                            <div x-on:click="showCropDetails(crop)" 
                                  class="flex-shrink-0 w-28 cursor-pointer hover:scale-105 transition-transform">
-                                <div class="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition mb-2">
+                                <div class="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition mb-2 h-24 flex items-center justify-center">
                                     <img :src="crop.image" :alt="crop.name" 
                                          class="w-full h-20 object-cover rounded-lg"
-                                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2322c55e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 font-size=%2240%22>🥬</text></svg>'">
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                    <span class="text-4xl hidden items-center justify-center" x-text="crop.emoji || '🌱'"></span>
                                 </div>
                                 <p class="text-center text-sm font-medium text-gray-700" x-text="crop.name"></p>
                             </div>
                         </template>
                     </div>
+                    
+                    <!-- Empty state if no crops -->
+                    <template x-if="cropList.length === 0">
+                        <div class="text-center py-8 text-gray-500">
+                            <p>No crop types available. Please contact admin to add crops.</p>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -115,12 +136,28 @@
                     <div class="px-6 py-5 max-h-[calc(100vh-200px)] overflow-y-auto">
                         <!-- Crop Image and Name -->
                         <div class="flex items-start space-x-4 mb-6 p-4 bg-green-50 rounded-xl">
-                            <img :src="selectedCrop?.image" :alt="selectedCrop?.name" 
-                                 class="w-20 h-20 object-cover rounded-lg flex-shrink-0"
-                                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2322c55e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 font-size=%2240%22>🥬</text></svg>'">
+                            <div class="w-20 h-20 flex items-center justify-center bg-white rounded-lg flex-shrink-0 shadow-sm">
+                                <img :src="selectedCrop?.image" :alt="selectedCrop?.name" 
+                                     class="w-full h-full object-cover rounded-lg"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <span class="text-4xl hidden items-center justify-center" x-text="selectedCrop?.emoji || '🌱'"></span>
+                            </div>
                             <div>
                                 <h4 class="text-lg font-bold text-gray-800" x-text="selectedCrop?.name"></h4>
+                                <p class="text-xs text-green-600 font-medium" x-text="selectedCrop?.category"></p>
                                 <p class="text-sm text-gray-600 mt-1" x-text="selectedCrop?.description"></p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <div class="bg-blue-50 rounded-xl p-3 text-center">
+                                <p class="text-2xl font-bold text-blue-600" x-text="selectedCrop?.daysToHarvest || '--'"></p>
+                                <p class="text-xs text-gray-600">Days to Harvest</p>
+                            </div>
+                            <div class="bg-green-50 rounded-xl p-3 text-center">
+                                <p class="text-2xl font-bold text-green-600" x-text="(selectedCrop?.averageYield || '--') + ' MT'"></p>
+                                <p class="text-xs text-gray-600">Avg Yield/Hectare</p>
                             </div>
                         </div>
 
@@ -128,11 +165,11 @@
                         <div class="space-y-4 text-sm">
                             <div>
                                 <span class="font-bold text-gray-800">Botanical Name:</span>
-                                <span class="text-gray-600 ml-1" x-text="selectedCrop?.botanicalName"></span>
+                                <span class="text-gray-600 ml-1 italic" x-text="selectedCrop?.botanicalName"></span>
                             </div>
                             
                             <div>
-                                <span class="font-bold text-gray-800">Types:</span>
+                                <span class="font-bold text-gray-800">Varieties:</span>
                                 <span class="text-gray-600 ml-1" x-text="selectedCrop?.types"></span>
                             </div>
                             
@@ -152,7 +189,7 @@
                             </div>
                             
                             <div>
-                                <span class="font-bold text-gray-800">Growth Weather:</span>
+                                <span class="font-bold text-gray-800">Ideal Weather:</span>
                                 <span class="text-gray-600 ml-1" x-text="selectedCrop?.growthWeather"></span>
                             </div>
                             
@@ -169,118 +206,198 @@
 
     @push('scripts')
     <script>
+        // Get base URL for assets
+        const assetBaseUrl = '{{ asset('') }}';
+        
+        // Crop emoji mapping for display
+        const cropEmojis = {
+            'cabbage': '🥬',
+            'chinese cabbage': '🥬',
+            'lettuce': '🥬',
+            'celery': '🥬',
+            'carrots': '🥕',
+            'carrot': '🥕',
+            'potatoes': '🥔',
+            'potato': '🥔',
+            'radish': '🥕',
+            'broccoli': '🥦',
+            'cauliflower': '🥦',
+            'snap beans': '🫛',
+            'string beans': '🫛',
+            'baguio beans': '🫛',
+            'sweet peas': '🫛',
+            'garden peas': '🫛',
+            'tomatoes': '🍅',
+            'bell pepper': '🫑',
+            'sayote': '🥒',
+            'onion': '🧅',
+            'garlic': '🧄',
+            'strawberry': '🍓',
+            'default': '🌱'
+        };
+        
+        function getCropEmoji(cropName) {
+            const name = cropName.toLowerCase();
+            for (const [key, emoji] of Object.entries(cropEmojis)) {
+                if (name.includes(key)) return emoji;
+            }
+            return cropEmojis.default;
+        }
+        
+        function getCropImage(cropName) {
+            const name = cropName.toLowerCase().replace(/\s+/g, '-');
+            // Try jpg first (for uploaded images), then png
+            return assetBaseUrl + 'images/crops/' + name + '.jpg';
+        }
+        
+        // Helper functions defined outside Alpine component for use during initialization
+        function getBotanicalName(name) {
+            const botanicalNames = {
+                'Cabbage': 'Brassica oleracea var. capitata',
+                'Chinese Cabbage': 'Brassica rapa subsp. pekinensis',
+                'Lettuce': 'Lactuca sativa',
+                'Celery': 'Apium graveolens',
+                'Carrots': 'Daucus carota',
+                'Potatoes': 'Solanum tuberosum',
+                'Radish': 'Raphanus sativus',
+                'Broccoli': 'Brassica oleracea var. italica',
+                'Cauliflower': 'Brassica oleracea var. botrytis',
+                'Snap Beans': 'Phaseolus vulgaris',
+                'String Beans': 'Vigna unguiculata subsp. sesquipedalis',
+                'Sweet Peas': 'Pisum sativum',
+                'Garden Peas': 'Pisum sativum',
+                'Tomatoes': 'Solanum lycopersicum',
+                'Bell Pepper': 'Capsicum annuum',
+                'Sayote': 'Sechium edule',
+                'Onion': 'Allium cepa',
+                'Garlic': 'Allium sativum',
+                'Strawberry': 'Fragaria × ananassa',
+            };
+            return botanicalNames[name] || 'Varies by variety';
+        }
+        
+        function getCropTypes(name) {
+            const types = {
+                'Cabbage': 'Green cabbage, red (purple) cabbage, and Savoy cabbage',
+                'Chinese Cabbage': 'Napa cabbage, Bok choy, Pechay Baguio',
+                'Lettuce': 'Romaine, Iceberg, Butterhead, Leaf lettuce',
+                'Carrots': 'Nantes, Chantenay, Imperator, Danvers',
+                'Potatoes': 'Russet, Red, Yellow, Fingerling',
+                'Broccoli': 'Calabrese, Sprouting, Purple broccoli',
+                'Cauliflower': 'White, Orange, Purple, Romanesco',
+                'Tomatoes': 'Cherry, Beefsteak, Roma, Heirloom',
+            };
+            return types[name] || 'Various local varieties';
+        }
+        
+        function getNutritionalValue(name) {
+            const nutrition = {
+                'Cabbage': 'Rich in vitamins C, K, and B6, as well as manganese, folate, and fiber.',
+                'Carrots': 'Excellent source of beta-carotene, fiber, vitamin K1, and potassium.',
+                'Broccoli': 'High in vitamins C and K, fiber, and contains sulforaphane.',
+                'Potatoes': 'Good source of potassium, vitamin C, and B6.',
+                'Tomatoes': 'Rich in lycopene, vitamin C, potassium, and antioxidants.',
+            };
+            return nutrition[name] || 'Good source of vitamins, minerals, and dietary fiber.';
+        }
+        
+        function getHealthBenefits(name) {
+            const benefits = {
+                'Cabbage': 'May support heart health, digestion, and has cancer-preventive properties.',
+                'Carrots': 'Promotes eye health, supports immune function, and aids digestion.',
+                'Broccoli': 'Known for anti-cancer properties, supports heart health and digestion.',
+                'Potatoes': 'Provides sustained energy, supports digestive health.',
+                'Tomatoes': 'May reduce risk of heart disease and certain cancers.',
+            };
+            return benefits[name] || 'Supports overall health and provides essential nutrients.';
+        }
+        
+        function getGrowingConditions(category) {
+            const conditions = {
+                'Leafy Vegetables': 'Thrives in cool climates with well-drained, organic-rich soil.',
+                'Root Vegetables': 'Prefers loose, sandy soil free of rocks for straight root growth.',
+                'Cruciferous': 'Requires cool weather with rich, moist soil and consistent watering.',
+                'Legumes': 'Prefers cool weather and well-drained, fertile soil.',
+                'Fruit Vegetables': 'Needs warm days, cool nights, and consistent moisture.',
+                'Bulb Vegetables': 'Requires well-drained soil and full sun exposure.',
+                'Fruits': 'Needs rich soil, adequate moisture, and protection from pests.',
+            };
+            return conditions[category] || 'Thrives in Benguet highland climate with proper soil preparation.';
+        }
+        
+        function getGrowthWeather(category) {
+            const weather = {
+                'Leafy Vegetables': 'Cool weather crop, best at 60-70°F (15-21°C).',
+                'Root Vegetables': 'Cool to moderate temperatures, 55-75°F (13-24°C).',
+                'Cruciferous': 'Cool weather, ideal at 60-70°F (15-21°C).',
+                'Legumes': 'Cool weather, best at 55-65°F (13-18°C).',
+                'Fruit Vegetables': 'Moderate temperatures, 65-80°F (18-27°C).',
+                'Bulb Vegetables': 'Cool to moderate, 55-75°F (13-24°C).',
+                'Fruits': 'Cool highland climate, 60-75°F (15-24°C).',
+            };
+            return weather[category] || 'Benguet highland climate is ideal for this crop.';
+        }
+        
         function harvestHistory() {
             return {
                 showDetailsModal: false,
                 selectedCrop: null,
                 
-                // Harvest History Data
-                harvestHistory: [
-                    { cropType: 'Cabbage', datePlanted: 'June 13-12, 2025', dateHarvested: '--', status: 'Growing' },
-                    { cropType: 'Carrots', datePlanted: 'April 13-12, 2025', dateHarvested: '--', status: 'Growing' },
-                    { cropType: 'Sweet Pea', datePlanted: 'May 13-12, 2025', dateHarvested: '--', status: 'Growing' },
-                    { cropType: 'White Potato', datePlanted: 'February 13-12, 2025', dateHarvested: 'April 18-21, 2025', status: 'Completed' },
-                    { cropType: 'Broccoli', datePlanted: 'February 13-12, 2025', dateHarvested: 'April 20-22, 2025', status: 'Completed' },
-                    { cropType: 'Cauliflower', datePlanted: 'April 13-12, 2025', dateHarvested: 'May 29-31, 2025', status: 'Completed' },
-                    { cropType: 'Chinese Cabbage', datePlanted: 'January 13-12, 2025', dateHarvested: 'April 12-15,2015', status: 'Completed' },
-                ],
+                // Harvest History Data from database (farmer's crop plans)
+                harvestHistory: @json($cropPlans ?? []),
                 
-                // Crop List Data
-                cropList: [
-                    {
-                        name: 'Cabbage',
-                        image: '/images/crops/cabbage.png',
-                        description: 'Cabbage (Brassica oleracea) is a leafy green, purple, or white biennial plant, commonly grown as an annual vegetable for its dense-leaved heads. It\'s a versatile vegetable with various culinary uses and potential health benefits.',
-                        botanicalName: 'Brassica oleracea',
-                        types: 'Green cabbage, red (purple) cabbage, and Savoy cabbage are common varieties.',
-                        nutritionalValue: 'Cabbage is a good source of vitamins C, K, and B6, as well as manganese, folate, and other nutrients.',
-                        healthBenefits: 'Cabbage may have heart-healthy, digestive, and cancer preventive properties. It\'s also a good source of antioxidants and may help with wound healing.',
-                        growingConditions: 'Cabbage thrives in mild to cool climates and prefers well drained soil with high organic content.',
-                        growthWeather: 'cool-weather crop, thriving best in temperatures between 60°F and 70°F (15°C to 21°C). It prefers well-drained, fertile soil and a location with full sun for optimal growth. Consistent moisture is also important, especially during head formation.',
-                        growthCycle: '4-6 months'
-                    },
-                    {
-                        name: 'Chinese Cabbage',
-                        image: '/images/crops/chinese-cabbage.png',
-                        description: 'Chinese cabbage is a type of leafy vegetable commonly used in Asian cuisine. It has a mild, sweet flavor and crisp texture.',
-                        botanicalName: 'Brassica rapa subsp. pekinensis',
-                        types: 'Napa cabbage, Bok choy are common varieties.',
-                        nutritionalValue: 'Rich in vitamins A, C, and K, and provides fiber and antioxidants.',
-                        healthBenefits: 'May support immune function, bone health, and digestive health.',
-                        growingConditions: 'Prefers cool weather and moist, well-drained soil.',
-                        growthWeather: 'Cool temperatures between 55°F and 70°F (13°C to 21°C) are ideal.',
-                        growthCycle: '2-3 months'
-                    },
-                    {
-                        name: 'Broccoli',
-                        image: '/images/crops/broccoli.png',
-                        description: 'Broccoli is a green vegetable that belongs to the cabbage family. It has a tree-like shape with a thick stem and a crown of dark green florets.',
-                        botanicalName: 'Brassica oleracea var. italica',
-                        types: 'Calabrese broccoli, Sprouting broccoli, Purple broccoli.',
-                        nutritionalValue: 'High in vitamins C and K, fiber, and contains sulforaphane.',
-                        healthBenefits: 'Known for anti-cancer properties, supports heart health and digestion.',
-                        growingConditions: 'Thrives in cool weather with rich, moist soil.',
-                        growthWeather: 'Best grown in temperatures between 65°F and 75°F (18°C to 24°C).',
-                        growthCycle: '3-4 months'
-                    },
-                    {
-                        name: 'Carrot',
-                        image: '/images/crops/carrot.png',
-                        description: 'Carrots are root vegetables known for their bright orange color and sweet, earthy flavor. They are highly nutritious and versatile in cooking.',
-                        botanicalName: 'Daucus carota',
-                        types: 'Nantes, Chantenay, Imperator, Danvers are popular varieties.',
-                        nutritionalValue: 'Excellent source of beta-carotene, fiber, vitamin K1, and potassium.',
-                        healthBenefits: 'Promotes eye health, supports immune function, and aids digestion.',
-                        growingConditions: 'Prefers loose, sandy soil free of rocks for straight root growth.',
-                        growthWeather: 'Cool to moderate temperatures between 55°F and 75°F (13°C to 24°C).',
-                        growthCycle: '2-4 months'
-                    },
-                    {
-                        name: 'Cauliflower',
-                        image: '/images/crops/cauliflower.png',
-                        description: 'Cauliflower is a cruciferous vegetable with a compact head of white florets. It has a mild, slightly nutty flavor.',
-                        botanicalName: 'Brassica oleracea var. botrytis',
-                        types: 'White, orange, purple, and green (Romanesco) varieties.',
-                        nutritionalValue: 'Rich in vitamins C, K, and B6, and contains fiber and antioxidants.',
-                        healthBenefits: 'May reduce inflammation, support brain health, and aid weight loss.',
-                        growingConditions: 'Requires consistent moisture and cool temperatures.',
-                        growthWeather: 'Ideal growing temperature is 60°F to 70°F (15°C to 21°C).',
-                        growthCycle: '3-5 months'
-                    },
-                    {
-                        name: 'Garden Pea/ Sweet Pea',
-                        image: '/images/crops/sweet-pea.png',
-                        description: 'Garden peas are sweet, tender legumes grown for their edible seeds. They are a cool-season crop popular in home gardens.',
-                        botanicalName: 'Pisum sativum',
-                        types: 'Shelling peas, Snow peas, Snap peas.',
-                        nutritionalValue: 'Good source of protein, fiber, vitamins A, C, and K.',
-                        healthBenefits: 'Supports heart health, blood sugar control, and digestive health.',
-                        growingConditions: 'Prefers cool weather and well-drained, fertile soil.',
-                        growthWeather: 'Best grown in temperatures between 55°F and 65°F (13°C to 18°C).',
-                        growthCycle: '2-3 months'
-                    },
-                ],
+                // Crop List Data from database
+                cropList: @json($cropTypes).map(crop => ({
+                    id: crop.id,
+                    name: crop.name,
+                    category: crop.category || 'Vegetable',
+                    image: getCropImage(crop.name),
+                    emoji: getCropEmoji(crop.name),
+                    description: crop.description || `${crop.name} is a popular highland vegetable grown in Benguet. It takes approximately ${crop.days_to_harvest} days to harvest.`,
+                    daysToHarvest: crop.days_to_harvest,
+                    averageYield: crop.average_yield_per_hectare,
+                    growthCycle: crop.growth_cycle || `${Math.round(crop.days_to_harvest / 30)}-${Math.round(crop.days_to_harvest / 30) + 1} months`,
+                    // Additional info based on category
+                    botanicalName: getBotanicalName(crop.name),
+                    types: getCropTypes(crop.name),
+                    nutritionalValue: getNutritionalValue(crop.name),
+                    healthBenefits: getHealthBenefits(crop.name),
+                    growingConditions: getGrowingConditions(crop.category),
+                    growthWeather: getGrowthWeather(crop.category),
+                })),
                 
                 showCropDetails(crop) {
                     this.selectedCrop = crop;
                     this.showDetailsModal = true;
                 },
                 
-                handleAction(record) {
+                async handleAction(record) {
                     if (record.status === 'Growing') {
-                        // Harvest Now action
-                        record.status = 'Completed';
-                        record.dateHarvested = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                        alert('Crop marked as harvested!');
+                        // Harvest Now action - update status via API
+                        try {
+                            const response = await fetch(`{{ url('farmer/api/crop-plans') }}/${record.id}/status`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({ status: 'harvested' })
+                            });
+                            
+                            const data = await response.json();
+                            if (data.success) {
+                                record.status = 'Completed';
+                                record.dateHarvested = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                alert('Crop marked as harvested!');
+                            }
+                        } catch (error) {
+                            console.error('Error updating status:', error);
+                            alert('Failed to update. Please try again.');
+                        }
                     } else {
-                        // Plant Again action
-                        this.harvestHistory.unshift({
-                            cropType: record.cropType,
-                            datePlanted: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-                            dateHarvested: '--',
-                            status: 'Growing'
-                        });
-                        alert('New planting record added!');
+                        // Plant Again action - redirect to calendar to create new plan
+                        window.location.href = '{{ route("farmers.calendar") }}';
                     }
                 }
             }

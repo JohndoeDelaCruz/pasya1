@@ -3,8 +3,9 @@
 
     <div class="h-full overflow-auto bg-gray-100" x-data="calendarApp()">
         <div class="p-6">
-            <!-- Event Type Filter - Top Left -->
-            <div class="flex items-center justify-start mb-4">
+            <!-- Top Bar with Filter and Add Plan Button -->
+            <div class="flex items-center justify-between mb-4">
+                <!-- Event Type Filter - Left -->
                 <div class="flex items-center bg-green-200 rounded-full p-1 shadow-sm">
                     <button @click="eventFilter = 'all'" 
                             :class="eventFilter === 'all' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
@@ -43,6 +44,15 @@
                         </svg>
                     </button>
                 </div>
+
+                <!-- Add Crop Plan Button - Right -->
+                <button @click="showCropPlanModal = true" 
+                        class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-xl shadow-sm transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Plan Crop</span>
+                </button>
             </div>
 
             <!-- Calendar Container -->
@@ -366,6 +376,197 @@
                 </div>
             </div>
         </div>
+
+        <!-- Crop Plan Modal -->
+        <div x-show="showCropPlanModal" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 overflow-y-auto" 
+             style="display: none;"
+             @keydown.escape.window="showCropPlanModal = false">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showCropPlanModal = false"></div>
+            
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div x-show="showCropPlanModal"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
+                     @click.stop>
+                    
+                    <!-- Modal Header -->
+                    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-500 to-green-600">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V6M12 6c-2 0-4-1-5-3M12 6c2 0 4-1 5-3M7 14c-2 1-3 3-3 5M17 14c2 1 3 3 3 5"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-white">Plan Your Crop</h3>
+                                    <p class="text-sm text-green-100">Enter details to see EDOH & predictions</p>
+                                </div>
+                            </div>
+                            <button @click="showCropPlanModal = false" class="p-2 hover:bg-white/20 rounded-lg transition text-white">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Body - Form -->
+                    <div class="px-6 py-5">
+                        <form @submit.prevent="submitCropPlan" class="space-y-4">
+                            <!-- Crop Type Selection -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Crop to Plant</label>
+                                <select x-model="cropPlanForm.crop_type_id" 
+                                        @change="onCropTypeChange"
+                                        class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                        required>
+                                    <option value="">Select a crop...</option>
+                                    @foreach($cropTypes ?? [] as $crop)
+                                        <option value="{{ $crop->id }}" 
+                                                data-days="{{ $crop->days_to_harvest_value }}"
+                                                data-yield="{{ $crop->average_yield_value }}">
+                                            {{ $crop->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            
+                            <!-- Planting Date -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Planting Date</label>
+                                <input type="date" 
+                                       x-model="cropPlanForm.planting_date"
+                                       @change="calculatePreview"
+                                       :min="today"
+                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                       required>
+                            </div>
+                            
+                            <!-- Area in Hectares -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Area (Hectares)</label>
+                                <input type="number" 
+                                       x-model="cropPlanForm.area_hectares"
+                                       @input="calculatePreview"
+                                       step="0.01"
+                                       min="0.01"
+                                       max="1000"
+                                       placeholder="e.g., 2.5"
+                                       class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                       required>
+                            </div>
+                            
+                            <!-- Farm Type -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Farm Type</label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" x-model="cropPlanForm.farm_type" value="IRRIGATED" 
+                                               class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                        <span class="ml-2 text-gray-700">Irrigated</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" x-model="cropPlanForm.farm_type" value="RAINFED"
+                                               class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                        <span class="ml-2 text-gray-700">Rainfed</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Notes (Optional) -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                                <textarea x-model="cropPlanForm.notes"
+                                          rows="2"
+                                          placeholder="Any additional notes..."
+                                          class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition resize-none"></textarea>
+                            </div>
+                        </form>
+                        
+                        <!-- Prediction Preview Card -->
+                        <div x-show="showPredictionPreview" 
+                             x-transition
+                             class="mt-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                            <h4 class="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Prediction Preview
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <!-- EDOH -->
+                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                                    <p class="text-xs text-gray-500 mb-1">Expected Date of Harvest (EDOH)</p>
+                                    <p class="text-lg font-bold text-green-700" x-text="predictionPreview.edoh_formatted || '-'"></p>
+                                    <p class="text-xs text-gray-400" x-text="'~' + (predictionPreview.days_to_harvest || 0) + ' days'"></p>
+                                </div>
+                                <!-- Predicted Production -->
+                                <div class="bg-white rounded-lg p-3 shadow-sm">
+                                    <p class="text-xs text-gray-500 mb-1">Predicted Production</p>
+                                    <p class="text-lg font-bold text-emerald-600" x-text="predictionPreview.predicted_production_formatted || '-'"></p>
+                                    <p class="text-xs text-gray-400" x-text="predictionPreview.area_hectares + ' hectares'"></p>
+                                </div>
+                            </div>
+                            <p x-show="predictionPreview.average_yield_per_hectare" class="text-xs text-gray-500 mt-2 text-center">
+                                Average yield: <span x-text="predictionPreview.average_yield_per_hectare"></span> MT/hectare
+                            </p>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div x-show="isCalculating" class="mt-5 flex items-center justify-center py-8">
+                            <svg class="animate-spin h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span class="ml-3 text-gray-600">Calculating prediction...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+                        <button @click="showCropPlanModal = false" 
+                                class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition font-medium">
+                            Cancel
+                        </button>
+                        <button @click="submitCropPlan"
+                                :disabled="!canSubmitCropPlan || isSubmitting"
+                                class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <svg x-show="isSubmitting" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span x-text="isSubmitting ? 'Saving...' : 'Add to Calendar'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Toast -->
+        <div x-show="showSuccessToast"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform translate-y-2"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed bottom-6 right-6 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 z-50"
+             style="display: none;">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span x-text="successMessage"></span>
+        </div>
     </div>
 
     @push('scripts')
@@ -373,6 +574,10 @@
         function calendarApp() {
             // Get saved default view from localStorage or default to 'month'
             const savedDefaultView = localStorage.getItem('calendarDefaultView') || 'month';
+            
+            // Get today's date for form validation
+            const todayDate = new Date();
+            const todayStr = todayDate.toISOString().split('T')[0];
             
             return {
                 viewMode: savedDefaultView, // 'day', 'week', 'month'
@@ -382,25 +587,223 @@
                 selectedDate: new Date(),
                 showEventModal: false,
                 showSettingsModal: false,
+                showCropPlanModal: false,
+                showSuccessToast: false,
+                successMessage: '',
                 selectedDay: null,
                 selectedEvent: null,
+                today: todayStr,
                 
-                // Sample events data (replace with API call in production)
-                allEvents: {
-                    '2025-06-29': [{ title: 'Check soil moisture', type: 'plant', description: 'Check soil moisture levels before planting' }],
-                    '2025-06-30': [{ title: 'Harvest Cabbage', type: 'harvest', description: 'Cabbage ready for harvest in field 1' }],
-                    '2025-07-01': [],
-                    '2025-07-02': [{ title: 'Claim fertilizer', type: 'claim', description: 'Collect fertilizer subsidy at MAO' }],
-                    '2026-01-01': [{ title: 'Plant Sweet peas', type: 'plant', description: 'Start planting sweet peas in prepared beds' }],
-                    '2026-01-04': [{ title: 'Claim Pechay seeds', type: 'claim', description: 'Collect pechay seeds from Municipal Agriculture Office' }],
-                    '2026-01-10': [{ title: 'Harvest Cabbage', type: 'harvest', description: 'Cabbage ready for harvest' }],
-                    '2026-01-11': [{ title: 'Harvest Cabbage', type: 'harvest', description: 'Cabbage ready for harvest' }],
-                    '2026-01-13': [{ title: 'Plant Beans', type: 'plant', description: 'Plant string beans in field 2' }],
-                    '2026-01-14': [{ title: 'Harvest Cabbage', type: 'harvest', description: 'Your cabbage is ready for harvest today' }],
-                    '2026-01-15': [{ title: 'Harvest Broccoli', type: 'harvest', description: 'Broccoli ready for harvest' }],
-                    '2026-01-19': [{ title: 'Claim loam soil', type: 'claim', description: 'Collect loam soil subsidy' }],
-                    '2026-01-23': [{ title: 'Plant Carrots', type: 'plant', description: 'Time to plant carrot seeds' }],
-                    '2026-01-28': [{ title: 'Claim fertilizer', type: 'claim', description: 'Fertilizer subsidy available at MAO' }],
+                // Crop plan form
+                cropPlanForm: {
+                    crop_type_id: '',
+                    planting_date: todayStr,
+                    area_hectares: '',
+                    farm_type: 'IRRIGATED',
+                    notes: ''
+                },
+                
+                // Prediction preview
+                showPredictionPreview: false,
+                isCalculating: false,
+                isSubmitting: false,
+                predictionPreview: {
+                    edoh_formatted: '',
+                    days_to_harvest: 0,
+                    predicted_production_formatted: '',
+                    area_hectares: 0,
+                    average_yield_per_hectare: 0
+                },
+                
+                // Crop types data with harvest days
+                cropTypesData: @json($cropTypes ?? []),
+                
+                // Events from database - includes crop plans
+                allEvents: @json($events ?? []),
+                
+                get canSubmitCropPlan() {
+                    return this.cropPlanForm.crop_type_id && 
+                           this.cropPlanForm.planting_date && 
+                           this.cropPlanForm.area_hectares > 0 &&
+                           this.showPredictionPreview;
+                },
+                
+                onCropTypeChange() {
+                    this.calculatePreview();
+                },
+                
+                async calculatePreview() {
+                    // Validate inputs
+                    if (!this.cropPlanForm.crop_type_id || 
+                        !this.cropPlanForm.planting_date || 
+                        !this.cropPlanForm.area_hectares ||
+                        this.cropPlanForm.area_hectares <= 0) {
+                        this.showPredictionPreview = false;
+                        return;
+                    }
+                    
+                    this.isCalculating = true;
+                    this.showPredictionPreview = false;
+                    
+                    try {
+                        const response = await fetch('{{ route("farmers.api.crop-plans.preview") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                crop_type_id: this.cropPlanForm.crop_type_id,
+                                planting_date: this.cropPlanForm.planting_date,
+                                area_hectares: parseFloat(this.cropPlanForm.area_hectares),
+                                farm_type: this.cropPlanForm.farm_type
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.predictionPreview = data.data;
+                            this.showPredictionPreview = true;
+                        }
+                    } catch (error) {
+                        console.error('Error calculating preview:', error);
+                        // Fallback to local calculation if API fails
+                        this.calculateLocalPreview();
+                    } finally {
+                        this.isCalculating = false;
+                    }
+                },
+                
+                calculateLocalPreview() {
+                    // Get crop type info
+                    const selectedCrop = this.cropTypesData.find(c => c.id == this.cropPlanForm.crop_type_id);
+                    if (!selectedCrop) return;
+                    
+                    const daysToHarvest = selectedCrop.days_to_harvest_value || 75;
+                    const avgYield = selectedCrop.average_yield_value || 12;
+                    const area = parseFloat(this.cropPlanForm.area_hectares) || 0;
+                    
+                    // Calculate EDOH
+                    const plantingDate = new Date(this.cropPlanForm.planting_date);
+                    const harvestDate = new Date(plantingDate);
+                    harvestDate.setDate(harvestDate.getDate() + daysToHarvest);
+                    
+                    const edohFormatted = harvestDate.toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    });
+                    
+                    // Calculate production
+                    const predictedProduction = (area * avgYield).toFixed(2);
+                    
+                    this.predictionPreview = {
+                        edoh_formatted: edohFormatted,
+                        days_to_harvest: daysToHarvest,
+                        predicted_production_formatted: predictedProduction + ' MT',
+                        area_hectares: area,
+                        average_yield_per_hectare: avgYield
+                    };
+                    
+                    this.showPredictionPreview = true;
+                },
+                
+                async submitCropPlan() {
+                    if (!this.canSubmitCropPlan || this.isSubmitting) return;
+                    
+                    this.isSubmitting = true;
+                    
+                    try {
+                        const response = await fetch('{{ route("farmers.api.crop-plans.store") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                crop_type_id: this.cropPlanForm.crop_type_id,
+                                planting_date: this.cropPlanForm.planting_date,
+                                area_hectares: parseFloat(this.cropPlanForm.area_hectares),
+                                farm_type: this.cropPlanForm.farm_type,
+                                notes: this.cropPlanForm.notes
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Add events to calendar
+                            const plantingDate = data.data.planting_date;
+                            const harvestDate = data.data.expected_harvest_date;
+                            const cropName = data.data.crop_name;
+                            
+                            // Add planting event
+                            if (!this.allEvents[plantingDate]) {
+                                this.allEvents[plantingDate] = [];
+                            }
+                            this.allEvents[plantingDate].push({
+                                title: 'Plant ' + cropName,
+                                type: 'plant',
+                                description: 'Plant ' + cropName + ' on ' + data.data.area_hectares + ' hectares. Expected harvest: ' + data.data.edoh_formatted + '. Predicted production: ' + data.data.predicted_production_formatted,
+                                crop_plan_id: data.data.id,
+                                area: data.data.area_hectares,
+                                predicted_production: data.data.predicted_production
+                            });
+                            
+                            // Add harvest event (EDOH)
+                            if (!this.allEvents[harvestDate]) {
+                                this.allEvents[harvestDate] = [];
+                            }
+                            this.allEvents[harvestDate].push({
+                                title: 'Harvest ' + cropName,
+                                type: 'harvest',
+                                description: 'Expected harvest of ' + cropName + ' from ' + data.data.area_hectares + ' ha. Predicted production: ' + data.data.predicted_production_formatted,
+                                crop_plan_id: data.data.id,
+                                area: data.data.area_hectares,
+                                predicted_production: data.data.predicted_production,
+                                is_edoh: true
+                            });
+                            
+                            // Reset form and close modal
+                            this.resetCropPlanForm();
+                            this.showCropPlanModal = false;
+                            
+                            // Show success message
+                            this.successMessage = 'Crop plan added! EDOH: ' + data.data.edoh_formatted;
+                            this.showSuccessToast = true;
+                            setTimeout(() => {
+                                this.showSuccessToast = false;
+                            }, 4000);
+                        } else {
+                            alert('Failed to save crop plan: ' + (data.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error saving crop plan:', error);
+                        alert('Failed to save crop plan. Please try again.');
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                },
+                
+                resetCropPlanForm() {
+                    this.cropPlanForm = {
+                        crop_type_id: '',
+                        planting_date: this.today,
+                        area_hectares: '',
+                        farm_type: 'IRRIGATED',
+                        notes: ''
+                    };
+                    this.showPredictionPreview = false;
+                    this.predictionPreview = {
+                        edoh_formatted: '',
+                        days_to_harvest: 0,
+                        predicted_production_formatted: '',
+                        area_hectares: 0,
+                        average_yield_per_hectare: 0
+                    };
                 },
                 
                 get events() {

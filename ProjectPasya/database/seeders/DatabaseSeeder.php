@@ -13,9 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Call the AdminUserSeeder to create the admin account
+        // Call the seeders
         $this->call([
             AdminUserSeeder::class,
+            CropTypeSeeder::class,
         ]);
 
         // Optionally create additional test users for development

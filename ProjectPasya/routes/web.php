@@ -39,6 +39,14 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     // API routes for farmer data
     Route::get('/api/events', [FarmerDashboardController::class, 'getEvents'])->name('api.events');
     Route::get('/api/prices', [FarmerDashboardController::class, 'getPrices'])->name('api.prices');
+    
+    // Crop Planning Routes
+    Route::get('/api/crop-types', [FarmerDashboardController::class, 'getCropTypes'])->name('api.crop-types');
+    Route::get('/api/crop-plans', [FarmerDashboardController::class, 'getCropPlans'])->name('api.crop-plans');
+    Route::post('/api/crop-plans', [FarmerDashboardController::class, 'storeCropPlan'])->name('api.crop-plans.store');
+    Route::post('/api/crop-plans/preview', [FarmerDashboardController::class, 'previewCropPlan'])->name('api.crop-plans.preview');
+    Route::patch('/api/crop-plans/{cropPlan}/status', [FarmerDashboardController::class, 'updateCropPlanStatus'])->name('api.crop-plans.status');
+    Route::delete('/api/crop-plans/{cropPlan}', [FarmerDashboardController::class, 'deleteCropPlan'])->name('api.crop-plans.destroy');
 });
 
 // Admin Routes
