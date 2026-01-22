@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         // Call the seeders
         $this->call([
             AdminUserSeeder::class,
-            CropTypeSeeder::class,
+            // CropTypeSeeder removed - crop types are managed by admin
         ]);
 
         // Optionally create additional test users for development

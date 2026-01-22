@@ -1,9 +1,13 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Create Announcement') }}
-            </h2>
+<x-admin-layout>
+    <x-slot name="title">Create Announcement</x-slot>
+
+    <div class="p-6">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Create Announcement</h1>
+                <p class="text-gray-600 mt-1">Create a new announcement for farmers or admins</p>
+            </div>
             <a href="{{ route('admin.announcements.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -11,121 +15,117 @@
                 Back to List
             </a>
         </div>
-    </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <form action="{{ route('admin.announcements.store') }}" method="POST">
-                        @csrf
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6">
+                <form action="{{ route('admin.announcements.store') }}" method="POST">
+                    @csrf
 
-                        <!-- Title -->
-                        <div class="mb-6">
-                            <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
-                            <input type="text" name="title" id="title" value="{{ old('title') }}" 
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('title') border-red-500 @enderror"
-                                placeholder="Enter announcement title" required>
-                            @error('title')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                    <!-- Title -->
+                    <div class="mb-6">
+                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                        <input type="text" name="title" id="title" value="{{ old('title') }}" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('title') border-red-500 @enderror"
+                            placeholder="Enter announcement title" required>
+                        @error('title')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <!-- Content -->
+                    <div class="mb-6">
+                        <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Content *</label>
+                        <textarea name="content" id="content" rows="6"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('content') border-red-500 @enderror"
+                            placeholder="Enter announcement content" required>{{ old('content') }}</textarea>
+                        @error('content')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Priority -->
+                        <div>
+                            <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
+                            <select name="priority" id="priority"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low</option>
+                                <option value="normal" {{ old('priority', 'normal') == 'normal' ? 'selected' : '' }}>Normal</option>
+                                <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High</option>
+                                <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
+                            </select>
                         </div>
 
-                        <!-- Content -->
-                        <div class="mb-6">
-                            <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Content *</label>
-                            <textarea name="content" id="content" rows="6"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('content') border-red-500 @enderror"
-                                placeholder="Enter announcement content" required>{{ old('content') }}</textarea>
-                            @error('content')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                        <!-- Target Audience -->
+                        <div>
+                            <label for="target_audience" class="block text-sm font-medium text-gray-700 mb-2">Target Audience *</label>
+                            <select name="target_audience" id="target_audience"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="farmers" {{ old('target_audience', 'farmers') == 'farmers' ? 'selected' : '' }}>Farmers Only</option>
+                                <option value="admins" {{ old('target_audience') == 'admins' ? 'selected' : '' }}>Admins Only</option>
+                                <option value="all" {{ old('target_audience') == 'all' ? 'selected' : '' }}>Everyone</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Municipality (Optional) -->
+                        <div>
+                            <label for="municipality" class="block text-sm font-medium text-gray-700 mb-2">Target Municipality</label>
+                            <select name="municipality" id="municipality"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">All Municipalities</option>
+                                @foreach($municipalities as $municipality)
+                                    <option value="{{ $municipality }}" {{ old('municipality') == $municipality ? 'selected' : '' }}>
+                                        {{ ucwords(strtolower($municipality)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">Leave empty to send to all municipalities</p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <!-- Priority -->
-                            <div>
-                                <label for="priority" class="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
-                                <select name="priority" id="priority"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    <option value="low" {{ old('priority') == 'low' ? 'selected' : '' }}>Low</option>
-                                    <option value="normal" {{ old('priority', 'normal') == 'normal' ? 'selected' : '' }}>Normal</option>
-                                    <option value="high" {{ old('priority') == 'high' ? 'selected' : '' }}>High</option>
-                                    <option value="urgent" {{ old('priority') == 'urgent' ? 'selected' : '' }}>Urgent</option>
-                                </select>
-                            </div>
+                        <!-- Published At -->
+                        <div>
+                            <label for="published_at" class="block text-sm font-medium text-gray-700 mb-2">Publish Date</label>
+                            <input type="datetime-local" name="published_at" id="published_at" value="{{ old('published_at') }}"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <p class="mt-1 text-xs text-gray-500">Leave empty to publish immediately</p>
+                        </div>
+                    </div>
 
-                            <!-- Target Audience -->
-                            <div>
-                                <label for="target_audience" class="block text-sm font-medium text-gray-700 mb-2">Target Audience *</label>
-                                <select name="target_audience" id="target_audience"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    <option value="farmers" {{ old('target_audience', 'farmers') == 'farmers' ? 'selected' : '' }}>Farmers Only</option>
-                                    <option value="admins" {{ old('target_audience') == 'admins' ? 'selected' : '' }}>Admins Only</option>
-                                    <option value="all" {{ old('target_audience') == 'all' ? 'selected' : '' }}>Everyone</option>
-                                </select>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <!-- Expires At -->
+                        <div>
+                            <label for="expires_at" class="block text-sm font-medium text-gray-700 mb-2">Expiration Date</label>
+                            <input type="datetime-local" name="expires_at" id="expires_at" value="{{ old('expires_at') }}"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <p class="mt-1 text-xs text-gray-500">Leave empty for no expiration</p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <!-- Municipality (Optional) -->
-                            <div>
-                                <label for="municipality" class="block text-sm font-medium text-gray-700 mb-2">Target Municipality</label>
-                                <select name="municipality" id="municipality"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    <option value="">All Municipalities</option>
-                                    @foreach($municipalities as $municipality)
-                                        <option value="{{ $municipality }}" {{ old('municipality') == $municipality ? 'selected' : '' }}>
-                                            {{ ucwords(strtolower($municipality)) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <p class="mt-1 text-xs text-gray-500">Leave empty to send to all municipalities</p>
-                            </div>
-
-                            <!-- Published At -->
-                            <div>
-                                <label for="published_at" class="block text-sm font-medium text-gray-700 mb-2">Publish Date</label>
-                                <input type="datetime-local" name="published_at" id="published_at" value="{{ old('published_at') }}"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                <p class="mt-1 text-xs text-gray-500">Leave empty to publish immediately</p>
-                            </div>
+                        <!-- Active Status -->
+                        <div class="flex items-center mt-8">
+                            <input type="checkbox" name="is_active" id="is_active" value="1" 
+                                class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                {{ old('is_active', true) ? 'checked' : '' }}>
+                            <label for="is_active" class="ml-2 block text-sm text-gray-700">
+                                Active (visible to target audience)
+                            </label>
                         </div>
+                    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <!-- Expires At -->
-                            <div>
-                                <label for="expires_at" class="block text-sm font-medium text-gray-700 mb-2">Expiration Date</label>
-                                <input type="datetime-local" name="expires_at" id="expires_at" value="{{ old('expires_at') }}"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                <p class="mt-1 text-xs text-gray-500">Leave empty for no expiration</p>
-                            </div>
-
-                            <!-- Active Status -->
-                            <div class="flex items-center mt-8">
-                                <input type="checkbox" name="is_active" id="is_active" value="1" 
-                                    class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                                    {{ old('is_active', true) ? 'checked' : '' }}>
-                                <label for="is_active" class="ml-2 block text-sm text-gray-700">
-                                    Active (visible to target audience)
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="flex justify-end space-x-4">
-                            <a href="{{ route('admin.announcements.index') }}" 
-                                class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
-                                Cancel
-                            </a>
-                            <button type="submit" 
-                                class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition">
-                                Create Announcement
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="{{ route('admin.announcements.index') }}" 
+                            class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                            class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition">
+                            Create Announcement
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-admin-layout>

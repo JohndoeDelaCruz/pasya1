@@ -281,7 +281,7 @@
                                     <div class="text-xs text-gray-500">{{ $subsidy->farmer_id }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ $subsidy->crop }}</div>
+                                    <div class="text-sm text-gray-900">{{ $subsidy->crop_display }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($subsidy->subsidy_status == 'Approved')

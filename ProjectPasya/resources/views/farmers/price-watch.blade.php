@@ -75,9 +75,10 @@
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 cursor-pointer"
                          @click="showPriceDetail(price)">
                         <div class="flex items-start justify-between mb-3">
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
                                  :class="getCategoryBgClass(price.category)">
-                                <span x-text="price.emoji"></span>
+                                <img :src="price.image" :alt="price.name" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <span class="text-2xl hidden" x-text="price.emoji"></span>
                             </div>
                             <span class="px-2 py-1 text-xs font-medium rounded-full"
                                   :class="price.change >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
@@ -105,9 +106,9 @@
                     </div>
                     <select x-model="selectedTrendCrop" class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500">
                         <option value="all">All Selected</option>
-                        <option value="Cabbage">Cabbage</option>
-                        <option value="Carrots">Carrots</option>
-                        <option value="Potatoes">Potatoes</option>
+                        <template x-for="dataset in trendData.datasets" :key="dataset.label">
+                            <option :value="dataset.label" x-text="dataset.label"></option>
+                        </template>
                     </select>
                 </div>
                 
@@ -118,12 +119,10 @@
                             <div class="flex-1 flex flex-col items-center space-y-1 mx-1">
                                 <!-- Bars -->
                                 <div class="w-full flex justify-center space-x-1">
-                                    <div class="w-3 bg-green-500 rounded-t transition-all duration-500"
-                                         :style="'height: ' + (trendData.datasets[0].data[index] * 2) + 'px'"></div>
-                                    <div class="w-3 bg-orange-500 rounded-t transition-all duration-500"
-                                         :style="'height: ' + (trendData.datasets[1].data[index] * 2) + 'px'"></div>
-                                    <div class="w-3 bg-yellow-500 rounded-t transition-all duration-500"
-                                         :style="'height: ' + (trendData.datasets[2].data[index] * 2) + 'px'"></div>
+                                    <template x-for="(dataset, dIndex) in trendData.datasets.slice(0, 5)" :key="dataset.label">
+                                        <div class="w-3 rounded-t transition-all duration-500"
+                                             :style="'height: ' + Math.min(dataset.data[index] * 0.5, 200) + 'px; background-color: ' + dataset.color"></div>
+                                    </template>
                                 </div>
                                 <span class="text-xs text-gray-500" x-text="month"></span>
                             </div>
@@ -131,20 +130,14 @@
                     </div>
                 </div>
                 
-                <!-- Legend -->
-                <div class="flex justify-center space-x-6 mt-4 pt-4 border-t border-gray-100">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-green-500 rounded"></div>
-                        <span class="text-sm text-gray-600">Cabbage</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-orange-500 rounded"></div>
-                        <span class="text-sm text-gray-600">Carrots</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="w-3 h-3 bg-yellow-500 rounded"></div>
-                        <span class="text-sm text-gray-600">Potatoes</span>
-                    </div>
+                <!-- Legend (Dynamic) -->
+                <div class="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-gray-100">
+                    <template x-for="dataset in trendData.datasets.slice(0, 5)" :key="dataset.label">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded" :style="'background-color: ' + dataset.color"></div>
+                            <span class="text-sm text-gray-600" x-text="dataset.label"></span>
+                        </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -163,7 +156,10 @@
                     <div class="px-6 py-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <span class="text-4xl" x-text="selectedPrice?.emoji"></span>
+                                <div class="w-16 h-16 rounded-xl overflow-hidden bg-white/20 flex items-center justify-center">
+                                    <img :src="selectedPrice?.image" :alt="selectedPrice?.name" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <span class="text-4xl hidden" x-text="selectedPrice?.emoji"></span>
+                                </div>
                                 <div>
                                     <h3 class="text-xl font-bold" x-text="selectedPrice?.name"></h3>
                                     <p class="text-green-100 text-sm" x-text="selectedPrice?.category"></p>

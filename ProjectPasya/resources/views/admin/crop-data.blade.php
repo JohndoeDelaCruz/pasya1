@@ -145,7 +145,7 @@
                         <option value="">All Municipalities</option>
                         @foreach($filters['municipalities'] as $municipality)
                             <option value="{{ $municipality }}" {{ request('municipality') == $municipality ? 'selected' : '' }}>
-                                {{ $municipality }}
+                                {{ ucwords(strtolower($municipality)) }}
                             </option>
                         @endforeach
                     </select>
@@ -160,7 +160,7 @@
                         <option value="">All Crops</option>
                         @foreach($filters['crops'] as $cropName)
                             <option value="{{ $cropName }}" {{ request('crop') == $cropName ? 'selected' : '' }}>
-                                {{ $cropName }}
+                                {{ ucwords(strtolower($cropName)) }}
                             </option>
                         @endforeach
                     </select>
@@ -212,9 +212,9 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @forelse($crops as $crop)
                             <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $crop->municipality }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->crop }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->farm_type }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $crop->municipality_display }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->crop_display }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->farm_type_display }}</td></td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->year }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->month }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->area_planted, 2) }} </td>
@@ -275,7 +275,7 @@
                                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
                             <option value="">Municipality</option>
                             @foreach($filters['municipalities'] as $municipality)
-                                <option value="{{ $municipality }}">{{ $municipality }}</option>
+                                <option value="{{ $municipality }}">{{ ucwords(strtolower($municipality)) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -308,7 +308,7 @@
                                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
                             <option value="">Crop</option>
                             @foreach($filters['crops'] as $cropName)
-                                <option value="{{ $cropName }}">{{ $cropName }}</option>
+                                <option value="{{ $cropName }}">{{ ucwords(strtolower($cropName)) }}</option>
                             @endforeach
                         </select>
                     </div>

@@ -259,25 +259,47 @@ class CropTrendsController extends Controller
             ]);
         }
         
-        // Top 3 Most Productive Years
-        $topYears = Crop::select('year', DB::raw('SUM(production) / 1000 as total_production'))
+        // Top 3 Most Productive Years with production totals
+        $topYearsWithProduction = Crop::select('year', DB::raw('SUM(production) / 1000 as total_production'))
             ->groupBy('year')
             ->orderByDesc('total_production')
             ->limit(3)
             ->get()
-            ->pluck('year')
+            ->map(function ($item) {
+                return [
+                    'year' => $item->year,
+                    'production' => round($item->total_production, 0)
+                ];
+            })
             ->toArray();
         
-        // Top 3 Most Productive Crops
-        $topCrops = Crop::select('crop', DB::raw('SUM(production) / 1000 as total_production'))
+        // Keep simple array for backward compatibility
+        $topYears = array_column($topYearsWithProduction, 'year');
+        
+        // Top 3 Most Productive Crops with production totals
+        $topCropsWithProduction = Crop::select('crop', DB::raw('SUM(production) / 1000 as total_production'))
             ->groupBy('crop')
             ->orderByDesc('total_production')
             ->limit(3)
             ->get()
-            ->map(function ($crop) {
-                return ucwords(strtolower($crop->crop));
+            ->map(function ($item) {
+                return [
+                    'crop' => ucwords(strtolower($item->crop)),
+                    'production' => round($item->total_production, 0)
+                ];
             })
             ->toArray();
+        
+        // Keep simple array for backward compatibility
+        $topCrops = array_column($topCropsWithProduction, 'crop');
+        
+        // Monthly production data - use actual historical averages
+        $monthlyProductionData = [];
+        foreach ($months as $month) {
+            $avgProduction = Crop::where('month', $month)
+                ->avg(DB::raw('production / 1000'));
+            $monthlyProductionData[] = round($avgProduction ?? 0, 2);
+        }
         
         // Check ML API health
         $mlApiHealthy = $this->predictionService->checkHealth();
@@ -292,8 +314,11 @@ class CropTrendsController extends Controller
             'predictedYields' => $predictedYields,
             'demandData' => $demandData,
             'recordedData' => $recordedData,
+            'monthlyProductionData' => $monthlyProductionData,
             'topYears' => $topYears,
             'topCrops' => $topCrops,
+            'topYearsWithProduction' => $topYearsWithProduction,
+            'topCropsWithProduction' => $topCropsWithProduction,
             'currentYear' => $currentYear,
             'mlApiHealthy' => $mlApiHealthy,
             'municipalities' => $municipalities,
@@ -356,18 +381,41 @@ class CropTrendsController extends Controller
             ->where('farm_type', $request->farm_type)
             ->avg('area_harvested') ?? 100;
 
+        // Get the maximum year with actual historical data for this crop/municipality/farm_type
+        $maxHistoricalYear = Crop::where('crop', $request->crop)
+            ->where('municipality', $request->municipality)
+            ->where('farm_type', $request->farm_type)
+            ->max('year');
+        
+        Log::info('Max Historical Year', [
+            'crop' => $request->crop,
+            'municipality' => $request->municipality,
+            'farm_type' => $request->farm_type,
+            'max_year' => $maxHistoricalYear
+        ]);
+
         foreach ($years as $year) {
             foreach ($months as $month) {
-                // Get historical data for comparison
-                $historical = Crop::where('municipality', $request->municipality)
-                    ->where('farm_type', $request->farm_type)
-                    ->where('crop', $request->crop)
-                    ->where('month', $month)
-                    ->where('year', $year)
-                    ->first();
+                // Only query historical data for years that have actual data
+                // Years beyond the max historical year should not show historical data
+                $historicalProductivity = null;
+                $historicalProduction = null;
+                $historicalArea = null;
+                $historical = null;
+                
+                if ($maxHistoricalYear && $year <= $maxHistoricalYear) {
+                    // Get historical data for comparison - only for years with actual data
+                    $historical = Crop::where('municipality', $request->municipality)
+                        ->where('farm_type', $request->farm_type)
+                        ->where('crop', $request->crop)
+                        ->where('month', $month)
+                        ->where('year', $year)
+                        ->first();
 
-                $historicalProductivity = $historical ? $historical->productivity : null;
-                $historicalProduction = $historical ? $historical->production / 1000 : null; // Convert kg to MT
+                    $historicalProductivity = $historical ? $historical->productivity : null;
+                    $historicalProduction = $historical ? $historical->production / 1000 : null; // Convert kg to MT
+                    $historicalArea = $historical ? $historical->area_harvested : null;
+                }
                 
                 // Log historical data found
                 Log::info('Historical Data Query', [
@@ -521,6 +569,13 @@ class CropTrendsController extends Controller
                     }
                 }
 
+                // Calculate normalized historical production using the same area as predictions
+                // This allows fair comparison between historical and predicted values
+                $normalizedHistoricalProduction = null;
+                if ($historicalProductivity && $avgAreaHarvested) {
+                    $normalizedHistoricalProduction = round($historicalProductivity * $avgAreaHarvested, 2);
+                }
+
                 $predictions[] = [
                     'month' => $month,
                     'year' => $year,
@@ -528,6 +583,9 @@ class CropTrendsController extends Controller
                     'predicted_productivity' => $predictedProductivity,
                     'historical_production' => $historicalProduction,
                     'predicted_production' => $predictedProduction,
+                    'normalized_historical_production' => $normalizedHistoricalProduction,
+                    'historical_area' => $historicalArea,
+                    'prediction_area' => round($avgAreaHarvested, 2),
                     'confidence_score' => $confidenceScore ?? null,
                 ];
             }
@@ -588,7 +646,8 @@ class CropTrendsController extends Controller
             'filters' => $request->all(),
             'mlApiHealthy' => $mlApiHealthy,
             'municipalities' => $municipalities,
-            'crops' => $crops
+            'crops' => $crops,
+            'avgAreaHarvested' => round($avgAreaHarvested, 2)
         ]);
     }
 }

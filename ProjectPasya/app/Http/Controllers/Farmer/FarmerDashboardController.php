@@ -8,6 +8,7 @@ use App\Models\CropType;
 use App\Models\CropProduction;
 use App\Models\CropPlan;
 use App\Models\Crop;
+use App\Models\FarmerNotification;
 use App\Services\PredictionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -173,63 +174,13 @@ class FarmerDashboardController extends Controller
     }
     
     /**
-     * Get farmer's calendar events
+     * Get farmer's calendar events from their crop plans only
      */
     private function getFarmerEvents($farmer, $allEvents = false)
     {
         $events = [];
-        $today = now();
         
-        // Sample farming events based on crop cycles (replace with database events later)
-        $farmingEvents = [
-            [
-                'date' => $today->copy()->addDays(2)->format('Y-m-d'),
-                'title' => 'Claim fertilizer',
-                'type' => 'claim',
-                'description' => 'Fertilizer subsidy available at the Municipal Agriculture Office. Bring your ID.',
-            ],
-            [
-                'date' => $today->copy()->addDays(6)->format('Y-m-d'),
-                'title' => 'Plant Carrots',
-                'type' => 'plant',
-                'description' => 'Time to plant carrot seeds in your prepared beds. Make sure soil is well-drained.',
-            ],
-            [
-                'date' => $today->format('Y-m-d'),
-                'title' => 'Harvest Cabbage',
-                'type' => 'harvest',
-                'description' => 'Your cabbage is ready for harvest today. Best to harvest in the early morning.',
-            ],
-            [
-                'date' => $today->copy()->addDays(10)->format('Y-m-d'),
-                'title' => 'Plant Beans',
-                'type' => 'plant',
-                'description' => 'Start planting string beans in prepared beds.',
-            ],
-            [
-                'date' => $today->copy()->addDays(14)->format('Y-m-d'),
-                'title' => 'Harvest Broccoli',
-                'type' => 'harvest',
-                'description' => 'Broccoli is ready for harvest.',
-            ],
-            [
-                'date' => $today->copy()->addDays(20)->format('Y-m-d'),
-                'title' => 'Claim seeds',
-                'type' => 'claim',
-                'description' => 'Collect your free seeds from the Municipal Agriculture Office.',
-            ],
-        ];
-        
-        // Format sample events for JavaScript
-        foreach ($farmingEvents as $event) {
-            $events[$event['date']][] = [
-                'title' => $event['title'],
-                'type' => $event['type'],
-                'description' => $event['description'],
-            ];
-        }
-        
-        // Add events from farmer's crop plans (database)
+        // Get events from farmer's crop plans (database only - no mock data)
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
             ->whereIn('status', ['planned', 'planted', 'growing'])
             ->get();
@@ -287,91 +238,264 @@ class FarmerDashboardController extends Controller
     }
     
     /**
-     * Get price watch data for dashboard
+     * Get price watch data for dashboard (uses same logic as getAllPrices but returns top 3)
      */
     private function getPriceWatchData()
     {
-        // Mock data - replace with real price API or database
-        return [
-            [
-                'name' => 'Cabbage',
-                'emoji' => '🥬',
-                'price' => 77.43,
-                'change' => -24.00,
-                'unit' => 'kg',
-            ],
-            [
-                'name' => 'Chinese Cabbage',
-                'emoji' => '🥬',
-                'price' => 149.00,
-                'change' => 16.00,
-                'unit' => 'kg',
-            ],
-            [
-                'name' => 'Carrots',
-                'emoji' => '🥕',
-                'price' => 80.00,
-                'change' => -3.00,
-                'unit' => 'kg',
-            ],
-        ];
+        $allPrices = $this->getAllPrices();
+        return array_slice($allPrices, 0, 3);
     }
     
     /**
-     * Get all crop prices
+     * Get all crop prices from database crops
      */
     private function getAllPrices()
     {
-        // More comprehensive price list with specifications
-        return [
-            ['name' => 'Cabbage', 'emoji' => '🥬', 'specification' => '2 heads/kg', 'price' => 77.43, 'change' => -24.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
-            ['name' => 'Chinese Cabbage', 'emoji' => '🥬', 'specification' => '1 pc/kg', 'price' => 149.00, 'change' => 10.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
-            ['name' => 'Carrots', 'emoji' => '🥕', 'specification' => '6 pcs/kg', 'price' => 80.00, 'change' => -3.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
-            ['name' => 'Sweet Peas', 'emoji' => '🫛', 'specification' => '50 pcs/kg', 'price' => 680.00, 'change' => 62.00, 'unit' => 'kg', 'category' => 'Legumes'],
-            ['name' => 'Potato', 'emoji' => '🥔', 'specification' => '4 pcs/kg', 'price' => 145.45, 'change' => -2.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
-            ['name' => 'Baguio Beans', 'emoji' => '🫛', 'specification' => '60 pcs/kg', 'price' => 119.31, 'change' => -1.00, 'unit' => 'kg', 'category' => 'Legumes'],
-            ['name' => 'Cauliflower', 'emoji' => '🥦', 'specification' => '2 heads/kg', 'price' => 237.00, 'change' => 30.00, 'unit' => 'kg', 'category' => 'Cruciferous'],
-            ['name' => 'Lettuce', 'emoji' => '🥗', 'specification' => '4 pcs/kg', 'price' => 160.00, 'change' => -70.00, 'unit' => 'kg', 'category' => 'Leafy Vegetables'],
-            ['name' => 'Broccoli', 'emoji' => '🥦', 'specification' => '2 heads/kg', 'price' => 380.00, 'change' => 46.00, 'unit' => 'kg', 'category' => 'Cruciferous'],
-            ['name' => 'Radish', 'emoji' => '🥕', 'specification' => '5 pcs/kg', 'price' => 229.00, 'change' => 0.00, 'unit' => 'kg', 'category' => 'Root Vegetables'],
-            ['name' => 'Tomatoes', 'emoji' => '🍅', 'specification' => '8 pcs/kg', 'price' => 45.00, 'change' => -8.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
-            ['name' => 'Bell Pepper', 'emoji' => '🫑', 'specification' => '5 pcs/kg', 'price' => 120.00, 'change' => 10.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
-            ['name' => 'Sayote', 'emoji' => '🥒', 'specification' => '3 pcs/kg', 'price' => 35.00, 'change' => 0.00, 'unit' => 'kg', 'category' => 'Fruit Vegetables'],
-            ['name' => 'String Beans', 'emoji' => '🫛', 'specification' => '40 pcs/kg', 'price' => 60.00, 'change' => 8.00, 'unit' => 'kg', 'category' => 'Legumes'],
-            ['name' => 'Snap Peas', 'emoji' => '🫛', 'specification' => '45 pcs/kg', 'price' => 90.00, 'change' => -12.00, 'unit' => 'kg', 'category' => 'Legumes'],
+        // Get crops from database
+        $cropTypes = CropType::active()->orderBy('name')->get();
+        
+        // Emoji mapping based on crop name
+        $emojiMap = [
+            'cabbage' => '🥬',
+            'chinese cabbage' => '🥬',
+            'lettuce' => '🥬',
+            'celery' => '🥬',
+            'carrots' => '🥕',
+            'carrot' => '🥕',
+            'potatoes' => '🥔',
+            'potato' => '🥔',
+            'radish' => '🥕',
+            'broccoli' => '🥦',
+            'cauliflower' => '🥦',
+            'snap beans' => '🫛',
+            'string beans' => '🫛',
+            'baguio beans' => '🫛',
+            'beans' => '🫛',
+            'sweet peas' => '🫛',
+            'peas' => '🫛',
+            'garden peas' => '🫛',
+            'tomatoes' => '🍅',
+            'tomato' => '🍅',
+            'bell pepper' => '🫑',
+            'pepper' => '🫑',
+            'sayote' => '🥒',
+            'onion' => '🧅',
+            'garlic' => '🧄',
+            'strawberry' => '🍓',
         ];
+        
+        // Image mapping based on crop name (local images)
+        $imageMap = [
+            'cabbage' => 'images/crops/cabbage.jpg',
+            'chinese cabbage' => 'images/crops/cabbage.jpg',
+            'lettuce' => 'images/crops/Lettuce-Baguio.png',
+            'carrots' => 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
+            'carrot' => 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
+            'potatoes' => 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
+            'potato' => 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
+            'bell pepper' => 'images/crops/Bell-peppers.webp',
+            'pepper' => 'images/crops/Bell-peppers.webp',
+            'cauliflower' => 'images/crops/how-to-grow-cauliflower-1403494-hero-76cf5f524a564adabb1ac6adfa311482.jpg',
+            'broccoli' => 'images/crops/iStock-1156721086-360x240.jpg',
+            'beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+            'snap beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+            'string beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+            'baguio beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+        ];
+        
+        // Specification mapping based on crop name
+        $specificationMap = [
+            'cabbage' => '2 heads/kg',
+            'chinese cabbage' => '1 pc/kg',
+            'lettuce' => '4 pcs/kg',
+            'carrots' => '6 pcs/kg',
+            'carrot' => '6 pcs/kg',
+            'potatoes' => '4 pcs/kg',
+            'potato' => '4 pcs/kg',
+            'cauliflower' => '2 heads/kg',
+            'broccoli' => '2 heads/kg',
+            'beans' => '50 pcs/kg',
+            'snap beans' => '45 pcs/kg',
+            'string beans' => '40 pcs/kg',
+            'baguio beans' => '60 pcs/kg',
+            'sweet peas' => '50 pcs/kg',
+            'peas' => '50 pcs/kg',
+            'bell pepper' => '5 pcs/kg',
+            'pepper' => '5 pcs/kg',
+            'tomatoes' => '8 pcs/kg',
+            'tomato' => '8 pcs/kg',
+            'sayote' => '3 pcs/kg',
+            'radish' => '5 pcs/kg',
+            'onion' => '8 pcs/kg',
+            'garlic' => '15 pcs/kg',
+            'strawberry' => '1 pack',
+            'celery' => '3 stalks/kg',
+        ];
+        
+        // Base prices for generating mock data (can be replaced with real API later)
+        $basePrices = [
+            'cabbage' => 77.00,
+            'chinese cabbage' => 149.00,
+            'lettuce' => 160.00,
+            'celery' => 100.00,
+            'carrots' => 80.00,
+            'carrot' => 80.00,
+            'potatoes' => 145.00,
+            'potato' => 145.00,
+            'radish' => 229.00,
+            'broccoli' => 380.00,
+            'cauliflower' => 237.00,
+            'beans' => 120.00,
+            'snap beans' => 90.00,
+            'string beans' => 60.00,
+            'baguio beans' => 119.00,
+            'sweet peas' => 680.00,
+            'peas' => 200.00,
+            'garden peas' => 200.00,
+            'tomatoes' => 45.00,
+            'tomato' => 45.00,
+            'bell pepper' => 120.00,
+            'pepper' => 120.00,
+            'sayote' => 35.00,
+            'onion' => 80.00,
+            'garlic' => 180.00,
+            'strawberry' => 350.00,
+        ];
+        
+        $prices = [];
+        
+        foreach ($cropTypes as $crop) {
+            $name = strtolower($crop->name);
+            
+            // Find matching keys for this crop
+            $emoji = '🌱';
+            $image = 'images/crops/unnamed.jpg';
+            $specification = '1 kg';
+            $basePrice = 100.00;
+            
+            foreach ($emojiMap as $key => $value) {
+                if (str_contains($name, $key)) {
+                    $emoji = $value;
+                    break;
+                }
+            }
+            
+            foreach ($imageMap as $key => $value) {
+                if (str_contains($name, $key)) {
+                    $image = $value;
+                    break;
+                }
+            }
+            
+            foreach ($specificationMap as $key => $value) {
+                if (str_contains($name, $key)) {
+                    $specification = $value;
+                    break;
+                }
+            }
+            
+            foreach ($basePrices as $key => $value) {
+                if (str_contains($name, $key)) {
+                    $basePrice = $value;
+                    break;
+                }
+            }
+            
+            // Generate a small random change for price variation (simulating market changes)
+            $change = round((rand(-20, 20) / 100) * $basePrice, 2);
+            
+            $prices[] = [
+                'name' => $crop->name,
+                'emoji' => $emoji,
+                'image' => asset($image),
+                'specification' => $specification,
+                'price' => round($basePrice + $change, 2),
+                'change' => $change,
+                'unit' => 'kg',
+                'category' => $crop->category ?? 'Vegetables',
+                'description' => $crop->description ?? "{$crop->name} from Benguet highlands.",
+            ];
+        }
+        
+        return $prices;
     }
     
     /**
-     * Get price trends for charts
+     * Get price trends for charts (using database crops)
      */
     private function getPriceTrends()
     {
-        // Mock trend data for charts
+        // Get up to 5 crops from database for the trend chart
+        $cropTypes = CropType::active()->orderBy('name')->take(5)->get();
+        
+        // Generate months labels
         $months = [];
         for ($i = 5; $i >= 0; $i--) {
             $months[] = now()->subMonths($i)->format('M');
         }
         
+        // Color palette for chart
+        $colors = ['#22c55e', '#f97316', '#eab308', '#3b82f6', '#ec4899'];
+        
+        // Base prices for generating mock trend data
+        $basePrices = [
+            'cabbage' => 80,
+            'chinese cabbage' => 150,
+            'lettuce' => 160,
+            'celery' => 100,
+            'carrots' => 80,
+            'potatoes' => 145,
+            'radish' => 229,
+            'broccoli' => 380,
+            'cauliflower' => 237,
+            'beans' => 120,
+            'snap beans' => 90,
+            'string beans' => 60,
+            'baguio beans' => 119,
+            'sweet peas' => 680,
+            'peas' => 200,
+            'tomatoes' => 45,
+            'bell pepper' => 120,
+            'sayote' => 35,
+            'onion' => 80,
+            'garlic' => 180,
+            'strawberry' => 350,
+        ];
+        
+        $datasets = [];
+        $colorIndex = 0;
+        
+        foreach ($cropTypes as $crop) {
+            $name = strtolower($crop->name);
+            $basePrice = 100;
+            
+            // Find base price for this crop
+            foreach ($basePrices as $key => $value) {
+                if (str_contains($name, $key)) {
+                    $basePrice = $value;
+                    break;
+                }
+            }
+            
+            // Generate 6 months of mock trend data with slight variations
+            $data = [];
+            for ($i = 0; $i < 6; $i++) {
+                $variation = rand(-15, 15) / 100; // ±15% variation
+                $data[] = round($basePrice * (1 + $variation));
+            }
+            
+            $datasets[] = [
+                'label' => $crop->name,
+                'data' => $data,
+                'color' => $colors[$colorIndex % count($colors)],
+            ];
+            
+            $colorIndex++;
+        }
+        
         return [
             'labels' => $months,
-            'datasets' => [
-                [
-                    'label' => 'Cabbage',
-                    'data' => [85, 92, 88, 101, 95, 77],
-                    'color' => '#22c55e',
-                ],
-                [
-                    'label' => 'Carrots',
-                    'data' => [75, 78, 82, 79, 83, 80],
-                    'color' => '#f97316',
-                ],
-                [
-                    'label' => 'Potatoes',
-                    'data' => [55, 58, 62, 60, 63, 65],
-                    'color' => '#eab308',
-                ],
-            ],
+            'datasets' => $datasets,
         ];
     }
     
@@ -451,24 +575,50 @@ class FarmerDashboardController extends Controller
      */
     public function storeCropPlan(Request $request)
     {
+        Log::info('storeCropPlan: Starting...', ['input' => $request->all()]);
+        
         $farmer = Auth::guard('farmer')->user();
         
-        $validated = $request->validate([
-            'crop_type_id' => 'required|exists:crop_types,id',
-            'planting_date' => 'required|date|after_or_equal:today',
-            'area_hectares' => 'required|numeric|min:0.01|max:1000',
-            'farm_type' => 'nullable|string|in:IRRIGATED,RAINFED',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        if (!$farmer) {
+            Log::error('storeCropPlan: No authenticated farmer');
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Please log in again.',
+            ], 401);
+        }
+        
+        Log::info('storeCropPlan: Farmer authenticated', ['farmer_id' => $farmer->id]);
+        
+        try {
+            $validated = $request->validate([
+                'crop_type_id' => 'required|exists:crop_types,id',
+                'planting_date' => 'required|date|after_or_equal:today',
+                'area_hectares' => 'required|numeric|min:0.01|max:1000',
+                'farm_type' => 'nullable|string|in:IRRIGATED,RAINFED',
+                'notes' => 'nullable|string|max:500',
+            ]);
+            
+            Log::info('storeCropPlan: Validation passed', $validated);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('storeCropPlan: Validation failed', ['errors' => $e->errors()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors(),
+            ], 422);
+        }
         
         try {
             $cropType = CropType::findOrFail($validated['crop_type_id']);
+            Log::info('storeCropPlan: CropType found', ['crop_type' => $cropType->name]);
+            
             $plantingDate = Carbon::parse($validated['planting_date']);
             $areaHectares = floatval($validated['area_hectares']);
             $farmType = $validated['farm_type'] ?? 'IRRIGATED';
             
             // Calculate Expected Date of Harvest (EDOH)
             $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate);
+            Log::info('storeCropPlan: Harvest date calculated', ['harvest_date' => $expectedHarvestDate->format('Y-m-d')]);
             
             // Get predicted production using ML API or fallback to simple calculation
             $predictedProduction = $this->getPredictedProduction(
@@ -478,6 +628,7 @@ class FarmerDashboardController extends Controller
                 $plantingDate,
                 $areaHectares
             );
+            Log::info('storeCropPlan: Production predicted', ['predicted' => $predictedProduction]);
             
             // Create the crop plan
             $cropPlan = CropPlan::create([
@@ -493,6 +644,19 @@ class FarmerDashboardController extends Controller
                 'status' => 'planned',
                 'notes' => $validated['notes'] ?? null,
             ]);
+            Log::info('storeCropPlan: CropPlan created', ['crop_plan_id' => $cropPlan->id]);
+            
+            // Create notification for the farmer with growth period info
+            try {
+                FarmerNotification::createCropPlanNotification($farmer, $cropPlan, $cropType->days_to_harvest_value);
+                Log::info('storeCropPlan: Notification created');
+            } catch (\Exception $notifEx) {
+                Log::warning('storeCropPlan: Notification creation failed, but crop plan saved', [
+                    'error' => $notifEx->getMessage(),
+                    'trace' => $notifEx->getTraceAsString()
+                ]);
+                // Continue even if notification fails
+            }
             
             return response()->json([
                 'success' => true,
@@ -513,14 +677,15 @@ class FarmerDashboardController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to create crop plan', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'farmer_id' => $farmer->id,
-                'data' => $validated,
+                'data' => $validated ?? [],
             ]);
             
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create crop plan. Please try again.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
             ], 500);
         }
     }
@@ -729,5 +894,88 @@ class FarmerDashboardController extends Controller
         // Fallback to simple calculation based on average yield
         $averageYield = CropType::getAverageYield($cropName);
         return round($areaHectares * $averageYield, 2);
+    }
+
+    /**
+     * Get farmer's notifications (crop plan related only)
+     */
+    public function getNotifications(Request $request)
+    {
+        $farmer = Auth::guard('farmer')->user();
+        $limit = $request->get('limit', 10);
+        
+        $notifications = FarmerNotification::where('farmer_id', $farmer->id)
+            ->cropPlanRelated()
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get()
+            ->map(function ($notification) {
+                return [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'icon_svg' => $notification->icon_svg,
+                    'icon_bg_class' => $notification->icon_bg_class,
+                    'icon_text_class' => $notification->icon_text_class,
+                    'link' => $notification->link,
+                    'is_read' => $notification->is_read,
+                    'time_ago' => $notification->time_ago,
+                    'created_at' => $notification->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+        
+        $unreadCount = FarmerNotification::where('farmer_id', $farmer->id)
+            ->cropPlanRelated()
+            ->unread()
+            ->count();
+        
+        return response()->json([
+            'success' => true,
+            'notifications' => $notifications,
+            'unread_count' => $unreadCount,
+        ]);
+    }
+
+    /**
+     * Mark a notification as read
+     */
+    public function markNotificationRead(FarmerNotification $notification)
+    {
+        $farmer = Auth::guard('farmer')->user();
+        
+        if ($notification->farmer_id !== $farmer->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+        
+        $notification->markAsRead();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Notification marked as read',
+        ]);
+    }
+
+    /**
+     * Mark all notifications as read
+     */
+    public function markAllNotificationsRead()
+    {
+        $farmer = Auth::guard('farmer')->user();
+        
+        FarmerNotification::where('farmer_id', $farmer->id)
+            ->unread()
+            ->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'All notifications marked as read',
+        ]);
     }
 }

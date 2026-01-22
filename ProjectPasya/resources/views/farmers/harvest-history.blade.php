@@ -135,7 +135,7 @@
                     <!-- Modal Body -->
                     <div class="px-6 py-5 max-h-[calc(100vh-200px)] overflow-y-auto">
                         <!-- Crop Image and Name -->
-                        <div class="flex items-start space-x-4 mb-6 p-4 bg-green-50 rounded-xl">
+                        <div class="flex items-start space-x-4 mb-4 p-4 bg-green-50 rounded-xl">
                             <div class="w-20 h-20 flex items-center justify-center bg-white rounded-lg flex-shrink-0 shadow-sm">
                                 <img :src="selectedCrop?.image" :alt="selectedCrop?.name" 
                                      class="w-full h-full object-cover rounded-lg"
@@ -144,59 +144,66 @@
                             </div>
                             <div>
                                 <h4 class="text-lg font-bold text-gray-800" x-text="selectedCrop?.name"></h4>
-                                <p class="text-xs text-green-600 font-medium" x-text="selectedCrop?.category"></p>
-                                <p class="text-sm text-gray-600 mt-1" x-text="selectedCrop?.description"></p>
+                                <p class="text-sm text-green-600 font-medium" x-text="selectedCrop?.category"></p>
                             </div>
                         </div>
 
-                        <!-- Quick Stats -->
+                        <!-- Crop Description -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-xl">
+                            <div class="flex items-center space-x-2 mb-2">
+                                <span class="text-xl">📝</span>
+                                <span class="font-bold text-gray-800">About This Crop</span>
+                            </div>
+                            <p class="text-gray-700 text-sm leading-relaxed" x-text="selectedCrop?.description"></p>
+                        </div>
+
+                        <!-- Key Farming Info - Simple and Clear -->
                         <div class="grid grid-cols-2 gap-3 mb-6">
-                            <div class="bg-blue-50 rounded-xl p-3 text-center">
+                            <div class="bg-blue-50 rounded-xl p-4 text-center">
+                                <div class="text-3xl mb-1">📅</div>
                                 <p class="text-2xl font-bold text-blue-600" x-text="selectedCrop?.daysToHarvest || '--'"></p>
-                                <p class="text-xs text-gray-600">Days to Harvest</p>
+                                <p class="text-sm text-gray-700 font-medium">Days to Harvest</p>
                             </div>
-                            <div class="bg-green-50 rounded-xl p-3 text-center">
+                            <div class="bg-green-50 rounded-xl p-4 text-center">
+                                <div class="text-3xl mb-1">📦</div>
                                 <p class="text-2xl font-bold text-green-600" x-text="(selectedCrop?.averageYield || '--') + ' MT'"></p>
-                                <p class="text-xs text-gray-600">Avg Yield/Hectare</p>
+                                <p class="text-sm text-gray-700 font-medium">Yield per Hectare</p>
                             </div>
                         </div>
 
-                        <!-- Crop Information -->
-                        <div class="space-y-4 text-sm">
-                            <div>
-                                <span class="font-bold text-gray-800">Botanical Name:</span>
-                                <span class="text-gray-600 ml-1 italic" x-text="selectedCrop?.botanicalName"></span>
+                        <!-- Simple Growing Tips -->
+                        <div class="space-y-4">
+                            <div class="bg-amber-50 rounded-xl p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="text-xl">🌡️</span>
+                                    <span class="font-bold text-gray-800">Best Weather</span>
+                                </div>
+                                <p class="text-gray-700 text-sm" x-text="selectedCrop?.growthWeather"></p>
                             </div>
                             
-                            <div>
-                                <span class="font-bold text-gray-800">Varieties:</span>
-                                <span class="text-gray-600 ml-1" x-text="selectedCrop?.types"></span>
+                            <div class="bg-sky-50 rounded-xl p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="text-xl">🌱</span>
+                                    <span class="font-bold text-gray-800">Growing Tips</span>
+                                </div>
+                                <p class="text-gray-700 text-sm" x-text="selectedCrop?.growingConditions"></p>
                             </div>
                             
-                            <div>
-                                <span class="font-bold text-gray-800">Nutritional Value:</span>
-                                <span class="text-gray-600 ml-1" x-text="selectedCrop?.nutritionalValue"></span>
+                            <div class="bg-purple-50 rounded-xl p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="text-xl">⏱️</span>
+                                    <span class="font-bold text-gray-800">Growth Cycle</span>
+                                </div>
+                                <p class="text-gray-700 text-sm" x-text="selectedCrop?.growthCycle"></p>
                             </div>
-                            
-                            <div>
-                                <span class="font-bold text-gray-800">Health Benefits:</span>
-                                <span class="text-gray-600 ml-1" x-text="selectedCrop?.healthBenefits"></span>
-                            </div>
-                            
-                            <div>
-                                <span class="font-bold text-gray-800">Growing Conditions:</span>
-                                <span class="text-gray-600 ml-1" x-text="selectedCrop?.growingConditions"></span>
-                            </div>
-                            
-                            <div>
-                                <span class="font-bold text-gray-800">Ideal Weather:</span>
-                                <span class="text-gray-600 ml-1" x-text="selectedCrop?.growthWeather"></span>
-                            </div>
-                            
-                            <div>
-                                <span class="font-bold text-gray-800">Growth Cycle:</span>
-                                <span class="text-gray-600 ml-1" x-text="selectedCrop?.growthCycle"></span>
-                            </div>
+                        </div>
+                        
+                        <!-- Plan This Crop Button -->
+                        <div class="mt-6">
+                            <a href="{{ route('farmers.calendar') }}" 
+                               class="block w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-xl transition text-center">
+                                🌾 Plan This Crop
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -244,10 +251,43 @@
             return cropEmojis.default;
         }
         
-        function getCropImage(cropName) {
-            const name = cropName.toLowerCase().replace(/\s+/g, '-');
-            // Try jpg first (for uploaded images), then png
-            return assetBaseUrl + 'images/crops/' + name + '.jpg';
+        function getCropImage(cropName, databaseImage = null) {
+            // If there's a database image, use it
+            if (databaseImage) {
+                return assetBaseUrl + databaseImage;
+            }
+            
+            const name = cropName.toLowerCase();
+            
+            // Map crop names to local images in public/images/crops/
+            const cropImages = {
+                'cabbage': 'images/crops/cabbage.jpg',
+                'chinese cabbage': 'images/crops/cabbage.jpg',
+                'lettuce': 'images/crops/Lettuce-Baguio.png',
+                'carrots': 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
+                'carrot': 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
+                'potatoes': 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
+                'potato': 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
+                'whitepotato': 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
+                'bell pepper': 'images/crops/Bell-peppers.webp',
+                'sweet pepper': 'images/crops/Bell-peppers.webp',
+                'cauliflower': 'images/crops/how-to-grow-cauliflower-1403494-hero-76cf5f524a564adabb1ac6adfa311482.jpg',
+                'broccoli': 'images/crops/iStock-1156721086-360x240.jpg',
+                'beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+                'snap beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+                'string beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+                'baguio beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+            };
+            
+            // Check for matching crop name
+            for (const [key, imagePath] of Object.entries(cropImages)) {
+                if (name.includes(key)) {
+                    return assetBaseUrl + imagePath;
+                }
+            }
+            
+            // Default fallback - use unnamed.jpg
+            return assetBaseUrl + 'images/crops/unnamed.jpg';
         }
         
         // Helper functions defined outside Alpine component for use during initialization
@@ -314,28 +354,53 @@
         
         function getGrowingConditions(category) {
             const conditions = {
-                'Leafy Vegetables': 'Thrives in cool climates with well-drained, organic-rich soil.',
-                'Root Vegetables': 'Prefers loose, sandy soil free of rocks for straight root growth.',
-                'Cruciferous': 'Requires cool weather with rich, moist soil and consistent watering.',
-                'Legumes': 'Prefers cool weather and well-drained, fertile soil.',
-                'Fruit Vegetables': 'Needs warm days, cool nights, and consistent moisture.',
-                'Bulb Vegetables': 'Requires well-drained soil and full sun exposure.',
-                'Fruits': 'Needs rich soil, adequate moisture, and protection from pests.',
+                'Leafy Vegetables': 'Plant in cool weather. Needs good soil with compost. Water regularly.',
+                'Root Vegetables': 'Use loose, soft soil without rocks. Roots grow straight in loose soil.',
+                'Cruciferous': 'Plant when weather is cool. Keep soil moist but not flooded.',
+                'Legumes': 'Best in cool weather. Needs support poles for climbing.',
+                'Fruit Vegetables': 'Needs warm days and cool nights. Water evenly.',
+                'Bulb Vegetables': 'Plant in sunny area. Soil must drain well.',
+                'Fruits': 'Needs rich soil. Protect from pests and heavy rain.',
             };
-            return conditions[category] || 'Thrives in Benguet highland climate with proper soil preparation.';
+            return conditions[category] || 'Grows well in Benguet highland climate. Prepare soil well before planting.';
         }
         
         function getGrowthWeather(category) {
             const weather = {
-                'Leafy Vegetables': 'Cool weather crop, best at 60-70°F (15-21°C).',
-                'Root Vegetables': 'Cool to moderate temperatures, 55-75°F (13-24°C).',
-                'Cruciferous': 'Cool weather, ideal at 60-70°F (15-21°C).',
-                'Legumes': 'Cool weather, best at 55-65°F (13-18°C).',
-                'Fruit Vegetables': 'Moderate temperatures, 65-80°F (18-27°C).',
-                'Bulb Vegetables': 'Cool to moderate, 55-75°F (13-24°C).',
-                'Fruits': 'Cool highland climate, 60-75°F (15-24°C).',
+                'Leafy Vegetables': 'Cool weather (15-21°C). Best during rainy season.',
+                'Root Vegetables': 'Cool to warm weather (13-24°C). Good all year in Benguet.',
+                'Cruciferous': 'Cool weather (15-21°C). Avoid hot months.',
+                'Legumes': 'Cool weather (13-18°C). Plant during cooler months.',
+                'Fruit Vegetables': 'Mild weather (18-27°C). Not too hot, not too cold.',
+                'Bulb Vegetables': 'Cool to warm weather (13-24°C). Avoid very wet season.',
+                'Fruits': 'Cool highland weather (15-24°C). Benguet climate is perfect.',
             };
-            return weather[category] || 'Benguet highland climate is ideal for this crop.';
+            return weather[category] || 'Benguet highland weather is good for this crop.';
+        }
+        
+        function getCropDescription(name) {
+            const descriptions = {
+                'Cabbage': 'Cabbage is a hearty vegetable that grows well in Benguet\'s cool climate. It is a staple in Filipino cuisine and is used in many dishes like chopsuey and pinakbet.',
+                'Chinese Cabbage': 'Also known as Pechay Baguio, Chinese Cabbage is a fast-growing leafy vegetable. It is widely used in soups and stir-fry dishes.',
+                'Lettuce': 'Lettuce thrives in Benguet\'s cool weather and is used mainly for salads. It grows quickly and can be harvested multiple times.',
+                'Celery': 'Celery is a crunchy vegetable used as a flavoring in soups and dishes. It grows well in the highland areas of Benguet.',
+                'Carrots': 'Carrots are root vegetables known for their bright orange color and sweet taste. Benguet is one of the top carrot producers in the Philippines.',
+                'Potatoes': 'Potatoes are an important root crop in Benguet. They are versatile and used in many Filipino and international dishes.',
+                'Radish': 'Radish is a quick-growing root vegetable with a slightly spicy taste. It can be harvested in as little as 30 days.',
+                'Broccoli': 'Broccoli is a nutritious vegetable in the cabbage family. It needs cool weather to form good heads and is high in vitamins.',
+                'Cauliflower': 'Cauliflower is a white-headed vegetable similar to broccoli. It requires cool temperatures and careful handling during harvest.',
+                'Snap Beans': 'Snap beans, also called green beans, are picked when the pods are still tender. They are a good source of protein and fiber.',
+                'String Beans': 'String beans are long, slender beans that grow on climbing vines. They are commonly used in Filipino vegetable dishes.',
+                'Baguio Beans': 'Baguio beans are a local variety popular in highland farming. They are named after the city and are widely sold in markets.',
+                'Sweet Peas': 'Sweet peas are tender peas grown for their edible pods. They thrive in cool weather and are a valuable cash crop.',
+                'Tomatoes': 'Tomatoes are used in many Filipino dishes for their tangy flavor. Highland tomatoes from Benguet are known for their quality.',
+                'Bell Pepper': 'Bell peppers are colorful vegetables used in salads and cooking. They grow well in Benguet\'s mild climate.',
+                'Sayote': 'Sayote (chayote) is a climbing vegetable that produces pear-shaped fruits. It is easy to grow and can be harvested continuously.',
+                'Onion': 'Onions are essential in Filipino cooking. They require well-drained soil and are harvested when the tops dry out.',
+                'Garlic': 'Garlic is used both as food and medicine. It takes longer to grow but is a valuable crop for farmers.',
+                'Strawberry': 'Strawberries are grown in the cool highlands of Benguet. La Trinidad is famous for its strawberry farms.',
+            };
+            return descriptions[name] || `${name} is a highland vegetable grown in Benguet. It is suited to the cool mountain climate.`;
         }
         
         function harvestHistory() {
@@ -351,9 +416,9 @@
                     id: crop.id,
                     name: crop.name,
                     category: crop.category || 'Vegetable',
-                    image: getCropImage(crop.name),
+                    image: getCropImage(crop.name, crop.image),
                     emoji: getCropEmoji(crop.name),
-                    description: crop.description || `${crop.name} is a popular highland vegetable grown in Benguet. It takes approximately ${crop.days_to_harvest} days to harvest.`,
+                    description: crop.description || getCropDescription(crop.name),
                     daysToHarvest: crop.days_to_harvest,
                     averageYield: crop.average_yield_per_hectare,
                     growthCycle: crop.growth_cycle || `${Math.round(crop.days_to_harvest / 30)}-${Math.round(crop.days_to_harvest / 30) + 1} months`,

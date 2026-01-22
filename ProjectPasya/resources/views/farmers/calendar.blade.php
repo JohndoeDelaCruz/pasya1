@@ -200,39 +200,42 @@
                         </div>
 
                         <!-- Calendar Days Grid -->
-                        <div class="grid grid-cols-7 gap-1">
+                        <div class="space-y-1">
                             <template x-for="(week, weekIndex) in calendarWeeks" :key="weekIndex">
-                                <template x-for="(day, dayIndex) in week" :key="weekIndex + '-' + dayIndex">
-                                    <div @click="selectDay(day)"
-                                         :class="{
-                                             'bg-gray-100 border-gray-200': !day.isCurrentMonth,
-                                             'bg-green-50 border-green-200': day.isCurrentMonth && !day.isToday,
-                                             'bg-yellow-50 border-yellow-400 border-2': day.isToday,
-                                             'border': !day.isToday
-                                         }"
-                                         class="min-h-[100px] p-2 rounded-xl transition-all relative cursor-pointer hover:shadow-md">
-                                        
-                                        <!-- Day Number -->
-                                        <div class="text-sm font-bold mb-1" 
-                                             :class="day.isCurrentMonth ? 'text-gray-700' : 'text-gray-400'"
-                                             x-text="day.date"></div>
-                                        
-                                        <!-- Events -->
-                                        <div class="space-y-1">
-                                            <template x-for="(event, eventIndex) in day.events.slice(0, 2)" :key="eventIndex">
-                                                <div :class="getEventClass(event.type)"
-                                                     class="text-xs px-2 py-1 rounded-md font-medium truncate">
-                                                    <span x-text="event.title"></span>
-                                                </div>
-                                            </template>
-                                            <template x-if="day.events.length > 2">
-                                                <div class="text-xs text-gray-500 font-medium">
-                                                    +<span x-text="day.events.length - 2"></span> more
+                                <div class="grid grid-cols-7 gap-1">
+                                    <template x-for="(day, dayIndex) in week" :key="weekIndex + '-' + dayIndex">
+                                        <div @click="!day.isEmpty && selectDay(day)"
+                                             :class="{
+                                                 'bg-transparent': day.isEmpty,
+                                                 'bg-green-50 border-green-200 border cursor-pointer hover:shadow-md': !day.isEmpty && !day.isToday,
+                                                 'bg-yellow-50 border-yellow-400 border-2 cursor-pointer hover:shadow-md': day.isToday
+                                             }"
+                                             class="min-h-[100px] p-2 rounded-xl transition-all relative">
+                                            
+                                            <template x-if="!day.isEmpty">
+                                                <div>
+                                                    <!-- Day Number -->
+                                                    <div class="text-sm font-bold mb-1 text-gray-700" x-text="day.date"></div>
+                                                    
+                                                    <!-- Events -->
+                                                    <div class="space-y-1">
+                                                        <template x-for="(event, eventIndex) in day.events.slice(0, 2)" :key="eventIndex">
+                                                            <div :class="getEventClass(event.type)"
+                                                                 class="text-xs px-2 py-1 rounded-md font-medium truncate">
+                                                                <span x-text="event.title"></span>
+                                                            </div>
+                                                        </template>
+                                                        <template x-if="day.events.length > 2">
+                                                            <div class="text-xs text-gray-500 font-medium">
+                                                                +<span x-text="day.events.length - 2"></span> more
+                                                            </div>
+                                                        </template>
+                                                    </div>
                                                 </div>
                                             </template>
                                         </div>
-                                    </div>
-                                </template>
+                                    </template>
+                                </div>
                             </template>
                         </div>
                     </div>
@@ -265,16 +268,32 @@
                     <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-                                     :class="selectedDay?.isToday ? 'bg-yellow-500' : 'bg-green-500'">
-                                    <span x-text="selectedDay?.date"></span>
-                                </div>
+                                <!-- Event icon when viewing single event -->
+                                <template x-if="selectedEvent && !selectedDay">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg"
+                                         :class="selectedEvent.type === 'plant' ? 'bg-green-500' : selectedEvent.type === 'harvest' ? 'bg-emerald-400' : 'bg-teal-400'">
+                                        <svg x-show="selectedEvent.type === 'plant'" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V6M12 6c-2 0-4-1-5-3M12 6c2 0 4-1 5-3M7 14c-2 1-3 3-3 5M17 14c2 1 3 3 3 5"/>
+                                        </svg>
+                                        <svg x-show="selectedEvent.type === 'harvest'" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </template>
+                                <!-- Day icon when viewing day events -->
+                                <template x-if="selectedDay">
+                                    <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg"
+                                         :class="selectedDay?.isToday ? 'bg-yellow-500' : 'bg-green-500'">
+                                        <span x-text="selectedDay?.date"></span>
+                                    </div>
+                                </template>
                                 <div>
-                                    <h3 class="text-lg font-bold text-gray-800" x-text="selectedDayFormatted"></h3>
+                                    <h3 class="text-lg font-bold text-gray-800" x-text="selectedEvent && !selectedDay ? selectedEvent.title : selectedDayFormatted"></h3>
                                     <p class="text-sm text-gray-500" x-show="selectedDay?.isToday">Today</p>
+                                    <p class="text-sm text-gray-500" x-show="selectedEvent && !selectedDay" x-text="selectedEvent?.type === 'plant' ? 'Planting Event' : selectedEvent?.type === 'harvest' ? 'Harvest Event' : 'Event'"></p>
                                 </div>
                             </div>
-                            <button @click="showEventModal = false" class="p-2 hover:bg-gray-200 rounded-lg transition">
+                            <button @click="showEventModal = false; selectedEvent = null;" class="p-2 hover:bg-gray-200 rounded-lg transition">
                                 <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -284,6 +303,31 @@
                     
                     <!-- Modal Body -->
                     <div class="px-6 py-5 max-h-80 overflow-y-auto">
+                        <!-- Single event view (when clicking on event directly) -->
+                        <template x-if="selectedEvent && !selectedDay">
+                            <div class="space-y-3">
+                                <div class="flex items-start space-x-3 p-3 rounded-xl border" :class="getEventBgClass(selectedEvent.type)">
+                                    <div class="w-3 h-3 rounded-full mt-1" :class="getEventDotClass(selectedEvent.type)"></div>
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-gray-800" x-text="selectedEvent.title"></h4>
+                                        <p class="text-gray-600 text-sm mt-1" x-text="selectedEvent.description || 'No description'"></p>
+                                        <template x-if="selectedEvent.predicted_production">
+                                            <div class="mt-2 text-xs text-gray-500">
+                                                <span class="font-medium">Predicted Production:</span> 
+                                                <span x-text="selectedEvent.predicted_production + ' MT'"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedEvent.area">
+                                            <div class="text-xs text-gray-500">
+                                                <span class="font-medium">Area:</span> 
+                                                <span x-text="selectedEvent.area + ' hectares'"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        <!-- Day events view (when clicking on day) -->
                         <template x-if="selectedDay?.events?.length > 0">
                             <div class="space-y-3">
                                 <template x-for="(event, index) in selectedDay.events" :key="index">
@@ -297,7 +341,7 @@
                                 </template>
                             </div>
                         </template>
-                        <template x-if="!selectedDay?.events?.length">
+                        <template x-if="selectedDay && !selectedDay?.events?.length && !selectedEvent">
                             <div class="text-center py-8">
                                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,7 +355,7 @@
                     
                     <!-- Modal Footer -->
                     <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                        <button @click="showEventModal = false" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2.5 rounded-xl transition">
+                        <button @click="showEventModal = false; selectedEvent = null;" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2.5 rounded-xl transition">
                             Close
                         </button>
                     </div>
@@ -435,7 +479,7 @@
                                         <option value="{{ $crop->id }}" 
                                                 data-days="{{ $crop->days_to_harvest_value }}"
                                                 data-yield="{{ $crop->average_yield_value }}">
-                                            {{ $crop->name }}
+                                            {{ $crop->name_display }} ({{ $crop->days_to_harvest_value }} days)
                                         </option>
                                     @endforeach
                                 </select>
@@ -716,6 +760,13 @@
                     this.isSubmitting = true;
                     
                     try {
+                        console.log('Submitting crop plan:', {
+                            crop_type_id: this.cropPlanForm.crop_type_id,
+                            planting_date: this.cropPlanForm.planting_date,
+                            area_hectares: parseFloat(this.cropPlanForm.area_hectares),
+                            farm_type: this.cropPlanForm.farm_type,
+                        });
+                        
                         const response = await fetch('{{ route("farmers.api.crop-plans.store") }}', {
                             method: 'POST',
                             headers: {
@@ -732,7 +783,18 @@
                             })
                         });
                         
-                        const data = await response.json();
+                        console.log('Response status:', response.status);
+                        const responseText = await response.text();
+                        console.log('Response text:', responseText);
+                        
+                        let data;
+                        try {
+                            data = JSON.parse(responseText);
+                        } catch (parseError) {
+                            console.error('JSON parse error:', parseError);
+                            alert('Server error: Invalid response format. Check console for details.');
+                            return;
+                        }
                         
                         if (data.success) {
                             // Add events to calendar
@@ -778,11 +840,12 @@
                                 this.showSuccessToast = false;
                             }, 4000);
                         } else {
-                            alert('Failed to save crop plan: ' + (data.message || 'Unknown error'));
+                            console.error('Server returned error:', data);
+                            alert('Failed to save crop plan: ' + (data.message || 'Unknown error') + (data.error ? '\n\nDetails: ' + data.error : ''));
                         }
                     } catch (error) {
                         console.error('Error saving crop plan:', error);
-                        alert('Failed to save crop plan. Please try again.');
+                        alert('Failed to save crop plan. Error: ' + error.message);
                     } finally {
                         this.isSubmitting = false;
                     }
@@ -955,22 +1018,17 @@
                     const startDayOfWeek = firstDay.getDay();
                     const daysInMonth = lastDay.getDate();
                     
-                    const prevMonthLastDay = new Date(year, month, 0).getDate();
-                    
                     const weeks = [];
                     let days = [];
                     
-                    // Previous month days
-                    for (let i = startDayOfWeek - 1; i >= 0; i--) {
-                        const date = prevMonthLastDay - i;
-                        const prevMonth = month === 0 ? 11 : month - 1;
-                        const prevYear = month === 0 ? year - 1 : year;
-                        const dateKey = `${prevYear}-${String(prevMonth + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                    // Empty cells for days before the first day of the month
+                    for (let i = 0; i < startDayOfWeek; i++) {
                         days.push({
-                            date: date,
+                            date: null,
+                            isEmpty: true,
                             isCurrentMonth: false,
                             isToday: false,
-                            events: this.events[dateKey] || []
+                            events: []
                         });
                     }
                     
@@ -983,6 +1041,7 @@
                         
                         days.push({
                             date: date,
+                            isEmpty: false,
                             isCurrentMonth: true,
                             isToday: isToday,
                             events: this.events[dateKey] || []
@@ -994,39 +1053,17 @@
                         }
                     }
                     
-                    // Next month days
-                    let nextDate = 1;
-                    while (days.length < 7 && days.length > 0) {
-                        const nextMonth = month === 11 ? 0 : month + 1;
-                        const nextYear = month === 11 ? year + 1 : year;
-                        const dateKey = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${String(nextDate).padStart(2, '0')}`;
+                    // Empty cells for remaining days in the last week
+                    while (days.length > 0 && days.length < 7) {
                         days.push({
-                            date: nextDate,
+                            date: null,
+                            isEmpty: true,
                             isCurrentMonth: false,
                             isToday: false,
-                            events: this.events[dateKey] || []
+                            events: []
                         });
-                        nextDate++;
                     }
                     if (days.length > 0) {
-                        weeks.push(days);
-                    }
-                    
-                    // Ensure 6 weeks for consistent height
-                    while (weeks.length < 6) {
-                        days = [];
-                        for (let i = 0; i < 7; i++) {
-                            const nextMonth = month === 11 ? 0 : month + 1;
-                            const nextYear = month === 11 ? year + 1 : year;
-                            const dateKey = `${nextYear}-${String(nextMonth + 1).padStart(2, '0')}-${String(nextDate).padStart(2, '0')}`;
-                            days.push({
-                                date: nextDate,
-                                isCurrentMonth: false,
-                                isToday: false,
-                                events: this.events[dateKey] || []
-                            });
-                            nextDate++;
-                        }
                         weeks.push(days);
                     }
                     
@@ -1048,6 +1085,7 @@
                 
                 showEventDetails(event) {
                     this.selectedEvent = event;
+                    this.selectedDay = null;
                     this.showEventModal = true;
                 },
                 

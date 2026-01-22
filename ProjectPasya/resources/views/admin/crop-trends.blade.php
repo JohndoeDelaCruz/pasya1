@@ -79,28 +79,18 @@
 
         <!-- Summary Card Statistics -->
         <div class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6">Summary Card Statistics</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Summary Statistics</h3>
             
-            <!-- Summary of Demand Chart -->
+            <!-- Monthly Production Chart -->
             <div class="bg-gray-50 rounded-lg p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h4 class="font-semibold text-gray-800">Summary of Demand</h4>
-                        <p class="text-sm text-gray-500">January - June 2025 • Production in Metric Tons (MT)</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 bg-green-500 rounded"></div>
-                            <span class="text-sm text-gray-600">Predicted</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 bg-gray-300 rounded"></div>
-                            <span class="text-sm text-gray-600">Recorded</span>
-                        </div>
+                        <h4 class="font-semibold text-gray-800">Average Monthly Production</h4>
+                        <p class="text-sm text-gray-500">Based on historical data • Production in Metric Tons (MT)</p>
                     </div>
                 </div>
                 
-                <!-- Demand Bar Chart -->
+                <!-- Production Bar Chart -->
                 <div class="h-[200px]">
                     <canvas id="demandChart"></canvas>
                 </div>
@@ -117,30 +107,40 @@
                         Top 3 Most Productive Years
                     </h5>
                     <ol class="space-y-2">
-                        @foreach($topYears as $index => $year)
-                            <li class="flex items-center gap-2 text-gray-700">
-                                <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
-                                <span>{{ $year }}</span>
+                        @forelse($topYearsWithProduction as $index => $item)
+                            <li class="flex items-center justify-between text-gray-700">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
+                                    <span class="font-medium">{{ $item['year'] }}</span>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} MT</span>
                             </li>
-                        @endforeach
+                        @empty
+                            <li class="text-gray-500 text-sm">No data available</li>
+                        @endforelse
                     </ol>
                 </div>
 
-                <!-- Top 3 of Most Productive Crops -->
+                <!-- Top 3 Most Productive Crops -->
                 <div class="border border-gray-200 rounded-lg p-4">
                     <h5 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
                         </svg>
-                        Top 3 of Most Productive Crops
+                        Top 3 Most Productive Crops
                     </h5>
                     <ol class="space-y-2">
-                        @foreach($topCrops as $index => $crop)
-                            <li class="flex items-center gap-2 text-gray-700">
-                                <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
-                                <span>{{ $crop }}</span>
+                        @forelse($topCropsWithProduction as $index => $item)
+                            <li class="flex items-center justify-between text-gray-700">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
+                                    <span class="font-medium">{{ $item['crop'] }}</span>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} MT</span>
                             </li>
-                        @endforeach
+                        @empty
+                            <li class="text-gray-500 text-sm">No data available</li>
+                        @endforelse
                     </ol>
                 </div>
             </div>
@@ -222,7 +222,7 @@
                                 <option value="">Select municipality</option>
                                 @foreach($municipalities as $municipality)
                                     <option value="{{ $municipality }}" {{ strtoupper($municipality) === strtoupper($selectedMunicipality) ? 'selected' : '' }}>
-                                        {{ $municipality }}
+                                        {{ ucwords(strtolower($municipality)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -301,7 +301,7 @@
                                 <option value="">Select a crop</option>
                                 @foreach($crops as $crop)
                                     <option value="{{ $crop }}" {{ strtoupper($crop) === strtoupper($selectedCrop) ? 'selected' : '' }}>
-                                        {{ $crop }}
+                                        {{ ucwords(strtolower($crop)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -458,8 +458,7 @@
                     if (!ctx) return;
 
                     const months = @json($months);
-                    const predicted = @json($demandData);
-                    const recorded = @json($recordedData);
+                    const productionData = @json($monthlyProductionData);
 
                     const monthLabels = months.map(m => {
                         const monthMap = { JAN: 'Jan', FEB: 'Feb', MAR: 'Mar', APR: 'Apr', MAY: 'May', JUN: 'Jun' };
@@ -472,18 +471,11 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Predicted (MT)',
-                                    data: predicted,
+                                    label: 'Avg Production (MT)',
+                                    data: productionData,
                                     backgroundColor: 'rgb(34, 197, 94)',
                                     borderRadius: 4,
-                                    barThickness: 20
-                                },
-                                {
-                                    label: 'Recorded (MT)',
-                                    data: recorded,
-                                    backgroundColor: 'rgb(209, 213, 219)',
-                                    borderRadius: 4,
-                                    barThickness: 20
+                                    barThickness: 30
                                 }
                             ]
                         },
@@ -496,7 +488,7 @@
                                 delay: (context) => {
                                     let delay = 0;
                                     if (context.type === 'data' && context.mode === 'default') {
-                                        delay = context.dataIndex * 80 + context.datasetIndex * 100;
+                                        delay = context.dataIndex * 80;
                                     }
                                     return delay;
                                 }
@@ -512,14 +504,7 @@
                                     bodyFont: { size: 11 },
                                     callbacks: {
                                         label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label += ': ';
-                                            }
-                                            if (context.parsed.y !== null) {
-                                                label += context.parsed.y.toFixed(2) + ' MT';
-                                            }
-                                            return label;
+                                            return context.parsed.y.toFixed(2) + ' MT';
                                         }
                                     }
                                 }

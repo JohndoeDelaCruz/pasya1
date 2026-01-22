@@ -17,7 +17,7 @@
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Prediction Results</h1>
                 <p class="text-sm text-gray-500 mt-1">
-                    {{ $filters['crop'] }} • {{ $filters['municipality'] }} • {{ $filters['farm_type'] }}
+                    {{ ucwords(strtolower($filters['crop'])) }} • {{ ucwords(strtolower($filters['municipality'])) }} • {{ ucwords(strtolower($filters['farm_type'])) }}
                 </p>
             </div>
             
@@ -60,15 +60,15 @@
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div>
                             <span class="text-gray-500">Municipality:</span>
-                            <span class="font-medium text-gray-800 ml-2">{{ $filters['municipality'] }}</span>
+                            <span class="font-medium text-gray-800 ml-2">{{ ucwords(strtolower($filters['municipality'])) }}</span>
                         </div>
                         <div>
                             <span class="text-gray-500">Farm Type:</span>
-                            <span class="font-medium text-gray-800 ml-2">{{ $filters['farm_type'] }}</span>
+                            <span class="font-medium text-gray-800 ml-2">{{ ucwords(strtolower($filters['farm_type'])) }}</span>
                         </div>
                         <div>
                             <span class="text-gray-500">Crop:</span>
-                            <span class="font-medium text-green-600 ml-2">{{ $filters['crop'] }}</span>
+                            <span class="font-medium text-green-600 ml-2">{{ ucwords(strtolower($filters['crop'])) }}</span>
                         </div>
                         <div>
                             <span class="text-gray-500">Month Range:</span>
@@ -78,6 +78,13 @@
                             <span class="text-gray-500">Year Range:</span>
                             <span class="font-medium text-gray-800 ml-2">{{ $filters['year_from'] }} - {{ $filters['year_to'] }}</span>
                         </div>
+                        @if(isset($avgAreaHarvested))
+                        <div>
+                            <span class="text-gray-500">Prediction Area Basis:</span>
+                            <span class="font-medium text-blue-600 ml-2">{{ number_format($avgAreaHarvested, 2) }} ha</span>
+                            <span class="text-xs text-gray-400 ml-1">(avg)</span>
+                        </div>
+                        @endif
                     </div>
                 </div>
                 <button @click="$dispatch('open-modal', 'prediction-modal')" class="ml-6 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">
@@ -94,7 +101,7 @@
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Yield Comparison: {{ $filters['crop'] }}
+                        Yield Comparison: {{ ucwords(strtolower($filters['crop'])) }}
                     </h2>
                     <p class="text-sm text-gray-500 mt-1">
                         <span class="font-medium text-cyan-600">Historical Yields</span> vs 
@@ -142,90 +149,139 @@
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-800">Detailed Predictions</h3>
                 <div class="text-sm text-gray-600">
-                    Showing results for: <span class="font-semibold text-green-600">{{ $filters['crop'] }}</span>
+                    Showing results for: <span class="font-semibold text-green-600">{{ ucwords(strtolower($filters['crop'])) }}</span>
                 </div>
             </div>
             
-            <!-- Data Info Banner -->
-            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                <div class="flex items-start gap-2">
-                    <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-                    </svg>
+            <!-- Simple Info Banner -->
+            <div class="mb-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="p-2 bg-blue-100 rounded-full">
+                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
                     <div>
-                        <strong>Data Sources:</strong> Historical data shows actual recorded values from your database for the specified crop, municipality, and farm type. 
-                        Predicted values are generated using {{ $mlApiHealthy ? 'ML predictions' : 'historical averages' }} based on your filters.
-                        @if(!$mlApiHealthy)
-                            <span class="text-yellow-700">(ML API is currently unavailable, using fallback data)</span>
-                        @elseif(collect($predictions)->whereNotNull('confidence_score')->count() === 0)
-                            <span class="text-yellow-700">(Note: This crop may not be supported by the ML model. Using historical data as predictions.)</span>
-                        @endif
+                        <p class="font-semibold text-gray-800">How to Read This Table</p>
+                        <p class="text-sm text-gray-600">All production values are calculated for <span class="font-bold text-blue-600">{{ number_format($avgAreaHarvested ?? 0, 2) }} hectares</span> (the average farm size)</p>
                     </div>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+                        <span><strong class="text-cyan-700">Historical</strong> = What was actually produced in the past</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                        <span><strong class="text-green-700">Predicted</strong> = What the AI expects to be produced</span>
+                    </div>
+                </div>
+                @if(!$mlApiHealthy)
+                    <p class="mt-3 text-sm text-yellow-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        ML API unavailable - using historical averages as predictions
+                    </p>
+                @endif
             </div>
             
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Historical Productivity (MT/ha)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Productivity (MT/ha)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Historical Production (MT)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Production (MT)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">
+                                Productivity (MT/ha)
+                            </th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">
+                                Production @ {{ number_format($avgAreaHarvested ?? 0, 2) }} ha (MT)
+                            </th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Accuracy</th>
+                        </tr>
+                        <tr class="bg-gray-100">
+                            <th class="px-4 py-2"></th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-cyan-600 bg-cyan-50">Historical</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-green-600 bg-green-50">Predicted</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-cyan-600 bg-cyan-50">Historical</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-green-600 bg-green-50">Predicted</th>
+                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
+                                <span class="text-xs">(Difference)</span>
+                            </th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($predictions as $prediction)
+                            @php
+                                // Calculate difference percentage between normalized historical and predicted
+                                $diffPercent = null;
+                                $diffClass = 'text-gray-400';
+                                $diffIcon = '';
+                                if (isset($prediction['normalized_historical_production']) && $prediction['normalized_historical_production'] > 0 && $prediction['predicted_production']) {
+                                    $diffPercent = (($prediction['predicted_production'] - $prediction['normalized_historical_production']) / $prediction['normalized_historical_production']) * 100;
+                                    if (abs($diffPercent) <= 10) {
+                                        $diffClass = 'text-green-600 bg-green-50';
+                                        $diffIcon = '✓';
+                                    } elseif (abs($diffPercent) <= 25) {
+                                        $diffClass = 'text-yellow-600 bg-yellow-50';
+                                        $diffIcon = '~';
+                                    } else {
+                                        $diffClass = 'text-red-600 bg-red-50';
+                                        $diffIcon = '!';
+                                    }
+                                }
+                            @endphp
                             <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {{ $prediction['month'] }} {{ $prediction['year'] }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-cyan-50/50">
                                     @if($prediction['historical_productivity'])
-                                        {{ number_format($prediction['historical_productivity'], 2) }}
+                                        <span class="text-cyan-700 font-medium">{{ number_format($prediction['historical_productivity'], 2) }}</span>
                                     @else
-                                        <span class="text-gray-400">N/A</span>
+                                        <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-green-50/50">
                                     @if($prediction['predicted_productivity'])
-                                        <span class="text-green-600 font-medium">{{ number_format($prediction['predicted_productivity'], 2) }}</span>
+                                        <span class="text-green-700 font-medium">{{ number_format($prediction['predicted_productivity'], 2) }}</span>
                                     @else
-                                        <span class="text-gray-400">N/A</span>
+                                        <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    @if($prediction['historical_production'])
-                                        {{ number_format($prediction['historical_production'], 2) }}
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-cyan-50/50">
+                                    @if(isset($prediction['normalized_historical_production']) && $prediction['normalized_historical_production'])
+                                        <span class="text-cyan-700 font-semibold">{{ number_format($prediction['normalized_historical_production'], 2) }}</span>
                                     @else
-                                        <span class="text-gray-400">N/A</span>
+                                        <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-green-50/50">
                                     @if($prediction['predicted_production'])
-                                        <span class="text-green-600 font-medium">{{ number_format($prediction['predicted_production'], 2) }}</span>
+                                        <span class="text-green-700 font-semibold">{{ number_format($prediction['predicted_production'], 2) }}</span>
                                     @else
-                                        <span class="text-gray-400">N/A</span>
+                                        <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                                    @if(isset($prediction['confidence_score']) && $prediction['confidence_score'] !== null)
-                                        @php
-                                            $c = $prediction['confidence_score'];
-                                            // If confidence is given as 0-1 float, convert to percent
-                                            $display = $c < 1 ? $c * 100 : $c;
-                                        @endphp
-                                        <span class="text-gray-800 font-medium">{{ number_format($display, 2) }}%</span>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center {{ $diffClass }} rounded">
+                                    @if($diffPercent !== null)
+                                        <span class="font-medium">
+                                            {{ $diffIcon }} {{ $diffPercent > 0 ? '+' : '' }}{{ number_format($diffPercent, 1) }}%
+                                        </span>
                                     @else
-                                        <span class="text-gray-400">N/A</span>
+                                        <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Legend for accuracy indicators -->
+            <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-gray-600">
+                <span class="font-medium">Accuracy Legend:</span>
+                <span class="flex items-center gap-1"><span class="px-2 py-0.5 bg-green-50 text-green-600 rounded">✓ ±10%</span> High accuracy</span>
+                <span class="flex items-center gap-1"><span class="px-2 py-0.5 bg-yellow-50 text-yellow-600 rounded">~ ±25%</span> Moderate</span>
+                <span class="flex items-center gap-1"><span class="px-2 py-0.5 bg-red-50 text-red-600 rounded">! >25%</span> Large difference</span>
             </div>
         </div>
 
@@ -279,7 +335,7 @@
                                 <option value="">Select municipality</option>
                                 @foreach($municipalities as $municipality)
                                     <option value="{{ $municipality }}" {{ $filters['municipality'] == $municipality ? 'selected' : '' }}>
-                                        {{ $municipality }}
+                                        {{ ucwords(strtolower($municipality)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -340,7 +396,7 @@
                                 <option value="">Select a crop</option>
                                 @foreach($crops as $crop)
                                     <option value="{{ $crop }}" {{ $filters['crop'] == $crop ? 'selected' : '' }}>
-                                        {{ $crop }}
+                                        {{ ucwords(strtolower($crop)) }}
                                     </option>
                                 @endforeach
                             </select>

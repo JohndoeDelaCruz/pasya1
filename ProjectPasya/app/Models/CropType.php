@@ -14,6 +14,7 @@ class CropType extends Model
         'name',
         'category',
         'description',
+        'image',
         'days_to_harvest',
         'average_yield_per_hectare',
         'is_active',
@@ -86,6 +87,22 @@ class CropType extends Model
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Get the crop name in Title Case format
+     */
+    public function getNameDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->name ?? ''));
+    }
+
+    /**
+     * Get the category in Title Case format
+     */
+    public function getCategoryDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->category ?? ''));
     }
 
     /**

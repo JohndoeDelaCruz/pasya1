@@ -27,4 +27,20 @@ class Municipality extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Get the municipality name in Title Case format
+     */
+    public function getNameDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->name ?? ''));
+    }
+
+    /**
+     * Get the province name in Title Case format
+     */
+    public function getProvinceDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->province ?? ''));
+    }
 }

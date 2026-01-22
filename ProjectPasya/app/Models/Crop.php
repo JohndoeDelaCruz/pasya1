@@ -35,4 +35,28 @@ class Crop extends Model
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
+
+    /**
+     * Get the crop name in Title Case format
+     */
+    public function getCropDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->crop ?? ''));
+    }
+
+    /**
+     * Get the municipality name in Title Case format
+     */
+    public function getMunicipalityDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->municipality ?? ''));
+    }
+
+    /**
+     * Get the farm type in Title Case format
+     */
+    public function getFarmTypeDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->farm_type ?? ''));
+    }
 }

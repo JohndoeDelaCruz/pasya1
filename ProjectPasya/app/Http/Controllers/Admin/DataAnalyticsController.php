@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
 use App\Models\Crop;
 use App\Models\CropType;
 use App\Models\Municipality;
@@ -519,7 +520,14 @@ class DataAnalyticsController extends Controller
             'averageYield' => $metrics['averageYield'],
             'topCrops' => collect($metrics['topCrops']),
             'topMunicipality' => $metrics['mostProductiveMunicipality'],
-            'lastUpdate' => now()
+            'lastUpdate' => now(),
+            // Announcements for quick management
+            'recentAnnouncements' => Announcement::with('creator')
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get(),
+            'activeAnnouncementsCount' => Announcement::active()->count(),
+            'totalAnnouncementsCount' => Announcement::count(),
         ]);
     }
 

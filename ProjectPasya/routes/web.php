@@ -47,6 +47,11 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     Route::post('/api/crop-plans/preview', [FarmerDashboardController::class, 'previewCropPlan'])->name('api.crop-plans.preview');
     Route::patch('/api/crop-plans/{cropPlan}/status', [FarmerDashboardController::class, 'updateCropPlanStatus'])->name('api.crop-plans.status');
     Route::delete('/api/crop-plans/{cropPlan}', [FarmerDashboardController::class, 'deleteCropPlan'])->name('api.crop-plans.destroy');
+    
+    // Notifications Routes
+    Route::get('/api/notifications', [FarmerDashboardController::class, 'getNotifications'])->name('api.notifications');
+    Route::post('/api/notifications/{notification}/read', [FarmerDashboardController::class, 'markNotificationRead'])->name('api.notifications.read');
+    Route::post('/api/notifications/read-all', [FarmerDashboardController::class, 'markAllNotificationsRead'])->name('api.notifications.read-all');
 });
 
 // Admin Routes

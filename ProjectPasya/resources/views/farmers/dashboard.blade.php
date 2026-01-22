@@ -1,7 +1,7 @@
 <x-farmer-layout>
     <x-slot name="title">Home</x-slot>
 
-    <div class="min-h-full bg-gradient-to-br from-gray-50 to-green-50/30" x-data="calendarModal()">
+    <div class="min-h-full bg-gradient-to-br from-gray-50 to-green-50/30" x-data="dashboardModals()">
         <!-- Welcome Header -->
         <div class="relative overflow-hidden bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-8 py-8 mb-6 rounded-2xl mx-6 mt-6 shadow-lg">
             <!-- Background Pattern -->
@@ -138,16 +138,34 @@
                                 $firstDayOfMonth = $currentDate->copy()->startOfMonth()->dayOfWeek;
                                 $today = $currentDate->day;
                                 
-                                $events = [
-                                    ['day' => now()->addDays(6)->day, 'type' => 'plant', 'label' => 'Plant Carrots', 'description' => 'Time to plant carrot seeds in your prepared beds. Make sure soil is well-drained.'],
-                                    ['day' => $today, 'type' => 'harvest', 'label' => 'Harvest Cabbage', 'description' => 'Your cabbage is ready for harvest. Best to harvest in the early morning.'],
-                                    ['day' => now()->addDays(2)->day, 'type' => 'fertilizer', 'label' => 'Claim fertilizer', 'description' => 'Fertilizer subsidy available at the Municipal Agriculture Office. Bring your ID.'],
-                                ];
+                                // Process real events from controller
+                                $calendarEvents = [];
+                                $eventDays = [];
+                                $eventTypes = [];
+                                $eventLabels = [];
+                                $eventDescriptions = [];
                                 
-                                $eventDays = collect($events)->pluck('day', 'day')->toArray();
-                                $eventTypes = collect($events)->keyBy('day')->map(fn($e) => $e['type'])->toArray();
-                                $eventLabels = collect($events)->keyBy('day')->map(fn($e) => $e['label'])->toArray();
-                                $eventDescriptions = collect($events)->keyBy('day')->map(fn($e) => $e['description'] ?? '')->toArray();
+                                if (isset($events) && is_array($events)) {
+                                    foreach ($events as $dateKey => $dayEvents) {
+                                        $eventDate = \Carbon\Carbon::parse($dateKey);
+                                        
+                                        // Only include events for the current month
+                                        if ($eventDate->month == $currentMonth && $eventDate->year == $currentYear) {
+                                            $day = $eventDate->day;
+                                            $firstEvent = $dayEvents[0] ?? null;
+                                            
+                                            if ($firstEvent) {
+                                                $eventDays[$day] = $day;
+                                                $eventTypes[$day] = $firstEvent['type'] ?? 'plant';
+                                                $eventLabels[$day] = $firstEvent['title'] ?? '';
+                                                $eventDescriptions[$day] = $firstEvent['description'] ?? '';
+                                                
+                                                // Store all events for this day
+                                                $calendarEvents[$day] = $dayEvents;
+                                            }
+                                        }
+                                    }
+                                }
                             @endphp
 
                             <!-- Calendar Grid -->
@@ -178,8 +196,16 @@
                                          hover:shadow-lg transition-all duration-200 relative cursor-pointer group">
                                         <div class="text-sm sm:text-base font-bold {{ $isToday ? 'text-amber-600' : 'text-gray-600' }}">{{ $day }}</div>
                                         @if($hasEvent)
+                                            @php
+                                                $dotColor = match($eventType) {
+                                                    'plant' => 'bg-green-400',
+                                                    'harvest' => 'bg-amber-500',
+                                                    'claim' => 'bg-blue-500',
+                                                    default => 'bg-green-500'
+                                                };
+                                            @endphp
                                             <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-                                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full {{ $eventType === 'plant' ? 'bg-green-400' : ($eventType === 'harvest' ? 'bg-green-500' : 'bg-green-700') }}"></div>
+                                                <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full {{ $dotColor }}"></div>
                                             </div>
                                         @endif
                                     </div>
@@ -188,20 +214,43 @@
 
                             <!-- Calendar Legend -->
                             <div class="mt-6 pt-4 border-t border-gray-100">
-                                <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-3 h-3 rounded-full bg-green-400"></div>
-                                        <span class="text-sm text-gray-600">Plant Carrots in 6 days</span>
+                                @php
+                                    // Get upcoming events for legend
+                                    $upcomingEvents = collect($events ?? [])->filter(function($dayEvents, $dateKey) {
+                                        $eventDate = \Carbon\Carbon::parse($dateKey);
+                                        return $eventDate->gte(now()->startOfDay()) && $eventDate->lte(now()->addDays(14));
+                                    })->take(3);
+                                @endphp
+                                
+                                @if($upcomingEvents->count() > 0)
+                                    <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                                        @foreach($upcomingEvents as $dateKey => $dayEvents)
+                                            @php
+                                                $firstEvent = $dayEvents[0] ?? null;
+                                                $eventDate = \Carbon\Carbon::parse($dateKey);
+                                                $daysUntil = now()->startOfDay()->diffInDays($eventDate);
+                                                $eventType = $firstEvent['type'] ?? 'plant';
+                                                $dotColor = match($eventType) {
+                                                    'plant' => 'bg-green-400',
+                                                    'harvest' => 'bg-amber-500',
+                                                    'claim' => 'bg-blue-500',
+                                                    default => 'bg-green-500'
+                                                };
+                                                $timeLabel = $daysUntil == 0 ? 'Today' : ($daysUntil == 1 ? 'Tomorrow' : "in {$daysUntil} days");
+                                            @endphp
+                                            @if($firstEvent)
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="w-3 h-3 rounded-full {{ $dotColor }}"></div>
+                                                    <span class="text-sm text-gray-600">{{ $firstEvent['title'] }} {{ $timeLabel }}</span>
+                                                </div>
+                                            @endif
+                                        @endforeach
                                     </div>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                                        <span class="text-sm text-gray-600">Harvest Cabbage Today</span>
+                                @else
+                                    <div class="text-center text-gray-500 text-sm">
+                                        <a href="{{ route('farmers.calendar') }}" class="text-green-600 hover:underline">Plan your first crop</a> to see upcoming events
                                     </div>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="w-3 h-3 rounded-full bg-green-700"></div>
-                                        <span class="text-sm text-gray-600">Claim fertilizer in 2 days</span>
-                                    </div>
-                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -270,62 +319,47 @@
                             <div class="bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-3">
                                 <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-bold text-white">Daily Price Watch</h3>
-                                    <span class="text-xs bg-white/20 text-white px-2 py-1 rounded-full">La Trinidad</span>
+                                    <span class="text-xs bg-white/20 text-white px-2 py-1 rounded-full">{{ ucwords(strtolower(Auth::guard('farmer')->user()->municipality ?? 'Benguet')) }}</span>
                                 </div>
                             </div>
                             <div class="p-5">
                                 <div class="space-y-3">
-                                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                                <span class="text-lg">🥬</span>
+                                    @if(isset($prices) && count($prices) > 0)
+                                        @foreach($prices as $price)
+                                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                                                <div class="flex items-center space-x-3">
+                                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                                        @if(isset($price['image']))
+                                                            <img src="{{ $price['image'] }}" alt="{{ $price['name'] }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                            <span class="text-xl hidden items-center justify-center">{{ $price['emoji'] ?? '🌱' }}</span>
+                                                        @else
+                                                            <span class="text-xl">{{ $price['emoji'] ?? '🌱' }}</span>
+                                                        @endif
+                                                    </div>
+                                                    <span class="font-medium text-gray-700">{{ $price['name'] }}</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="font-bold text-gray-800">₱{{ number_format($price['price'], 2) }}</span>
+                                                    <div class="flex items-center justify-end space-x-1 {{ $price['change'] >= 0 ? 'text-green-500' : 'text-red-500' }} text-xs">
+                                                        @if($price['change'] >= 0)
+                                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                                            </svg>
+                                                        @else
+                                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                            </svg>
+                                                        @endif
+                                                        <span>₱{{ number_format(abs($price['change']), 2) }}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <span class="font-medium text-gray-700">Cabbage</span>
+                                        @endforeach
+                                    @else
+                                        <div class="text-center py-4 text-gray-500">
+                                            <p>No price data available</p>
                                         </div>
-                                        <div class="text-right">
-                                            <span class="font-bold text-gray-800">₱77.43</span>
-                                            <div class="flex items-center justify-end space-x-1 text-red-500 text-xs">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                                <span>₱24.00</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                                <span class="text-lg">🥬</span>
-                                            </div>
-                                            <span class="font-medium text-gray-700">Chinese Cabbage</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="font-bold text-gray-800">₱149.00</span>
-                                            <div class="flex items-center justify-end space-x-1 text-green-500 text-xs">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                                <span>₱16.00</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                                                <span class="text-lg">🥕</span>
-                                            </div>
-                                            <span class="font-medium text-gray-700">Carrots</span>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="font-bold text-gray-800">₱80.00</span>
-                                            <div class="flex items-center justify-end space-x-1 text-red-500 text-xs">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                                <span>₱3.00</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    @endif
                                 </div>
                                 <a href="{{ route('farmers.price-watch') }}" class="mt-4 block text-center text-sm text-green-600 hover:text-green-700 font-medium">
                                     View All Prices →
@@ -351,7 +385,16 @@
                             @if(isset($announcements) && $announcements->count() > 0)
                                 <div class="space-y-4 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                                     @foreach($announcements as $announcement)
-                                        <div class="group p-4 rounded-xl border-l-4 transition-all hover:shadow-md cursor-pointer
+                                        <div @click="openAnnouncementModal({{ json_encode([
+                                                'id' => $announcement->id,
+                                                'title' => $announcement->title,
+                                                'content' => $announcement->content,
+                                                'priority' => $announcement->priority,
+                                                'created_at' => $announcement->created_at->format('M d, Y g:i A'),
+                                                'time_ago' => $announcement->created_at->diffForHumans(),
+                                                'municipality' => $announcement->municipality,
+                                            ]) }})"
+                                             class="group p-4 rounded-xl border-l-4 transition-all hover:shadow-md cursor-pointer
                                             {{ $announcement->priority === 'urgent' ? 'border-red-500 bg-gradient-to-r from-red-50 to-white' : 
                                                ($announcement->priority === 'high' ? 'border-orange-500 bg-gradient-to-r from-orange-50 to-white' : 
                                                ($announcement->priority === 'normal' ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-white' : 'border-gray-300 bg-gradient-to-r from-gray-50 to-white')) }}">
@@ -388,6 +431,93 @@
                                 </div>
                             @endif
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Announcement Detail Modal -->
+        <div x-show="showAnnouncementModal" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 overflow-y-auto" 
+             style="display: none;"
+             @keydown.escape.window="closeAnnouncementModal()">
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="closeAnnouncementModal()"></div>
+            
+            <!-- Modal Content -->
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div x-show="showAnnouncementModal"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform scale-95"
+                     x-transition:enter-end="opacity-100 transform scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 transform scale-100"
+                     x-transition:leave-end="opacity-0 transform scale-95"
+                     class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full mx-auto overflow-hidden"
+                     @click.stop>
+                    
+                    <!-- Modal Header -->
+                    <div class="px-6 py-4" :class="getAnnouncementHeaderClass()">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center" :class="getAnnouncementIconClass()">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span x-show="selectedAnnouncement?.priority === 'urgent'" class="inline-flex items-center px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full mb-1">
+                                        <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1"></span>
+                                        Urgent
+                                    </span>
+                                    <span x-show="selectedAnnouncement?.priority === 'high'" class="inline-flex px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded-full mb-1">High Priority</span>
+                                    <h3 class="text-lg font-bold text-gray-800" x-text="selectedAnnouncement?.title"></h3>
+                                </div>
+                            </div>
+                            <button @click="closeAnnouncementModal()" class="p-2 hover:bg-gray-200 rounded-lg transition">
+                                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Body -->
+                    <div class="px-6 py-5">
+                        <div class="prose prose-sm max-w-none">
+                            <p class="text-gray-700 whitespace-pre-wrap leading-relaxed" x-text="selectedAnnouncement?.content"></p>
+                        </div>
+                        
+                        <!-- Meta Info -->
+                        <div class="mt-6 pt-4 border-t border-gray-100">
+                            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                                <div class="flex items-center space-x-2">
+                                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span x-text="selectedAnnouncement?.created_at"></span>
+                                </div>
+                                <div class="flex items-center space-x-2" x-show="selectedAnnouncement?.municipality">
+                                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span x-text="selectedAnnouncement?.municipality"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Modal Footer -->
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                        <button @click="closeAnnouncementModal()" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2.5 px-4 rounded-xl transition">
+                            Close
+                        </button>
                     </div>
                 </div>
             </div>
@@ -491,8 +621,9 @@
 
     @push('scripts')
     <script>
-        function calendarModal() {
+        function dashboardModals() {
             return {
+                // Calendar Modal State
                 showModal: false,
                 selectedEvent: {
                     day: 1,
@@ -503,6 +634,11 @@
                     eventDescription: ''
                 },
                 
+                // Announcement Modal State
+                showAnnouncementModal: false,
+                selectedAnnouncement: null,
+                
+                // Calendar Modal Methods
                 openModal(day, isToday, hasEvent, eventType, eventLabel, eventDescription) {
                     this.selectedEvent = {
                         day: day,
@@ -519,6 +655,38 @@
                 closeModal() {
                     this.showModal = false;
                     document.body.style.overflow = '';
+                },
+                
+                // Announcement Modal Methods
+                openAnnouncementModal(announcement) {
+                    this.selectedAnnouncement = announcement;
+                    this.showAnnouncementModal = true;
+                    document.body.style.overflow = 'hidden';
+                },
+                
+                closeAnnouncementModal() {
+                    this.showAnnouncementModal = false;
+                    document.body.style.overflow = '';
+                },
+                
+                getAnnouncementHeaderClass() {
+                    if (!this.selectedAnnouncement) return 'bg-gray-50';
+                    switch(this.selectedAnnouncement.priority) {
+                        case 'urgent': return 'bg-gradient-to-r from-red-50 to-orange-50 border-b border-red-100';
+                        case 'high': return 'bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100';
+                        case 'normal': return 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100';
+                        default: return 'bg-gray-50 border-b border-gray-100';
+                    }
+                },
+                
+                getAnnouncementIconClass() {
+                    if (!this.selectedAnnouncement) return 'bg-gray-100 text-gray-600';
+                    switch(this.selectedAnnouncement.priority) {
+                        case 'urgent': return 'bg-red-100 text-red-600';
+                        case 'high': return 'bg-orange-100 text-orange-600';
+                        case 'normal': return 'bg-blue-100 text-blue-600';
+                        default: return 'bg-gray-100 text-gray-600';
+                    }
                 },
                 
                 getFormattedDate() {

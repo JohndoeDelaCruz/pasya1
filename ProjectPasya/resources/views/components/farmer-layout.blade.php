@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="PASYA - Agricultural management system for farmers in Benguet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#16a34a">
@@ -140,12 +141,12 @@
                     <!-- Right side icons -->
                     <div class="flex items-center space-x-4">
                         <!-- Notifications Dropdown -->
-                        <div class="relative" x-data="{ notifOpen: false }">
-                            <button @click="notifOpen = !notifOpen" class="text-gray-600 hover:text-gray-900 relative">
+                        <div class="relative" x-data="notificationsDropdown()" x-init="fetchNotifications()">
+                            <button @click="notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="text-gray-600 hover:text-gray-900 relative">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>
-                                <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                                <span x-show="unreadCount > 0" x-text="unreadCount > 9 ? '9+' : unreadCount" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center"></span>
                             </button>
                             
                             <!-- Notifications Panel -->
@@ -159,56 +160,54 @@
                                  x-transition:leave-end="opacity-0 scale-95"
                                  class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50"
                                  style="display: none;">
-                                <div class="px-4 py-3 border-b border-gray-100">
+                                <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                                     <h3 class="font-semibold text-gray-800">Notifications</h3>
+                                    <button x-show="unreadCount > 0" @click="markAllRead()" class="text-xs text-green-600 hover:text-green-700 font-medium">
+                                        Mark all read
+                                    </button>
                                 </div>
                                 <div class="max-h-80 overflow-y-auto">
-                                    <a href="{{ route('farmers.calendar') }}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
-                                        <div class="flex items-start space-x-3">
-                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                                                </svg>
+                                    <!-- Loading State -->
+                                    <div x-show="loading" class="px-4 py-8 text-center">
+                                        <svg class="animate-spin h-6 w-6 text-green-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                        </svg>
+                                    </div>
+                                    
+                                    <!-- Empty State -->
+                                    <div x-show="!loading && notifications.length === 0" class="px-4 py-8 text-center">
+                                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                        </svg>
+                                        <p class="text-sm text-gray-500">No notifications yet</p>
+                                    </div>
+                                    
+                                    <!-- Notifications List -->
+                                    <template x-for="notification in notifications" :key="notification.id">
+                                        <a :href="notification.link || '#'" 
+                                           @click="markAsRead(notification)"
+                                           class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100"
+                                           :class="{ 'bg-green-50': !notification.is_read }">
+                                            <div class="flex items-start space-x-3">
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                                                     :class="notification.icon_bg_class">
+                                                    <svg class="w-4 h-4" :class="notification.icon_text_class" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" :d="notification.icon_svg" clip-rule="evenodd"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-800" x-text="notification.title"></p>
+                                                    <p class="text-xs text-gray-500 line-clamp-2" x-text="notification.message"></p>
+                                                    <p class="text-xs text-gray-400 mt-1" x-text="notification.time_ago"></p>
+                                                </div>
+                                                <div x-show="!notification.is_read" class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
                                             </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-800">Harvest Reminder</p>
-                                                <p class="text-xs text-gray-500 truncate">Your cabbage is ready for harvest today</p>
-                                                <p class="text-xs text-gray-400 mt-1">Just now</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                    <a href="{{ route('farmers.price-watch') }}" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
-                                        <div class="flex items-start space-x-3">
-                                            <div class="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-800">Price Update</p>
-                                                <p class="text-xs text-gray-500 truncate">Cabbage prices dropped by ₱24.00</p>
-                                                <p class="text-xs text-gray-400 mt-1">2 hours ago</p>
-                                            </div>
-                                        </div>
-                                    </a>
-                                    <a href="{{ route('farmers.dashboard') }}" class="block px-4 py-3 hover:bg-gray-50">
-                                        <div class="flex items-start space-x-3">
-                                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                                <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
-                                                </svg>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-800">New Announcement</p>
-                                                <p class="text-xs text-gray-500 truncate">Fertilizer subsidy available at MAO</p>
-                                                <p class="text-xs text-gray-400 mt-1">Yesterday</p>
-                                            </div>
-                                        </div>
-                                    </a>
+                                        </a>
+                                    </template>
                                 </div>
-                                <a href="{{ route('farmers.dashboard') }}" class="block px-4 py-3 text-center text-sm font-medium text-green-600 hover:bg-gray-50 border-t border-gray-100">
-                                    View all notifications
+                                <a href="{{ route('farmers.calendar') }}" class="block px-4 py-3 text-center text-sm font-medium text-green-600 hover:bg-gray-50 border-t border-gray-100">
+                                    View calendar
                                 </a>
                             </div>
                         </div>
@@ -392,6 +391,68 @@
             console.log('PASYA was installed successfully');
             window.deferredPrompt = null;
         });
+
+        // Notifications dropdown component
+        function notificationsDropdown() {
+            return {
+                notifOpen: false,
+                loading: false,
+                notifications: [],
+                unreadCount: 0,
+                
+                async fetchNotifications() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('{{ route("farmers.api.notifications") }}');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.notifications = data.notifications;
+                            this.unreadCount = data.unread_count;
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch notifications:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async markAsRead(notification) {
+                    if (notification.is_read) return;
+                    
+                    try {
+                        await fetch(`{{ url('farmer/api/notifications') }}/${notification.id}/read`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            },
+                        });
+                        notification.is_read = true;
+                        this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    } catch (error) {
+                        console.error('Failed to mark notification as read:', error);
+                    }
+                },
+                
+                async markAllRead() {
+                    try {
+                        const response = await fetch('{{ route("farmers.api.notifications.read-all") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            },
+                        });
+                        if (response.ok) {
+                            this.notifications.forEach(n => n.is_read = true);
+                            this.unreadCount = 0;
+                        }
+                    } catch (error) {
+                        console.error('Failed to mark all notifications as read:', error);
+                    }
+                }
+            };
+        }
     </script>
 </body>
 </html>
