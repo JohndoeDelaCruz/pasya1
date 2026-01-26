@@ -189,13 +189,17 @@ class PredictionService
             }
             
             // Convert Laravel format to ML API format (lowercase keys required)
+            // ML API V2 requires both area_planted and area_harvested
+            $areaValue = floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0);
+            
             $mlData = [
                 'municipality' => strtoupper($data['municipality'] ?? ''),
                 'farm_type' => strtoupper($data['farm_type'] ?? ''),
                 'year' => (int) ($data['year'] ?? date('Y')),
                 'month' => strtoupper($data['month'] ?? ''),
                 'crop' => $normalizedCrop,
-                'area_planted' => floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0)
+                'area_planted' => $areaValue,
+                'area_harvested' => $areaValue  // Use same value if not provided separately
             ];
             
             // Use MLApiService for prediction (supports database-backed predictions)

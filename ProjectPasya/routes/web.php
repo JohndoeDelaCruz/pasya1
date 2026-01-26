@@ -39,6 +39,7 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     // API routes for farmer data
     Route::get('/api/events', [FarmerDashboardController::class, 'getEvents'])->name('api.events');
     Route::get('/api/prices', [FarmerDashboardController::class, 'getPrices'])->name('api.prices');
+    Route::get('/api/weather', [FarmerDashboardController::class, 'getWeatherApi'])->name('api.weather');
     
     // Crop Planning Routes
     Route::get('/api/crop-types', [FarmerDashboardController::class, 'getCropTypes'])->name('api.crop-types');
@@ -99,6 +100,10 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/recommendations', [RecommendationsController::class, 'index'])->name('recommendations');
     Route::post('/subsidies', [RecommendationsController::class, 'storeSubsidy'])->name('subsidies.store');
     Route::post('/resources', [RecommendationsController::class, 'storeResource'])->name('resources.store');
+    
+    // Weather API Routes
+    Route::get('/api/weather', [RecommendationsController::class, 'getWeather'])->name('api.weather');
+    Route::get('/api/weather/all', [RecommendationsController::class, 'getAllWeather'])->name('api.weather.all');
     
     // Announcement Routes
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');

@@ -10,6 +10,7 @@ use App\Models\CropPlan;
 use App\Models\Crop;
 use App\Models\FarmerNotification;
 use App\Services\PredictionService;
+use App\Services\WeatherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -17,12 +18,20 @@ use Carbon\Carbon;
 
 class FarmerDashboardController extends Controller
 {
+    protected $weatherService;
+
+    public function __construct(WeatherService $weatherService)
+    {
+        $this->weatherService = $weatherService;
+    }
+
     /**
      * Show the farmer dashboard
      */
     public function dashboard()
     {
         $farmer = Auth::guard('farmer')->user();
+        $municipality = $farmer->municipality ?? 'Buguias';
         
         // Get announcements for this farmer
         $announcements = Announcement::active()
@@ -36,8 +45,8 @@ class FarmerDashboardController extends Controller
         // Get farmer's events/tasks
         $events = $this->getFarmerEvents($farmer);
         
-        // Get weather data (placeholder - can integrate with weather API)
-        $weather = $this->getWeatherData($farmer->municipality ?? 'Buguias');
+        // Get weather data from Google Weather API
+        $weather = $this->getWeatherData($municipality);
         
         // Get price watch data
         $prices = $this->getPriceWatchData();
@@ -133,6 +142,11 @@ class FarmerDashboardController extends Controller
             ->orderBy('planting_date', 'desc')
             ->get()
             ->map(function ($plan) {
+                $daysUntilHarvest = $plan->days_until_harvest;
+                $progressPercentage = $plan->progress_percentage;
+                $isHarvestReady = $daysUntilHarvest <= 7 && $plan->status !== 'harvested'; // Ready when 7 days or less until harvest
+                $isOverdue = $daysUntilHarvest <= 0 && $plan->status !== 'harvested';
+                
                 return [
                     'id' => $plan->id,
                     'cropType' => $plan->crop_name,
@@ -145,6 +159,11 @@ class FarmerDashboardController extends Controller
                     'area' => $plan->area_hectares,
                     'predictedProduction' => $plan->predicted_production,
                     'plan_status' => $plan->status,
+                    'daysUntilHarvest' => $daysUntilHarvest,
+                    'progressPercentage' => $progressPercentage,
+                    'isHarvestReady' => $isHarvestReady,
+                    'isOverdue' => $isOverdue,
+                    'maturityStatus' => $this->getMaturityStatus($daysUntilHarvest, $plan->status),
                 ];
             });
         
@@ -170,6 +189,28 @@ class FarmerDashboardController extends Controller
             return '4-5 months';
         } else {
             return '5-6 months';
+        }
+    }
+    
+    /**
+     * Get maturity status based on days until harvest
+     */
+    private function getMaturityStatus(int $daysUntilHarvest, string $status): string
+    {
+        if ($status === 'harvested') {
+            return 'harvested';
+        }
+        
+        if ($daysUntilHarvest <= 0) {
+            return 'overdue'; // Past harvest date
+        } elseif ($daysUntilHarvest <= 3) {
+            return 'ready'; // Ready to harvest (0-3 days)
+        } elseif ($daysUntilHarvest <= 7) {
+            return 'almost_ready'; // Almost ready (4-7 days)
+        } elseif ($daysUntilHarvest <= 14) {
+            return 'approaching'; // Approaching harvest (8-14 days)
+        } else {
+            return 'growing'; // Still growing (more than 14 days)
         }
     }
     
@@ -220,21 +261,53 @@ class FarmerDashboardController extends Controller
     }
     
     /**
-     * Get weather data (placeholder)
+     * Get weather data from Google Weather API
      */
     private function getWeatherData($municipality)
     {
-        // In production, integrate with weather API (PAGASA or OpenWeatherMap)
-        return [
-            'temperature' => 28,
-            'feels_like' => 32,
-            'condition' => 'Partly Cloudy',
-            'humidity' => 75,
-            'wind_speed' => 12,
-            'high' => 31,
-            'low' => 22,
-            'location' => $municipality . ', Benguet',
-        ];
+        try {
+            // Get current conditions from Google Weather API
+            $currentConditions = $this->weatherService->getCurrentConditions($municipality);
+            
+            // Get forecast data
+            $forecastData = $this->weatherService->getForecast($municipality, 4);
+            
+            // Get hourly forecast
+            $hourlyForecast = $this->weatherService->getHourlyForecast($municipality, 6);
+            
+            return [
+                'temperature' => $currentConditions['temperature'] ?? 22,
+                'feels_like' => $currentConditions['feels_like'] ?? 24,
+                'condition' => $currentConditions['condition'] ?? 'Partly Cloudy',
+                'icon' => $currentConditions['icon'] ?? '⛅',
+                'humidity' => $currentConditions['humidity'] ?? 75,
+                'wind_speed' => $currentConditions['wind_speed'] ?? 12,
+                'uv_index' => $currentConditions['uv_index'] ?? 5,
+                'high' => isset($forecastData['forecast'][0]) ? explode('-', str_replace('°C', '', $forecastData['forecast'][0]['temp']))[1] ?? 28 : 28,
+                'low' => isset($forecastData['forecast'][0]) ? explode('-', str_replace('°C', '', $forecastData['forecast'][0]['temp']))[0] ?? 18 : 18,
+                'location' => $municipality . ', Benguet',
+                'forecast' => $forecastData['forecast'] ?? [],
+                'hourly' => $hourlyForecast ?? [],
+            ];
+        } catch (\Exception $e) {
+            Log::warning("Weather API error for {$municipality}: " . $e->getMessage());
+            
+            // Return fallback data
+            return [
+                'temperature' => 22,
+                'feels_like' => 24,
+                'condition' => 'Partly Cloudy',
+                'icon' => '⛅',
+                'humidity' => 75,
+                'wind_speed' => 12,
+                'uv_index' => 5,
+                'high' => 28,
+                'low' => 18,
+                'location' => $municipality . ', Benguet',
+                'forecast' => [],
+                'hourly' => [],
+            ];
+        }
     }
     
     /**
@@ -287,20 +360,25 @@ class FarmerDashboardController extends Controller
         // Image mapping based on crop name (local images)
         $imageMap = [
             'cabbage' => 'images/crops/cabbage.jpg',
-            'chinese cabbage' => 'images/crops/cabbage.jpg',
+            'chinese cabbage' => 'images/crops/Chinese_cabbage.jpg',
             'lettuce' => 'images/crops/Lettuce-Baguio.png',
             'carrots' => 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
             'carrot' => 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
-            'potatoes' => 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
-            'potato' => 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
+            'potatoes' => 'images/crops/White_potato.jpg',
+            'potato' => 'images/crops/White_potato.jpg',
+            'whitepotato' => 'images/crops/White_potato.jpg',
+            'white potato' => 'images/crops/White_potato.jpg',
             'bell pepper' => 'images/crops/Bell-peppers.webp',
+            'sweet pepper' => 'images/crops/Bell-peppers.webp',
             'pepper' => 'images/crops/Bell-peppers.webp',
-            'cauliflower' => 'images/crops/how-to-grow-cauliflower-1403494-hero-76cf5f524a564adabb1ac6adfa311482.jpg',
-            'broccoli' => 'images/crops/iStock-1156721086-360x240.jpg',
-            'beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
-            'snap beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
-            'string beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
-            'baguio beans' => 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+            'cauliflower' => 'images/crops/Cauli-flower.jpg',
+            'broccoli' => 'images/crops/brocolli.jpg',
+            'beans' => 'images/crops/snap_beans.jpg',
+            'snap beans' => 'images/crops/snap_beans.jpg',
+            'string beans' => 'images/crops/snap_beans.jpg',
+            'baguio beans' => 'images/crops/snap_beans.jpg',
+            'garden peas' => 'images/crops/garden_peas.jpg',
+            'peas' => 'images/crops/garden_peas.jpg',
         ];
         
         // Specification mapping based on crop name
@@ -568,6 +646,36 @@ class FarmerDashboardController extends Controller
             'prices' => $prices,
             'updated_at' => now()->format('Y-m-d H:i:s'),
         ]);
+    }
+
+    /**
+     * API: Get weather data for farmer's municipality
+     */
+    public function getWeatherApi(Request $request)
+    {
+        $farmer = Auth::guard('farmer')->user();
+        $municipality = $request->input('municipality', $farmer->municipality ?? 'Buguias');
+        
+        // Validate municipality
+        $validMunicipalities = ['Atok', 'Bakun', 'Bokod', 'Buguias', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'La Trinidad', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
+        
+        if (!in_array($municipality, $validMunicipalities)) {
+            return response()->json(['error' => 'Invalid municipality'], 400);
+        }
+        
+        try {
+            $weather = $this->getWeatherData($municipality);
+            
+            return response()->json([
+                'success' => true,
+                'municipality' => $municipality,
+                'weather' => $weather,
+                'updated_at' => now()->format('Y-m-d H:i:s'),
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Weather API error: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to fetch weather data'], 500);
+        }
     }
 
     /**

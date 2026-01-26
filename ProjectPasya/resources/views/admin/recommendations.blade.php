@@ -4,6 +4,31 @@
     @push('styles')
     <style>
         [x-cloak] { display: none !important; }
+        
+        /* Custom scrollbar for weather cards */
+        #weatherCardsContainer::-webkit-scrollbar {
+            height: 8px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 4px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        
+        /* Hide scrollbar for cleaner look but keep functionality */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
     @endpush
 
@@ -48,80 +73,157 @@
 
         <!-- Climate Resilience Section -->
         <div>
-            <h2 class="text-xl font-bold text-gray-800 mb-6">Climate Resilience</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span class="text-2xl">🌤️</span> Climate Resilience
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium ml-2">Live Weather Data</span>
+            </h2>
             
-            <!-- Municipality Weather Cards -->
-            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
+            <!-- Municipality Weather Cards - Horizontal Scroll -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider">Benguet Municipality Weather</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-gray-500">Updated: {{ now()->format('g:i A') }}</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="scrollWeatherLeft()" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <button onclick="scrollWeatherRight()" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Scrollable Weather Cards Container -->
+                <div id="weatherCardsContainer" class="flex gap-4 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory" style="scrollbar-width: thin; scrollbar-color: #CBD5E1 #F1F5F9;">
                     @foreach($municipalityWeather as $weather)
-                    <!-- {{ $weather['municipality'] }} -->
-                    <div class="border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-center justify-between mb-4">
+                    <!-- {{ $weather['municipality'] }} Weather Card -->
+                    <div class="flex-shrink-0 w-72 snap-start bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-3">
                             <div>
-                                <div class="text-sm font-semibold text-gray-800">BENGUET</div>
-                                <div class="text-xs text-gray-600">{{ $weather['municipality'] }}</div>
+                                <div class="text-xs font-medium text-sky-600 uppercase tracking-wider">BENGUET</div>
+                                <div class="text-lg font-bold text-gray-800">{{ $weather['municipality'] }}</div>
+                            </div>
+                            <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="text-2xl">{{ $weather['forecast'][0]['icon'] ?? '⛅' }}</span>
                             </div>
                         </div>
                         
+                        <!-- Current Temp Display -->
+                        @if(isset($weather['forecast'][0]))
+                        <div class="mb-3 p-3 bg-white/60 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800">{{ $weather['forecast'][0]['temp'] }}</span>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $weather['forecast'][0]['condition'] }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-gray-500">AQI</div>
+                                    <div class="text-lg font-semibold {{ $weather['forecast'][0]['aqi'] < 50 ? 'text-green-600' : ($weather['forecast'][0]['aqi'] < 100 ? 'text-yellow-600' : 'text-red-600') }}">
+                                        {{ $weather['forecast'][0]['aqi'] }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
                         <!-- 4-Day Forecast -->
-                        <div class="grid grid-cols-4 gap-2">
-                            @foreach($weather['forecast'] as $day)
-                            <div class="text-center">
-                                <div class="text-xs text-gray-600 mb-1">{{ $day['day'] }}</div>
-                                <div class="text-xs text-gray-500 mb-2">{{ $day['date'] }}</div>
-                                <div class="text-3xl mb-2">{{ $day['icon'] }}</div>
-                                <div class="text-xs font-semibold text-gray-800">{{ $day['condition'] }}</div>
-                                <div class="text-xs font-medium text-gray-700 mt-1">{{ $day['temp'] }}</div>
-                                <div class="text-xs text-gray-500">AQI {{ $day['aqi'] }}</div>
+                        <div class="grid grid-cols-4 gap-1">
+                            @foreach($weather['forecast'] as $index => $day)
+                            <div class="text-center p-1.5 rounded-lg {{ $index === 0 ? 'bg-sky-100' : 'bg-white/50' }} hover:bg-sky-100 transition">
+                                <div class="text-[10px] font-medium text-gray-500 mb-0.5">{{ Str::limit($day['day'], 3, '') }}</div>
+                                <div class="text-base mb-0.5">{{ $day['icon'] }}</div>
+                                <div class="text-[10px] font-medium text-gray-700">{{ $day['temp'] }}</div>
                             </div>
                             @endforeach
                         </div>
                     </div>
                     @endforeach
-
+                </div>
+                
+                <!-- Scroll Indicator Dots -->
+                <div class="flex justify-center gap-1.5 mt-3">
+                    @foreach($municipalityWeather as $index => $weather)
+                    <div class="w-2 h-2 rounded-full {{ $index < 3 ? 'bg-sky-400' : 'bg-gray-300' }} transition-colors"></div>
+                    @endforeach
                 </div>
             </div>
 
-            <!-- Hourly Forecast & Recommendations -->
-            <div class="bg-gradient-to-r from-gray-400 to-gray-300 rounded-xl p-6 mb-6">
+            <!-- Hourly Forecast & Recommendations - Enhanced Design -->
+            <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-6 mb-6 shadow-lg">
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     
                     <!-- Hourly Weather -->
                     <div class="lg:col-span-2">
-                        <div class="grid grid-cols-6 gap-3 mb-4">
-                            @foreach($hourlyForecast as $hour)
-                            <div class="text-center text-white">
-                                <div class="text-sm font-medium mb-2">{{ $hour['time'] }}</div>
-                                <div class="text-3xl mb-2">{{ $hour['icon'] }}</div>
-                                <div class="text-lg font-semibold">{{ $hour['temp'] }}</div>
+                        <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+                            <span>🕐</span> Hourly Forecast
+                        </h4>
+                        <div class="grid grid-cols-6 gap-2 mb-4">
+                            @foreach($hourlyForecast as $index => $hour)
+                            <div class="text-center p-3 rounded-xl {{ $index === 0 ? 'bg-white/30' : 'bg-white/10' }} backdrop-blur-sm text-white hover:bg-white/25 transition">
+                                <div class="text-xs font-medium mb-1.5 {{ $index === 0 ? 'text-yellow-200' : '' }}">{{ $hour['time'] }}</div>
+                                <div class="text-2xl mb-1.5">{{ $hour['icon'] }}</div>
+                                <div class="text-sm font-bold">{{ $hour['temp'] }}</div>
                             </div>
                             @endforeach
                         </div>
                         
                         <!-- Municipality Search -->
-                        <input type="text" placeholder="Check municipality weather per hour" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                        <div class="relative">
+                            <input type="text" placeholder="Search municipality weather..." 
+                                   class="w-full px-4 py-3 pl-10 rounded-xl border-0 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-700 placeholder-gray-500 shadow-sm">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
                     </div>
 
-                    <!-- Recommendations Panel -->
-                    <div class="lg:col-span-2 bg-white rounded-lg p-4">
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <div class="text-sm font-semibold text-gray-700 mb-1">Optimal Planting Window</div>
-                                <div class="text-xs text-gray-600">{{ $optimalWindow }}</div>
+                    <!-- Recommendations Panel - Enhanced -->
+                    <div class="lg:col-span-2 bg-white rounded-xl p-5 shadow-lg">
+                        <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="text-xl">🌱</span> Planting Recommendations
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                                <span class="text-2xl">⏰</span>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-700">Optimal Planting Window</div>
+                                    <div class="text-base font-bold text-green-600">{{ $optimalWindow }}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="text-sm font-semibold text-gray-700 mb-1">Best Crops</div>
-                                <div class="text-xs text-gray-600">{{ $bestCrops }}</div>
+                            <div class="flex items-start gap-3 p-3 bg-amber-50 rounded-lg">
+                                <span class="text-2xl">🥬</span>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-700">Best Crops for Season</div>
+                                    <div class="text-sm text-gray-600">{{ $bestCrops }}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">⚠️</span>
+                                    <div>
+                                        <div class="text-sm font-semibold text-gray-700">Climate Risk Level</div>
+                                        <div class="text-xs text-gray-500">Based on weather forecast</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold {{ $climateRisk < 30 ? 'text-green-600' : ($climateRisk < 60 ? 'text-yellow-600' : 'text-red-600') }}">{{ $climateRisk }}%</div>
+                                    <div class="text-xs {{ $climateRisk < 30 ? 'text-green-500' : ($climateRisk < 60 ? 'text-yellow-500' : 'text-red-500') }}">
+                                        {{ $climateRisk < 30 ? 'Low Risk' : ($climateRisk < 60 ? 'Moderate' : 'High Risk') }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <div class="text-sm font-semibold text-gray-700 mb-1">Climate Risk</div>
-                            <div class="text-2xl font-bold text-gray-800">{{ $climateRisk }}%</div>
-                        </div>
-                        <button class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                            Recommend Now
+                        <button class="w-full mt-4 px-4 py-3 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-gray-800 font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            Generate Recommendations
                         </button>
                     </div>
 
@@ -622,6 +724,21 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Weather Cards Scroll Functions
+        function scrollWeatherLeft() {
+            const container = document.getElementById('weatherCardsContainer');
+            if (container) {
+                container.scrollBy({ left: -300, behavior: 'smooth' });
+            }
+        }
+        
+        function scrollWeatherRight() {
+            const container = document.getElementById('weatherCardsContainer');
+            if (container) {
+                container.scrollBy({ left: 300, behavior: 'smooth' });
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== RECOMMENDATIONS PAGE LOADED ===');
             

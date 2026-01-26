@@ -67,7 +67,7 @@ class CropTrendsController extends Controller
         ]);
         
         foreach ($months as $month) {
-            // Historical data (average productivity from previous years)
+            // Historical data (average production from previous years)
             // Filter by same crop, municipality, and farm type for consistency
             $historicalQuery = Crop::where('year', '<', $currentYear)
                 ->where('month', $month);
@@ -82,15 +82,16 @@ class CropTrendsController extends Controller
                 $historicalQuery->where('farm_type', $topFarmType->farm_type);
             }
             
-            $historical = $historicalQuery->avg('productivity');
+            // Get average production in MT (production is already stored in MT)
+            $historical = $historicalQuery->avg('production');
             
             // Log historical data for verification
-            Log::info('Historical Data Calculation', [
+            Log::info('Historical Production Calculation', [
                 'month' => $month,
                 'crop' => $topCrop->crop ?? 'N/A',
                 'municipality' => $topMunicipality->municipality ?? 'N/A',
                 'farm_type' => $topFarmType->farm_type ?? 'N/A',
-                'historical_productivity' => $historical,
+                'historical_production_mt' => $historical,
                 'record_count' => $historicalQuery->count(),
                 'years_included' => $historicalQuery->pluck('year')->unique()->sort()->values()->toArray()
             ]);
@@ -99,7 +100,7 @@ class CropTrendsController extends Controller
             $historicalValue = is_numeric($historical) && $historical > 0 ? round($historical, 2) : 0;
             $historicalYields[] = $historicalValue;
             
-            // Use ML prediction for current year
+            // Use ML prediction for current year (returns production directly)
             if ($topCrop && $topMunicipality && $topFarmType) {
                 $prediction = $this->predictionService->predictProduction([
                     'municipality' => $topMunicipality->municipality,
@@ -115,17 +116,14 @@ class CropTrendsController extends Controller
                 ]);
                 
                 if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
-                    // Prediction returns production in MT
-                    // Calculate productivity: production (MT) / area (ha) = productivity (MT/ha)
-                    // This matches the database where productivity is stored in MT/ha
-                    $productivity = $prediction['prediction']['production_mt'] / $avgAreaHarvested;
-                    $predictedYields[] = round($productivity, 2);
+                    // Prediction returns production in MT - use directly
+                    $predictedProduction = round($prediction['prediction']['production_mt'], 2);
+                    $predictedYields[] = $predictedProduction;
                     
-                    Log::info('Predicted Productivity Calculated', [
+                    Log::info('Predicted Production', [
                         'month' => $month,
-                        'production_mt' => $prediction['prediction']['production_mt'],
-                        'area_harvested' => $avgAreaHarvested,
-                        'productivity_mt_ha' => $productivity
+                        'production_mt' => $predictedProduction,
+                        'area_used_for_prediction' => $avgAreaHarvested
                     ]);
                 } else {
                     // Fallback to historical average if prediction fails
@@ -191,7 +189,7 @@ class CropTrendsController extends Controller
                         $avgProductionQuery->where('farm_type', $topFarmType->farm_type);
                     }
                     
-                    $avgProduction = $avgProductionQuery->avg(DB::raw('production / 1000'));
+                    $avgProduction = $avgProductionQuery->avg('production');
                     $fallbackValue = $avgProduction ? round($avgProduction, 2) : 0;
                     $demandData[] = $fallbackValue;
                     
@@ -221,7 +219,7 @@ class CropTrendsController extends Controller
                     $avgProductionQuery->where('farm_type', $topFarmType->farm_type);
                 }
                 
-                $avgProduction = $avgProductionQuery->avg(DB::raw('production / 1000'));
+                $avgProduction = $avgProductionQuery->avg('production');
                 $fallbackValue = $avgProduction ? round($avgProduction, 2) : 0;
                 $demandData[] = $fallbackValue;
                 
@@ -246,7 +244,7 @@ class CropTrendsController extends Controller
                 $recordedQuery->where('farm_type', $topFarmType->farm_type);
             }
             
-            $recorded = $recordedQuery->sum(DB::raw('production / 1000'));
+            $recorded = $recordedQuery->sum('production');
             
             // Ensure valid number
             $recordedValue = is_numeric($recorded) && $recorded >= 0 ? round($recorded, 2) : 0;
@@ -260,7 +258,7 @@ class CropTrendsController extends Controller
         }
         
         // Top 3 Most Productive Years with production totals
-        $topYearsWithProduction = Crop::select('year', DB::raw('SUM(production) / 1000 as total_production'))
+        $topYearsWithProduction = Crop::select('year', DB::raw('SUM(production) as total_production'))
             ->groupBy('year')
             ->orderByDesc('total_production')
             ->limit(3)
@@ -277,7 +275,7 @@ class CropTrendsController extends Controller
         $topYears = array_column($topYearsWithProduction, 'year');
         
         // Top 3 Most Productive Crops with production totals
-        $topCropsWithProduction = Crop::select('crop', DB::raw('SUM(production) / 1000 as total_production'))
+        $topCropsWithProduction = Crop::select('crop', DB::raw('SUM(production) as total_production'))
             ->groupBy('crop')
             ->orderByDesc('total_production')
             ->limit(3)
@@ -297,7 +295,7 @@ class CropTrendsController extends Controller
         $monthlyProductionData = [];
         foreach ($months as $month) {
             $avgProduction = Crop::where('month', $month)
-                ->avg(DB::raw('production / 1000'));
+                ->avg('production');
             $monthlyProductionData[] = round($avgProduction ?? 0, 2);
         }
         
@@ -376,7 +374,9 @@ class CropTrendsController extends Controller
 
         // Get predictions for each month-year combination
         $predictions = [];
-        $avgAreaHarvested = Crop::where('crop', $request->crop)
+        
+        // Get default area (average) for cases where no historical data exists
+        $defaultAreaHarvested = Crop::where('crop', $request->crop)
             ->where('municipality', $request->municipality)
             ->where('farm_type', $request->farm_type)
             ->avg('area_harvested') ?? 100;
@@ -391,7 +391,8 @@ class CropTrendsController extends Controller
             'crop' => $request->crop,
             'municipality' => $request->municipality,
             'farm_type' => $request->farm_type,
-            'max_year' => $maxHistoricalYear
+            'max_year' => $maxHistoricalYear,
+            'default_area' => $defaultAreaHarvested
         ]);
 
         foreach ($years as $year) {
@@ -413,7 +414,7 @@ class CropTrendsController extends Controller
                         ->first();
 
                     $historicalProductivity = $historical ? $historical->productivity : null;
-                    $historicalProduction = $historical ? $historical->production / 1000 : null; // Convert kg to MT
+                    $historicalProduction = $historical ? $historical->production : null; // Production is already in MT
                     $historicalArea = $historical ? $historical->area_harvested : null;
                 }
                 
@@ -426,17 +427,22 @@ class CropTrendsController extends Controller
                     'farm_type' => $request->farm_type,
                     'found' => $historical ? 'Yes' : 'No',
                     'productivity_mt_ha' => $historicalProductivity,
-                    'production_mt' => $historicalProduction
+                    'production_mt' => $historicalProduction,
+                    'area_harvested' => $historicalArea
                 ]);
 
-                // Get ML prediction with area_harvested parameter
+                // Use actual historical area if available, otherwise use default average
+                $areaForPrediction = $historicalArea ?? $defaultAreaHarvested;
+
+                // Get ML prediction with actual area_harvested parameter
                 $confidenceScore = null;
                 $prediction = $this->predictionService->predictProduction([
                     'municipality' => $request->municipality,
                     'farm_type' => $request->farm_type,
                     'month' => $month,
                     'crop' => $request->crop,
-                    'area_harvested' => $avgAreaHarvested
+                    'area_harvested' => $areaForPrediction,
+                    'year' => $year
                 ]);
 
                 $predictedProductivity = null;
@@ -445,8 +451,11 @@ class CropTrendsController extends Controller
                 if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
                     // Prediction returns production in MT
                     $predictedProduction = round($prediction['prediction']['production_mt'], 2);
-                    // Calculate productivity in MT/ha (production_mt / area_ha)
-                    $predictedProductivity = round($prediction['prediction']['production_mt'] / $avgAreaHarvested, 2);
+                    // Calculate productivity using the SAME area that was passed to the ML API
+                    $predictedProductivity = $areaForPrediction > 0 
+                        ? round($prediction['prediction']['production_mt'] / $areaForPrediction, 2) 
+                        : null;
+                    
                     // Capture confidence score from model_quality.r2_score (ML API returns R² as confidence)
                     $confidenceScore = null;
                     if (isset($prediction['model_quality']['r2_score'])) {
@@ -463,15 +472,8 @@ class CropTrendsController extends Controller
                         'production_mt' => $predictedProduction,
                         'productivity_mt_ha' => $predictedProductivity,
                         'confidence' => $confidenceScore,
-                        'area_used' => $avgAreaHarvested
-                    ]);
-                    Log::info('ML Prediction Success', [
-                        'month' => $month,
-                        'year' => $year,
-                        'production_mt' => $predictedProduction,
-                        'productivity_mt_ha' => $predictedProductivity,
-                        'confidence' => $confidenceScore,
-                        'area_used' => $avgAreaHarvested
+                        'area_used' => $areaForPrediction,
+                        'area_source' => $historicalArea ? 'historical' : 'default'
                     ]);
                 } else {
                     // ML prediction failed - use intelligent fallback
@@ -501,7 +503,7 @@ class CropTrendsController extends Controller
                             ->where('year', '>=', $year - 5) // Last 5 years
                             ->where('year', '<', $year)
                             ->orderBy('year', 'desc')
-                            ->select('year', 'productivity', DB::raw('production / 1000 as production_mt'))
+                            ->select('year', 'productivity', DB::raw('production as production_mt'))
                             ->get();
                         
                         if ($recentYears->count() >= 2) {
@@ -537,7 +539,7 @@ class CropTrendsController extends Controller
                                 ->where('month', $month)
                                 ->select(
                                     DB::raw('AVG(productivity) as avg_productivity'),
-                                    DB::raw('AVG(production / 1000) as avg_production_mt')
+                                    DB::raw('AVG(production) as avg_production_mt')
                                 )
                                 ->first();
                             
@@ -569,12 +571,10 @@ class CropTrendsController extends Controller
                     }
                 }
 
-                // Calculate normalized historical production using the same area as predictions
-                // This allows fair comparison between historical and predicted values
-                $normalizedHistoricalProduction = null;
-                if ($historicalProductivity && $avgAreaHarvested) {
-                    $normalizedHistoricalProduction = round($historicalProductivity * $avgAreaHarvested, 2);
-                }
+                // Use actual historical production from the database instead of calculating
+                // This ensures we display the exact production values from the source data
+                // Previously: normalizedHistoricalProduction = historicalProductivity * avgAreaHarvested (incorrect)
+                // Now: Use the actual production value from the database directly
 
                 $predictions[] = [
                     'month' => $month,
@@ -583,15 +583,15 @@ class CropTrendsController extends Controller
                     'predicted_productivity' => $predictedProductivity,
                     'historical_production' => $historicalProduction,
                     'predicted_production' => $predictedProduction,
-                    'normalized_historical_production' => $normalizedHistoricalProduction,
+                    'normalized_historical_production' => $historicalProduction, // Use actual production, not calculated
                     'historical_area' => $historicalArea,
-                    'prediction_area' => round($avgAreaHarvested, 2),
+                    'prediction_area' => round($areaForPrediction, 2),
                     'confidence_score' => $confidenceScore ?? null,
                 ];
             }
         }
 
-        // Prepare chart data
+        // Prepare chart data - using Production (MT) instead of Productivity
         $chartLabels = [];
         $historicalData = [];
         $predictedData = [];
@@ -603,15 +603,16 @@ class CropTrendsController extends Controller
                 'SEP' => 'Sep', 'OCT' => 'Oct', 'NOV' => 'Nov', 'DEC' => 'Dec'
             ];
             $chartLabels[] = ($monthMap[$pred['month']] ?? $pred['month']) . ' ' . $pred['year'];
-            $historicalData[] = $pred['historical_productivity'];
-            $predictedData[] = $pred['predicted_productivity'];
+            // Use normalized historical production for fair comparison with predicted production
+            $historicalData[] = $pred['normalized_historical_production'];
+            $predictedData[] = $pred['predicted_production'];
         }
 
         // Log summary of predictions
         Log::info('Prediction Results Summary', [
             'total_predictions' => count($predictions),
-            'predictions_with_historical' => collect($predictions)->whereNotNull('historical_productivity')->count(),
-            'predictions_with_ml' => collect($predictions)->whereNotNull('predicted_productivity')->count(),
+            'predictions_with_historical' => collect($predictions)->whereNotNull('normalized_historical_production')->count(),
+            'predictions_with_ml' => collect($predictions)->whereNotNull('predicted_production')->count(),
             'predictions_with_confidence' => collect($predictions)->whereNotNull('confidence_score')->count(),
             'avg_confidence' => collect($predictions)->whereNotNull('confidence_score')->avg('confidence_score'),
             'historical_data_points' => collect($historicalData)->filter()->count(),
@@ -628,8 +629,8 @@ class CropTrendsController extends Controller
         // Log summary of predictions
         Log::info('Prediction Results Generated', [
             'total_predictions' => count($predictions),
-            'predictions_with_historical' => collect($predictions)->whereNotNull('historical_productivity')->count(),
-            'predictions_with_ml' => collect($predictions)->whereNotNull('predicted_productivity')->count()
+            'predictions_with_historical' => collect($predictions)->whereNotNull('normalized_historical_production')->count(),
+            'predictions_with_ml' => collect($predictions)->whereNotNull('predicted_production')->count()
         ]);
 
         // Add debug log to verify view is being returned
@@ -647,7 +648,7 @@ class CropTrendsController extends Controller
             'mlApiHealthy' => $mlApiHealthy,
             'municipalities' => $municipalities,
             'crops' => $crops,
-            'avgAreaHarvested' => round($avgAreaHarvested, 2)
+            'avgAreaHarvested' => round($defaultAreaHarvested, 2)
         ]);
     }
 }

@@ -17,10 +17,14 @@ class WeatherService
         // Support multiple weather API providers
         // Option 1: OpenWeatherMap (https://openweathermap.org/api)
         // Option 2: WeatherAPI.com (https://www.weatherapi.com/)
+        // Option 3: Google Weather API (https://weather.googleapis.com/)
         
-        $this->apiProvider = env('WEATHER_API_PROVIDER', 'openweather'); // 'openweather' or 'weatherapi'
+        $this->apiProvider = env('WEATHER_API_PROVIDER', 'google'); // 'openweather', 'weatherapi', or 'google'
         
-        if ($this->apiProvider === 'weatherapi') {
+        if ($this->apiProvider === 'google') {
+            $this->apiKey = env('GOOGLE_WEATHER_API_KEY', 'AIzaSyApL1FMpz-YmofnouGJStne7oPv09Ah7jM');
+            $this->baseUrl = 'https://weather.googleapis.com/v1';
+        } elseif ($this->apiProvider === 'weatherapi') {
             $this->apiKey = env('WEATHERAPI_KEY', 'demo');
             $this->baseUrl = 'https://api.weatherapi.com/v1';
         } else {
@@ -39,7 +43,9 @@ class WeatherService
         
         return Cache::remember($cacheKey, 3600, function () use ($municipality, $days) {
             try {
-                if ($this->apiProvider === 'weatherapi') {
+                if ($this->apiProvider === 'google') {
+                    return $this->getGoogleWeatherForecast($municipality, $days);
+                } elseif ($this->apiProvider === 'weatherapi') {
                     return $this->getWeatherAPIForecast($municipality, $days);
                 } else {
                     return $this->getOpenWeatherForecast($municipality, $days);
@@ -60,7 +66,9 @@ class WeatherService
         
         return Cache::remember($cacheKey, 3600, function () use ($municipality, $hours) {
             try {
-                if ($this->apiProvider === 'weatherapi') {
+                if ($this->apiProvider === 'google') {
+                    return $this->getGoogleWeatherHourly($municipality, $hours);
+                } elseif ($this->apiProvider === 'weatherapi') {
                     return $this->getWeatherAPIHourly($municipality, $hours);
                 } else {
                     return $this->getOpenWeatherHourly($municipality, $hours);
@@ -183,27 +191,403 @@ class WeatherService
 
     /**
      * Get coordinates for Benguet municipalities
+     * Using exact coordinates from Google Weather API
      */
     private function getCoordinates($municipality)
     {
-        // Coordinates for Benguet municipalities
+        // Coordinates for Benguet municipalities (from Google Weather API)
         $coordinates = [
-            'Atok' => ['lat' => 16.5833, 'lon' => 120.7167],
-            'Bakun' => ['lat' => 16.8000, 'lon' => 120.6667],
-            'Bokod' => ['lat' => 16.4667, 'lon' => 120.8333],
-            'Buguias' => ['lat' => 16.7333, 'lon' => 120.8333],
-            'Itogon' => ['lat' => 16.3667, 'lon' => 120.7000],
-            'Kabayan' => ['lat' => 16.7167, 'lon' => 120.8500],
-            'Kapangan' => ['lat' => 16.5667, 'lon' => 120.6000],
-            'Kibungan' => ['lat' => 16.6833, 'lon' => 120.6333],
-            'La Trinidad' => ['lat' => 16.4603, 'lon' => 120.5900],
-            'Mankayan' => ['lat' => 16.8667, 'lon' => 120.7833],
-            'Sablan' => ['lat' => 16.4333, 'lon' => 120.5500],
-            'Tuba' => ['lat' => 16.3167, 'lon' => 120.5500],
-            'Tublay' => ['lat' => 16.5333, 'lon' => 120.6333],
+            'Atok' => ['lat' => 16.6274093, 'lon' => 120.7675527],
+            'Bakun' => ['lat' => 16.8300411, 'lon' => 120.6830301],
+            'Bokod' => ['lat' => 16.4908605, 'lon' => 120.8302587],
+            'Buguias' => ['lat' => 16.7192014, 'lon' => 120.826902],
+            'Itogon' => ['lat' => 16.3657698, 'lon' => 120.633172],
+            'Kabayan' => ['lat' => 16.6239201, 'lon' => 120.8381884],
+            'Kapangan' => ['lat' => 16.5761774, 'lon' => 120.6030069],
+            'Kibungan' => ['lat' => 16.6937271, 'lon' => 120.6533943],
+            'La Trinidad' => ['lat' => 16.4586825, 'lon' => 120.5812456],
+            'Mankayan' => ['lat' => 16.8572602, 'lon' => 120.7933631],
+            'Sablan' => ['lat' => 16.4966909, 'lon' => 120.4875959],
+            'Tuba' => ['lat' => 16.3926636, 'lon' => 120.5612911],
+            'Tublay' => ['lat' => 16.5145931, 'lon' => 120.6322972],
         ];
 
         return $coordinates[$municipality] ?? null;
+    }
+
+    /**
+     * Get current weather conditions from Google Weather API
+     */
+    public function getCurrentConditions($municipality)
+    {
+        $cacheKey = "weather_current_{$municipality}_google";
+        
+        return Cache::remember($cacheKey, 1800, function () use ($municipality) {
+            try {
+                $coordinates = $this->getCoordinates($municipality);
+                
+                if (!$coordinates) {
+                    return $this->getMockCurrentConditions($municipality);
+                }
+
+                $response = Http::timeout(10)->get("{$this->baseUrl}/currentConditions:lookup", [
+                    'key' => $this->apiKey,
+                    'location.latitude' => $coordinates['lat'],
+                    'location.longitude' => $coordinates['lon']
+                ]);
+
+                if ($response->successful()) {
+                    return $this->formatGoogleCurrentConditions($response->json(), $municipality);
+                }
+
+                Log::warning("Google Weather API error for {$municipality}: " . $response->body());
+                return $this->getMockCurrentConditions($municipality);
+            } catch (\Exception $e) {
+                Log::warning("Google Weather API error for {$municipality}: " . $e->getMessage());
+                return $this->getMockCurrentConditions($municipality);
+            }
+        });
+    }
+
+    /**
+     * Get forecast from Google Weather API
+     */
+    private function getGoogleWeatherForecast($municipality, $days)
+    {
+        $coordinates = $this->getCoordinates($municipality);
+        
+        if (!$coordinates) {
+            return $this->getMockForecast($municipality, $days);
+        }
+
+        // First get current conditions
+        $currentResponse = Http::timeout(10)->get("{$this->baseUrl}/currentConditions:lookup", [
+            'key' => $this->apiKey,
+            'location.latitude' => $coordinates['lat'],
+            'location.longitude' => $coordinates['lon']
+        ]);
+
+        // Try to get forecast data
+        $forecastResponse = Http::timeout(10)->get("{$this->baseUrl}/forecast/days:lookup", [
+            'key' => $this->apiKey,
+            'location.latitude' => $coordinates['lat'],
+            'location.longitude' => $coordinates['lon'],
+            'days' => $days
+        ]);
+
+        if ($forecastResponse->successful()) {
+            // Pass current conditions to use current temp for "Today"
+            $currentData = $currentResponse->successful() ? $currentResponse->json() : null;
+            return $this->formatGoogleWeatherForecast($forecastResponse->json(), $municipality, $days, $currentData);
+        }
+
+        // If forecast endpoint fails, use current conditions to build a partial forecast
+        if ($currentResponse->successful()) {
+            return $this->buildForecastFromCurrent($currentResponse->json(), $municipality, $days);
+        }
+
+        return $this->getMockForecast($municipality, $days);
+    }
+
+    /**
+     * Get hourly forecast from Google Weather API
+     */
+    private function getGoogleWeatherHourly($municipality, $hours)
+    {
+        $coordinates = $this->getCoordinates($municipality);
+        
+        if (!$coordinates) {
+            return $this->getMockHourlyForecast($hours);
+        }
+
+        // Try to get hourly forecast
+        $response = Http::timeout(10)->get("{$this->baseUrl}/forecast/hours:lookup", [
+            'key' => $this->apiKey,
+            'location.latitude' => $coordinates['lat'],
+            'location.longitude' => $coordinates['lon'],
+            'hours' => $hours
+        ]);
+
+        if ($response->successful()) {
+            return $this->formatGoogleWeatherHourly($response->json(), $hours);
+        }
+
+        // Fallback to current conditions
+        $currentResponse = Http::timeout(10)->get("{$this->baseUrl}/currentConditions:lookup", [
+            'key' => $this->apiKey,
+            'location.latitude' => $coordinates['lat'],
+            'location.longitude' => $coordinates['lon']
+        ]);
+
+        if ($currentResponse->successful()) {
+            return $this->buildHourlyFromCurrent($currentResponse->json(), $hours);
+        }
+
+        return $this->getMockHourlyForecast($hours);
+    }
+
+    /**
+     * Format Google Weather API current conditions
+     */
+    private function formatGoogleCurrentConditions($data, $municipality)
+    {
+        $temperature = isset($data['temperature']['degrees']) ? round($data['temperature']['degrees']) : 20;
+        $humidity = isset($data['relativeHumidity']) ? $data['relativeHumidity'] : 75;
+        $condition = isset($data['weatherCondition']['description']['text']) 
+            ? $data['weatherCondition']['description']['text'] 
+            : (isset($data['weatherCondition']) ? $this->mapGoogleCondition($data['weatherCondition']) : 'Partly Cloudy');
+        $windSpeed = isset($data['wind']['speed']['value']) ? round($data['wind']['speed']['value']) : 10;
+        $uvIndex = isset($data['uvIndex']) ? $data['uvIndex'] : 5;
+        
+        return [
+            'municipality' => $municipality,
+            'temperature' => $temperature,
+            'humidity' => $humidity,
+            'condition' => $this->simplifyCondition($condition),
+            'icon' => $this->getWeatherIcon($condition),
+            'wind_speed' => $windSpeed,
+            'uv_index' => $uvIndex,
+            'feels_like' => isset($data['feelsLikeTemperature']['degrees']) ? round($data['feelsLikeTemperature']['degrees']) : $temperature,
+            'timestamp' => now()->toIso8601String()
+        ];
+    }
+
+    /**
+     * Format Google Weather API forecast
+     */
+    private function formatGoogleWeatherForecast($data, $municipality, $days, $currentData = null)
+    {
+        $forecast = [];
+        $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        // Get current temperature from currentConditions API
+        $currentTemp = null;
+        $currentCondition = null;
+        if ($currentData) {
+            $currentTemp = isset($currentData['temperature']['degrees']) ? round($currentData['temperature']['degrees']) : null;
+            $currentCondition = isset($currentData['weatherCondition']['description']['text']) 
+                ? $currentData['weatherCondition']['description']['text'] 
+                : null;
+        }
+        
+        if (isset($data['forecastDays'])) {
+            foreach ($data['forecastDays'] as $index => $day) {
+                if ($index >= $days) break;
+
+                // Parse displayDate from API response
+                if (isset($day['displayDate'])) {
+                    $year = $day['displayDate']['year'];
+                    $month = $day['displayDate']['month'];
+                    $dayNum = $day['displayDate']['day'];
+                    $date = strtotime("{$year}-{$month}-{$dayNum}");
+                } else {
+                    $date = strtotime("+{$index} days");
+                }
+                
+                $dayOfWeek = date('w', $date);
+                $dayName = $index === 0 ? "Tod" : $dayNames[$dayOfWeek];
+                
+                // For today (index 0), use current temperature from currentConditions API
+                // For future days, use max temperature from forecast
+                if ($index === 0 && $currentTemp !== null) {
+                    $temp = $currentTemp;
+                    $condition = $currentCondition ?? 'Partly Cloudy';
+                } else {
+                    $temp = isset($day['maxTemperature']['degrees']) ? round($day['maxTemperature']['degrees']) : 25;
+                    // Get weather condition from daytime forecast
+                    $condition = 'Partly Cloudy';
+                    if (isset($day['daytimeForecast']['weatherCondition']['description']['text'])) {
+                        $condition = $day['daytimeForecast']['weatherCondition']['description']['text'];
+                    } elseif (isset($day['daytimeForecast']['weatherCondition']['type'])) {
+                        $condition = $this->mapGoogleCondition($day['daytimeForecast']['weatherCondition']['type']);
+                    }
+                }
+
+                $forecast[] = [
+                    'day' => $dayName,
+                    'date' => date('M j', $date),
+                    'icon' => $this->getWeatherIcon($condition),
+                    'condition' => $this->simplifyCondition($condition),
+                    'temp' => "{$temp}°C",
+                    'aqi' => rand(60, 80) // AQI - would need separate API call for real data
+                ];
+            }
+        }
+
+        if (empty($forecast)) {
+            return $this->getMockForecast($municipality, $days);
+        }
+
+        return [
+            'municipality' => $municipality,
+            'forecast' => $forecast
+        ];
+    }
+
+    /**
+     * Format Google Weather API hourly forecast
+     */
+    private function formatGoogleWeatherHourly($data, $hours)
+    {
+        $hourly = [];
+        
+        if (isset($data['forecastHours'])) {
+            foreach ($data['forecastHours'] as $index => $hour) {
+                if ($index >= $hours) break;
+
+                // Parse time from displayDateTime
+                if ($index === 0) {
+                    $time = 'Now';
+                } elseif (isset($hour['displayDateTime']['hours'])) {
+                    $hourNum = $hour['displayDateTime']['hours'];
+                    $ampm = $hourNum >= 12 ? 'PM' : 'AM';
+                    $displayHour = $hourNum % 12;
+                    if ($displayHour === 0) $displayHour = 12;
+                    $time = $displayHour . $ampm;
+                } else {
+                    $time = date('gA', strtotime("+{$index} hours"));
+                }
+                
+                // Get temperature
+                $temp = isset($hour['temperature']['degrees']) ? round($hour['temperature']['degrees']) : 18;
+                
+                // Get condition from weatherCondition.description.text
+                $condition = 'Partly Cloudy';
+                if (isset($hour['weatherCondition']['description']['text'])) {
+                    $condition = $hour['weatherCondition']['description']['text'];
+                } elseif (isset($hour['weatherCondition']['type'])) {
+                    $condition = $this->mapGoogleCondition($hour['weatherCondition']['type']);
+                }
+
+                $hourly[] = [
+                    'time' => $time,
+                    'icon' => $this->getWeatherIcon($condition),
+                    'temp' => "{$temp}°",
+                    'condition' => $condition
+                ];
+            }
+        }
+
+        if (empty($hourly)) {
+            return $this->getMockHourlyForecast($hours);
+        }
+
+        return $hourly;
+    }
+
+    /**
+     * Build forecast from current conditions when forecast endpoint unavailable
+     */
+    private function buildForecastFromCurrent($currentData, $municipality, $days)
+    {
+        $forecast = [];
+        $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        $baseTemp = isset($currentData['temperature']['degrees']) ? round($currentData['temperature']['degrees']) : 20;
+        $condition = isset($currentData['weatherCondition']['description']['text']) 
+            ? $currentData['weatherCondition']['description']['text'] 
+            : $this->mapGoogleCondition($currentData['weatherCondition'] ?? 'PARTLY_CLOUDY');
+
+        for ($i = 0; $i < $days; $i++) {
+            $date = strtotime("+{$i} days");
+            $dayOfWeek = date('w', $date);
+            $dayName = $i === 0 ? "Today({$dayNames[$dayOfWeek]})" : $dayNames[$dayOfWeek];
+            
+            // Add some variation for future days
+            $tempMax = $baseTemp + rand(0, 3);
+            
+            $forecast[] = [
+                'day' => $dayName,
+                'date' => date('M j', $date),
+                'icon' => $this->getWeatherIcon($condition),
+                'condition' => $this->simplifyCondition($condition),
+                'temp' => "{$tempMax}°C",
+                'aqi' => rand(60, 75)
+            ];
+        }
+
+        return [
+            'municipality' => $municipality,
+            'forecast' => $forecast
+        ];
+    }
+
+    /**
+     * Build hourly forecast from current conditions
+     */
+    private function buildHourlyFromCurrent($currentData, $hours)
+    {
+        $hourly = [];
+        
+        $baseTemp = isset($currentData['temperature']['degrees']) ? round($currentData['temperature']['degrees']) : 20;
+        $condition = isset($currentData['weatherCondition']['description']['text']) 
+            ? $currentData['weatherCondition']['description']['text'] 
+            : $this->mapGoogleCondition($currentData['weatherCondition'] ?? 'PARTLY_CLOUDY');
+
+        for ($i = 0; $i < $hours; $i++) {
+            $time = $i === 0 ? 'Now' : date('gA', strtotime("+{$i} hours"));
+            $temp = $baseTemp + rand(-2, 3); // Small temperature variation
+
+            $hourly[] = [
+                'time' => $time,
+                'icon' => $this->getWeatherIcon($condition),
+                'temp' => "{$temp}°"
+            ];
+        }
+
+        return $hourly;
+    }
+
+    /**
+     * Map Google Weather condition codes to readable text
+     */
+    private function mapGoogleCondition($condition)
+    {
+        if (is_array($condition)) {
+            $condition = $condition['type'] ?? 'PARTLY_CLOUDY';
+        }
+        
+        $conditions = [
+            'CLEAR' => 'Clear',
+            'MOSTLY_CLEAR' => 'Mostly Clear',
+            'PARTLY_CLOUDY' => 'Partly Cloudy',
+            'MOSTLY_CLOUDY' => 'Mostly Cloudy',
+            'CLOUDY' => 'Cloudy',
+            'OVERCAST' => 'Overcast',
+            'LIGHT_RAIN' => 'Light Rain',
+            'RAIN' => 'Rain',
+            'HEAVY_RAIN' => 'Heavy Rain',
+            'SHOWERS' => 'Showers',
+            'THUNDERSTORM' => 'Thunderstorm',
+            'LIGHT_SNOW' => 'Light Snow',
+            'SNOW' => 'Snow',
+            'HEAVY_SNOW' => 'Heavy Snow',
+            'FOG' => 'Fog',
+            'MIST' => 'Mist',
+            'HAZE' => 'Haze',
+            'WINDY' => 'Windy',
+            'SUNNY' => 'Sunny',
+        ];
+
+        return $conditions[strtoupper($condition)] ?? ucfirst(strtolower(str_replace('_', ' ', $condition)));
+    }
+
+    /**
+     * Get mock current conditions (fallback)
+     */
+    private function getMockCurrentConditions($municipality)
+    {
+        return [
+            'municipality' => $municipality,
+            'temperature' => rand(15, 25),
+            'humidity' => rand(65, 85),
+            'condition' => 'Partly Cloudy',
+            'icon' => '⛅',
+            'wind_speed' => rand(5, 15),
+            'uv_index' => rand(3, 7),
+            'feels_like' => rand(15, 25),
+            'timestamp' => now()->toIso8601String()
+        ];
     }
 
     /**
@@ -216,7 +600,6 @@ class WeatherService
         
         foreach ($data['forecast']['forecastday'] as $index => $day) {
             $dayData = $day['day'];
-            $tempMin = round($dayData['mintemp_c']);
             $tempMax = round($dayData['maxtemp_c']);
             $condition = $dayData['condition']['text'];
             
@@ -230,7 +613,7 @@ class WeatherService
                 'date' => date('M j', strtotime($day['date'])),
                 'icon' => $this->getWeatherIcon($condition),
                 'condition' => $this->simplifyCondition($condition),
-                'temp' => "{$tempMin}-{$tempMax}°C",
+                'temp' => "{$tempMax}°C",
                 'aqi' => $aqi
             ];
         }
@@ -254,7 +637,6 @@ class WeatherService
             // Take midday forecast for each day
             if ($index % 8 == 4) {
                 $temp = round($item['main']['temp']);
-                $tempMin = round($item['main']['temp_min']);
                 $tempMax = round($item['main']['temp_max']);
                 $weatherMain = $item['weather'][0]['main'];
                 $aqi = rand(60, 75); // Mock AQI data (OpenWeather requires separate API call)
@@ -264,7 +646,7 @@ class WeatherService
                     'date' => date('M j', strtotime($item['dt_txt'])),
                     'icon' => $this->getWeatherIcon($weatherMain),
                     'condition' => $weatherMain,
-                    'temp' => "{$tempMin}-{$tempMax}°C",
+                    'temp' => "{$tempMax}°C",
                     'aqi' => $aqi
                 ];
 
@@ -437,7 +819,7 @@ class WeatherService
                 'date' => 'Mar 6',
                 'icon' => '☀️',
                 'condition' => 'Sunny',
-                'temp' => '15-20°C',
+                'temp' => '20°C',
                 'aqi' => 67
             ],
             [
@@ -445,7 +827,7 @@ class WeatherService
                 'date' => 'Mar 7',
                 'icon' => '⛅',
                 'condition' => 'Cloudy',
-                'temp' => '16-22°C',
+                'temp' => '22°C',
                 'aqi' => 71
             ],
             [
@@ -453,7 +835,7 @@ class WeatherService
                 'date' => 'Mar 8',
                 'icon' => '⛈️',
                 'condition' => 'Lightning',
-                'temp' => '17-20°C',
+                'temp' => '20°C',
                 'aqi' => 65
             ],
             [
@@ -461,7 +843,7 @@ class WeatherService
                 'date' => 'Mar 9',
                 'icon' => '🌧️',
                 'condition' => 'Heavy rain',
-                'temp' => '16-21°C',
+                'temp' => '21°C',
                 'aqi' => 70
             ]
         ];

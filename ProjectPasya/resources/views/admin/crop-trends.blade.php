@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <!-- Crop Yield Forecasting Chart -->
+        <!-- Crop Production Forecasting Chart -->
         <div class="bg-white rounded-xl shadow-md p-6">
             <div class="flex items-center justify-between mb-4">
                 <div>
@@ -36,7 +36,7 @@
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Crop Yield Forecasting
+                        Crop Production Forecasting
                     </h2>
                     <p class="text-sm text-gray-500 mt-1">Prediction<span class="text-gray-400 ml-2">Jan - June 2025</span></p>
                 </div>
@@ -45,11 +45,11 @@
                 <div class="flex items-center gap-6">
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
-                        <span class="text-sm text-gray-600">Historical Yields</span>
+                        <span class="text-sm text-gray-600">Historical Production</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-sm text-gray-600">Predicted</span>
+                        <span class="text-sm text-gray-600">Predicted Production</span>
                     </div>
                 </div>
             </div>
@@ -366,8 +366,8 @@
 
                     console.log('Forecast Chart Data:');
                     console.log('- Months:', months);
-                    console.log('- Historical Yields:', historical);
-                    console.log('- Predicted Yields:', predicted);
+                    console.log('- Historical Production:', historical);
+                    console.log('- Predicted Production:', predicted);
 
                     const monthLabels = months.map(m => {
                         const monthMap = { JAN: 'Jan', FEB: 'Feb', MAR: 'Mar', APR: 'Apr', MAY: 'May', JUN: 'Jun' };
@@ -382,7 +382,7 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Historical Yields',
+                                    label: 'Historical Production (MT)',
                                     data: historical,
                                     borderColor: 'rgb(34, 211, 238)',
                                     backgroundColor: 'rgba(34, 211, 238, 0.1)',
@@ -393,7 +393,7 @@
                                     pointHoverRadius: 8
                                 },
                                 {
-                                    label: 'Predicted',
+                                    label: 'Predicted Production (MT)',
                                     data: predicted,
                                     borderColor: 'rgb(34, 197, 94)',
                                     backgroundColor: 'rgba(34, 197, 94, 0.1)',

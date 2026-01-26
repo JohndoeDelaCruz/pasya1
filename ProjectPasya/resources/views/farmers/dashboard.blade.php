@@ -51,13 +51,11 @@
                 <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z"/>
-                            </svg>
+                            <span class="text-xl">{{ $weather['icon'] ?? '⛅' }}</span>
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Weather</p>
-                            <p class="text-lg font-bold text-gray-800">31°C</p>
+                            <p class="text-lg font-bold text-gray-800">{{ $weather['temperature'] ?? 22 }}°C</p>
                         </div>
                     </div>
                 </div>
@@ -257,61 +255,107 @@
 
                     <!-- Bottom Row: Weather and Price Watch -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Weather Widget -->
-                        <div class="bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
+                        <!-- Weather Widget - Enhanced with API Data -->
+                        <div class="bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 rounded-2xl shadow-lg text-white relative overflow-hidden">
                             <!-- Weather Background Pattern -->
-                            <div class="absolute inset-0 opacity-20">
+                            <div class="absolute inset-0 opacity-10">
                                 <svg class="absolute -right-10 -top-10 w-40 h-40 text-white" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
                                 </svg>
                             </div>
                             
-                            <div class="relative">
-                                <div class="flex items-start justify-between mb-4">
+                            <!-- Current Weather -->
+                            <div class="p-5 relative">
+                                <div class="flex items-start justify-between mb-3">
                                     <div>
-                                        <div class="flex items-center space-x-2 text-blue-100 mb-2">
+                                        <div class="flex items-center space-x-2 text-blue-100 mb-1">
                                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                                             </svg>
-                                            <span class="text-sm font-medium">{{ Auth::guard('farmer')->user()->municipality ?? 'Buguias' }}, Benguet</span>
+                                            <span class="text-sm font-medium">{{ $weather['location'] ?? (Auth::guard('farmer')->user()->municipality ?? 'Buguias') . ', Benguet' }}</span>
                                         </div>
-                                        <h3 class="text-lg font-semibold">{{ now()->format('l') }}</h3>
-                                        <p class="text-blue-200 text-sm">{{ now()->format('F d, Y') }}</p>
+                                        <h3 class="text-base font-semibold">{{ now()->format('l') }}</h3>
+                                        <p class="text-blue-200 text-xs">{{ now()->format('F d, Y') }}</p>
                                     </div>
-                                    <div class="bg-white/20 backdrop-blur-sm rounded-xl p-3">
-                                        <svg class="w-12 h-12 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
-                                        </svg>
+                                    <div class="bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
+                                        <span class="text-4xl">{{ $weather['icon'] ?? '⛅' }}</span>
                                     </div>
                                 </div>
                                 
                                 <div class="flex items-end justify-between">
                                     <div>
                                         <div class="flex items-baseline space-x-1">
-                                            <span class="text-5xl font-bold">31</span>
-                                            <span class="text-2xl font-light">°C</span>
+                                            <span class="text-4xl font-bold">{{ $weather['temperature'] ?? 22 }}</span>
+                                            <span class="text-xl font-light">°C</span>
                                         </div>
-                                        <p class="text-blue-100 text-sm mt-1">Feels like 35°C</p>
+                                        <p class="text-blue-100 text-xs mt-1">Feels like {{ $weather['feels_like'] ?? 24 }}°C</p>
                                     </div>
                                     <div class="text-right">
-                                        <p class="font-semibold text-lg">Mostly Sunny</p>
-                                        <div class="flex items-center justify-end space-x-3 mt-2 text-sm text-blue-100">
+                                        <p class="font-semibold text-sm">{{ $weather['condition'] ?? 'Partly Cloudy' }}</p>
+                                        <div class="flex items-center justify-end space-x-3 mt-1 text-xs text-blue-100">
                                             <span class="flex items-center space-x-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                                                 </svg>
-                                                <span>31°</span>
+                                                <span>{{ $weather['high'] ?? 28 }}°</span>
                                             </span>
                                             <span class="flex items-center space-x-1">
-                                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                                 </svg>
-                                                <span>24°</span>
+                                                <span>{{ $weather['low'] ?? 18 }}°</span>
                                             </span>
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <!-- Weather Details Row -->
+                                <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/20">
+                                    <div class="text-center">
+                                        <div class="text-blue-100 text-xs mb-0.5">Humidity</div>
+                                        <div class="font-semibold text-sm">{{ $weather['humidity'] ?? 75 }}%</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-blue-100 text-xs mb-0.5">Wind</div>
+                                        <div class="font-semibold text-sm">{{ $weather['wind_speed'] ?? 12 }} km/h</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-blue-100 text-xs mb-0.5">UV Index</div>
+                                        <div class="font-semibold text-sm">{{ $weather['uv_index'] ?? 5 }}</div>
+                                    </div>
+                                </div>
                             </div>
+                            
+                            <!-- Hourly Forecast -->
+                            @if(isset($weather['hourly']) && count($weather['hourly']) > 0)
+                            <div class="bg-white/10 backdrop-blur-sm px-5 py-3">
+                                <div class="flex justify-between items-center overflow-x-auto scrollbar-hide">
+                                    @foreach($weather['hourly'] as $hour)
+                                    <div class="text-center flex-shrink-0 px-2">
+                                        <div class="text-xs text-blue-100 mb-1">{{ $hour['time'] }}</div>
+                                        <div class="text-xl mb-1">{{ $hour['icon'] }}</div>
+                                        <div class="text-xs font-semibold">{{ $hour['temp'] }}</div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+                            
+                            <!-- 4-Day Forecast -->
+                            @if(isset($weather['forecast']) && count($weather['forecast']) > 0)
+                            <div class="bg-white/5 px-5 py-3">
+                                <div class="text-xs text-blue-100 mb-2 font-medium">4-Day Forecast</div>
+                                <div class="grid grid-cols-4 gap-2">
+                                    @foreach($weather['forecast'] as $day)
+                                    <div class="text-center bg-white/10 rounded-lg p-2">
+                                        <div class="text-xs text-blue-100">{{ $day['day'] }}</div>
+                                        <div class="text-lg my-1">{{ $day['icon'] }}</div>
+                                        <div class="text-xs font-medium">{{ $day['temp'] }}</div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
                         </div>
 
                         <!-- Daily Price Watch -->

@@ -36,22 +36,87 @@
                                     </tr>
                                 </template>
                                 <template x-for="(record, index) in harvestHistory" :key="record.id || index">
-                                    <tr class="border-b border-green-200 hover:bg-green-50 transition">
+                                    <tr class="border-b border-green-200 hover:bg-green-50 transition"
+                                        :class="{
+                                            'bg-red-50': record.maturityStatus === 'overdue',
+                                            'bg-amber-50': record.maturityStatus === 'ready',
+                                            'bg-yellow-50': record.maturityStatus === 'almost_ready'
+                                        }">
                                         <td class="px-4 py-3 text-sm text-green-700 font-medium" x-text="index + 1"></td>
                                         <td class="px-4 py-3 text-sm text-green-700 font-medium" x-text="record.cropType"></td>
                                         <td class="px-4 py-3 text-sm text-green-700" x-text="record.datePlanted"></td>
                                         <td class="px-4 py-3 text-sm text-green-700" x-text="record.dateHarvested || '--'"></td>
                                         <td class="px-4 py-3">
-                                            <span class="text-sm font-medium"
-                                                  :class="record.status === 'Growing' ? 'text-green-600' : 'text-gray-600'"
-                                                  x-text="record.status"></span>
+                                            <!-- Status with maturity indicator -->
+                                            <div class="flex flex-col">
+                                                <span class="text-sm font-medium"
+                                                      :class="{
+                                                          'text-gray-600': record.status === 'Completed',
+                                                          'text-red-600': record.maturityStatus === 'overdue',
+                                                          'text-amber-600': record.maturityStatus === 'ready',
+                                                          'text-yellow-600': record.maturityStatus === 'almost_ready',
+                                                          'text-green-600': record.maturityStatus === 'growing' || record.maturityStatus === 'approaching'
+                                                      }"
+                                                      x-text="record.status"></span>
+                                                <!-- Days until harvest indicator for growing crops -->
+                                                <template x-if="record.status === 'Growing'">
+                                                    <span class="text-xs mt-0.5"
+                                                          :class="{
+                                                              'text-red-500': record.maturityStatus === 'overdue',
+                                                              'text-amber-500': record.maturityStatus === 'ready',
+                                                              'text-yellow-500': record.maturityStatus === 'almost_ready',
+                                                              'text-blue-500': record.maturityStatus === 'approaching',
+                                                              'text-gray-400': record.maturityStatus === 'growing'
+                                                          }">
+                                                        <template x-if="record.maturityStatus === 'overdue'">
+                                                            <span>⚠️ Overdue for harvest!</span>
+                                                        </template>
+                                                        <template x-if="record.maturityStatus === 'ready'">
+                                                            <span>🌾 Ready to harvest!</span>
+                                                        </template>
+                                                        <template x-if="record.maturityStatus === 'almost_ready'">
+                                                            <span>📅 <span x-text="record.daysUntilHarvest"></span> days left</span>
+                                                        </template>
+                                                        <template x-if="record.maturityStatus === 'approaching'">
+                                                            <span>🌱 <span x-text="record.daysUntilHarvest"></span> days left</span>
+                                                        </template>
+                                                        <template x-if="record.maturityStatus === 'growing'">
+                                                            <span><span x-text="record.daysUntilHarvest"></span> days left</span>
+                                                        </template>
+                                                    </span>
+                                                </template>
+                                            </div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <button @click="handleAction(record)" 
-                                                    class="text-sm font-medium transition"
-                                                    :class="record.status === 'Growing' ? 'text-green-600 hover:text-green-700' : 'text-blue-600 hover:text-blue-700'"
-                                                    x-text="record.status === 'Growing' ? 'Harvest Now' : 'Plant Again'">
-                                            </button>
+                                            <!-- Show Finish Harvest button only when harvest is approaching (7 days or less) -->
+                                            <template x-if="record.status === 'Growing' && record.isHarvestReady">
+                                                <button @click="handleAction(record)" 
+                                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition"
+                                                        :class="{
+                                                            'bg-red-500 hover:bg-red-600 text-white': record.maturityStatus === 'overdue',
+                                                            'bg-amber-500 hover:bg-amber-600 text-white': record.maturityStatus === 'ready',
+                                                            'bg-yellow-500 hover:bg-yellow-600 text-white': record.maturityStatus === 'almost_ready'
+                                                        }">
+                                                    🌾 Finish Harvest
+                                                </button>
+                                            </template>
+                                            <!-- Show growing status for crops not yet ready -->
+                                            <template x-if="record.status === 'Growing' && !record.isHarvestReady">
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="w-16 bg-gray-200 rounded-full h-2">
+                                                        <div class="bg-green-500 h-2 rounded-full" 
+                                                             :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                                    </div>
+                                                    <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
+                                                </div>
+                                            </template>
+                                            <!-- Show Plant Again for completed harvests -->
+                                            <template x-if="record.status === 'Completed'">
+                                                <button @click="handleAction(record)" 
+                                                        class="text-sm font-medium text-blue-600 hover:text-blue-700 transition">
+                                                    🌱 Plant Again
+                                                </button>
+                                            </template>
                                         </td>
                                     </tr>
                                 </template>
@@ -262,21 +327,25 @@
             // Map crop names to local images in public/images/crops/
             const cropImages = {
                 'cabbage': 'images/crops/cabbage.jpg',
-                'chinese cabbage': 'images/crops/cabbage.jpg',
+                'chinese cabbage': 'images/crops/Chinese_cabbage.jpg',
                 'lettuce': 'images/crops/Lettuce-Baguio.png',
                 'carrots': 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
                 'carrot': 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
-                'potatoes': 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
-                'potato': 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
-                'whitepotato': 'images/crops/ai-generated-celebrate-the-versatility-of-pristine-organic-potatoes-a-culinary-staple-against-a-pristine-white-canvas-ai-generated-photo.jpg',
+                'potatoes': 'images/crops/White_potato.jpg',
+                'potato': 'images/crops/White_potato.jpg',
+                'whitepotato': 'images/crops/White_potato.jpg',
+                'white potato': 'images/crops/White_potato.jpg',
                 'bell pepper': 'images/crops/Bell-peppers.webp',
                 'sweet pepper': 'images/crops/Bell-peppers.webp',
-                'cauliflower': 'images/crops/how-to-grow-cauliflower-1403494-hero-76cf5f524a564adabb1ac6adfa311482.jpg',
-                'broccoli': 'images/crops/iStock-1156721086-360x240.jpg',
-                'beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
-                'snap beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
-                'string beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
-                'baguio beans': 'images/crops/bb7e25487e31a40a00f8d41e18b6194d.jpg',
+                'pepper': 'images/crops/Bell-peppers.webp',
+                'cauliflower': 'images/crops/Cauli-flower.jpg',
+                'broccoli': 'images/crops/brocolli.jpg',
+                'beans': 'images/crops/snap_beans.jpg',
+                'snap beans': 'images/crops/snap_beans.jpg',
+                'string beans': 'images/crops/snap_beans.jpg',
+                'baguio beans': 'images/crops/snap_beans.jpg',
+                'garden peas': 'images/crops/garden_peas.jpg',
+                'peas': 'images/crops/garden_peas.jpg',
             };
             
             // Check for matching crop name

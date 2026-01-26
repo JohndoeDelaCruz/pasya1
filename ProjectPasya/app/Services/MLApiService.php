@@ -213,8 +213,8 @@ class MLApiService
             $response = Http::timeout($this->timeout)
                 ->post("{$this->baseUrl}/cache/clear");
 
-            // Also clear Laravel cache
-            Cache::tags(['ml_api'])->flush();
+            // Also clear Laravel cache (using method that works with file cache)
+            $this->clearLaravelCache();
 
             return $response->successful() 
                 ? $response->json() 
@@ -284,6 +284,7 @@ class MLApiService
 
     /**
      * Cached request wrapper
+     * Uses prefixed keys for cache drivers that don't support tagging
      */
     private function cachedRequest(string $cacheKey, int $ttl, callable $callback): array
     {
@@ -291,14 +292,27 @@ class MLApiService
             return $callback();
         }
 
-        return Cache::tags(['ml_api'])->remember($cacheKey, $ttl, $callback);
+        // Use prefixed key instead of tags for compatibility with file/database cache
+        $prefixedKey = 'ml_api_' . $cacheKey;
+        
+        return Cache::remember($prefixedKey, $ttl, $callback);
     }
 
     /**
      * Clear all Laravel ML API cache
+     * Clears known cache keys since we can't use tags with file cache
      */
     public function clearLaravelCache(): void
     {
-        Cache::tags(['ml_api'])->flush();
+        $cacheKeys = [
+            'ml_api_ml_crops',
+            'ml_api_ml_municipalities',
+            'ml_api_ml_available_options',
+            'ml_api_ml_valid_values',
+        ];
+        
+        foreach ($cacheKeys as $key) {
+            Cache::forget($key);
+        }
     }
 }
