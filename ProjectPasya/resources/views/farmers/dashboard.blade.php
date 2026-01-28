@@ -68,7 +68,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Events</p>
-                            <p class="text-lg font-bold text-gray-800">3 This Month</p>
+                            <p class="text-lg font-bold text-gray-800">{{ $stats['events_count'] ?? 0 }} This Month</p>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                         </div>
                         <div>
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Crops</p>
-                            <p class="text-lg font-bold text-gray-800">5 Active</p>
+                            <p class="text-lg font-bold text-gray-800">{{ $stats['active_crops'] ?? 0 }} Active</p>
                         </div>
                     </div>
                 </div>

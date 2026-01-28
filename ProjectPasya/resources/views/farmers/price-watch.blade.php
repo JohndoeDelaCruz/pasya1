@@ -24,38 +24,41 @@
                 </div>
             </div>
 
-            <!-- Filter Tabs -->
-            <div class="flex flex-wrap gap-2 mb-6">
-                <button @click="activeCategory = 'all'" 
-                        :class="activeCategory === 'all' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                    All Crops
-                </button>
-                <button @click="activeCategory = 'Leafy Vegetables'" 
-                        :class="activeCategory === 'Leafy Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                    🥬 Leafy
-                </button>
-                <button @click="activeCategory = 'Root Vegetables'" 
-                        :class="activeCategory === 'Root Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                    🥕 Root
-                </button>
-                <button @click="activeCategory = 'Fruit Vegetables'" 
-                        :class="activeCategory === 'Fruit Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                    🍅 Fruit
-                </button>
-                <button @click="activeCategory = 'Cruciferous'" 
-                        :class="activeCategory === 'Cruciferous' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                    🥦 Cruciferous
-                </button>
-                <button @click="activeCategory = 'Legumes'" 
-                        :class="activeCategory === 'Legumes' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                        class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                    🫛 Legumes
-                </button>
+            <!-- Filter Tabs - Simple for Farmers -->
+            <div class="mb-6">
+                <p class="text-sm text-gray-600 mb-3">Filter:</p>
+                <div class="flex flex-wrap gap-2">
+                    <button @click="activeCategory = 'all'" 
+                            :class="activeCategory === 'all' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
+                        📋 All
+                    </button>
+                    <button @click="activeCategory = 'Leafy Vegetables'" 
+                            :class="activeCategory === 'Leafy Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
+                        🥬 Pechay, Lettuce
+                    </button>
+                    <button @click="activeCategory = 'Root Vegetables'" 
+                            :class="activeCategory === 'Root Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
+                        🥕 Carrots, Potato
+                    </button>
+                    <button @click="activeCategory = 'Fruit Vegetables'" 
+                            :class="activeCategory === 'Fruit Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
+                        🍅 Tomato, Sayote
+                    </button>
+                    <button @click="activeCategory = 'Cruciferous'" 
+                            :class="activeCategory === 'Cruciferous' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
+                        🥦 Broccoli, Cabbage
+                    </button>
+                    <button @click="activeCategory = 'Legumes'" 
+                            :class="activeCategory === 'Legumes' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
+                        🫛 Beans
+                    </button>
+                </div>
             </div>
 
             <!-- Search Bar -->

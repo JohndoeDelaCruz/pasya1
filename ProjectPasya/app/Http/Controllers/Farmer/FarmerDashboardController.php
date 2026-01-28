@@ -51,10 +51,19 @@ class FarmerDashboardController extends Controller
         // Get price watch data
         $prices = $this->getPriceWatchData();
         
+        // Count events for this month
+        $thisMonthEvents = 0;
+        $currentMonth = now()->format('Y-m');
+        foreach ($events as $date => $dateEvents) {
+            if (str_starts_with($date, $currentMonth)) {
+                $thisMonthEvents += count($dateEvents);
+            }
+        }
+        
         // Get stats
         $stats = [
             'weather_temp' => $weather['temperature'] ?? 28,
-            'events_count' => count($events),
+            'events_count' => $thisMonthEvents,
             'active_crops' => $this->getActiveCropsCount($farmer),
             'announcements_count' => $announcements->count(),
         ];
@@ -91,6 +100,77 @@ class FarmerDashboardController extends Controller
             ->get();
         
         return view('farmers.calendar', compact('announcements', 'events', 'cropTypes', 'cropPlans'));
+    }
+    
+    /**
+     * Show the help and support page
+     */
+    public function help()
+    {
+        return view('farmers.help');
+    }
+    
+    /**
+     * Show the profile page
+     */
+    public function profile()
+    {
+        $farmer = Auth::guard('farmer')->user();
+        
+        // Get farmer stats
+        $stats = [
+            'total_crops' => CropPlan::where('farmer_id', $farmer->id)->count(),
+            'harvested' => CropPlan::where('farmer_id', $farmer->id)->where('status', 'harvested')->count(),
+        ];
+        
+        return view('farmers.profile', compact('farmer', 'stats'));
+    }
+    
+    /**
+     * Update farmer profile information
+     */
+    public function updateProfile(Request $request)
+    {
+        $farmer = Auth::guard('farmer')->user();
+        
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'nullable|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'suffix' => 'nullable|string|max:50',
+            'municipality' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'mobile_number' => 'nullable|string|max:20',
+            'cooperative' => 'nullable|string|max:255',
+        ]);
+        
+        $farmer->update($validated);
+        
+        return redirect()->route('farmers.profile')->with('success', 'Profile updated successfully!');
+    }
+    
+    /**
+     * Update farmer password
+     */
+    public function updatePassword(Request $request)
+    {
+        $farmer = Auth::guard('farmer')->user();
+        
+        $validated = $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+        
+        // Check current password
+        if (!password_verify($validated['current_password'], $farmer->password)) {
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+        
+        $farmer->update([
+            'password' => bcrypt($validated['password']),
+        ]);
+        
+        return redirect()->route('farmers.profile')->with('success', 'Password updated successfully!');
     }
     
     /**
@@ -578,14 +658,13 @@ class FarmerDashboardController extends Controller
     }
     
     /**
-     * Get active crops count for farmer
+     * Get active crops count for farmer (crops currently being grown)
      */
     private function getActiveCropsCount($farmer)
     {
-        return CropProduction::where('municipality', strtoupper($farmer->municipality ?? 'BUGUIAS'))
-            ->where('year', now()->year)
-            ->distinct('crop')
-            ->count('crop');
+        return CropPlan::where('farmer_id', $farmer->id)
+            ->where('status', 'growing')
+            ->count();
     }
     
     /**
