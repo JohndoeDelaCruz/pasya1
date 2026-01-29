@@ -9,28 +9,13 @@ use Illuminate\Support\Facades\Log;
 class WeatherService
 {
     private $apiKey;
-    private $apiProvider;
     private $baseUrl;
 
     public function __construct()
     {
-        // Support multiple weather API providers
-        // Option 1: OpenWeatherMap (https://openweathermap.org/api)
-        // Option 2: WeatherAPI.com (https://www.weatherapi.com/)
-        // Option 3: Google Weather API (https://weather.googleapis.com/)
-        
-        $this->apiProvider = env('WEATHER_API_PROVIDER', 'google'); // 'openweather', 'weatherapi', or 'google'
-        
-        if ($this->apiProvider === 'google') {
-            $this->apiKey = env('GOOGLE_WEATHER_API_KEY', 'AIzaSyApL1FMpz-YmofnouGJStne7oPv09Ah7jM');
-            $this->baseUrl = 'https://weather.googleapis.com/v1';
-        } elseif ($this->apiProvider === 'weatherapi') {
-            $this->apiKey = env('WEATHERAPI_KEY', 'demo');
-            $this->baseUrl = 'https://api.weatherapi.com/v1';
-        } else {
-            $this->apiKey = env('OPENWEATHER_API_KEY', 'demo');
-            $this->baseUrl = 'https://api.openweathermap.org/data/2.5';
-        }
+        // Google Weather API (https://weather.googleapis.com/)
+        $this->apiKey = env('GOOGLE_WEATHER_API_KEY', 'AIzaSyApL1FMpz-YmofnouGJStne7oPv09Ah7jM');
+        $this->baseUrl = 'https://weather.googleapis.com/v1';
     }
 
     /**
@@ -39,20 +24,14 @@ class WeatherService
     public function getForecast($municipality, $days = 4)
     {
         // Cache the weather data for 1 hour to avoid excessive API calls
-        $cacheKey = "weather_forecast_{$municipality}_{$days}_{$this->apiProvider}";
+        $cacheKey = "weather_forecast_{$municipality}_{$days}_google";
         
         return Cache::remember($cacheKey, 3600, function () use ($municipality, $days) {
             try {
-                if ($this->apiProvider === 'google') {
-                    return $this->getGoogleWeatherForecast($municipality, $days);
-                } elseif ($this->apiProvider === 'weatherapi') {
-                    return $this->getWeatherAPIForecast($municipality, $days);
-                } else {
-                    return $this->getOpenWeatherForecast($municipality, $days);
-                }
+                return $this->getGoogleWeatherForecast($municipality, $days);
             } catch (\Exception $e) {
                 Log::warning("Weather API error for {$municipality}: " . $e->getMessage());
-                return $this->getMockForecast($municipality, $days);
+                return $this->getNoConnectionResponse($municipality);
             }
         });
     }
@@ -62,131 +41,16 @@ class WeatherService
      */
     public function getHourlyForecast($municipality, $hours = 6)
     {
-        $cacheKey = "weather_hourly_{$municipality}_{$hours}_{$this->apiProvider}";
+        $cacheKey = "weather_hourly_{$municipality}_{$hours}_google";
         
         return Cache::remember($cacheKey, 3600, function () use ($municipality, $hours) {
             try {
-                if ($this->apiProvider === 'google') {
-                    return $this->getGoogleWeatherHourly($municipality, $hours);
-                } elseif ($this->apiProvider === 'weatherapi') {
-                    return $this->getWeatherAPIHourly($municipality, $hours);
-                } else {
-                    return $this->getOpenWeatherHourly($municipality, $hours);
-                }
+                return $this->getGoogleWeatherHourly($municipality, $hours);
             } catch (\Exception $e) {
                 Log::warning("Weather API error: " . $e->getMessage());
-                return $this->getMockHourlyForecast($hours);
+                return $this->getNoConnectionHourlyResponse();
             }
         });
-    }
-
-    /**
-     * Get forecast from WeatherAPI.com
-     */
-    private function getWeatherAPIForecast($municipality, $days)
-    {
-        $coordinates = $this->getCoordinates($municipality);
-        
-        if (!$coordinates || $this->apiKey === 'demo') {
-            return $this->getMockForecast($municipality, $days);
-        }
-
-        $location = "{$coordinates['lat']},{$coordinates['lon']}";
-
-        $response = Http::timeout(10)->get("{$this->baseUrl}/forecast.json", [
-            'key' => $this->apiKey,
-            'q' => $location,
-            'days' => $days,
-            'aqi' => 'yes', // Include Air Quality Index
-            'alerts' => 'no'
-        ]);
-
-        if ($response->successful()) {
-            return $this->formatWeatherAPIForecast($response->json(), $municipality);
-        }
-
-        return $this->getMockForecast($municipality, $days);
-    }
-
-    /**
-     * Get forecast from OpenWeatherMap
-     */
-    private function getOpenWeatherForecast($municipality, $days)
-    {
-        $coordinates = $this->getCoordinates($municipality);
-        
-        if (!$coordinates || $this->apiKey === 'demo') {
-            return $this->getMockForecast($municipality, $days);
-        }
-
-        // Fetch 5-day forecast
-        $response = Http::timeout(10)->get("{$this->baseUrl}/forecast", [
-            'lat' => $coordinates['lat'],
-            'lon' => $coordinates['lon'],
-            'appid' => $this->apiKey,
-            'units' => 'metric',
-            'cnt' => $days * 8 // 8 forecasts per day (3-hour intervals)
-        ]);
-
-        if ($response->successful()) {
-            return $this->formatOpenWeatherForecast($response->json(), $municipality);
-        }
-
-        return $this->getMockForecast($municipality, $days);
-    }
-
-    /**
-     * Get hourly forecast from WeatherAPI.com
-     */
-    private function getWeatherAPIHourly($municipality, $hours)
-    {
-        $coordinates = $this->getCoordinates($municipality);
-        
-        if (!$coordinates || $this->apiKey === 'demo') {
-            return $this->getMockHourlyForecast($hours);
-        }
-
-        $location = "{$coordinates['lat']},{$coordinates['lon']}";
-
-        $response = Http::timeout(10)->get("{$this->baseUrl}/forecast.json", [
-            'key' => $this->apiKey,
-            'q' => $location,
-            'days' => 1,
-            'aqi' => 'no'
-        ]);
-
-        if ($response->successful()) {
-            $data = $response->json();
-            return $this->formatWeatherAPIHourly($data);
-        }
-
-        return $this->getMockHourlyForecast($hours);
-    }
-
-    /**
-     * Get hourly forecast from OpenWeatherMap
-     */
-    private function getOpenWeatherHourly($municipality, $hours)
-    {
-        $coordinates = $this->getCoordinates($municipality);
-        
-        if (!$coordinates || $this->apiKey === 'demo') {
-            return $this->getMockHourlyForecast($hours);
-        }
-
-        $response = Http::timeout(10)->get("{$this->baseUrl}/forecast", [
-            'lat' => $coordinates['lat'],
-            'lon' => $coordinates['lon'],
-            'appid' => $this->apiKey,
-            'units' => 'metric',
-            'cnt' => $hours
-        ]);
-
-        if ($response->successful()) {
-            return $this->formatOpenWeatherHourly($response->json());
-        }
-
-        return $this->getMockHourlyForecast($hours);
     }
 
     /**
@@ -227,7 +91,7 @@ class WeatherService
                 $coordinates = $this->getCoordinates($municipality);
                 
                 if (!$coordinates) {
-                    return $this->getMockCurrentConditions($municipality);
+                    return $this->getNoConnectionCurrentResponse($municipality);
                 }
 
                 $response = Http::timeout(10)->get("{$this->baseUrl}/currentConditions:lookup", [
@@ -241,10 +105,10 @@ class WeatherService
                 }
 
                 Log::warning("Google Weather API error for {$municipality}: " . $response->body());
-                return $this->getMockCurrentConditions($municipality);
+                return $this->getNoConnectionCurrentResponse($municipality);
             } catch (\Exception $e) {
                 Log::warning("Google Weather API error for {$municipality}: " . $e->getMessage());
-                return $this->getMockCurrentConditions($municipality);
+                return $this->getNoConnectionCurrentResponse($municipality);
             }
         });
     }
@@ -257,7 +121,7 @@ class WeatherService
         $coordinates = $this->getCoordinates($municipality);
         
         if (!$coordinates) {
-            return $this->getMockForecast($municipality, $days);
+            return $this->getNoConnectionResponse($municipality);
         }
 
         // First get current conditions
@@ -286,7 +150,7 @@ class WeatherService
             return $this->buildForecastFromCurrent($currentResponse->json(), $municipality, $days);
         }
 
-        return $this->getMockForecast($municipality, $days);
+        return $this->getNoConnectionResponse($municipality);
     }
 
     /**
@@ -297,7 +161,7 @@ class WeatherService
         $coordinates = $this->getCoordinates($municipality);
         
         if (!$coordinates) {
-            return $this->getMockHourlyForecast($hours);
+            return $this->getNoConnectionHourlyResponse();
         }
 
         // Try to get hourly forecast
@@ -323,7 +187,7 @@ class WeatherService
             return $this->buildHourlyFromCurrent($currentResponse->json(), $hours);
         }
 
-        return $this->getMockHourlyForecast($hours);
+        return $this->getNoConnectionHourlyResponse();
     }
 
     /**
@@ -415,7 +279,7 @@ class WeatherService
         }
 
         if (empty($forecast)) {
-            return $this->getMockForecast($municipality, $days);
+            return $this->getNoConnectionResponse($municipality);
         }
 
         return [
@@ -469,7 +333,7 @@ class WeatherService
         }
 
         if (empty($hourly)) {
-            return $this->getMockHourlyForecast($hours);
+            return $this->getNoConnectionHourlyResponse();
         }
 
         return $hourly;
@@ -573,152 +437,39 @@ class WeatherService
     }
 
     /**
-     * Get mock current conditions (fallback)
+     * Get no connection response for forecast (replaces mock data)
      */
-    private function getMockCurrentConditions($municipality)
+    private function getNoConnectionResponse($municipality)
     {
         return [
             'municipality' => $municipality,
-            'temperature' => rand(15, 25),
-            'humidity' => rand(65, 85),
-            'condition' => 'Partly Cloudy',
-            'icon' => '⛅',
-            'wind_speed' => rand(5, 15),
-            'uv_index' => rand(3, 7),
-            'feels_like' => rand(15, 25),
-            'timestamp' => now()->toIso8601String()
+            'forecast' => [],
+            'error' => true,
+            'message' => 'No internet connection. Unable to fetch weather data.'
         ];
     }
 
     /**
-     * Format forecast data from WeatherAPI.com
+     * Get no connection response for hourly forecast (replaces mock data)
      */
-    private function formatWeatherAPIForecast($data, $municipality)
+    private function getNoConnectionHourlyResponse()
     {
-        $forecast = [];
-        $days = ['Today(Sun)', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        
-        foreach ($data['forecast']['forecastday'] as $index => $day) {
-            $dayData = $day['day'];
-            $tempMax = round($dayData['maxtemp_c']);
-            $condition = $dayData['condition']['text'];
-            
-            // Get AQI if available
-            $aqi = isset($day['day']['air_quality']) 
-                ? round($day['day']['air_quality']['pm2_5']) 
-                : rand(60, 75);
-
-            $forecast[] = [
-                'day' => $days[$index] ?? date('D', strtotime($day['date'])),
-                'date' => date('M j', strtotime($day['date'])),
-                'icon' => $this->getWeatherIcon($condition),
-                'condition' => $this->simplifyCondition($condition),
-                'temp' => "{$tempMax}°C",
-                'aqi' => $aqi
-            ];
-        }
-
         return [
-            'municipality' => $municipality,
-            'forecast' => $forecast
+            'error' => true,
+            'message' => 'No internet connection. Unable to fetch weather data.'
         ];
     }
 
     /**
-     * Format forecast data from OpenWeatherMap
+     * Get no connection response for current conditions (replaces mock data)
      */
-    private function formatOpenWeatherForecast($data, $municipality)
+    private function getNoConnectionCurrentResponse($municipality)
     {
-        $forecast = [];
-        $days = ['Today(Sun)', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        $dayIndex = 0;
-
-        foreach ($data['list'] as $index => $item) {
-            // Take midday forecast for each day
-            if ($index % 8 == 4) {
-                $temp = round($item['main']['temp']);
-                $tempMax = round($item['main']['temp_max']);
-                $weatherMain = $item['weather'][0]['main'];
-                $aqi = rand(60, 75); // Mock AQI data (OpenWeather requires separate API call)
-
-                $forecast[] = [
-                    'day' => $days[$dayIndex],
-                    'date' => date('M j', strtotime($item['dt_txt'])),
-                    'icon' => $this->getWeatherIcon($weatherMain),
-                    'condition' => $weatherMain,
-                    'temp' => "{$tempMax}°C",
-                    'aqi' => $aqi
-                ];
-
-                $dayIndex++;
-                if ($dayIndex >= 4) break;
-            }
-        }
-
         return [
             'municipality' => $municipality,
-            'forecast' => $forecast
+            'error' => true,
+            'message' => 'No internet connection. Unable to fetch weather data.'
         ];
-    }
-
-    /**
-     * Format hourly forecast from WeatherAPI.com
-     */
-    private function formatWeatherAPIHourly($data)
-    {
-        $hourly = [];
-        $currentHour = date('H');
-        $times = ['Now', '10AM', '11AM', '12PM', '1PM', '2PM'];
-        
-        if (isset($data['forecast']['forecastday'][0]['hour'])) {
-            $hours = $data['forecast']['forecastday'][0]['hour'];
-            
-            for ($i = 0; $i < 6; $i++) {
-                $hourIndex = ($currentHour + $i) % 24;
-                
-                if (isset($hours[$hourIndex])) {
-                    $hourData = $hours[$hourIndex];
-                    $temp = round($hourData['temp_c']);
-                    $condition = $hourData['condition']['text'];
-
-                    $hourly[] = [
-                        'time' => $times[$i],
-                        'icon' => $this->getWeatherIcon($condition),
-                        'temp' => "{$temp}°"
-                    ];
-                }
-            }
-        }
-
-        if (empty($hourly)) {
-            return $this->getMockHourlyForecast(6);
-        }
-
-        return $hourly;
-    }
-
-    /**
-     * Format hourly forecast from OpenWeatherMap
-     */
-    private function formatOpenWeatherHourly($data)
-    {
-        $hourly = [];
-        $times = ['Now', '10AM', '11AM', '12PM', '1PM', '2PM'];
-
-        foreach ($data['list'] as $index => $item) {
-            if ($index >= 6) break;
-
-            $temp = round($item['main']['temp']);
-            $weatherMain = $item['weather'][0]['main'];
-
-            $hourly[] = [
-                'time' => $times[$index],
-                'icon' => $this->getWeatherIcon($weatherMain),
-                'temp' => "{$temp}°"
-            ];
-        }
-
-        return $hourly;
     }
 
     /**
@@ -809,78 +560,20 @@ class WeatherService
     }
 
     /**
-     * Get mock forecast data (fallback)
-     */
-    private function getMockForecast($municipality, $days = 4)
-    {
-        $forecast = [
-            [
-                'day' => 'Today(Sun)',
-                'date' => 'Mar 6',
-                'icon' => '☀️',
-                'condition' => 'Sunny',
-                'temp' => '20°C',
-                'aqi' => 67
-            ],
-            [
-                'day' => 'Mon',
-                'date' => 'Mar 7',
-                'icon' => '⛅',
-                'condition' => 'Cloudy',
-                'temp' => '22°C',
-                'aqi' => 71
-            ],
-            [
-                'day' => 'Tue',
-                'date' => 'Mar 8',
-                'icon' => '⛈️',
-                'condition' => 'Lightning',
-                'temp' => '20°C',
-                'aqi' => 65
-            ],
-            [
-                'day' => 'Wed',
-                'date' => 'Mar 9',
-                'icon' => '🌧️',
-                'condition' => 'Heavy rain',
-                'temp' => '21°C',
-                'aqi' => 70
-            ]
-        ];
-
-        return [
-            'municipality' => $municipality,
-            'forecast' => array_slice($forecast, 0, $days)
-        ];
-    }
-
-    /**
-     * Get mock hourly forecast (fallback)
-     */
-    private function getMockHourlyForecast($hours = 6)
-    {
-        $hourly = [
-            ['time' => 'Now', 'icon' => '☁️', 'temp' => '18°'],
-            ['time' => '10AM', 'icon' => '🌫️', 'temp' => '19°'],
-            ['time' => '11AM', 'icon' => '⛅', 'temp' => '22°'],
-            ['time' => '12PM', 'icon' => '☀️', 'temp' => '23°'],
-            ['time' => '1PM', 'icon' => '☁️', 'temp' => '24°'],
-            ['time' => '2PM', 'icon' => '🌧️', 'temp' => '24°']
-        ];
-
-        return array_slice($hourly, 0, $hours);
-    }
-
-    /**
      * Calculate optimal planting window based on weather
      */
     public function getOptimalPlantingWindow($hourlyForecast)
     {
+        // Check if there's an error in the forecast
+        if (isset($hourlyForecast['error']) && $hourlyForecast['error']) {
+            return 'Unable to calculate - No weather data available';
+        }
+
         // Find hours without rain and with moderate temperature
         $optimalHours = [];
         
         foreach ($hourlyForecast as $hour) {
-            if (!in_array($hour['icon'], ['🌧️', '⛈️', '🌩️'])) {
+            if (is_array($hour) && isset($hour['icon']) && !in_array($hour['icon'], ['🌧️', '⛈️', '🌩️'])) {
                 $optimalHours[] = $hour['time'];
             }
         }
@@ -897,9 +590,18 @@ class WeatherService
      */
     public function getClimateRisk($forecast)
     {
+        // Check if there's an error in the forecast
+        if (isset($forecast['error']) && $forecast['error']) {
+            return null; // Return null to indicate data unavailable
+        }
+
         $riskScore = 0;
         
-        foreach ($forecast as $day) {
+        $forecastData = isset($forecast['forecast']) ? $forecast['forecast'] : $forecast;
+        
+        foreach ($forecastData as $day) {
+            if (!is_array($day) || !isset($day['icon'])) continue;
+            
             // Increase risk for rain, storms, extreme temps
             if (in_array($day['icon'], ['🌧️', '⛈️', '🌩️'])) {
                 $riskScore += 15;
