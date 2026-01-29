@@ -3,6 +3,7 @@
 
     <div class="space-y-6" x-data="{ 
         showMunicipalityModal: false,
+        showResourceModal: false,
         selectedMunicipality: '{{ $filterMunicipality ?? '' }}',
         openMunicipalityModal(municipality) {
             this.selectedMunicipality = municipality;
@@ -35,7 +36,9 @@
             <!-- Filter Controls and Action Buttons -->
             <div class="flex flex-wrap items-center gap-3">
                 <!-- Allocate Resource Button -->
-                <button type="button" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm hover-lift animate-fade-in animate-delay-100">
+                <button type="button" 
+                        @click="showResourceModal = true"
+                        class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm hover-lift animate-fade-in animate-delay-100">
                     Allocate Resource
                 </button>
                 
@@ -556,6 +559,103 @@
                 </div>
             </div>
 
+        <!-- Announcements Management Widget -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden card-animate hover-lift animate-fade-in-up animate-delay-550">
+            <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        <div class="text-white">
+                            <h2 class="text-lg font-bold">Announcements</h2>
+                            <p class="text-amber-100 text-sm">Manage farmer notifications</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 bg-white/20 text-white text-xs font-semibold rounded-full">
+                            {{ $activeAnnouncementsCount ?? 0 }} Active
+                        </span>
+                        <a href="{{ route('admin.announcements.create') }}" class="px-4 py-2 bg-white text-orange-600 font-semibold rounded-lg hover:bg-orange-50 transition-colors text-sm">
+                            + New
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                @if(isset($recentAnnouncements) && $recentAnnouncements->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($recentAnnouncements->take(4) as $announcement)
+                            <div class="flex items-start gap-3 p-3 rounded-lg border-l-4 transition-all hover:shadow-sm
+                                {{ $announcement->priority === 'urgent' ? 'border-red-500 bg-red-50' : 
+                                   ($announcement->priority === 'high' ? 'border-orange-500 bg-orange-50' : 
+                                   ($announcement->priority === 'normal' ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50')) }}">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h4 class="text-sm font-semibold text-gray-800 truncate">{{ $announcement->title }}</h4>
+                                        @if($announcement->priority === 'urgent')
+                                            <span class="px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full">Urgent</span>
+                                        @elseif($announcement->priority === 'high')
+                                            <span class="px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded-full">High</span>
+                                        @endif
+                                        @if(!$announcement->is_active)
+                                            <span class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">Inactive</span>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs text-gray-600 line-clamp-1">{{ $announcement->content }}</p>
+                                    <div class="flex items-center gap-3 mt-2 text-xs text-gray-400">
+                                        <span>{{ $announcement->created_at->diffForHumans() }}</span>
+                                        <span>•</span>
+                                        <span>{{ ucfirst($announcement->target_audience) }}</span>
+                                        @if($announcement->municipality)
+                                            <span>•</span>
+                                            <span>{{ ucwords(strtolower($announcement->municipality)) }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <a href="{{ route('admin.announcements.edit', $announcement) }}" class="p-1.5 text-gray-400 hover:text-blue-600 rounded transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <span class="text-sm text-gray-500">{{ $totalAnnouncementsCount ?? 0 }} total announcements</span>
+                        <a href="{{ route('admin.announcements.index') }}" class="text-sm font-medium text-green-600 hover:text-green-700 flex items-center gap-1">
+                            View All
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
+                    </div>
+                @else
+                    <div class="text-center py-8">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                            </svg>
+                        </div>
+                        <p class="text-gray-600 font-medium mb-1">No announcements yet</p>
+                        <p class="text-gray-400 text-sm mb-4">Create your first announcement to notify farmers</p>
+                        <a href="{{ route('admin.announcements.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Create Announcement
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         <!-- ML Predictions Section -->
         @if(isset($predictions) && $predictions['available'])
             <div id="predictions-section" class="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-md p-6 border border-green-200 card-animate hover-lift animate-fade-in-up animate-delay-600">
@@ -703,6 +803,135 @@
                 @endif
             </div>
         @endif
+    </div>
+
+    <!-- Resource Allocation Modal -->
+    <div x-show="showResourceModal" 
+         x-cloak
+         @keydown.escape.window="showResourceModal = false"
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div x-show="showResourceModal"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 @click="showResourceModal = false"
+                 class="fixed inset-0 bg-black bg-opacity-60 transition-opacity" 
+                 aria-hidden="true"></div>
+
+            <!-- Center modal -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal panel -->
+            <div x-show="showResourceModal"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="inline-block align-bottom bg-white rounded-lg text-left overflow-visible shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+                 @click.away="showResourceModal = false">
+                
+                <div class="bg-white px-10 py-8 rounded-lg">
+                    <form method="POST" action="{{ route('admin.resources.store') }}" class="space-y-6">
+                        @csrf
+
+                        <!-- Modal Header -->
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold text-gray-900">Resource Allocation</h3>
+                        </div>
+
+                        <!-- Type of Resource -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Type of Resource*
+                            </label>
+                            <select name="resource_type" 
+                                    required 
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                <option value="" class="text-gray-400">Select type of resource</option>
+                                <option value="Seeds" class="text-gray-700">Seeds</option>
+                                <option value="Fertilizer" class="text-gray-700">Fertilizer</option>
+                                <option value="Equipment" class="text-gray-700">Equipment</option>
+                                <option value="Tools" class="text-gray-700">Tools</option>
+                                <option value="Other" class="text-gray-700">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Quantity*
+                            </label>
+                            <input type="number" 
+                                   name="quantity" 
+                                   required 
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="Enter a number"
+                                   class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                        </div>
+
+                        <!-- Municipality -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Municipality*
+                            </label>
+                            <select name="municipality" 
+                                    required 
+                                    class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                <option value="" class="text-gray-400">Municipality</option>
+                                @foreach($allMunicipalities as $municipality)
+                                    <option value="{{ $municipality }}" class="text-gray-700">
+                                        {{ ucwords(strtolower($municipality)) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Created by (auto-filled) -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Created by (auto-filled)*
+                            </label>
+                            <input type="text" 
+                                   name="created_by" 
+                                   value="{{ auth()->user()->name ?? 'admin' }}" 
+                                   readonly
+                                   class="w-full px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
+                        </div>
+
+                        <!-- Created at (auto-filled) -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-900 mb-2">
+                                Created at (auto-filled)*
+                            </label>
+                            <input type="text" 
+                                   name="created_at_display" 
+                                   value="{{ date('m/d/Y') }}" 
+                                   readonly
+                                   class="w-full px-4 py-2.5 bg-gray-100 border border-gray-300 rounded-md text-sm text-gray-500">
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex justify-start pt-4">
+                            <button type="submit"
+                                    class="px-8 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold rounded-md transition-colors shadow-sm">
+                                Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     @push('scripts')

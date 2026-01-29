@@ -14,7 +14,7 @@
                 <div class="space-y-2 max-h-96 overflow-y-auto">
                     @foreach($stats['by_municipality'] as $item)
                         <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                            <span class="text-sm font-medium text-gray-700">{{ $item->municipality }}</span>
+                            <span class="text-sm font-medium text-gray-700">{{ ucwords(strtolower($item->municipality)) }}</span>
                             <span class="text-sm text-gray-600 bg-gray-100 px-3 py-1 rounded-full">{{ number_format($item->count) }}</span>
                         </div>
                     @endforeach
@@ -27,7 +27,7 @@
                 <div class="space-y-2 max-h-96 overflow-y-auto">
                     @foreach($stats['by_crop'] as $item)
                         <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                            <span class="text-sm font-medium text-gray-700">{{ $item->crop }}</span>
+                            <span class="text-sm font-medium text-gray-700">{{ ucwords(strtolower($item->crop)) }}</span>
                             <span class="text-sm text-gray-600 bg-green-100 px-3 py-1 rounded-full">{{ number_format($item->count) }}</span>
                         </div>
                     @endforeach

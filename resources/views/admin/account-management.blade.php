@@ -144,8 +144,8 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $farmer->farmer_id }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $farmer->full_name }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $farmer->municipality }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $farmer->cooperative ?? 'N/A' }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $farmer->municipality_display }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $farmer->cooperative_display ?: 'N/A' }}</td></td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $farmer->mobile_number }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $farmer->created_at->format('M d, Y') }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-center">

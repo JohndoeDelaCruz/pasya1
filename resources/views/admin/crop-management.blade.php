@@ -157,11 +157,17 @@
                                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
-                                                <span class="text-green-600 font-bold text-sm">{{ substr($cropType->name, 0, 1) }}</span>
-                                            </div>
+                                            @if($cropType->image)
+                                                <div class="flex-shrink-0 h-10 w-10 rounded-full overflow-hidden">
+                                                    <img src="{{ asset($cropType->image) }}" alt="{{ $cropType->name }}" class="h-10 w-10 object-cover">
+                                                </div>
+                                            @else
+                                                <div class="flex-shrink-0 h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
+                                                    <span class="text-green-600 font-bold text-sm">{{ substr($cropType->name_display, 0, 1) }}</span>
+                                                </div>
+                                            @endif
                                             <div class="ml-3">
-                                                <p class="text-sm font-semibold text-gray-900">{{ $cropType->name }}</p>
+                                                <p class="text-sm font-semibold text-gray-900">{{ $cropType->name_display }}</p>
                                                 @if($cropType->description && $cropType->description !== 'Auto-imported from crop data')
                                                     <p class="text-xs text-gray-500">{{ Str::limit($cropType->description, 30) }}</p>
                                                 @endif
@@ -171,7 +177,7 @@
                                     <td class="px-6 py-4">
                                         @if($cropType->category)
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                {{ $cropType->category }}
+                                                {{ $cropType->category_display }}
                                             </span>
                                         @else
                                             <span class="text-xs text-gray-400">No category</span>
@@ -299,7 +305,7 @@
                                                 </svg>
                                             </div>
                                             <div class="ml-3">
-                                                <p class="text-sm font-semibold text-gray-900">{{ $municipality->name }}</p>
+                                                <p class="text-sm font-semibold text-gray-900">{{ $municipality->name_display }}</p>
                                                 @if($municipality->description && $municipality->description !== 'Auto-imported from crop data')
                                                     <p class="text-xs text-gray-500">{{ Str::limit($municipality->description, 30) }}</p>
                                                 @endif
@@ -308,7 +314,7 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {{ $municipality->province }}
+                                            {{ $municipality->province_display }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-center">
@@ -386,7 +392,7 @@
                 </button>
             </div>
             
-            <form action="{{ route('admin.crop-types.store') }}" method="POST">
+            <form action="{{ route('admin.crop-types.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-4">
                     <label for="crop_name" class="block text-sm font-medium text-gray-700 mb-1">Crop Name *</label>
@@ -405,6 +411,13 @@
                     <label for="crop_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea id="crop_description" name="description" rows="3"
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="crop_image" class="block text-sm font-medium text-gray-700 mb-1">Crop Image</label>
+                    <input type="file" id="crop_image" name="image" accept="image/*"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                    <p class="text-xs text-gray-500 mt-1">Accepted: JPG, PNG, GIF, WEBP (max 2MB)</p>
                 </div>
                 
                 <div class="mb-4">
@@ -441,7 +454,7 @@
                 </button>
             </div>
             
-            <form id="editCropTypeForm" method="POST">
+            <form id="editCropTypeForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <div class="mb-4">
@@ -460,6 +473,26 @@
                     <label for="edit_crop_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea id="edit_crop_description" name="description" rows="3"
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Current Image</label>
+                    <div id="edit_current_image_container" class="hidden mb-2">
+                        <img id="edit_current_image" src="" alt="Current crop image" class="w-20 h-20 object-cover rounded-lg border">
+                        <label class="flex items-center mt-2 text-sm text-red-600 cursor-pointer">
+                            <input type="checkbox" name="remove_image" value="1" id="edit_remove_image"
+                                   class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500 mr-2">
+                            Remove current image
+                        </label>
+                    </div>
+                    <p id="edit_no_image_text" class="text-sm text-gray-400">No image uploaded</p>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="edit_crop_image" class="block text-sm font-medium text-gray-700 mb-1">Upload New Image</label>
+                    <input type="file" id="edit_crop_image" name="image" accept="image/*"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                    <p class="text-xs text-gray-500 mt-1">Accepted: JPG, PNG, GIF, WEBP (max 2MB)</p>
                 </div>
                 
                 <div class="mb-4">
@@ -610,6 +643,22 @@
             document.getElementById('edit_crop_category').value = cropType.category || '';
             document.getElementById('edit_crop_description').value = cropType.description || '';
             document.getElementById('edit_crop_is_active').checked = cropType.is_active;
+            document.getElementById('edit_remove_image').checked = false;
+            
+            // Handle image display
+            const imageContainer = document.getElementById('edit_current_image_container');
+            const noImageText = document.getElementById('edit_no_image_text');
+            const currentImage = document.getElementById('edit_current_image');
+            
+            if (cropType.image) {
+                currentImage.src = '{{ asset('') }}' + cropType.image;
+                imageContainer.classList.remove('hidden');
+                noImageText.classList.add('hidden');
+            } else {
+                imageContainer.classList.add('hidden');
+                noImageText.classList.remove('hidden');
+            }
+            
             document.getElementById('editCropTypeModal').classList.remove('hidden');
         }
 

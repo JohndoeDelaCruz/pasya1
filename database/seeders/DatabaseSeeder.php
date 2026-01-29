@@ -13,9 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Call the AdminUserSeeder to create the admin account
+        // Call the seeders
         $this->call([
             AdminUserSeeder::class,
+            // CropTypeSeeder removed - crop types are managed by admin
+            CropPlanSeeder::class, // Demo data for harvest history presentation
         ]);
 
         // Optionally create additional test users for development

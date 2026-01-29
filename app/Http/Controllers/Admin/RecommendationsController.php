@@ -23,6 +23,8 @@ class RecommendationsController extends Controller
     public function index(Request $request)
     {
         // Get filter parameters for subsidies
+        $filterName = $request->input('name');
+        $filterId = $request->input('id');
         $filterCrop = $request->input('crop');
         $filterStatus = $request->input('status');
 
@@ -36,6 +38,12 @@ class RecommendationsController extends Controller
         $subsidyQuery = Subsidy::query();
 
         // Apply filters
+        if ($filterName) {
+            $subsidyQuery->where('full_name', 'like', '%' . $filterName . '%');
+        }
+        if ($filterId) {
+            $subsidyQuery->where('farmer_id', 'like', '%' . $filterId . '%');
+        }
         if ($filterCrop) {
             $subsidyQuery->where('crop', $filterCrop);
         }
@@ -49,15 +57,17 @@ class RecommendationsController extends Controller
         // Get allocation data for bar chart
         $allocationData = $this->getAllocationData();
 
-        // Get weather data for Benguet municipalities
-        $municipalityWeather = [
-            $this->weatherService->getForecast('Atok'),
-            $this->weatherService->getForecast('Bakun'),
-            $this->weatherService->getForecast('Bokod')
-        ];
+        // Get weather data for ALL Benguet municipalities
+        $municipalities = ['La Trinidad', 'Buguias', 'Atok', 'Bakun', 'Bokod', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
+        
+        // Get weather for all municipalities
+        $municipalityWeather = [];
+        foreach ($municipalities as $municipality) {
+            $municipalityWeather[] = $this->weatherService->getForecast($municipality, 4);
+        }
 
-        // Get hourly forecast (using first municipality)
-        $hourlyForecast = $this->weatherService->getHourlyForecast('Atok');
+        // Get hourly forecast for La Trinidad (main municipality)
+        $hourlyForecast = $this->weatherService->getHourlyForecast('La Trinidad');
 
         // Get optimal planting window and climate risk
         $optimalWindow = $this->weatherService->getOptimalPlantingWindow($hourlyForecast);
@@ -83,13 +93,18 @@ class RecommendationsController extends Controller
 
     private function getAllocationData()
     {
-        // Calculate seed allocation based on actual crop production data
+        // Get the latest year from database for predictions
+        $latestYear = Crop::max('year') ?? now()->year;
+        $currentMonth = now()->month;
+        
+        // Get top crops by historical area planted (last 2 years)
         $cropData = Crop::select(
             'crop',
             DB::raw('SUM(area_planted) as total_area_planted'),
-            DB::raw('SUM(production) as total_production'),
-            DB::raw('COUNT(*) as records')
+            DB::raw('AVG(area_planted) as avg_area_planted'),
+            DB::raw('SUM(production) as total_production')
         )
+        ->where('year', '>=', $latestYear - 1)
         ->groupBy('crop')
         ->orderByDesc('total_area_planted')
         ->limit(7)
@@ -99,27 +114,46 @@ class RecommendationsController extends Controller
         $needed = [];
         $allocated = [];
 
+        // Seed rates (kg per hectare) based on crop type
+        $seedRates = [
+            'whitepotato' => 1500,  // White potato: 1500 kg/ha
+            'cabbage' => 0.5,        // Cabbage: 0.5 kg/ha
+            'carrots' => 3,          // Carrots: 3 kg/ha
+            'chinesecabbage' => 2,   // Chinese cabbage: 2 kg/ha
+            'snapbeans' => 50,       // Snap beans: 50 kg/ha
+            'sweetpepper' => 1,      // Sweet pepper: 1 kg/ha
+            'lettuce' => 1.5,        // Lettuce: 1.5 kg/ha
+        ];
+
         foreach ($cropData as $crop) {
+            $cropName = strtolower(str_replace(' ', '', $crop->crop));
             $labels[] = strtoupper($crop->crop);
             
-            // Calculate needed seeds based on area planted
-            // Seed rate: approximately 10-15 kg per hectare for vegetables
-            $seedRate = 12; // kg per hectare (average)
-            $neededAmount = $crop->total_area_planted * $seedRate;
+            // Get seed rate for this crop, default to 10 kg/ha if not specified
+            $seedRate = $seedRates[$cropName] ?? 10;
             
-            // Calculate allocated seeds from actual subsidy records if available
-            $allocatedFromSubsidies = \DB::table('subsidies')
-                ->where('crop', 'like', '%' . $crop->crop . '%')
-                ->sum('subsidy_amount');
+            // Calculate needed seeds based on projected area to be planted next year
+            // Use average area from recent years as projection
+            $projectedArea = $crop->avg_area_planted;
+            $neededAmount = $projectedArea * $seedRate;
             
-            // If no subsidy data, estimate based on production success
-            // Higher production = better allocation (incentive for successful crops)
-            if ($allocatedFromSubsidies > 0) {
-                $allocatedAmount = $allocatedFromSubsidies * 0.5; // Convert subsidy amount to seed kg estimate
+            // Calculate allocated seeds from subsidy records
+            // Subsidy amount is in pesos, estimate seed allocation based on actual records
+            $subsidyRecords = Subsidy::where('crop', $crop->crop)
+                ->where('subsidy_status', 'Approved')
+                ->get();
+            
+            if ($subsidyRecords->count() > 0) {
+                // Calculate allocated based on subsidy area planted
+                $totalSubsidyArea = $subsidyRecords->sum('area_planted');
+                $allocatedAmount = $totalSubsidyArea * $seedRate;
             } else {
-                // Allocate based on production efficiency
-                $allocationRate = min(0.85, max(0.50, $crop->total_production / ($crop->total_area_planted * 100)));
-                $allocatedAmount = $neededAmount * $allocationRate;
+                // If no subsidy data, allocate 50-80% based on crop priority
+                // Priority based on production success rate
+                $successRate = min(0.80, max(0.50, 
+                    $crop->total_production / ($crop->total_area_planted * 1000)
+                ));
+                $allocatedAmount = $neededAmount * $successRate;
             }
             
             $needed[] = round($neededAmount, 2);
@@ -155,7 +189,7 @@ class RecommendationsController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'farmer_id' => 'required|string|unique:subsidies,farmer_id',
+            'farmer_id' => 'required|string',
             'crop' => 'required|string',
             'subsidy_status' => 'nullable|in:Approved,Pending,Rejected',
             'subsidy_amount' => 'nullable|numeric|min:0',
@@ -168,29 +202,137 @@ class RecommendationsController extends Controller
             'productivity' => 'nullable|numeric|min:0'
         ]);
 
+        // Check if farmer_id already exists
+        $existingSubsidy = Subsidy::where('farmer_id', $request->farmer_id)->first();
+        if ($existingSubsidy) {
+            return back()->withInput()->with('error', 
+                'This Farmer ID (' . $request->farmer_id . ') already exists! ' .
+                'Farmer: ' . $existingSubsidy->full_name . '. ' .
+                'Please use a different Farmer ID or update the existing record.');
+        }
+
         // Calculate productivity if not provided
         $productivity = $request->productivity;
         if (!$productivity && $request->area_harvested > 0) {
             $productivity = ($request->production * 1000) / $request->area_harvested;
         }
 
-        // Create subsidy record
-        Subsidy::create([
-            'full_name' => $request->full_name,
-            'farmer_id' => $request->farmer_id,
-            'crop' => $request->crop,
-            'subsidy_status' => $request->subsidy_status ?? 'Pending',
-            'subsidy_amount' => $request->subsidy_amount,
+        try {
+            // Create subsidy record
+            Subsidy::create([
+                'full_name' => $request->full_name,
+                'farmer_id' => $request->farmer_id,
+                'crop' => $request->crop,
+                'subsidy_status' => $request->subsidy_status ?? 'Pending',
+                'subsidy_amount' => $request->subsidy_amount,
+                'municipality' => $request->municipality,
+                'farm_type' => $request->farm_type,
+                'year' => $request->year,
+                'area_planted' => $request->area_planted,
+                'area_harvested' => $request->area_harvested,
+                'production' => $request->production,
+                'productivity' => $productivity
+            ]);
+
+            return redirect()->route('admin.recommendations')
+                ->with('success', 'Subsidy allocated successfully!');
+                
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint violation at database level
+            if ($e->getCode() == 23000) {
+                return back()->withInput()->with('error', 
+                    'This Farmer ID already exists in the database. Please use a different Farmer ID.');
+            }
+            
+            return back()->withInput()->with('error', 'Failed to allocate subsidy: ' . $e->getMessage());
+        }
+    }
+
+    public function storeResource(Request $request)
+    {
+        $request->validate([
+            'resource_type' => 'required|string',
+            'quantity' => 'required|numeric|min:0',
+            'municipality' => 'required|string'
+        ]);
+
+        // Store resource allocation in database
+        // You can create a Resource model or store in a resources table
+        DB::table('resource_allocations')->insert([
+            'resource_type' => $request->resource_type,
+            'quantity' => $request->quantity,
             'municipality' => $request->municipality,
-            'farm_type' => $request->farm_type,
-            'year' => $request->year,
-            'area_planted' => $request->area_planted,
-            'area_harvested' => $request->area_harvested,
-            'production' => $request->production,
-            'productivity' => $productivity
+            'created_by' => auth()->user()->name ?? 'admin',
+            'created_at' => now(),
+            'updated_at' => now()
         ]);
 
         return redirect()->route('admin.recommendations')
-            ->with('success', 'Subsidy allocated successfully!');
+            ->with('success', 'Resource allocated successfully!');
+    }
+
+    /**
+     * Get weather data for a specific municipality via AJAX
+     */
+    public function getWeather(Request $request)
+    {
+        $municipality = $request->input('municipality', 'La Trinidad');
+        
+        // Validate municipality
+        $validMunicipalities = ['Atok', 'Bakun', 'Bokod', 'Buguias', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'La Trinidad', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
+        
+        if (!in_array($municipality, $validMunicipalities)) {
+            return response()->json(['error' => 'Invalid municipality'], 400);
+        }
+        
+        try {
+            $forecast = $this->weatherService->getForecast($municipality, 4);
+            $hourly = $this->weatherService->getHourlyForecast($municipality, 6);
+            $current = $this->weatherService->getCurrentConditions($municipality);
+            
+            return response()->json([
+                'success' => true,
+                'municipality' => $municipality,
+                'current' => $current,
+                'forecast' => $forecast,
+                'hourly' => $hourly,
+                'optimalWindow' => $this->weatherService->getOptimalPlantingWindow($hourly),
+                'climateRisk' => $this->weatherService->getClimateRisk($forecast['forecast'] ?? [])
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Weather API error: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to fetch weather data'], 500);
+        }
+    }
+
+    /**
+     * Get weather for all municipalities
+     */
+    public function getAllWeather()
+    {
+        $municipalities = ['Atok', 'Bakun', 'Bokod', 'Buguias', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'La Trinidad', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
+        
+        $weatherData = [];
+        
+        foreach ($municipalities as $municipality) {
+            try {
+                $weatherData[] = [
+                    'municipality' => $municipality,
+                    'current' => $this->weatherService->getCurrentConditions($municipality),
+                    'forecast' => $this->weatherService->getForecast($municipality, 4)
+                ];
+            } catch (\Exception $e) {
+                Log::warning("Weather API error for {$municipality}: " . $e->getMessage());
+                $weatherData[] = [
+                    'municipality' => $municipality,
+                    'error' => true
+                ];
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $weatherData
+        ]);
     }
 }

@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\CropMappingController;
 use App\Http\Controllers\Admin\DataAnalyticsController;
 use App\Http\Controllers\Admin\CropTrendsController;
 use App\Http\Controllers\Admin\RecommendationsController;
+use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Farmer\FarmerDashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
@@ -29,21 +31,34 @@ Route::get('/dashboard', function () {
 
 // Farmer Routes
 Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('farmers.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [FarmerDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/calendar', [FarmerDashboardController::class, 'calendar'])->name('calendar');
+    Route::get('/price-watch', [FarmerDashboardController::class, 'priceWatch'])->name('price-watch');
+    Route::get('/harvest-history', [FarmerDashboardController::class, 'harvestHistory'])->name('harvest-history');
+    Route::get('/help', [FarmerDashboardController::class, 'help'])->name('help');
     
-    Route::get('/calendar', function () {
-        return view('farmers.calendar');
-    })->name('calendar');
+    // Profile routes
+    Route::get('/profile', [FarmerDashboardController::class, 'profile'])->name('profile');
+    Route::put('/profile', [FarmerDashboardController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [FarmerDashboardController::class, 'updatePassword'])->name('profile.password');
     
-    Route::get('/price-watch', function () {
-        return view('farmers.price-watch');
-    })->name('price-watch');
+    // API routes for farmer data
+    Route::get('/api/events', [FarmerDashboardController::class, 'getEvents'])->name('api.events');
+    Route::get('/api/prices', [FarmerDashboardController::class, 'getPrices'])->name('api.prices');
+    Route::get('/api/weather', [FarmerDashboardController::class, 'getWeatherApi'])->name('api.weather');
     
-    Route::get('/harvest-history', function () {
-        return view('farmers.harvest-history');
-    })->name('harvest-history');
+    // Crop Planning Routes
+    Route::get('/api/crop-types', [FarmerDashboardController::class, 'getCropTypes'])->name('api.crop-types');
+    Route::get('/api/crop-plans', [FarmerDashboardController::class, 'getCropPlans'])->name('api.crop-plans');
+    Route::post('/api/crop-plans', [FarmerDashboardController::class, 'storeCropPlan'])->name('api.crop-plans.store');
+    Route::post('/api/crop-plans/preview', [FarmerDashboardController::class, 'previewCropPlan'])->name('api.crop-plans.preview');
+    Route::patch('/api/crop-plans/{cropPlan}/status', [FarmerDashboardController::class, 'updateCropPlanStatus'])->name('api.crop-plans.status');
+    Route::delete('/api/crop-plans/{cropPlan}', [FarmerDashboardController::class, 'deleteCropPlan'])->name('api.crop-plans.destroy');
+    
+    // Notifications Routes
+    Route::get('/api/notifications', [FarmerDashboardController::class, 'getNotifications'])->name('api.notifications');
+    Route::post('/api/notifications/{notification}/read', [FarmerDashboardController::class, 'markNotificationRead'])->name('api.notifications.read');
+    Route::post('/api/notifications/read-all', [FarmerDashboardController::class, 'markAllNotificationsRead'])->name('api.notifications.read-all');
 });
 
 // Admin Routes
@@ -90,6 +105,21 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     
     Route::get('/recommendations', [RecommendationsController::class, 'index'])->name('recommendations');
     Route::post('/subsidies', [RecommendationsController::class, 'storeSubsidy'])->name('subsidies.store');
+    Route::post('/resources', [RecommendationsController::class, 'storeResource'])->name('resources.store');
+    
+    // Weather API Routes
+    Route::get('/api/weather', [RecommendationsController::class, 'getWeather'])->name('api.weather');
+    Route::get('/api/weather/all', [RecommendationsController::class, 'getAllWeather'])->name('api.weather.all');
+    
+    // Announcement Routes
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::get('/announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
+    Route::get('/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('announcements.edit');
+    Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
+    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+    Route::patch('/announcements/{announcement}/toggle-status', [AnnouncementController::class, 'toggleStatus'])->name('announcements.toggle-status');
 });
 
 Route::middleware('auth')->group(function () {

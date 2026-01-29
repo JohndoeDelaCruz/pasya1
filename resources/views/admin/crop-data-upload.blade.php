@@ -49,7 +49,31 @@
             <div class="md:col-span-2 bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Upload CSV File</h2>
                 
-                <form action="{{ route('admin.crop-data.import') }}" method="POST" enctype="multipart/form-data">
+                {{-- Loading Progress Bar --}}
+                <div id="loading-progress" class="hidden mb-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <svg class="animate-spin h-5 w-5 text-blue-600 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span class="text-blue-800 font-semibold" id="progress-status">Uploading file...</span>
+                            </div>
+                            <span class="text-blue-600 font-bold text-lg" id="progress-percent">0%</span>
+                        </div>
+                        <div class="w-full bg-blue-200 rounded-full h-4 overflow-hidden">
+                            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-blue-600 mt-2" id="progress-message">Please wait while we process your file...</p>
+                        <div class="mt-4 text-sm text-blue-700 space-y-1">
+                            <p id="elapsed-time" class="font-medium">⏱️ Time elapsed: 0s</p>
+                            <p class="text-xs opacity-75">⚠️ Do not close this page or navigate away</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="upload-form" action="{{ route('admin.crop-data.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition-colors">
@@ -84,12 +108,13 @@
                     <div class="mt-6">
                         <button 
                             type="submit"
+                            id="submit-button"
                             class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center"
                         >
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                             </svg>
-                            Upload & Import Data
+                            <span id="button-text">Upload & Import Data</span>
                         </button>
                     </div>
                 </form>
@@ -184,5 +209,213 @@
                 lightbulb.style.filter = 'none';
             }
         }
+
+        // Progress bar functionality
+        const uploadForm = document.getElementById('upload-form');
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const loadingProgress = document.getElementById('loading-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressStatus = document.getElementById('progress-status');
+        const progressMessage = document.getElementById('progress-message');
+        const elapsedTimeElement = document.getElementById('elapsed-time');
+
+        let startTime;
+        let timeInterval;
+
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent immediate form submission
+            
+            const fileInput = document.getElementById('file-upload');
+            if (!fileInput.files.length) {
+                uploadForm.submit(); // Submit normally if no file
+                return;
+            }
+
+            // Show loading progress
+            loadingProgress.classList.remove('hidden');
+            
+            // Disable submit button
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+            buttonText.textContent = 'Processing...';
+
+            // Start time tracking
+            startTime = Date.now();
+            let elapsedSeconds = 0;
+
+            // Update elapsed time every second
+            timeInterval = setInterval(() => {
+                elapsedSeconds++;
+                elapsedTimeElement.textContent = `⏱️ Time elapsed: ${elapsedSeconds}s`;
+            }, 1000);
+
+            // Create FormData and use XMLHttpRequest for real upload progress
+            const formData = new FormData(uploadForm);
+            const xhr = new XMLHttpRequest();
+
+            // Track upload progress
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 30); // 0-30% for upload
+                    progressBar.style.width = percentComplete + '%';
+                    progressPercent.textContent = percentComplete + '%';
+                    progressStatus.textContent = 'Uploading file...';
+                    progressMessage.textContent = `Uploaded ${formatBytes(e.loaded)} of ${formatBytes(e.total)}`;
+                }
+            });
+
+            // Track when upload is complete and processing begins
+            xhr.upload.addEventListener('load', function() {
+                progressBar.style.width = '30%';
+                progressPercent.textContent = '30%';
+                progressStatus.textContent = 'Validating data...';
+                progressMessage.textContent = 'File uploaded, now processing...';
+                
+                // Simulate processing progress from 30% to 90%
+                let processingProgress = 30;
+                const processingInterval = setInterval(() => {
+                    if (processingProgress < 90) {
+                        processingProgress += 0.5;
+                        progressBar.style.width = processingProgress + '%';
+                        progressPercent.textContent = Math.round(processingProgress) + '%';
+                        
+                        if (processingProgress >= 40 && processingProgress < 60) {
+                            progressStatus.textContent = 'Processing rows...';
+                            progressMessage.textContent = 'Importing records into database...';
+                        } else if (processingProgress >= 60 && processingProgress < 80) {
+                            progressStatus.textContent = 'Checking duplicates...';
+                            progressMessage.textContent = 'Verifying data integrity...';
+                        } else if (processingProgress >= 80) {
+                            progressStatus.textContent = 'Finalizing import...';
+                            progressMessage.textContent = 'Almost done, completing import...';
+                        }
+                    } else {
+                        clearInterval(processingInterval);
+                    }
+                }, 100);
+            });
+
+            // Handle response
+            xhr.addEventListener('load', function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    // Complete the progress bar
+                    progressBar.style.width = '100%';
+                    progressPercent.textContent = '100%';
+                    progressStatus.textContent = 'Complete!';
+                    progressMessage.textContent = 'Import successful! Redirecting...';
+                    
+                    // Show success notification
+                    showNotification('✅ Import Complete!', 'Your file has been successfully imported.', 'success');
+                    
+                    // Parse response to check for redirect
+                    const responseURL = xhr.responseURL;
+                    setTimeout(() => {
+                        if (responseURL && responseURL !== window.location.href) {
+                            window.location.href = responseURL;
+                        } else {
+                            // Fallback: reload the page to show success message
+                            window.location.reload();
+                        }
+                    }, 1500);
+                } else {
+                    // Handle error
+                    clearInterval(timeInterval);
+                    progressStatus.textContent = 'Error occurred';
+                    progressMessage.textContent = 'Upload failed. Please try again.';
+                    progressBar.classList.add('bg-red-500');
+                    showNotification('❌ Import Failed', 'An error occurred during import. Please try again.', 'error');
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    buttonText.textContent = 'Upload & Import Data';
+                }
+            });
+
+            // Handle network errors
+            xhr.addEventListener('error', function() {
+                clearInterval(timeInterval);
+                progressStatus.textContent = 'Network error';
+                progressMessage.textContent = 'Connection failed. Please check your internet and try again.';
+                progressBar.classList.add('bg-red-500');
+                showNotification('❌ Network Error', 'Connection failed. Please check your internet and try again.', 'error');
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                buttonText.textContent = 'Upload & Import Data';
+            });
+
+            // Send the request
+            xhr.open('POST', uploadForm.action);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.send(formData);
+        });
+
+        // Helper function to format bytes
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        // Notification function
+        function showNotification(title, message, type = 'success') {
+            // Create notification container if it doesn't exist
+            let notificationContainer = document.getElementById('notification-container');
+            if (!notificationContainer) {
+                notificationContainer = document.createElement('div');
+                notificationContainer.id = 'notification-container';
+                notificationContainer.className = 'fixed top-4 right-4 z-50 space-y-2';
+                document.body.appendChild(notificationContainer);
+            }
+
+            // Create notification element
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+            notification.className = `${bgColor} text-white px-6 py-4 rounded-lg shadow-2xl transform transition-all duration-300 ease-in-out translate-x-0 opacity-100 min-w-80`;
+            notification.innerHTML = `
+                <div class="flex items-start">
+                    <div class="flex-1">
+                        <h4 class="font-bold text-lg mb-1">${title}</h4>
+                        <p class="text-sm opacity-90">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            // Add to container with animation
+            notificationContainer.appendChild(notification);
+
+            // Play sound (optional - browser may block)
+            if (type === 'success') {
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE');
+                    audio.volume = 0.3;
+                    audio.play().catch(() => {});
+                } catch (e) {}
+            }
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        // If form submission completes successfully, the page will redirect
+        // If there's an error, we'll stop the progress
+        window.addEventListener('beforeunload', function() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                clearInterval(timeInterval);
+            }
+        });
     </script>
 </x-admin-layout>

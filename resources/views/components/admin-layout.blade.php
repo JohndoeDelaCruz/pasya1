@@ -110,11 +110,17 @@
                             </svg>
                             <span class="font-medium">Crop Management</span>
                         </a>
-                        <a href="{{ route('admin.recommendations') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.recommendations') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
+                        <a href="{{ route('admin.recommendations') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.recommendations') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors mb-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
                             </svg>
                             <span class="font-medium">Recommendations</span>
+                        </a>
+                        <a href="{{ route('admin.announcements.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.announcements.*') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium">Announcements</span>
                         </a>
                     </div>
                 </nav>

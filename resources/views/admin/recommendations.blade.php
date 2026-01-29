@@ -4,19 +4,37 @@
     @push('styles')
     <style>
         [x-cloak] { display: none !important; }
+        
+        /* Custom scrollbar for weather cards */
+        #weatherCardsContainer::-webkit-scrollbar {
+            height: 8px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 4px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        
+        /* Hide scrollbar for cleaner look but keep functionality */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
     @endpush
 
     <div class="space-y-6" 
-         x-data="{ 
-             showSubsidyModal: {{ $errors->any() ? 'true' : 'false' }},
-             openModal() {
-                 console.log('Opening modal...');
-                 this.showSubsidyModal = true;
-                 console.log('Modal state:', this.showSubsidyModal);
-             }
-         }" 
-         x-init="console.log('Alpine.js initialized. showSubsidyModal =', showSubsidyModal)">
+         x-data="{ showSubsidyModal: {{ $errors->any() ? 'true' : 'false' }} }"
+         x-init="console.log('Alpine initialized.')">
         <!-- Success Message -->
         @if(session('success'))
             <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg" role="alert">
@@ -55,80 +73,157 @@
 
         <!-- Climate Resilience Section -->
         <div>
-            <h2 class="text-xl font-bold text-gray-800 mb-6">Climate Resilience</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span class="text-2xl">🌤️</span> Climate Resilience
+                <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium ml-2">Live Weather Data</span>
+            </h2>
             
-            <!-- Municipality Weather Cards -->
-            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
+            <!-- Municipality Weather Cards - Horizontal Scroll -->
+            <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wider">Benguet Municipality Weather</h3>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-gray-500">Updated: {{ now()->format('g:i A') }}</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="scrollWeatherLeft()" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                </svg>
+                            </button>
+                            <button onclick="scrollWeatherRight()" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Scrollable Weather Cards Container -->
+                <div id="weatherCardsContainer" class="flex gap-4 overflow-x-auto pb-4 scroll-smooth snap-x snap-mandatory" style="scrollbar-width: thin; scrollbar-color: #CBD5E1 #F1F5F9;">
                     @foreach($municipalityWeather as $weather)
-                    <!-- {{ $weather['municipality'] }} -->
-                    <div class="border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-center justify-between mb-4">
+                    <!-- {{ $weather['municipality'] }} Weather Card -->
+                    <div class="flex-shrink-0 w-72 snap-start bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between mb-3">
                             <div>
-                                <div class="text-sm font-semibold text-gray-800">BENGUET</div>
-                                <div class="text-xs text-gray-600">{{ $weather['municipality'] }}</div>
+                                <div class="text-xs font-medium text-sky-600 uppercase tracking-wider">BENGUET</div>
+                                <div class="text-lg font-bold text-gray-800">{{ $weather['municipality'] }}</div>
+                            </div>
+                            <div class="w-10 h-10 bg-white/80 rounded-lg flex items-center justify-center shadow-sm">
+                                <span class="text-2xl">{{ $weather['forecast'][0]['icon'] ?? '⛅' }}</span>
                             </div>
                         </div>
                         
+                        <!-- Current Temp Display -->
+                        @if(isset($weather['forecast'][0]))
+                        <div class="mb-3 p-3 bg-white/60 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="text-2xl font-bold text-gray-800">{{ $weather['forecast'][0]['temp'] }}</span>
+                                    <p class="text-xs text-gray-500 mt-1">{{ $weather['forecast'][0]['condition'] }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-gray-500">AQI</div>
+                                    <div class="text-lg font-semibold {{ $weather['forecast'][0]['aqi'] < 50 ? 'text-green-600' : ($weather['forecast'][0]['aqi'] < 100 ? 'text-yellow-600' : 'text-red-600') }}">
+                                        {{ $weather['forecast'][0]['aqi'] }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        
                         <!-- 4-Day Forecast -->
-                        <div class="grid grid-cols-4 gap-2">
-                            @foreach($weather['forecast'] as $day)
-                            <div class="text-center">
-                                <div class="text-xs text-gray-600 mb-1">{{ $day['day'] }}</div>
-                                <div class="text-xs text-gray-500 mb-2">{{ $day['date'] }}</div>
-                                <div class="text-3xl mb-2">{{ $day['icon'] }}</div>
-                                <div class="text-xs font-semibold text-gray-800">{{ $day['condition'] }}</div>
-                                <div class="text-xs font-medium text-gray-700 mt-1">{{ $day['temp'] }}</div>
-                                <div class="text-xs text-gray-500">AQI {{ $day['aqi'] }}</div>
+                        <div class="grid grid-cols-4 gap-1">
+                            @foreach($weather['forecast'] as $index => $day)
+                            <div class="text-center p-1.5 rounded-lg {{ $index === 0 ? 'bg-sky-100' : 'bg-white/50' }} hover:bg-sky-100 transition">
+                                <div class="text-[10px] font-medium text-gray-500 mb-0.5">{{ Str::limit($day['day'], 3, '') }}</div>
+                                <div class="text-base mb-0.5">{{ $day['icon'] }}</div>
+                                <div class="text-[10px] font-medium text-gray-700">{{ $day['temp'] }}</div>
                             </div>
                             @endforeach
                         </div>
                     </div>
                     @endforeach
-
+                </div>
+                
+                <!-- Scroll Indicator Dots -->
+                <div class="flex justify-center gap-1.5 mt-3">
+                    @foreach($municipalityWeather as $index => $weather)
+                    <div class="w-2 h-2 rounded-full {{ $index < 3 ? 'bg-sky-400' : 'bg-gray-300' }} transition-colors"></div>
+                    @endforeach
                 </div>
             </div>
 
-            <!-- Hourly Forecast & Recommendations -->
-            <div class="bg-gradient-to-r from-gray-400 to-gray-300 rounded-xl p-6 mb-6">
+            <!-- Hourly Forecast & Recommendations - Enhanced Design -->
+            <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl p-6 mb-6 shadow-lg">
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     
                     <!-- Hourly Weather -->
                     <div class="lg:col-span-2">
-                        <div class="grid grid-cols-6 gap-3 mb-4">
-                            @foreach($hourlyForecast as $hour)
-                            <div class="text-center text-white">
-                                <div class="text-sm font-medium mb-2">{{ $hour['time'] }}</div>
-                                <div class="text-3xl mb-2">{{ $hour['icon'] }}</div>
-                                <div class="text-lg font-semibold">{{ $hour['temp'] }}</div>
+                        <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+                            <span>🕐</span> Hourly Forecast
+                        </h4>
+                        <div class="grid grid-cols-6 gap-2 mb-4">
+                            @foreach($hourlyForecast as $index => $hour)
+                            <div class="text-center p-3 rounded-xl {{ $index === 0 ? 'bg-white/30' : 'bg-white/10' }} backdrop-blur-sm text-white hover:bg-white/25 transition">
+                                <div class="text-xs font-medium mb-1.5 {{ $index === 0 ? 'text-yellow-200' : '' }}">{{ $hour['time'] }}</div>
+                                <div class="text-2xl mb-1.5">{{ $hour['icon'] }}</div>
+                                <div class="text-sm font-bold">{{ $hour['temp'] }}</div>
                             </div>
                             @endforeach
                         </div>
                         
                         <!-- Municipality Search -->
-                        <input type="text" placeholder="Check municipality weather per hour" 
-                               class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                        <div class="relative">
+                            <input type="text" placeholder="Search municipality weather..." 
+                                   class="w-full px-4 py-3 pl-10 rounded-xl border-0 bg-white/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-700 placeholder-gray-500 shadow-sm">
+                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
                     </div>
 
-                    <!-- Recommendations Panel -->
-                    <div class="lg:col-span-2 bg-white rounded-lg p-4">
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <div class="text-sm font-semibold text-gray-700 mb-1">Optimal Planting Window</div>
-                                <div class="text-xs text-gray-600">{{ $optimalWindow }}</div>
+                    <!-- Recommendations Panel - Enhanced -->
+                    <div class="lg:col-span-2 bg-white rounded-xl p-5 shadow-lg">
+                        <h4 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <span class="text-xl">🌱</span> Planting Recommendations
+                        </h4>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                                <span class="text-2xl">⏰</span>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-700">Optimal Planting Window</div>
+                                    <div class="text-base font-bold text-green-600">{{ $optimalWindow }}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="text-sm font-semibold text-gray-700 mb-1">Best Crops</div>
-                                <div class="text-xs text-gray-600">{{ $bestCrops }}</div>
+                            <div class="flex items-start gap-3 p-3 bg-amber-50 rounded-lg">
+                                <span class="text-2xl">🥬</span>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-700">Best Crops for Season</div>
+                                    <div class="text-sm text-gray-600">{{ $bestCrops }}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">⚠️</span>
+                                    <div>
+                                        <div class="text-sm font-semibold text-gray-700">Climate Risk Level</div>
+                                        <div class="text-xs text-gray-500">Based on weather forecast</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold {{ $climateRisk < 30 ? 'text-green-600' : ($climateRisk < 60 ? 'text-yellow-600' : 'text-red-600') }}">{{ $climateRisk }}%</div>
+                                    <div class="text-xs {{ $climateRisk < 30 ? 'text-green-500' : ($climateRisk < 60 ? 'text-yellow-500' : 'text-red-500') }}">
+                                        {{ $climateRisk < 30 ? 'Low Risk' : ($climateRisk < 60 ? 'Moderate' : 'High Risk') }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <div class="text-sm font-semibold text-gray-700 mb-1">Climate Risk</div>
-                            <div class="text-2xl font-bold text-gray-800">{{ $climateRisk }}%</div>
-                        </div>
-                        <button class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
-                            Recommend Now
+                        <button class="w-full mt-4 px-4 py-3 bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-gray-800 font-bold rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            Generate Recommendations
                         </button>
                     </div>
 
@@ -188,7 +283,7 @@
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-800">Policy Dashboard</h2>
                 <button type="button" 
-                        @click="openModal()" 
+                        @click="showSubsidyModal = true" 
                         class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -200,15 +295,31 @@
             <!-- Filters and Actions Row -->
             <form method="GET" action="{{ route('admin.recommendations') }}" class="mb-6">
                 <div class="flex items-center gap-3">
+                    <!-- Name Filter -->
+                    <div class="flex-1">
+                        <input type="text" name="name" placeholder="Name" value="{{ request('name') }}" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    </div>
+
+                    <!-- ID Filter -->
+                    <div class="flex-1">
+                        <input type="text" name="id" placeholder="ID" value="{{ request('id') }}" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    </div>
+
                     <!-- Crop Filter -->
                     <div class="flex-1">
-                        <input type="text" name="crop" placeholder="Crop" value="{{ $filterCrop }}" 
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <select name="crop" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            <option value="">Crop</option>
+                            @foreach($crops as $crop)
+                                <option value="{{ $crop }}" {{ $filterCrop == $crop ? 'selected' : '' }}>{{ ucwords(strtolower($crop)) }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <!-- Status Filter -->
                     <div class="flex-1">
-                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-300">
                             <option value="">Status</option>
                             <option value="Approved" {{ $filterStatus == 'Approved' ? 'selected' : '' }}>Approved</option>
                             <option value="Pending" {{ $filterStatus == 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -216,19 +327,15 @@
                         </select>
                     </div>
 
-                    <!-- Reset Button -->
-                    <div>
-                        <a href="{{ route('admin.recommendations') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 font-medium transition-colors">
+                    <!-- Reset and Filter Buttons -->
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.recommendations') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 text-sm transition-colors">
                             Reset
-                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </a>
-                    </div>
-
-                    <!-- View Button -->
-                    <div class="text-sm text-gray-600">
-                        <button type="button" class="px-3 py-2 text-gray-500 hover:text-gray-700">
+                        <button type="submit" class="px-4 py-2 text-gray-600 text-sm hover:text-gray-800">
                             View
                         </button>
                     </div>
@@ -238,13 +345,13 @@
             <!-- Data Table -->
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
+                    <thead class="bg-white border-b border-gray-200">
                         <tr>
                             <th class="px-6 py-3 text-left w-10">
                                 <input type="checkbox" class="rounded border-gray-300">
                             </th>
                             <th class="px-6 py-3 text-left">
-                                <button class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700">
+                                <button class="flex items-center gap-1 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900">
                                     Full Name
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
@@ -252,17 +359,17 @@
                                 </button>
                             </th>
                             <th class="px-6 py-3 text-left">
-                                <button class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wider hover:text-gray-700">
+                                <button class="flex items-center gap-1 text-xs font-medium text-gray-600 uppercase tracking-wider hover:text-gray-900">
                                     Crop
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/>
                                     </svg>
                                 </button>
                             </th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subsidy Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subsidy Amt</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Subsidy Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Subsidy Amt</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Last Updated</th>
+                            <th class="px-6 py-3 text-left w-10"></th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -276,7 +383,7 @@
                                     <div class="text-xs text-gray-500">{{ $subsidy->farmer_id }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-700">{{ $subsidy->crop }}</div>
+                                    <div class="text-sm text-gray-900">{{ $subsidy->crop_display }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if($subsidy->subsidy_status == 'Approved')
@@ -294,21 +401,21 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-700">
+                                    <div class="text-sm text-gray-900">
                                         @if($subsidy->subsidy_amount)
                                             ₱{{ number_format($subsidy->subsidy_amount, 0) }}
                                         @else
-                                            <span class="text-gray-400">N/A</span>
+                                            <span class="text-gray-400">—</span>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-700">{{ $subsidy->updated_at->format('Y-m-d') }}</div>
+                                    <div class="text-sm text-gray-900">{{ $subsidy->updated_at->format('Y-m-d') }}</div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
                                     <button class="text-gray-400 hover:text-gray-600">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
                                         </svg>
                                     </button>
                                 </td>
@@ -330,7 +437,7 @@
 
             <!-- Pagination Footer -->
             <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-gray-700">
                     @if($subsidies->total() > 0)
                         0 of {{ $subsidies->total() }} row(s) selected.
                     @else
@@ -340,8 +447,8 @@
                 
                 <div class="flex items-center gap-6">
                     <div class="flex items-center gap-2">
-                        <span class="text-sm text-gray-600">Rows per page</span>
-                        <select class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <span class="text-sm text-gray-700">Rows per page</span>
+                        <select class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-300">
                             <option>10</option>
                             <option>25</option>
                             <option>50</option>
@@ -349,68 +456,31 @@
                         </select>
                     </div>
 
-                    <div class="text-sm text-gray-600">
+                    <div class="text-sm text-gray-700">
                         Page {{ $subsidies->currentPage() }} of {{ $subsidies->lastPage() }}
                     </div>
 
                     <div class="flex items-center gap-1">
-                        <a href="{{ $subsidies->url(1) }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->url(1) }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                             </svg>
                         </a>
-                        <a href="{{ $subsidies->previousPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->previousPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ $subsidies->onFirstPage() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                             </svg>
                         </a>
-                        <a href="{{ $subsidies->nextPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->nextPageUrl() }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                         </a>
-                        <a href="{{ $subsidies->url($subsidies->lastPage()) }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600' }}">
+                        <a href="{{ $subsidies->url($subsidies->lastPage()) }}" class="p-1 rounded hover:bg-gray-100 {{ !$subsidies->hasMorePages() ? 'text-gray-300 cursor-not-allowed' : 'text-gray-700' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
                             </svg>
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>            <!-- Footer Info -->
-            <div class="mt-6 flex items-center justify-between text-sm text-gray-600">
-                <div>0 of 50 row(s) selected</div>
-                <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2">
-                        <span>Rows per page:</span>
-                        <select class="border border-gray-300 rounded px-2 py-1 text-sm">
-                            <option>10</option>
-                            <option>25</option>
-                            <option>50</option>
-                        </select>
-                    </div>
-                    <span>Page 1 of 5</span>
-                    <div class="flex items-center gap-1">
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-                            </svg>
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                            </svg>
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-                        <button class="px-2 py-1 border border-gray-300 rounded hover:bg-gray-50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
-                            </svg>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -420,7 +490,6 @@
         <div x-show="showSubsidyModal" 
              x-cloak
              @keydown.escape.window="showSubsidyModal = false"
-             style="display: none;"
              class="fixed inset-0 z-50 overflow-y-auto" 
              aria-labelledby="modal-title" 
              role="dialog" 
@@ -478,19 +547,52 @@
                                 </div>
                             @endif
 
-                            <!-- Row 1: Municipality, Farm Type, Year, Crop -->
+                            <!-- Row 1: Full Name, Farmer ID -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <!-- Full Name -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Full Name*
+                                    </label>
+                                    <input type="text" 
+                                           name="full_name" 
+                                           value="{{ old('full_name') }}" 
+                                           required 
+                                           placeholder="Enter full name"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+
+                                <!-- Farmer ID -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-900 mb-2">
+                                        Farmer ID*
+                                    </label>
+                                    <input type="text" 
+                                           name="farmer_id" 
+                                           value="{{ old('farmer_id') }}" 
+                                           required 
+                                           placeholder="ID-COOP-XXXX"
+                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                </div>
+                            </div>
+
+                            <!-- Row 2: Municipality, Farm Type, Year, Crop -->
                             <div class="grid grid-cols-4 gap-6">
                                 <!-- Municipality -->
                                 <div>
                                     <label class="block text-sm font-medium text-gray-900 mb-2">
                                         Municipality*
                                     </label>
-                                    <input type="text" 
-                                           name="municipality" 
-                                           value="{{ old('municipality') }}" 
-                                           required 
-                                           placeholder="Municipality"
-                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                    <select name="municipality" 
+                                            required 
+                                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                        <option value="" class="text-gray-400">Municipality</option>
+                                        @foreach($municipalities as $municipality)
+                                            <option value="{{ $municipality }}" class="text-gray-700" {{ old('municipality') == $municipality ? 'selected' : '' }}>
+                                                {{ ucwords(strtolower($municipality)) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <!-- Farm Type -->
@@ -500,10 +602,10 @@
                                     </label>
                                     <select name="farm_type" 
                                             required 
-                                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
-                                        <option value="">Select farm type</option>
-                                        <option value="Rainfed" {{ old('farm_type') == 'Rainfed' ? 'selected' : '' }}>Rainfed</option>
-                                        <option value="Irrigated" {{ old('farm_type') == 'Irrigated' ? 'selected' : '' }}>Irrigated</option>
+                                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                        <option value="" class="text-gray-400">Select farm type</option>
+                                        <option value="Rainfed" class="text-gray-700" {{ old('farm_type') == 'Rainfed' ? 'selected' : '' }}>Rainfed</option>
+                                        <option value="Irrigated" class="text-gray-700" {{ old('farm_type') == 'Irrigated' ? 'selected' : '' }}>Irrigated</option>
                                     </select>
                                 </div>
 
@@ -527,16 +629,20 @@
                                     <label class="block text-sm font-medium text-gray-900 mb-2">
                                         Crop*
                                     </label>
-                                    <input type="text" 
-                                           name="crop" 
-                                           value="{{ old('crop') }}" 
-                                           required 
-                                           placeholder="Crop"
-                                           class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                    <select name="crop" 
+                                            required 
+                                            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-md text-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent focus:bg-white transition-colors">
+                                        <option value="" class="text-gray-400">Crop</option>
+                                        @foreach($crops as $crop)
+                                            <option value="{{ $crop }}" class="text-gray-700" {{ old('crop') == $crop ? 'selected' : '' }}>
+                                                {{ ucwords(strtolower($crop)) }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                             </div>
 
-                            <!-- Row 2: Area Planted, Area Harvested -->
+                            <!-- Row 3: Area Planted, Area Harvested -->
                             <div class="grid grid-cols-2 gap-6">
                                 <!-- Area Planted (ha) -->
                                 <div>
@@ -569,7 +675,7 @@
                                 </div>
                             </div>
 
-                            <!-- Row 3: Production, Productivity -->
+                            <!-- Row 4: Production, Productivity -->
                             <div class="grid grid-cols-2 gap-6">
                                 <!-- Production (mt) -->
                                 <div>
@@ -618,6 +724,21 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Weather Cards Scroll Functions
+        function scrollWeatherLeft() {
+            const container = document.getElementById('weatherCardsContainer');
+            if (container) {
+                container.scrollBy({ left: -300, behavior: 'smooth' });
+            }
+        }
+        
+        function scrollWeatherRight() {
+            const container = document.getElementById('weatherCardsContainer');
+            if (container) {
+                container.scrollBy({ left: 300, behavior: 'smooth' });
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== RECOMMENDATIONS PAGE LOADED ===');
             
@@ -691,10 +812,12 @@
                         },
                         scales: {
                             y: {
-                                beginAtZero: true,
+                                type: 'logarithmic',
+                                beginAtZero: false,
+                                min: 0.1,
                                 title: {
                                     display: true,
-                                    text: 'Seeds (kg)',
+                                    text: 'Seeds (kg) - Log Scale',
                                     font: {
                                         size: 12,
                                         weight: 'bold'
@@ -706,6 +829,12 @@
                                 ticks: {
                                     font: {
                                         size: 11
+                                    },
+                                    callback: function(value, index, ticks) {
+                                        if (value === 0.1 || value === 1 || value === 10 || value === 100 || value === 1000 || value === 10000 || value === 100000) {
+                                            return value.toLocaleString() + ' kg';
+                                        }
+                                        return '';
                                     }
                                 }
                             },

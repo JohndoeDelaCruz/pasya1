@@ -131,10 +131,16 @@ class TestMLIntegration extends Command
         $duration = round((microtime(true) - $start) * 1000, 2);
         
         if (isset($result['success']) && $result['success']) {
-            $production = $result['predicted_production'] ?? 'N/A';
-            $confidence = isset($result['confidence']) ? round($result['confidence'] * 100, 1) . '%' : 'N/A';
+            // ML API V2 returns production in prediction.production_mt
+            $production = $result['prediction']['production_mt'] ?? $result['predicted_production'] ?? 'N/A';
+            $productivity = $result['prediction']['productivity_mt_ha'] ?? 'N/A';
+            $confidence = isset($result['prediction']['confidence_score']) 
+                ? $result['prediction']['confidence_score'] . '%' 
+                : (isset($result['confidence']) ? round($result['confidence'] * 100, 1) . '%' : 'N/A');
             
-            $this->line("   ✅ Predicted: <fg=green>{$production} MT</> (Confidence: {$confidence})");
+            $this->line("   ✅ Predicted Production: <fg=green>{$production} MT</>");
+            $this->line("   📊 Productivity: <fg=cyan>{$productivity} MT/HA</>");
+            $this->line("   🎯 Confidence: {$confidence}");
             $this->line("   ⏱️  Response time: {$duration}ms");
         } else {
             $error = $result['error'] ?? 'Unknown error';

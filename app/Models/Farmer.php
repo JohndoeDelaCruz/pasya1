@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -53,5 +54,45 @@ class Farmer extends Authenticatable
     {
         $name = trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
         return $this->suffix ? "{$name} {$this->suffix}" : $name;
+    }
+
+    /**
+     * Get the municipality name in Title Case format
+     */
+    public function getMunicipalityDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->municipality ?? ''));
+    }
+
+    /**
+     * Get the cooperative name in Title Case format
+     */
+    public function getCooperativeDisplayAttribute(): string
+    {
+        return ucwords(strtolower($this->cooperative ?? ''));
+    }
+
+    /**
+     * Get the farmer's notifications
+     */
+    public function farmerNotifications(): HasMany
+    {
+        return $this->hasMany(FarmerNotification::class);
+    }
+
+    /**
+     * Get unread notifications count
+     */
+    public function getUnreadNotificationsCountAttribute(): int
+    {
+        return $this->farmerNotifications()->where('is_read', false)->count();
+    }
+
+    /**
+     * Get the farmer's crop plans
+     */
+    public function cropPlans(): HasMany
+    {
+        return $this->hasMany(CropPlan::class);
     }
 }

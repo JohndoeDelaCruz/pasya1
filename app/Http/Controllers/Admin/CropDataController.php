@@ -110,14 +110,29 @@ class CropDataController extends Controller
             
             $startTime = microtime(true);
             
-            Excel::import(new CropsImport, $request->file('file'));
+            $import = new CropsImport;
+            Excel::import($import, $request->file('file'));
             
             $endTime = microtime(true);
             $executionTime = round($endTime - $startTime, 2);
             
             $totalRecords = Crop::count();
+            
+            // Build success message with details
+            $message = "Import completed in {$executionTime} seconds. ";
+            $message .= "Imported: {$import->importedCount} new records. ";
+            
+            if ($import->duplicateCount > 0) {
+                $message .= "Skipped: {$import->duplicateCount} duplicates. ";
+            }
+            
+            if ($import->skippedCount > 0) {
+                $message .= "Skipped: {$import->skippedCount} invalid rows. ";
+            }
+            
+            $message .= "Total records in database: {$totalRecords}.";
 
-            return back()->with('success', "Successfully imported crop data! Total records: {$totalRecords}. Import time: {$executionTime} seconds.");
+            return back()->with('success', $message);
 
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
@@ -158,6 +173,22 @@ class CropDataController extends Controller
             'productivity' => 'nullable|numeric|min:0',
         ]);
 
+        // Check for duplicate entry before creating
+        $exists = Crop::where('municipality', $validated['municipality'])
+                     ->where('farm_type', $validated['farm_type'])
+                     ->where('year', $validated['year'])
+                     ->where('month', $validated['month'])
+                     ->where('crop', $validated['crop'])
+                     ->exists();
+
+        if ($exists) {
+            return back()->withInput()->with('error', 
+                'This crop data already exists! A record for ' . $validated['crop'] . 
+                ' in ' . $validated['municipality'] . ' (' . $validated['farm_type'] . 
+                ') for ' . $validated['month'] . ' ' . $validated['year'] . 
+                ' is already in the database.');
+        }
+
         // Calculate productivity if not provided
         if (!isset($validated['productivity']) || $validated['productivity'] == 0) {
             if ($validated['area_harvested'] > 0) {
@@ -170,10 +201,21 @@ class CropDataController extends Controller
         // Add the uploader
         $validated['uploaded_by'] = auth()->id();
 
-        Crop::create($validated);
+        try {
+            Crop::create($validated);
 
-        return redirect()->route('admin.crop-data.index')
-            ->with('success', 'Crop data entry added successfully!');
+            return redirect()->route('admin.crop-data.index')
+                ->with('success', 'Crop data entry added successfully!');
+                
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint violation at database level
+            if ($e->getCode() == 23000) {
+                return back()->withInput()->with('error', 
+                    'This crop data already exists in the database. Please check for duplicates.');
+            }
+            
+            return back()->withInput()->with('error', 'Failed to save crop data: ' . $e->getMessage());
+        }
     }
 
     /**

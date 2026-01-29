@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <!-- Crop Yield Forecasting Chart -->
+        <!-- Crop Production Forecasting Chart -->
         <div class="bg-white rounded-xl shadow-md p-6">
             <div class="flex items-center justify-between mb-4">
                 <div>
@@ -36,7 +36,7 @@
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Crop Yield Forecasting
+                        Crop Production Forecasting
                     </h2>
                     <p class="text-sm text-gray-500 mt-1">Prediction<span class="text-gray-400 ml-2">Jan - June 2025</span></p>
                 </div>
@@ -45,31 +45,16 @@
                 <div class="flex items-center gap-6">
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
-                        <span class="text-sm text-gray-600">Historical Yields</span>
+                        <span class="text-sm text-gray-600">Historical Production</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-sm text-gray-600">Predicted</span>
+                        <span class="text-sm text-gray-600">Predicted Production</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Data Source Info -->
-            <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div class="flex items-start gap-2">
-                    <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-blue-900">Showing data for:</p>
-                        <div class="mt-1 grid grid-cols-3 gap-3 text-sm text-blue-800">
-                            <div><span class="font-semibold">Crop:</span> {{ $selectedCrop }}</div>
-                            <div><span class="font-semibold">Municipality:</span> {{ $selectedMunicipality }}</div>
-                            <div><span class="font-semibold">Farm Type:</span> {{ $selectedFarmType }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {{-- Data source banner removed as requested --}}
 
             <!-- Forecast Chart -->
             <div class="h-[350px] relative">
@@ -94,28 +79,18 @@
 
         <!-- Summary Card Statistics -->
         <div class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6">Summary Card Statistics</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-6">Summary Statistics</h3>
             
-            <!-- Summary of Demand Chart -->
+            <!-- Monthly Production Chart -->
             <div class="bg-gray-50 rounded-lg p-6 mb-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h4 class="font-semibold text-gray-800">Summary of Demand</h4>
-                        <p class="text-sm text-gray-500">January - June 2025 • Production in Metric Tons (MT)</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 bg-green-500 rounded"></div>
-                            <span class="text-sm text-gray-600">Predicted</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 bg-gray-300 rounded"></div>
-                            <span class="text-sm text-gray-600">Recorded</span>
-                        </div>
+                        <h4 class="font-semibold text-gray-800">Average Monthly Production</h4>
+                        <p class="text-sm text-gray-500">Based on historical data • Production in Metric Tons (MT)</p>
                     </div>
                 </div>
                 
-                <!-- Demand Bar Chart -->
+                <!-- Production Bar Chart -->
                 <div class="h-[200px]">
                     <canvas id="demandChart"></canvas>
                 </div>
@@ -132,30 +107,40 @@
                         Top 3 Most Productive Years
                     </h5>
                     <ol class="space-y-2">
-                        @foreach($topYears as $index => $year)
-                            <li class="flex items-center gap-2 text-gray-700">
-                                <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
-                                <span>{{ $year }}</span>
+                        @forelse($topYearsWithProduction as $index => $item)
+                            <li class="flex items-center justify-between text-gray-700">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
+                                    <span class="font-medium">{{ $item['year'] }}</span>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} MT</span>
                             </li>
-                        @endforeach
+                        @empty
+                            <li class="text-gray-500 text-sm">No data available</li>
+                        @endforelse
                     </ol>
                 </div>
 
-                <!-- Top 3 of Most Productive Crops -->
+                <!-- Top 3 Most Productive Crops -->
                 <div class="border border-gray-200 rounded-lg p-4">
                     <h5 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
                         </svg>
-                        Top 3 of Most Productive Crops
+                        Top 3 Most Productive Crops
                     </h5>
                     <ol class="space-y-2">
-                        @foreach($topCrops as $index => $crop)
-                            <li class="flex items-center gap-2 text-gray-700">
-                                <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
-                                <span>{{ $crop }}</span>
+                        @forelse($topCropsWithProduction as $index => $item)
+                            <li class="flex items-center justify-between text-gray-700">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
+                                    <span class="font-medium">{{ $item['crop'] }}</span>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} MT</span>
                             </li>
-                        @endforeach
+                        @empty
+                            <li class="text-gray-500 text-sm">No data available</li>
+                        @endforelse
                     </ol>
                 </div>
             </div>
@@ -237,7 +222,7 @@
                                 <option value="">Select municipality</option>
                                 @foreach($municipalities as $municipality)
                                     <option value="{{ $municipality }}" {{ strtoupper($municipality) === strtoupper($selectedMunicipality) ? 'selected' : '' }}>
-                                        {{ $municipality }}
+                                        {{ ucwords(strtolower($municipality)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -316,7 +301,7 @@
                                 <option value="">Select a crop</option>
                                 @foreach($crops as $crop)
                                     <option value="{{ $crop }}" {{ strtoupper($crop) === strtoupper($selectedCrop) ? 'selected' : '' }}>
-                                        {{ $crop }}
+                                        {{ ucwords(strtolower($crop)) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -381,8 +366,8 @@
 
                     console.log('Forecast Chart Data:');
                     console.log('- Months:', months);
-                    console.log('- Historical Yields:', historical);
-                    console.log('- Predicted Yields:', predicted);
+                    console.log('- Historical Production:', historical);
+                    console.log('- Predicted Production:', predicted);
 
                     const monthLabels = months.map(m => {
                         const monthMap = { JAN: 'Jan', FEB: 'Feb', MAR: 'Mar', APR: 'Apr', MAY: 'May', JUN: 'Jun' };
@@ -397,7 +382,7 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Historical Yields',
+                                    label: 'Historical Production (MT)',
                                     data: historical,
                                     borderColor: 'rgb(34, 211, 238)',
                                     backgroundColor: 'rgba(34, 211, 238, 0.1)',
@@ -408,7 +393,7 @@
                                     pointHoverRadius: 8
                                 },
                                 {
-                                    label: 'Predicted',
+                                    label: 'Predicted Production (MT)',
                                     data: predicted,
                                     borderColor: 'rgb(34, 197, 94)',
                                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
@@ -473,8 +458,7 @@
                     if (!ctx) return;
 
                     const months = @json($months);
-                    const predicted = @json($demandData);
-                    const recorded = @json($recordedData);
+                    const productionData = @json($monthlyProductionData);
 
                     const monthLabels = months.map(m => {
                         const monthMap = { JAN: 'Jan', FEB: 'Feb', MAR: 'Mar', APR: 'Apr', MAY: 'May', JUN: 'Jun' };
@@ -487,18 +471,11 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Predicted (MT)',
-                                    data: predicted,
+                                    label: 'Avg Production (MT)',
+                                    data: productionData,
                                     backgroundColor: 'rgb(34, 197, 94)',
                                     borderRadius: 4,
-                                    barThickness: 20
-                                },
-                                {
-                                    label: 'Recorded (MT)',
-                                    data: recorded,
-                                    backgroundColor: 'rgb(209, 213, 219)',
-                                    borderRadius: 4,
-                                    barThickness: 20
+                                    barThickness: 30
                                 }
                             ]
                         },
@@ -511,7 +488,7 @@
                                 delay: (context) => {
                                     let delay = 0;
                                     if (context.type === 'data' && context.mode === 'default') {
-                                        delay = context.dataIndex * 80 + context.datasetIndex * 100;
+                                        delay = context.dataIndex * 80;
                                     }
                                     return delay;
                                 }
@@ -527,14 +504,7 @@
                                     bodyFont: { size: 11 },
                                     callbacks: {
                                         label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label += ': ';
-                                            }
-                                            if (context.parsed.y !== null) {
-                                                label += context.parsed.y.toFixed(2) + ' MT';
-                                            }
-                                            return label;
+                                            return context.parsed.y.toFixed(2) + ' MT';
                                         }
                                     }
                                 }
