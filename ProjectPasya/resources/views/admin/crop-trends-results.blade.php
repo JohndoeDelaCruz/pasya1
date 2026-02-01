@@ -78,13 +78,6 @@
                             <span class="text-gray-500">Year Range:</span>
                             <span class="font-medium text-gray-800 ml-2">{{ $filters['year_from'] }} - {{ $filters['year_to'] }}</span>
                         </div>
-                        @if(isset($avgAreaHarvested))
-                        <div>
-                            <span class="text-gray-500">Prediction Area Basis:</span>
-                            <span class="font-medium text-blue-600 ml-2">{{ number_format($avgAreaHarvested, 2) }} ha</span>
-                            <span class="text-xs text-gray-400 ml-1">(avg)</span>
-                        </div>
-                        @endif
                     </div>
                 </div>
                 <button @click="$dispatch('open-modal', 'prediction-modal')" class="ml-6 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">

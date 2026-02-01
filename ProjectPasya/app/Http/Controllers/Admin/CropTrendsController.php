@@ -389,12 +389,23 @@ class CropTrendsController extends Controller
             ->where('farm_type', $request->farm_type)
             ->max('year');
         
+        // Get seasonal average area for each month (to use for future predictions)
+        // This captures natural planting patterns - e.g., more area planted in peak seasons
+        $seasonalAverageAreas = Crop::where('crop', $request->crop)
+            ->where('municipality', $request->municipality)
+            ->where('farm_type', $request->farm_type)
+            ->selectRaw('month, AVG(area_harvested) as avg_area')
+            ->groupBy('month')
+            ->pluck('avg_area', 'month')
+            ->toArray();
+        
         Log::info('Max Historical Year', [
             'crop' => $request->crop,
             'municipality' => $request->municipality,
             'farm_type' => $request->farm_type,
             'max_year' => $maxHistoricalYear,
-            'default_area' => $defaultAreaHarvested
+            'default_area' => $defaultAreaHarvested,
+            'seasonal_areas' => $seasonalAverageAreas
         ]);
 
         foreach ($years as $year) {
@@ -433,8 +444,17 @@ class CropTrendsController extends Controller
                     'area_harvested' => $historicalArea
                 ]);
 
-                // Use actual historical area if available, otherwise use default average
-                $areaForPrediction = $historicalArea ?? $defaultAreaHarvested;
+                // Use actual historical area if available, otherwise use seasonal average for that month
+                // This ensures future predictions reflect natural seasonal planting patterns
+                if ($historicalArea) {
+                    $areaForPrediction = $historicalArea;
+                } elseif (isset($seasonalAverageAreas[$month])) {
+                    // Use seasonal average for this specific month (captures planting patterns)
+                    $areaForPrediction = $seasonalAverageAreas[$month];
+                } else {
+                    // Fallback to overall average
+                    $areaForPrediction = $defaultAreaHarvested;
+                }
 
                 // Get ML prediction with actual area_harvested parameter
                 $confidenceScore = null;
