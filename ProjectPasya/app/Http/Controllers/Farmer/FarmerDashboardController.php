@@ -1047,7 +1047,11 @@ class FarmerDashboardController extends Controller
     }
 
     /**
-     * Helper: Get predicted production using ML API or fallback
+     * Helper: Get predicted production using ML API V2 or fallback
+     * 
+     * V2 API returns:
+     * - prediction.productivity_mt_ha: Predicted yield per hectare
+     * - prediction.production_mt: Total production (productivity × area)
      */
     private function getPredictedProduction(
         string $cropName,
@@ -1057,7 +1061,7 @@ class FarmerDashboardController extends Controller
         float $areaHectares
     ): float {
         try {
-            // Try ML API prediction
+            // Try ML API V2 prediction
             $predictionService = new PredictionService();
             $result = $predictionService->predictProduction([
                 'municipality' => strtoupper($municipality),
@@ -1068,8 +1072,9 @@ class FarmerDashboardController extends Controller
                 'year' => $plantingDate->year,
             ]);
             
-            if (isset($result['success']) && $result['success'] && isset($result['prediction'])) {
-                return floatval($result['prediction']);
+            // V2 API returns prediction.production_mt (total production in MT)
+            if (isset($result['success']) && $result['success'] && isset($result['prediction']['production_mt'])) {
+                return floatval($result['prediction']['production_mt']);
             }
         } catch (\Exception $e) {
             Log::warning('ML prediction failed, using fallback', [

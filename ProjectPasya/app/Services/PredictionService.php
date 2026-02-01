@@ -9,10 +9,22 @@ use Illuminate\Support\Facades\Log;
 /**
  * Crop Production Prediction Service
  * 
- * This service communicates with the Python Flask API to make crop production predictions
+ * This service communicates with the Python Flask ML API V2 (Productivity-First)
  * Includes intelligent crop name transformation using database mappings with pattern-based fallback
  * 
- * Now uses MLApiService for cleaner integration with scalable ML API
+ * ML API V2 Response Format:
+ * {
+ *   "success": true,
+ *   "prediction": {
+ *     "productivity_mt_ha": 18.82,  // Primary prediction (MT/HA)
+ *     "production_mt": 1881.83,      // Calculated: productivity × area
+ *     "area_planted_ha": 100.0,
+ *     "confidence_score": 90.0,
+ *     "confidence_intervals": { "95%": { "lower": 1526.93, "upper": 2271.8 } }
+ *   },
+ *   "historical_comparison": { ... },
+ *   "model_info": { "model_type": "Extra Trees", "r2_score": 0.8257 }
+ * }
  * 
  * Usage in Laravel Controller:
  * 
@@ -26,6 +38,10 @@ use Illuminate\Support\Facades\Log;
  *     'crop' => 'CABBAGE',
  *     'area_harvested' => 100.5
  * ]);
+ * 
+ * // Access V2 response:
+ * $productivity = $result['prediction']['productivity_mt_ha'];
+ * $production = $result['prediction']['production_mt'];
  */
 class PredictionService
 {
@@ -161,17 +177,25 @@ class PredictionService
     }
 
     /**
-     * Make a crop production prediction
+     * Make a crop production prediction using ML API V2
      * Now uses MLApiService for better caching and error handling
+     * 
+     * V2 API Returns (Productivity-First):
+     * - prediction.productivity_mt_ha: Predicted yield per hectare
+     * - prediction.production_mt: Total production (productivity × area)
+     * - prediction.confidence_score: Model confidence (0-100)
+     * - prediction.confidence_intervals: 95% confidence bounds
+     * - historical_comparison: Comparison with historical data
+     * - model_info: Model type and R² score
      * 
      * @param array $data Input data containing:
      *                    - municipality: string
      *                    - farm_type: string
      *                    - month: string
      *                    - crop: string
-     *                    - area_harvested: float (will be converted to Area_planted_ha)
+     *                    - area_harvested: float (will be converted to area_planted)
      *                    - year: int (optional, defaults to current year)
-     * @return array|null Prediction result or null on failure
+     * @return array Prediction result with V2 format
      */
     public function predictProduction(array $data)
     {

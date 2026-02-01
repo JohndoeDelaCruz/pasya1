@@ -8,21 +8,20 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Investigates the 43.99 mt/ha productivity value issue
+ * Investigates prediction accuracy issues
  * 
- * This command traces the calculation flow to identify where
- * the 43.99 value originates from.
+ * This command traces the calculation flow to verify productivity values.
  * 
- * Investigation based on John Paul's questions:
- * 1. The ML model predicts PRODUCTIVITY (mt/ha) first
- * 2. Production = Productivity × Area
- * 3. But the dashboard calculates: production_mt / avgAreaHarvested
+ * With ML API V2 (Productivity-First):
+ * 1. The ML model predicts PRODUCTIVITY (mt/ha) directly
+ * 2. API returns both productivity_mt_ha AND production_mt
+ * 3. production_mt = productivity_mt_ha × area_planted
  * 
- * If the ML predicts production_mt based on area A, but dashboard
- * divides by a different avgAreaHarvested B, then:
- * displayed_productivity = (predicted_productivity × A) / B
- * 
- * This can produce unexpected values like 43.99
+ * V2 API Response:
+ * - prediction.productivity_mt_ha: Direct productivity prediction
+ * - prediction.production_mt: Total production (productivity × area)
+ * - prediction.confidence_score: Model confidence (0-100)
+ * - model_info.r2_score: Model R² score (0.8257)
  */
 class InvestigatePrediction extends Command
 {
@@ -150,8 +149,15 @@ class InvestigatePrediction extends Command
             $this->info('  Prediction with INPUT area (' . $inputArea . ' ha):');
             if (isset($predictionInput['success']) && $predictionInput['success']) {
                 $productionMT = $predictionInput['prediction']['production_mt'] ?? 0;
+                $productivityDirect = $predictionInput['prediction']['productivity_mt_ha'] ?? null;
+                $confidenceScore = $predictionInput['prediction']['confidence_score'] ?? 'N/A';
+                
                 $this->line("    → Production: " . number_format($productionMT, 2) . " MT");
-                $this->line("    → Implied Productivity: " . number_format($productionMT / $inputArea, 2) . " mt/ha");
+                if ($productivityDirect !== null) {
+                    $this->line("    → Productivity (V2 API Direct): " . number_format($productivityDirect, 2) . " mt/ha");
+                }
+                $this->line("    → Calculated Productivity: " . number_format($productionMT / $inputArea, 2) . " mt/ha");
+                $this->line("    → Confidence: " . $confidenceScore . "%");
             } else {
                 $this->error('    → Prediction failed: ' . ($predictionInput['error'] ?? 'Unknown error'));
             }
@@ -160,8 +166,13 @@ class InvestigatePrediction extends Command
             $this->info('  Prediction with AVG area (' . number_format($avgAreaHarvested, 2) . ' ha):');
             if (isset($predictionAvg['success']) && $predictionAvg['success']) {
                 $productionMT = $predictionAvg['prediction']['production_mt'] ?? 0;
+                $productivityDirect = $predictionAvg['prediction']['productivity_mt_ha'] ?? null;
+                
                 $this->line("    → Production: " . number_format($productionMT, 2) . " MT");
-                $this->line("    → Implied Productivity: " . number_format($productionMT / $avgAreaHarvested, 2) . " mt/ha");
+                if ($productivityDirect !== null) {
+                    $this->line("    → Productivity (V2 API Direct): " . number_format($productivityDirect, 2) . " mt/ha");
+                }
+                $this->line("    → Calculated Productivity: " . number_format($productionMT / $avgAreaHarvested, 2) . " mt/ha");
             } else {
                 $this->error('    → Prediction failed: ' . ($predictionAvg['error'] ?? 'Unknown error'));
             }
@@ -214,29 +225,25 @@ class InvestigatePrediction extends Command
         $this->info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         $this->line('');
-        $this->line('  📌 THE 43.99 ISSUE EXPLANATION:');
+        $this->line('  📌 ML API V2 - PRODUCTIVITY-FIRST:');
         $this->line('');
-        $this->line('  The ML model works as follows:');
+        $this->line('  The ML API V2 model works as follows:');
         $this->line('    1. Input: Crop, Municipality, Farm Type, Month, Area');
-        $this->line('    2. Predicts: Productivity (mt/ha)');
-        $this->line('    3. Returns: production_mt = predicted_productivity × input_area');
+        $this->line('    2. Returns: productivity_mt_ha (direct prediction)');
+        $this->line('    3. Returns: production_mt = productivity_mt_ha × input_area');
         $this->line('');
-        $this->line('  The Dashboard then INCORRECTLY calculates:');
-        $this->line('    displayed_productivity = production_mt / avgAreaHarvested');
-        $this->line('');
-        $this->line('  If input_area ≠ avgAreaHarvested, this creates a scaling error!');
-        $this->line('');
-        $this->line('  Example: If ML predicts 15 mt/ha productivity');
-        $this->line('    - Input area = 100 ha → production_mt = 1500 MT');
-        $this->line('    - avgAreaHarvested = 35 ha (different from input!)');
-        $this->line('    - Dashboard shows: 1500 / 35 = 42.86 mt/ha (WRONG!)');
+        $this->line('  With V2, you should USE the productivity_mt_ha DIRECTLY!');
+        $this->line('  No need to calculate: production / area');
         $this->line('');
         
-        $this->info('  🔧 FIX:');
-        $this->info('     The dashboard should either:');
-        $this->info('     A) Use the same area for input AND division');
-        $this->info('     B) Request productivity directly from ML API (if available)');
-        $this->info('     C) Store the input_area with prediction and use it for division');
+        $this->info('  🔧 V2 BEST PRACTICE:');
+        $this->info('     Use $result[\'prediction\'][\'productivity_mt_ha\'] directly');
+        $this->info('     instead of calculating production / area');
+        $this->info('');
+        $this->info('  📊 Model Performance:');
+        $this->info('     - Model: Extra Trees');
+        $this->info('     - R² Score: 0.8257 (82.57% accuracy)');
+        $this->info('     - MAE: 0.79 MT/HA');
 
         return Command::SUCCESS;
     }
