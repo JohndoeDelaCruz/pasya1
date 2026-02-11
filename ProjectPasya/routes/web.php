@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CropManagementController;
 use App\Http\Controllers\Admin\CropMappingController;
 use App\Http\Controllers\Admin\DataAnalyticsController;
 use App\Http\Controllers\Admin\CropTrendsController;
+use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\RecommendationsController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Farmer\FarmerDashboardController;
@@ -68,6 +69,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     
     Route::get('/crop-trends', [CropTrendsController::class, 'index'])->name('crop-trends');
     Route::post('/crop-trends/predict', [CropTrendsController::class, 'predict'])->name('crop-trends.predict');
+    
+    // Interactive Map
+    Route::get('/map', [MapController::class, 'index'])->name('map');
     
     // Farmer Account Management Routes
     Route::get('/farmers', [FarmerController::class, 'index'])->name('farmers.index');

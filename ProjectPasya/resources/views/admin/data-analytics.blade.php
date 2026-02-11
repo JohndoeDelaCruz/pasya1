@@ -174,150 +174,53 @@
             </div>
         </form>
 
-        <!-- Trend Analysis Line Chart -->
+        <!-- Crop Production Chart - Simplified for Easy Understanding -->
         <div class="bg-white rounded-xl shadow-md p-6 card-animate hover-lift animate-scale-in animate-delay-300">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800">
-                    @php
-                        $monthNames = ['JAN' => 'January', 'FEB' => 'February', 'MAR' => 'March', 'APR' => 'April', 
-                                      'MAY' => 'May', 'JUN' => 'June', 'JUL' => 'July', 'AUG' => 'August',
-                                      'SEP' => 'September', 'OCT' => 'October', 'NOV' => 'November', 'DEC' => 'December'];
-                    @endphp
-                    @if($chartMode === 'crop_breakdown')
-                        {{ ucwords(strtolower($filterMunicipality)) }} - Crop Breakdown
-                        @if($filterMonth)
-                            ({{ $monthNames[$filterMonth] ?? $filterMonth }} {{ $filterYear }})
-                        @endif
-                    @elseif($chartMode === 'crops')
-                        Crop Production Breakdown
-                        @if($filterMonth && $filterYear)
-                            ({{ $monthNames[$filterMonth] ?? $filterMonth }} {{ $filterYear }})
-                        @elseif($filterMonth)
-                            ({{ $monthNames[$filterMonth] ?? $filterMonth }})
-                        @elseif($filterYear)
-                            ({{ $filterYear }})
-                        @endif
-                    @elseif($chartMode === 'municipalities')
-                        Municipality Production Comparison by Crop
-                        @if($filterMonth && $filterYear)
-                            ({{ $monthNames[$filterMonth] ?? $filterMonth }} {{ $filterYear }})
-                        @elseif($filterMonth)
-                            ({{ $monthNames[$filterMonth] ?? $filterMonth }})
-                        @elseif($filterYear)
-                            ({{ $filterYear }})
-                        @endif
-                    @elseif($chartMode === 'monthly_crop')
-                        {{ ucwords(strtolower($filterCrop)) }} - Monthly Production in {{ ucwords(strtolower($filterMunicipality)) }} ({{ $filterYear }})
-                    @elseif($chartMode === 'monthly_year')
-                        Monthly Production for {{ $filterYear }} (All Municipalities & Crops)
-                    @elseif($chartMode === 'monthly')
-                        @if($filterMunicipality)
-                            {{ ucwords(strtolower($filterMunicipality)) }} - Monthly Production ({{ $filterYear }})
-                        @else
-                            Monthly Production Trend ({{ $filterYear }})
-                        @endif
-                    @else
-                        Trend Analysis Line Chart
-                    @endif
-                </h2>
-                <button class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="mb-4">
-                <h3 class="text-base font-medium text-gray-700">Production</h3>
-                <p class="text-sm text-gray-500">
-                    @if($chartMode === 'crop_breakdown')
-                        Top 10 crops by production volume for {{ ucwords(strtolower($filterMunicipality)) }} in {{ $monthNames[$filterMonth] ?? $filterMonth }} {{ $filterYear }}
-                    @elseif($chartMode === 'crops')
-                        Top 10 crops by production volume
-                        @if($filterMonth && $filterYear)
-                            for {{ $monthNames[$filterMonth] ?? $filterMonth }} {{ $filterYear }}
-                        @elseif($filterMonth)
-                            for {{ $monthNames[$filterMonth] ?? $filterMonth }}
-                        @elseif($filterYear)
-                            for {{ $filterYear }}
-                        @endif
-                    @elseif($chartMode === 'municipalities')
-                        Multiple municipality lines showing production across top 10 crops
-                        @if($filterMonth && $filterYear)
-                            for {{ $monthNames[$filterMonth] ?? $filterMonth }} {{ $filterYear }}
-                        @elseif($filterMonth)
-                            for {{ $monthNames[$filterMonth] ?? $filterMonth }}
-                        @elseif($filterYear)
-                            for {{ $filterYear }}
-                        @endif
-                    @elseif($chartMode === 'monthly_crop')
-                        Monthly production breakdown for {{ ucwords(strtolower($filterCrop)) }} in {{ ucwords(strtolower($filterMunicipality)) }} ({{ $filterYear }})
-                    @elseif($chartMode === 'monthly_year')
-                        Monthly production breakdown for all municipalities and crops in {{ $filterYear }}
-                    @elseif($chartMode === 'monthly')
-                        @if($filterMunicipality)
-                            Monthly production breakdown for {{ ucwords(strtolower($filterMunicipality)) }} in {{ $filterYear }}
-                        @else
-                            Monthly production breakdown for {{ $filterYear }}
-                        @endif
-                    @else
-                        Each municipality's seasonal productivity per year
-                    @endif
-                </p>
-                <div class="flex items-center gap-2 mt-2">
-                    @if($productionTrend != 0)
-                        <span class="text-sm text-gray-600">
-                            @if($chartMode === 'crop_breakdown')
-                                Top crop {{ $productionTrend > 0 ? 'leads by' : 'trails by' }} {{ number_format(abs($productionTrend), 1) }}%
-                            @elseif($chartMode === 'crops')
-                                Leading crop {{ $productionTrend > 0 ? 'up' : 'down' }} {{ number_format(abs($productionTrend), 1) }}% vs second
-                            @elseif($chartMode === 'monthly_year' || $chartMode === 'monthly' || $chartMode === 'monthly_crop')
-                                Production {{ $productionTrend > 0 ? 'up' : 'down' }} {{ number_format(abs($productionTrend), 1) }}% month-over-month
-                            @else
-                                Production {{ $productionTrend > 0 ? 'up' : 'down' }} {{ number_format(abs($productionTrend), 1) }}% 
-                                @if($filterMunicipality)
-                                    for {{ ucwords(strtolower($filterMunicipality)) }}
-                                @elseif($filterCrop)
-                                    for {{ ucwords(strtolower($filterCrop)) }}
-                                @else
-                                    year-over-year
-                                @endif
-                            @endif
-                        </span>
-                        @if($productionTrend > 0)
-                            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-                            </svg>
-                        @else
-                            <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                            </svg>
-                        @endif
-                    @else
-                        <span class="text-sm text-gray-600">Showing production trends based on uploaded data</span>
-                    @endif
-                    <span class="text-xs text-gray-400">
-                        @if($chartMode === 'crop_breakdown' || $chartMode === 'crops')
-                            Comparing crop performance
-                        @elseif($chartMode === 'municipalities')
-                            Comparing municipality performance
-                        @elseif($chartMode === 'monthly_year' || $chartMode === 'monthly' || $chartMode === 'monthly_crop')
-                            Month-to-month comparison
-                        @else
-                            Year-over-year comparison
-                        @endif
-                    </span>
-                </div>
-                
-                <!-- Zoom Controls -->
-                <div class="flex items-center gap-2">
-                    <button type="button" onclick="resetZoom()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            <!-- Simple Header -->
+            <div class="mb-6">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Reset Zoom
-                    </button>
-                    <span class="text-xs text-gray-500">💡 Scroll to zoom • Drag to pan</span>
+                    </div>
+                    <div>
+                        @php
+                            $monthNames = ['JAN' => 'January', 'FEB' => 'February', 'MAR' => 'March', 'APR' => 'April', 
+                                          'MAY' => 'May', 'JUN' => 'June', 'JUL' => 'July', 'AUG' => 'August',
+                                          'SEP' => 'September', 'OCT' => 'October', 'NOV' => 'November', 'DEC' => 'December'];
+                        @endphp
+                        <h2 class="text-xl font-bold text-gray-800">
+                            @if($chartMode === 'crop_breakdown' || $chartMode === 'crops')
+                                🌾 What Crops Are We Producing?
+                            @elseif($chartMode === 'municipalities')
+                                📍 How Are Different Areas Performing?
+                            @elseif($chartMode === 'monthly_crop' || $chartMode === 'monthly' || $chartMode === 'monthly_year')
+                                📅 Monthly Harvest Overview
+                            @else
+                                📈 Yearly Production Overview
+                            @endif
+                        </h2>
+                        <p class="text-sm text-gray-500">
+                            @if($chartMode === 'crop_breakdown')
+                                Showing crops produced in {{ ucwords(strtolower($filterMunicipality)) }}
+                                @if($filterMonth) during {{ $monthNames[$filterMonth] ?? $filterMonth }} @endif
+                                @if($filterYear) {{ $filterYear }} @endif
+                            @elseif($chartMode === 'crops')
+                                Showing top crops by harvest amount
+                            @elseif($chartMode === 'municipalities')
+                                Comparing production across different municipalities
+                            @elseif($chartMode === 'monthly_crop')
+                                {{ ucwords(strtolower($filterCrop)) }} production each month in {{ ucwords(strtolower($filterMunicipality)) }}
+                            @elseif($chartMode === 'monthly_year')
+                                Total production each month for {{ $filterYear }}
+                            @elseif($chartMode === 'monthly')
+                                Monthly harvest for {{ $filterMunicipality ? ucwords(strtolower($filterMunicipality)) : 'all areas' }}
+                            @else
+                                How much we've harvested each year across all areas
+                            @endif
+                        </p>
+                    </div>
                 </div>
             </div>
             
@@ -372,66 +275,12 @@
                 </div>
             @endif
 
-            <!-- Production Trend Indicator -->
-            @if($hasChartData && $productionTrend !== null && $productionTrend != 0)
-                <div class="mt-4 flex items-center justify-center">
-                    <div class="flex items-center gap-2 text-sm">
-                        @if($productionTrend > 0)
-                            <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="font-semibold text-gray-800">
-                                @if($chartMode === 'crop_breakdown' || $chartMode === 'crops')
-                                    Top crop leads by {{ number_format(abs($productionTrend), 1) }}%
-                                @elseif($chartMode === 'municipalities')
-                                    Top municipality leads by {{ number_format(abs($productionTrend), 1) }}%
-                                @elseif($chartMode === 'monthly_year' || $chartMode === 'monthly')
-                                    Production up by {{ number_format(abs($productionTrend), 1) }}% month-over-month
-                                @else
-                                    Production up by {{ number_format(abs($productionTrend), 1) }}% year-over-year
-                                @endif
-                            </span>
-                        @elseif($productionTrend < 0)
-                            <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1V9a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586 3.707 5.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="font-semibold text-gray-800">
-                                @if($chartMode === 'crop_breakdown' || $chartMode === 'crops')
-                                    Top crop leads by {{ number_format(abs($productionTrend), 1) }}%
-                                @elseif($chartMode === 'municipalities')
-                                    Top municipality leads by {{ number_format(abs($productionTrend), 1) }}%
-                                @elseif($chartMode === 'monthly_year' || $chartMode === 'monthly' || $chartMode === 'monthly_crop')
-                                    Production up by {{ number_format(abs($productionTrend), 1) }}% month-over-month
-                                @else
-                                    Production up by {{ number_format(abs($productionTrend), 1) }}% year-over-year
-                                @endif
-                            </span>
-                        @elseif($productionTrend < 0)
-                            <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M12 13a1 1 0 100 2h5a1 1 0 001-1V9a1 1 0 10-2 0v2.586l-4.293-4.293a1 1 0 00-1.414 0L8 9.586 3.707 5.293a1 1 0 00-1.414 1.414l5 5a1 1 0 001.414 0L11 9.414 14.586 13H12z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="font-semibold text-gray-800">
-                                @if($chartMode === 'monthly_year' || $chartMode === 'monthly' || $chartMode === 'monthly_crop')
-                                    Production down by {{ number_format(abs($productionTrend), 1) }}% month-over-month
-                                @else
-                                    Production down by {{ number_format(abs($productionTrend), 1) }}% year-over-year
-                                @endif
-                            </span>
-                        @endif
-                    </div>
-                </div>
-                <div class="text-center mt-1">
-                    <span class="text-xs text-gray-500">
-                        @if($chartMode === 'crop_breakdown')
-                            Comparing top performing crops
-                        @elseif($chartMode === 'crops')
-                            Comparing crop production volumes
-                        @elseif($chartMode === 'monthly_year' || $chartMode === 'monthly' || $chartMode === 'monthly_crop')
-                            Comparing consecutive months
-                        @else
-                            Comparing recent years
-                        @endif
-                    </span>
+            <!-- Simple Help Text -->
+            @if($hasChartData)
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-500">
+                        💡 <span class="font-medium">Tip:</span> Each colored line represents a different area. Hover over points to see exact values.
+                    </p>
                 </div>
             @endif
         </div>
@@ -467,7 +316,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-800">{{ number_format($averageYield ?? 0, 1) }}</div>
+                <div class="text-3xl font-bold text-gray-800">{{ number_format($averageYield ?? 0, 2) }} <span class="text-lg font-medium text-gray-500">MT/ha</span></div>
                 <div class="flex items-center gap-1 mt-2">
                     <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
@@ -513,7 +362,7 @@
                                     @foreach($topCrops->take(3) as $index => $crop)
                                         <li class="flex items-center gap-2 hover-scale transition-transform">
                                             <span class="font-medium text-green-600">{{ $index + 1 }}.</span>
-                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} mt</span></span>
+                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} MT</span></span>
                                         </li>
                                     @endforeach
                                 @else
@@ -655,6 +504,7 @@
                 @endif
             </div>
         </div>
+        </div>
 
         <!-- ML Predictions Section -->
         @if(isset($predictions) && $predictions['available'])
@@ -729,7 +579,7 @@
                                                     </svg>
                                                     <span class="font-bold">{{ ucwords(strtolower($municipality)) }}</span>
                                                 </div>
-                                                <span class="font-bold text-lg">{{ number_format($totalProduction, 2) }} mt</span>
+                                                <span class="font-bold text-lg">{{ number_format($totalProduction, 2) }} MT</span>
                                             </div>
                                         </div>
 
@@ -746,7 +596,7 @@
                                                         <span class="font-semibold text-gray-800 text-sm">
                                                             {{ ucwords(strtolower($crop)) }}
                                                         </span>
-                                                        <span class="font-bold text-green-700">{{ number_format($cropTotal, 2) }} mt</span>
+                                                        <span class="font-bold text-green-700">{{ number_format($cropTotal, 2) }} MT</span>
                                                     </div>
                                                     
                                                     @if($hasMonthly)
@@ -755,7 +605,7 @@
                                                             @foreach($cropPredictions as $pred)
                                                                 <div class="bg-white rounded px-2 py-1 text-xs shadow-sm hover:shadow-md transition-shadow">
                                                                     <div class="font-medium text-gray-600">{{ $pred['month'] }}</div>
-                                                                    <div class="font-bold text-green-600">{{ number_format($pred['predicted_production'], 1) }} mt</div>
+                                                                    <div class="font-bold text-green-600">{{ number_format($pred['predicted_production'], 1) }} MT</div>
                                                                     @if(isset($pred['confidence']))
                                                                         <div class="text-gray-500 text-[10px]">{{ $pred['confidence'] }}</div>
                                                                     @endif
@@ -994,15 +844,36 @@
                         return;
                     }
                     
-                    // Ensure all datasets have proper configuration
-                    chartData.datasets = chartData.datasets.map(dataset => ({
-                        ...dataset,
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 7,
-                        pointHitRadius: 10,
-                        fill: false
-                    }));
+                    // Modern chart styling with enhanced visual effects
+                    const isSingleDataset = chartData.datasets.length === 1;
+                    chartData.datasets = chartData.datasets.map((dataset, index) => {
+                        // Extract RGB values for gradient
+                        const colorMatch = dataset.borderColor ? dataset.borderColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/) : null;
+                        const r = colorMatch ? colorMatch[1] : '16';
+                        const g = colorMatch ? colorMatch[2] : '185';
+                        const b = colorMatch ? colorMatch[3] : '129';
+                        
+                        return {
+                            ...dataset,
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointHoverRadius: 10,
+                            pointHitRadius: 15,
+                            pointBackgroundColor: dataset.borderColor || 'rgb(' + r + ', ' + g + ', ' + b + ')',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointHoverBackgroundColor: '#ffffff',
+                            pointHoverBorderColor: dataset.borderColor || 'rgb(' + r + ', ' + g + ', ' + b + ')',
+                            pointHoverBorderWidth: 3,
+                            fill: isSingleDataset ? 'origin' : false,
+                            backgroundColor: isSingleDataset 
+                                ? 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)' 
+                                : 'transparent',
+                            tension: 0.35,
+                            borderCapStyle: 'round',
+                            borderJoinStyle: 'round'
+                        };
+                    });
                     
                     console.log('Final chart data being passed to Chart.js:', chartData);
                     
@@ -1043,69 +914,83 @@
                                     display: true,
                                     position: 'bottom',
                                     labels: {
-                                        padding: 12,
+                                        padding: 16,
                                         font: {
                                             size: 13,
-                                            weight: '500'
+                                            weight: '600',
+                                            family: "'Inter', 'Segoe UI', sans-serif"
                                         },
                                         usePointStyle: true,
-                                        pointStyle: 'circle',
-                                        boxWidth: 10,
-                                        boxHeight: 10
+                                        pointStyle: 'rectRounded',
+                                        boxWidth: 12,
+                                        boxHeight: 12
                                     }
                                 },
                                 tooltip: {
                                     mode: 'index',
                                     intersect: false,
-                                    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                                    titleColor: '#fff',
+                                    bodyColor: 'rgba(255, 255, 255, 0.9)',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1,
+                                    cornerRadius: 12,
                                     padding: 16,
                                     titleFont: {
-                                        size: 16,
-                                        weight: 'bold'
+                                        size: 15,
+                                        weight: 'bold',
+                                        family: "'Inter', 'Segoe UI', sans-serif"
                                     },
                                     bodyFont: {
-                                        size: 15
+                                        size: 14,
+                                        family: "'Inter', 'Segoe UI', sans-serif"
                                     },
+                                    bodySpacing: 6,
+                                    boxPadding: 6,
+                                    displayColors: true,
                                     callbacks: {
+                                        title: function(context) {
+                                            // Simple title
+                                            return '📅 ' + context[0].label;
+                                        },
                                         label: function(context) {
                                             let label = context.dataset.label || '';
                                             if (label) {
-                                                label += ': ';
+                                                label = '📍 ' + label + ': ';
                                             }
-                                            // Ensure precise number display
-                                            const value = typeof context.parsed.y === 'number' 
-                                                ? context.parsed.y.toLocaleString(undefined, {
-                                                    minimumFractionDigits: 2,
+                                            // Format number in a friendly way
+                                            const value = context.parsed.y;
+                                            let formattedValue;
+                                            if (value >= 1000000) {
+                                                formattedValue = (value / 1000000).toFixed(2) + ' Million';
+                                            } else if (value >= 1000) {
+                                                formattedValue = (value / 1000).toFixed(1) + ' Thousand';
+                                            } else {
+                                                formattedValue = value.toLocaleString(undefined, {
+                                                    minimumFractionDigits: 0,
                                                     maximumFractionDigits: 2
-                                                })
-                                                : context.parsed.y;
-                                            label += value + ' mt';
-                                            return label;
+                                                });
+                                            }
+                                            return label + formattedValue + ' metric tons';
+                                        },
+                                        footer: function(context) {
+                                            return '🌾 Total harvested crop weight';
                                         }
                                     }
                                 },
                                 zoom: {
                                     zoom: {
                                         wheel: {
-                                            enabled: true,
-                                            speed: 0.05
+                                            enabled: false  // Disabled for simpler UX
                                         },
                                         pinch: {
-                                            enabled: true
+                                            enabled: false
                                         },
                                         mode: 'xy'
                                     },
                                     pan: {
-                                        enabled: true,
-                                        mode: 'xy',
-                                        onPanComplete: function({chart}) {
-                                            // Ensure chart updates properly after panning
-                                            chart.update('none');
-                                        }
-                                    },
-                                    limits: {
-                                        x: {min: 'original', max: 'original', minRange: 2},
-                                        y: {min: 0, max: 'original', minRange: 50}
+                                        enabled: false,  // Disabled for simpler UX
+                                        mode: 'xy'
                                     }
                                 }
                             },
@@ -1114,44 +999,70 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Production (mt)',
+                                        text: '⬆️ Total Harvest (Metric Tons)',
                                         font: {
-                                            size: 18,
-                                            weight: 'bold'
+                                            size: 13,
+                                            weight: '600',
+                                            family: "'Inter', 'Segoe UI', sans-serif"
                                         },
-                                        padding: { top: 0, bottom: 12 }
+                                        color: '#374151',
+                                        padding: { top: 0, bottom: 10 }
                                     },
                                     ticks: {
                                         font: {
-                                            size: 15
+                                            size: 12,
+                                            family: "'Inter', 'Segoe UI', sans-serif"
                                         },
+                                        color: '#6B7280',
                                         callback: function(value) {
-                                            return value.toLocaleString() + ' mt';
+                                            // User-friendly number formatting
+                                            if (value >= 1000000) {
+                                                return (value / 1000000).toFixed(1) + ' Million';
+                                            } else if (value >= 1000) {
+                                                return (value / 1000).toFixed(0) + 'K';
+                                            }
+                                            return value.toLocaleString();
                                         },
-                                        precision: 2
+                                        precision: 0,
+                                        maxTicksLimit: 6  // Less ticks for cleaner look
                                     },
                                     grid: {
-                                        color: 'rgba(0, 0, 0, 0.1)',
-                                        lineWidth: 1
+                                        color: 'rgba(229, 231, 235, 0.5)',
+                                        lineWidth: 1,
+                                        drawBorder: false
+                                    },
+                                    border: {
+                                        display: false
                                     }
                                 },
                                 x: {
                                     title: {
                                         display: true,
-                                        text: 'Year',
+                                        text: '📆 Time Period',
                                         font: {
-                                            size: 18,
-                                            weight: 'bold'
+                                            size: 13,
+                                            weight: '600',
+                                            family: "'Inter', 'Segoe UI', sans-serif"
                                         },
-                                        padding: { top: 12, bottom: 0 }
+                                        color: '#374151',
+                                        padding: { top: 10, bottom: 0 }
                                     },
                                     ticks: {
                                         font: {
-                                            size: 15
+                                            size: 12,
+                                            weight: '500',
+                                            family: "'Inter', 'Segoe UI', sans-serif"
                                         },
+                                        color: '#374151',
                                         autoSkip: true,
                                         maxRotation: 0,
                                         minRotation: 0
+                                    },
+                                    grid: {
+                                        display: false
+                                    },
+                                    border: {
+                                        display: false
                                     },
                                     grid: {
                                         display: false
@@ -1168,6 +1079,19 @@
                 }
             }
         }
+        
+        // Initialize chart when DOM is ready (fallback for timing issues)
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (typeof dataAnalytics === 'function' && !trendChartInstance) {
+                    console.log('DOMContentLoaded: Initializing chart...');
+                    const analytics = dataAnalytics();
+                    if (analytics && typeof analytics.init === 'function') {
+                        analytics.init();
+                    }
+                }
+            }, 200);
+        });
     </script>
     @endpush
 
@@ -1244,7 +1168,7 @@
                             }
                             
                             $stats = $statsQuery->selectRaw('
-                                    SUM(production) / 1000 as total_production,
+                                    SUM(production) as total_production,
                                     SUM(area_harvested) as area_harvested,
                                     AVG(productivity) as productivity,
                                     COUNT(DISTINCT month) as records
@@ -1290,7 +1214,7 @@
                                             <p class="text-xl font-bold text-green-700">
                                                 @foreach($municipalityStats as $munName => $stat)
                                                     <span x-show="selectedMunicipality === '{{ $munName }}'">
-                                                        {{ number_format($stat->productivity ?? 0, 2) }} kg/ha
+                                                        {{ number_format($stat->productivity ?? 0, 2) }} MT/ha
                                                     </span>
                                                 @endforeach
                                             </p>
@@ -1332,8 +1256,8 @@
                                             $rainfedQuery->where('crop', $filterCrop);
                                         }
                                         
-                                        $irrigated = $irrigatedQuery->sum('production') / 1000; // Convert to MT
-                                        $rainfed = $rainfedQuery->sum('production') / 1000; // Convert to MT
+                                        $irrigated = $irrigatedQuery->sum('production'); // Production is already in MT
+                                        $rainfed = $rainfedQuery->sum('production'); // Production is already in MT
                                         $total = $irrigated + $rainfed;
                                         
                                         $farmTypeDistributions[$mun] = [
@@ -1422,7 +1346,7 @@
                                         if ($showYearlyView) {
                                             // Show yearly trends when no filters selected
                                             $years = \App\Models\Crop::where('municipality', $mun)
-                                                ->select('year', \DB::raw('SUM(production) / 1000 as production'))
+                                                ->select('year', \DB::raw('SUM(production) as production'))
                                                 ->groupBy('year')
                                                 ->orderBy('year', 'desc')
                                                 ->limit(10)
@@ -1431,7 +1355,7 @@
                                             
                                             // Get top 10 crops for this municipality (all years)
                                             $topCrops = \App\Models\Crop::where('municipality', $mun)
-                                                ->select('crop', \DB::raw('SUM(production) / 1000 as production'))
+                                                ->select('crop', \DB::raw('SUM(production) as production'))
                                                 ->groupBy('crop')
                                                 ->orderByDesc('production')
                                                 ->limit(10)
@@ -1452,7 +1376,7 @@
                                                 $monthsQuery->where('farm_type', $filterFarmType);
                                             }
                                             
-                                            $months = $monthsQuery->select('month', \DB::raw('SUM(production) / 1000 as production'))
+                                            $months = $monthsQuery->select('month', \DB::raw('SUM(production) as production'))
                                                 ->groupBy('month')
                                                 ->orderByRaw("FIELD(month, 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')")
                                                 ->get();
@@ -1624,7 +1548,7 @@
                                                         class="max-w-[250px] max-h-[250px]"
                                                         data-municipality="{{ $munName }}"
                                                         data-crops="{{ json_encode($crops->pluck('crop')->toArray()) }}"
-                                                        data-production="{{ json_encode($crops->pluck('total_production')->map(function($val) { return round($val / 1000, 2); })->toArray()) }}">
+                                                        data-production="{{ json_encode($crops->pluck('total_production')->map(function($val) { return round($val, 2); })->toArray()) }}">
                                                 </canvas>
                                             </div>
 
@@ -1640,7 +1564,7 @@
                                                     </div>
                                                     <div class="text-right">
                                                         <span class="text-sm font-bold text-gray-800">{{ number_format($percentage, 1) }}%</span>
-                                                        <span class="text-xs text-gray-500 block">{{ number_format($crop->total_production / 1000, 2) }} mt</span>
+                                                        <span class="text-xs text-gray-500 block">{{ number_format($crop->total_production, 2) }} MT</span>
                                                     </div>
                                                 </div>
                                             @endforeach
@@ -1678,9 +1602,18 @@
                 
                 if (crops.length === 0) return;
 
+                // Modern vibrant color palette matching the main chart
                 const colors = [
-                    'rgb(59, 130, 246)', 'rgb(34, 197, 94)', 'rgb(234, 179, 8)', 'rgb(239, 68, 68)',
-                    'rgb(168, 85, 247)', 'rgb(236, 72, 153)', 'rgb(99, 102, 241)', 'rgb(251, 146, 60)'
+                    'rgb(16, 185, 129)',   // Emerald
+                    'rgb(59, 130, 246)',   // Blue
+                    'rgb(245, 158, 11)',   // Amber
+                    'rgb(239, 68, 68)',    // Red
+                    'rgb(139, 92, 246)',   // Violet
+                    'rgb(236, 72, 153)',   // Pink
+                    'rgb(6, 182, 212)',    // Cyan
+                    'rgb(249, 115, 22)',   // Orange
+                    'rgb(34, 197, 94)',    // Green
+                    'rgb(99, 102, 241)'    // Indigo
                 ];
 
                 new Chart(canvas, {
@@ -1691,17 +1624,27 @@
                             data: production,
                             backgroundColor: colors.slice(0, crops.length),
                             borderColor: '#ffffff',
-                            borderWidth: 2
+                            borderWidth: 3,
+                            hoverBorderWidth: 4,
+                            hoverOffset: 8
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: true,
+                        cutout: '60%',
                         plugins: {
                             legend: {
                                 display: false
                             },
                             tooltip: {
+                                backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                                titleColor: '#fff',
+                                bodyColor: 'rgba(255, 255, 255, 0.9)',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                cornerRadius: 10,
+                                padding: 12,
                                 callbacks: {
                                     label: function(context) {
                                         const label = context.label || '';

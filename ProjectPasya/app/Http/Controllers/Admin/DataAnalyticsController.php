@@ -16,6 +16,34 @@ class DataAnalyticsController extends Controller
 {
     protected $predictionService;
 
+    /**
+     * Fixed color mapping for each municipality to ensure consistent colors across all charts
+     */
+    protected const MUNICIPALITY_COLORS = [
+        'ATOK' => 'rgb(16, 185, 129)',       // Emerald
+        'BAKUN' => 'rgb(59, 130, 246)',      // Blue
+        'BOKOD' => 'rgb(245, 158, 11)',      // Amber
+        'BUGUIAS' => 'rgb(239, 68, 68)',     // Red
+        'ITOGON' => 'rgb(139, 92, 246)',     // Violet
+        'KABAYAN' => 'rgb(236, 72, 153)',    // Pink
+        'KAPANGAN' => 'rgb(6, 182, 212)',    // Cyan
+        'KIBUNGAN' => 'rgb(249, 115, 22)',   // Orange
+        'LATRINIDAD' => 'rgb(34, 197, 94)', // Green
+        'MANKAYAN' => 'rgb(99, 102, 241)',   // Indigo
+        'SABLAN' => 'rgb(168, 85, 247)',     // Purple
+        'TUBA' => 'rgb(14, 165, 233)',       // Sky
+        'TUBLAY' => 'rgb(251, 191, 36)',     // Yellow
+    ];
+
+    /**
+     * Get the color for a municipality (case-insensitive)
+     */
+    protected function getMunicipalityColor(string $municipality): string
+    {
+        $upperMunicipality = strtoupper(trim($municipality));
+        return self::MUNICIPALITY_COLORS[$upperMunicipality] ?? 'rgb(107, 114, 128)'; // Gray fallback
+    }
+
     public function __construct(PredictionService $predictionService)
     {
         $this->predictionService = $predictionService;
@@ -57,7 +85,7 @@ class DataAnalyticsController extends Controller
             ->select(
                 'municipality',
                 'year',
-                DB::raw('SUM(production) / 1000 as total_production') // Convert to metric tons
+                DB::raw('SUM(production) as total_production') // Production is already in metric tons
             )
             ->groupBy('municipality', 'year')
             ->orderBy('year')
@@ -73,7 +101,7 @@ class DataAnalyticsController extends Controller
             $cropData = (clone $query)
                 ->select(
                     'crop',
-                    DB::raw('SUM(production) / 1000 as total_production')
+                    DB::raw('SUM(production) as total_production')
                 )
                 ->groupBy('crop')
                 ->orderByDesc('total_production')
@@ -82,11 +110,18 @@ class DataAnalyticsController extends Controller
 
             $cropLabels = [];
             $cropProduction = [];
+            // Modern vibrant color palette for charts
             $colors = [
-                'rgb(59, 130, 246)', 'rgb(239, 68, 68)', 'rgb(34, 197, 94)', 
-                'rgb(234, 179, 8)', 'rgb(168, 85, 247)', 'rgb(236, 72, 153)',
-                'rgb(20, 184, 166)', 'rgb(251, 146, 60)', 'rgb(156, 163, 175)',
-                'rgb(14, 165, 233)'
+                'rgb(16, 185, 129)',   // Emerald
+                'rgb(59, 130, 246)',   // Blue
+                'rgb(245, 158, 11)',   // Amber
+                'rgb(239, 68, 68)',    // Red
+                'rgb(139, 92, 246)',   // Violet
+                'rgb(236, 72, 153)',   // Pink
+                'rgb(6, 182, 212)',    // Cyan
+                'rgb(249, 115, 22)',   // Orange
+                'rgb(34, 197, 94)',    // Green
+                'rgb(99, 102, 241)'    // Indigo
             ];
             
             foreach ($cropData as $data) {
@@ -120,7 +155,7 @@ class DataAnalyticsController extends Controller
 
             // Get top 10 crops for this period to use as X-axis labels
             $topCrops = (clone $query)
-                ->select('crop', DB::raw('SUM(production) / 1000 as total_production'))
+                ->select('crop', DB::raw('SUM(production) as total_production'))
                 ->groupBy('crop')
                 ->orderByDesc('total_production')
                 ->limit(10)
@@ -132,7 +167,7 @@ class DataAnalyticsController extends Controller
                 ->select(
                     'municipality',
                     'crop',
-                    DB::raw('SUM(production) / 1000 as total_production')
+                    DB::raw('SUM(production) as total_production')
                 )
                 ->groupBy('municipality', 'crop')
                 ->get();
@@ -141,14 +176,6 @@ class DataAnalyticsController extends Controller
             $cropLabels = $topCrops->map(function($crop) {
                 return ucwords(strtolower($crop));
             })->toArray();
-
-            // Colors for different municipalities
-            $colors = [
-                'rgb(59, 130, 246)', 'rgb(239, 68, 68)', 'rgb(34, 197, 94)', 
-                'rgb(234, 179, 8)', 'rgb(168, 85, 247)', 'rgb(236, 72, 153)',
-                'rgb(20, 184, 166)', 'rgb(251, 146, 60)', 'rgb(156, 163, 175)',
-                'rgb(14, 165, 233)'
-            ];
 
             // Create datasets - one line per municipality
             $datasets = [];
@@ -166,7 +193,7 @@ class DataAnalyticsController extends Controller
                 $datasets[] = [
                     'label' => ucwords(strtolower($municipality)),
                     'data' => $data,
-                    'borderColor' => $colors[$index % count($colors)],
+                    'borderColor' => $this->getMunicipalityColor($municipality),
                     'backgroundColor' => 'transparent',
                     'borderWidth' => 2,
                     'tension' => 0.4,
@@ -209,7 +236,7 @@ class DataAnalyticsController extends Controller
                 ->select(
                     'municipality',
                     'month',
-                    DB::raw('SUM(production) / 1000 as total_production')
+                    DB::raw('SUM(production) as total_production')
                 )
                 ->groupBy('municipality', 'month')
                 ->orderByRaw("FIELD(month, 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')")
@@ -221,15 +248,6 @@ class DataAnalyticsController extends Controller
             
             // Create month labels
             $monthLabels = array_values($monthNames);
-            
-            // Colors for different municipalities
-            $colors = [
-                'rgb(59, 130, 246)', 'rgb(239, 68, 68)', 'rgb(34, 197, 94)', 
-                'rgb(234, 179, 8)', 'rgb(168, 85, 247)', 'rgb(236, 72, 153)',
-                'rgb(20, 184, 166)', 'rgb(251, 146, 60)', 'rgb(156, 163, 175)',
-                'rgb(14, 165, 233)', 'rgb(124, 58, 237)', 'rgb(220, 38, 38)',
-                'rgb(22, 163, 74)'
-            ];
 
             $datasets = [];
             foreach ($municipalitiesInYear as $index => $municipality) {
@@ -245,7 +263,7 @@ class DataAnalyticsController extends Controller
                 $datasets[] = [
                     'label' => $municipality,
                     'data' => $data,
-                    'borderColor' => $colors[$index % count($colors)],
+                    'borderColor' => $this->getMunicipalityColor($municipality),
                     'backgroundColor' => 'transparent',
                     'borderWidth' => 2,
                     'tension' => 0.4,
@@ -277,7 +295,7 @@ class DataAnalyticsController extends Controller
             $monthlyTrendData = $monthlyQuery
                 ->select(
                     'month',
-                    DB::raw('SUM(production) / 1000 as total_production')
+                    DB::raw('SUM(production) as total_production')
                 )
                 ->groupBy('month')
                 ->orderByRaw("FIELD(month, 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')")
@@ -302,13 +320,16 @@ class DataAnalyticsController extends Controller
                 'datasets' => [[
                     'label' => ucwords(strtolower($filters['crop'])) . ' - ' . $filters['municipality'] . ' (' . $filters['year'] . ')',
                     'data' => $monthData,
-                    'borderColor' => 'rgb(168, 85, 247)',
-                    'backgroundColor' => 'rgba(168, 85, 247, 0.1)',
+                    'borderColor' => 'rgb(16, 185, 129)',
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.15)',
                     'borderWidth' => 3,
                     'tension' => 0.4,
                     'fill' => true,
-                    'pointRadius' => 5,
-                    'pointHoverRadius' => 8
+                    'pointRadius' => 6,
+                    'pointHoverRadius' => 10,
+                    'pointBackgroundColor' => 'rgb(16, 185, 129)',
+                    'pointBorderColor' => '#fff',
+                    'pointBorderWidth' => 2
                 ]]
             ];
         }
@@ -333,7 +354,7 @@ class DataAnalyticsController extends Controller
             $monthlyTrendData = $monthlyQuery
                 ->select(
                     'month',
-                    DB::raw('SUM(production) / 1000 as total_production')
+                    DB::raw('SUM(production) as total_production')
                 )
                 ->groupBy('month')
                 ->orderByRaw("FIELD(month, 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC')")
@@ -358,25 +379,21 @@ class DataAnalyticsController extends Controller
                 'datasets' => [[
                     'label' => $filters['municipality'] . ' (' . $filters['year'] . ')',
                     'data' => $monthData,
-                    'borderColor' => 'rgb(34, 197, 94)',
-                    'backgroundColor' => 'rgba(34, 197, 94, 0.1)',
+                    'borderColor' => 'rgb(59, 130, 246)',
+                    'backgroundColor' => 'rgba(59, 130, 246, 0.15)',
                     'borderWidth' => 3,
                     'tension' => 0.4,
                     'fill' => true,
-                    'pointRadius' => 5,
-                    'pointHoverRadius' => 8
+                    'pointRadius' => 6,
+                    'pointHoverRadius' => 10,
+                    'pointBackgroundColor' => 'rgb(59, 130, 246)',
+                    'pointBorderColor' => '#fff',
+                    'pointBorderWidth' => 2
                 ]]
             ];
         } else {
             // Regular year-over-year trend chart
             $datasets = [];
-            $colors = [
-                'rgb(59, 130, 246)', 'rgb(239, 68, 68)', 'rgb(34, 197, 94)', 
-                'rgb(234, 179, 8)', 'rgb(168, 85, 247)', 'rgb(236, 72, 153)',
-                'rgb(20, 184, 166)', 'rgb(251, 146, 60)', 'rgb(156, 163, 175)',
-                'rgb(14, 165, 233)', 'rgb(124, 58, 237)', 'rgb(220, 38, 38)',
-                'rgb(22, 163, 74)'
-            ];
 
             foreach ($municipalities as $index => $municipality) {
                 $municipalityData = $trendData->where('municipality', $municipality);
@@ -390,7 +407,7 @@ class DataAnalyticsController extends Controller
                 $datasets[] = [
                     'label' => $municipality,
                     'data' => $data,
-                    'borderColor' => $colors[$index % count($colors)],
+                    'borderColor' => $this->getMunicipalityColor($municipality),
                     'backgroundColor' => 'transparent',
                     'borderWidth' => 2,
                     'tension' => 0.4,
@@ -418,7 +435,7 @@ class DataAnalyticsController extends Controller
         $monthlyData = (clone $query)
             ->select(
                 'month',
-                DB::raw('SUM(production) / 1000 as total_production') // Convert to metric tons
+                DB::raw('SUM(production) as total_production') // Production is already in metric tons
             )
             ->groupBy('month')
             ->get();
@@ -539,12 +556,12 @@ class DataAnalyticsController extends Controller
         // Total area harvested (in hectares)
         $totalAreaHarvested = (clone $query)->sum('area_harvested');
 
-        // Average yield (productivity in kg/ha)
+        // Average yield (productivity in mt/ha)
         $averageYield = (clone $query)->avg('productivity');
 
         // Top 3 crops by production
         $topCrops = (clone $query)
-            ->select('crop', DB::raw('SUM(production) / 1000 as total_production')) // Convert to mt
+            ->select('crop', DB::raw('SUM(production) as total_production')) // Production is already in mt
             ->groupBy('crop')
             ->orderByDesc('total_production')
             ->limit(3)
@@ -552,7 +569,7 @@ class DataAnalyticsController extends Controller
 
         // Most productive municipality
         $mostProductiveMunicipality = (clone $query)
-            ->select('municipality', DB::raw('SUM(production) / 1000 as total_production')) // Convert to mt
+            ->select('municipality', DB::raw('SUM(production) as total_production')) // Production is already in mt
             ->groupBy('municipality')
             ->orderByDesc('total_production')
             ->first();
@@ -687,8 +704,8 @@ class DataAnalyticsController extends Controller
             $datasets = $chartData['datasets'];
             
             if (count($labels) >= 2 && !empty($datasets)) {
-                // If filtering by specific municipality, compare just that municipality
-                if (isset($filters['municipality']) && count($datasets) === 1) {
+                // If filtering by specific municipality or crop with single dataset, compare just that
+                if ((isset($filters['municipality']) || isset($filters['crop'])) && count($datasets) === 1) {
                     $data = $datasets[0]['data'];
                     if (count($data) >= 2) {
                         // Get non-zero values
@@ -704,19 +721,23 @@ class DataAnalyticsController extends Controller
                         }
                     }
                 } else {
-                    // Sum all municipalities' production for last two years
+                    // Sum all municipalities' production for last two years based on year labels
+                    $yearCount = count($labels);
+                    $lastYearIndex = $yearCount - 1;
+                    $previousYearIndex = $yearCount - 2;
+                    
                     $lastYearTotal = 0;
                     $previousYearTotal = 0;
                     
                     foreach ($datasets as $dataset) {
-                        if (isset($dataset['data']) && count($dataset['data']) >= 2) {
+                        if (isset($dataset['data'])) {
                             $data = $dataset['data'];
-                            // Get last two non-zero values
-                            $nonZeroData = array_filter($data, function($val) { return $val > 0; });
-                            if (count($nonZeroData) >= 2) {
-                                $values = array_values($nonZeroData);
-                                $lastYearTotal += end($values);
-                                $previousYearTotal += prev($values);
+                            // Use the actual year indices instead of filtering non-zero
+                            if (isset($data[$lastYearIndex])) {
+                                $lastYearTotal += $data[$lastYearIndex];
+                            }
+                            if (isset($data[$previousYearIndex])) {
+                                $previousYearTotal += $data[$previousYearIndex];
                             }
                         }
                     }
@@ -840,9 +861,8 @@ class DataAnalyticsController extends Controller
                         ]);
 
                         if ($prediction && isset($prediction['success']) && $prediction['success']) {
-                            // ML API returns production in kilograms, convert to metric tons (MT)
-                            $productionKg = $prediction['prediction']['production_mt'] ?? 0;
-                            $productionMT = $productionKg / 1000;
+                            // ML API returns production_mt which is already in metric tons (MT)
+                            $productionMT = $prediction['prediction']['production_mt'] ?? 0;
                             
                             $predictions[] = [
                                 'year' => $year,

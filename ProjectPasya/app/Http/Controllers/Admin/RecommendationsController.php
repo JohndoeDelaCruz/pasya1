@@ -149,10 +149,13 @@ class RecommendationsController extends Controller
                 $allocatedAmount = $totalSubsidyArea * $seedRate;
             } else {
                 // If no subsidy data, allocate 50-80% based on crop priority
-                // Priority based on production success rate
-                $successRate = min(0.80, max(0.50, 
-                    $crop->total_production / ($crop->total_area_planted * 1000)
-                ));
+                // Priority based on average productivity (production / area)
+                // Normalize productivity to 0.5-0.8 range for allocation percentage
+                $avgProductivity = $crop->total_area_planted > 0 
+                    ? $crop->total_production / $crop->total_area_planted 
+                    : 0;
+                // Assume typical productivity range is 5-20 mt/ha, normalize to 0.5-0.8
+                $successRate = min(0.80, max(0.50, 0.5 + ($avgProductivity / 20) * 0.3));
                 $allocatedAmount = $neededAmount * $successRate;
             }
             
