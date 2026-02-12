@@ -281,13 +281,13 @@
                         progressBar.style.width = processingProgress + '%';
                         progressPercent.textContent = Math.round(processingProgress) + '%';
                         
-                        if (processingProgress >= 40 && processingProgress < 60) {
+                        if (processingProgress >= 40 && processingProgress < 70) {
                             progressStatus.textContent = 'Processing rows...';
                             progressMessage.textContent = 'Importing records into database...';
-                        } else if (processingProgress >= 60 && processingProgress < 80) {
-                            progressStatus.textContent = 'Checking duplicates...';
-                            progressMessage.textContent = 'Verifying data integrity...';
-                        } else if (processingProgress >= 80) {
+                        } else if (processingProgress >= 70 && processingProgress < 85) {
+                            progressStatus.textContent = 'Saving data...';
+                            progressMessage.textContent = 'Writing records to database...';
+                        } else if (processingProgress >= 85) {
                             progressStatus.textContent = 'Finalizing import...';
                             progressMessage.textContent = 'Almost done, completing import...';
                         }

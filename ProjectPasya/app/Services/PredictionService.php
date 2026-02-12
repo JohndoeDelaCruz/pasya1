@@ -141,7 +141,7 @@ class PredictionService
      * @param string $crop
      * @return string
      */
-    protected function patternBasedNormalization(string $crop): string
+    public function patternBasedNormalization(string $crop): string
     {
         // If already has spaces, return as-is
         if (strpos($crop, ' ') !== false) {

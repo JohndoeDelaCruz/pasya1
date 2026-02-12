@@ -8,6 +8,7 @@ use App\Models\Crop;
 use App\Models\CropType;
 use App\Models\Municipality;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CropDataController extends Controller
@@ -105,13 +106,33 @@ class CropDataController extends Controller
 
         try {
             // Increase execution time and memory for large imports
-            set_time_limit(300); // 5 minutes
-            ini_set('memory_limit', '512M');
+            set_time_limit(600); // 10 minutes for very large files
+            ini_set('memory_limit', '1G');
             
             $startTime = microtime(true);
             
+            // Temporarily disable CropObserver during bulk import
+            // (mappings are created in bulk after import instead of per-row)
+            Crop::unsetEventDispatcher();
+            
             $import = new CropsImport;
-            Excel::import($import, $request->file('file'));
+            
+            // Wrap entire import in a transaction for faster inserts
+            DB::beginTransaction();
+            try {
+                Excel::import($import, $request->file('file'));
+                
+                // Bulk-create crop name mappings (replaces per-row observer logic)
+                $import->createBulkCropMappings();
+                
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            } finally {
+                // Re-enable CropObserver
+                Crop::setEventDispatcher(app('events'));
+            }
             
             $endTime = microtime(true);
             $executionTime = round($endTime - $startTime, 2);
@@ -120,11 +141,7 @@ class CropDataController extends Controller
             
             // Build success message with details
             $message = "Import completed in {$executionTime} seconds. ";
-            $message .= "Imported: {$import->importedCount} new records. ";
-            
-            if ($import->duplicateCount > 0) {
-                $message .= "Skipped: {$import->duplicateCount} duplicates. ";
-            }
+            $message .= "Imported: {$import->importedCount} records. ";
             
             if ($import->skippedCount > 0) {
                 $message .= "Skipped: {$import->skippedCount} invalid rows. ";
