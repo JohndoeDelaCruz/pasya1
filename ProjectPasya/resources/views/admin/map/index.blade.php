@@ -95,9 +95,14 @@
                     <div id="map" style="height: 500px; width: 100%;" class="rounded-lg shadow-inner sm:h-[600px] lg:h-[750px]"></div>
 
                     <!-- Legend - Positioned on the left side of map -->
-                    <div id="legend" class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 bg-white p-3 lg:p-4 rounded-lg shadow-lg border-2 border-gray-200 z-[1000] max-w-[200px] sm:max-w-[240px] lg:max-w-[280px]">
-                        <h4 class="font-bold text-gray-800 mb-2 lg:mb-3 text-xs lg:text-sm uppercase tracking-wide">Production Legend</h4>
-                        <div id="legend-content">
+                    <div id="legend" class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 bg-white rounded-lg shadow-lg border-2 border-gray-200 z-[1000] max-w-[200px] sm:max-w-[240px] lg:max-w-[280px]">
+                        <button id="legend-toggle-btn" onclick="toggleLegend()" class="w-full flex items-center justify-between p-3 lg:p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors">
+                            <h4 class="font-bold text-gray-800 text-xs lg:text-sm uppercase tracking-wide">Production Legend</h4>
+                            <svg id="legend-toggle-icon" class="w-4 h-4 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="legend-content" class="px-3 pb-3 lg:px-4 lg:pb-4">
                             <span class="text-xs text-gray-600">Select filters to view data</span>
                         </div>
                     </div>
@@ -506,17 +511,17 @@
 
         // Get color for value ratio (0-1)
         function getColor(ratio) {
-            // Blue to Red gradient - much easier to distinguish
+            // Red (lowest) to Green (highest) gradient
             const colors = [
-                '#0ea5e9', // Sky blue (lowest)
-                '#22c55e', // Green
-                '#84cc16', // Lime green
-                '#eab308', // Yellow
-                '#f59e0b', // Amber
-                '#f97316', // Orange
-                '#ef4444', // Red
+                '#991b1b', // Very dark red (lowest)
                 '#dc2626', // Dark red
-                '#991b1b'  // Very dark red (highest)
+                '#ef4444', // Red
+                '#f97316', // Orange
+                '#f59e0b', // Amber
+                '#eab308', // Yellow
+                '#84cc16', // Lime green
+                '#22c55e', // Green
+                '#15803d'  // Dark green (highest)
             ];
 
             const index = Math.floor(ratio * (colors.length - 1));
@@ -541,19 +546,19 @@
                     <!-- Color gradient -->
                     <div class="flex flex-col gap-1.5">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #991b1b;"></div>
+                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #15803d;"></div>
                             <span class="text-xs font-semibold text-gray-700">Highest</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #dc2626;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #22c55e;"></div>
                             <span class="text-xs text-gray-600">Very High</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #ef4444;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #84cc16;"></div>
                             <span class="text-xs text-gray-600">High</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #f97316;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #eab308;"></div>
                             <span class="text-xs text-gray-600">Medium-High</span>
                         </div>
                         <div class="flex items-center gap-2">
@@ -561,28 +566,28 @@
                             <span class="text-xs text-gray-600">Medium</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #eab308;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #f97316;"></div>
                             <span class="text-xs text-gray-600">Medium-Low</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #84cc16;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #ef4444;"></div>
                             <span class="text-xs text-gray-600">Low</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #22c55e;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #dc2626;"></div>
                             <span class="text-xs text-gray-600">Very Low</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #0ea5e9;"></div>
+                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #991b1b;"></div>
                             <span class="text-xs font-semibold text-gray-700">Lowest</span>
                         </div>
                     </div>
-                    
+
                     <!-- Range values -->
                     <div class="pt-2 border-t border-gray-200">
                         <div class="text-xs text-gray-600">
-                            <div><span class="font-medium">Max:</span> <span class="font-bold" style="color: #991b1b;">${Number(max).toLocaleString()} ${unit}</span></div>
-                            <div><span class="font-medium">Min:</span> <span class="font-bold" style="color: #0ea5e9;">${Number(min).toLocaleString()} ${unit}</span></div>
+                            <div><span class="font-medium">Max:</span> <span class="font-bold" style="color: #15803d;">${Number(max).toLocaleString()} ${unit}</span></div>
+                            <div><span class="font-medium">Min:</span> <span class="font-bold" style="color: #991b1b;">${Number(min).toLocaleString()} ${unit}</span></div>
                         </div>
                     </div>
                 </div>
@@ -834,6 +839,21 @@
 
         // Weather Overlay Toggle
         let weatherOverlayOpen = false;
+
+        // Toggle legend visibility
+        function toggleLegend() {
+            const legendContent = document.getElementById('legend-content');
+            const icon = document.getElementById('legend-toggle-icon');
+            const isHidden = legendContent.style.display === 'none';
+
+            if (isHidden) {
+                legendContent.style.display = '';
+                icon.classList.remove('rotate-180');
+            } else {
+                legendContent.style.display = 'none';
+                icon.classList.add('rotate-180');
+            }
+        }
 
         function toggleWeatherOverlay() {
             const overlay = document.getElementById('weather-overlay');
