@@ -247,6 +247,23 @@
             @if($hasChartData)
                 <div class="h-[600px] relative">
                     <canvas id="trendChart"></canvas>
+                    <!-- Zoom Controls -->
+                    <div class="absolute top-2 right-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-1">
+                        <button onclick="zoomIn()" title="Zoom In" class="p-2 hover:bg-gray-100 text-gray-600 hover:text-gray-800 rounded-md transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/>
+                            </svg>
+                        </button>
+                        <button onclick="zoomOut()" title="Zoom Out" class="p-2 hover:bg-gray-100 text-gray-600 hover:text-gray-800 rounded-md transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/>
+                            </svg>
+                        </button>
+                        <div class="w-px h-6 bg-gray-300 mx-1"></div>
+                        <button onclick="resetZoom()" title="Reset Zoom" class="px-2 py-1.5 hover:bg-gray-100 text-gray-600 hover:text-gray-800 rounded-md transition-colors text-xs font-medium">
+                            Reset
+                        </button>
+                    </div>
                 </div>
             @else
                 <div class="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
@@ -275,15 +292,98 @@
                 </div>
             @endif
 
-            <!-- Simple Help Text -->
-            @if($hasChartData)
-                <div class="mt-4 text-center">
-                    <p class="text-sm text-gray-500">
-                        💡 <span class="font-medium">Tip:</span> Each colored line represents a different area. Hover over points to see exact values.
-                    </p>
-                </div>
-            @endif
+
         </div>
+
+        <!-- Chart Details Side Panel - Slides from right on click -->
+        <div id="chart-details-panel" class="fixed top-0 right-0 h-full bg-white shadow-2xl z-[2000] transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto w-full sm:w-[400px] lg:w-[450px]">
+            <div class="p-4 lg:p-6">
+                <!-- Close Button -->
+                <button onclick="closeChartDetailsPanel()" class="absolute top-3 right-3 lg:top-4 lg:right-4 text-gray-500 hover:text-gray-700 z-10">
+                    <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <!-- Panel Header -->
+                <div class="mb-4 lg:mb-6 pr-8">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 id="panel-title" class="text-xl lg:text-2xl font-bold text-gray-800">Production Details</h2>
+                            <p id="panel-subtitle" class="text-sm text-gray-500">Click on a data point</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Content -->
+                <div id="chart-panel-content" class="space-y-6">
+                    <!-- Time Period Badge -->
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span id="panel-period">-</span>
+                        </span>
+                    </div>
+
+                    <!-- Production Value Card -->
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-5 border border-green-200">
+                        <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Production Summary</h3>
+                        <div class="text-center py-4">
+                            <p id="panel-production-value" class="text-4xl font-bold text-green-700">-</p>
+                            <p class="text-sm text-gray-600 mt-1">Total Harvest</p>
+                        </div>
+                    </div>
+
+                    <!-- Municipality/Crop Info -->
+                    <div class="bg-white rounded-lg p-5 border border-gray-200">
+                        <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Details</h3>
+                        <div id="panel-details-content" class="space-y-3">
+                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                <span class="text-gray-600">Municipality/Crop</span>
+                                <span id="panel-entity" class="font-semibold text-gray-800">-</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                <span class="text-gray-600">Time Period</span>
+                                <span id="panel-time-detail" class="font-semibold text-gray-800">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- All Municipalities for this Period -->
+                    <div class="bg-white rounded-lg p-5 border border-gray-200">
+                        <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">All Data for This Period</h3>
+                        <div id="panel-all-data" class="space-y-2 max-h-[300px] overflow-y-auto">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Comparison Section -->
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-5 border border-blue-200">
+                        <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Quick Stats</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 mb-1">Rank</p>
+                                <p id="panel-rank" class="text-2xl font-bold text-blue-700">#-</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-xs text-gray-600 mb-1">% of Total</p>
+                                <p id="panel-percentage" class="text-2xl font-bold text-indigo-700">-%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay for side panel -->
+        <div id="chart-panel-overlay" onclick="closeChartDetailsPanel()" class="fixed inset-0 bg-black bg-opacity-30 z-[1999] hidden"></div>
 
         <!-- Key Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -316,7 +416,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-800">{{ number_format($averageYield ?? 0, 2) }} <span class="text-lg font-medium text-gray-500">MT/ha</span></div>
+                <div class="text-3xl font-bold text-gray-800">{{ number_format($averageYield ?? 0, 2) }} <span class="text-lg font-medium text-gray-500">mt/ha</span></div>
                 <div class="flex items-center gap-1 mt-2">
                     <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
@@ -362,7 +462,7 @@
                                     @foreach($topCrops->take(3) as $index => $crop)
                                         <li class="flex items-center gap-2 hover-scale transition-transform">
                                             <span class="font-medium text-green-600">{{ $index + 1 }}.</span>
-                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} MT</span></span>
+                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} mt</span></span>
                                         </li>
                                     @endforeach
                                 @else
@@ -392,7 +492,7 @@
                             <p class="text-sm text-gray-600">
                                 @if(isset($topMunicipality))
                                     <span class="font-semibold text-green-700">{{ ucwords(strtolower($topMunicipality->municipality)) }}</span>
-                                    <span class="text-gray-500"> - {{ number_format($topMunicipality->total_production, 2) }} MT total</span>
+                                    <span class="text-gray-500"> - {{ number_format($topMunicipality->total_production, 2) }} mt total</span>
                                 @else
                                     <span class="text-gray-400 italic">No data available for selected filters</span>
                                 @endif
@@ -579,7 +679,7 @@
                                                     </svg>
                                                     <span class="font-bold">{{ ucwords(strtolower($municipality)) }}</span>
                                                 </div>
-                                                <span class="font-bold text-lg">{{ number_format($totalProduction, 2) }} MT</span>
+                                                <span class="font-bold text-lg">{{ number_format($totalProduction, 2) }} mt</span>
                                             </div>
                                         </div>
 
@@ -596,7 +696,7 @@
                                                         <span class="font-semibold text-gray-800 text-sm">
                                                             {{ ucwords(strtolower($crop)) }}
                                                         </span>
-                                                        <span class="font-bold text-green-700">{{ number_format($cropTotal, 2) }} MT</span>
+                                                        <span class="font-bold text-green-700">{{ number_format($cropTotal, 2) }} mt</span>
                                                     </div>
                                                     
                                                     @if($hasMonthly)
@@ -605,7 +705,7 @@
                                                             @foreach($cropPredictions as $pred)
                                                                 <div class="bg-white rounded px-2 py-1 text-xs shadow-sm hover:shadow-md transition-shadow">
                                                                     <div class="font-medium text-gray-600">{{ $pred['month'] }}</div>
-                                                                    <div class="font-bold text-green-600">{{ number_format($pred['predicted_production'], 1) }} MT</div>
+                                                                    <div class="font-bold text-green-600">{{ number_format($pred['predicted_production'], 1) }} mt</div>
                                                                     @if(isset($pred['confidence']))
                                                                         <div class="text-gray-500 text-[10px]">{{ $pred['confidence'] }}</div>
                                                                     @endif
@@ -785,20 +885,167 @@
     </div>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script>
+        // Verify zoom plugin loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Chart available:', typeof Chart !== 'undefined');
+            console.log('Hammer available:', typeof Hammer !== 'undefined');
+            if (typeof Chart !== 'undefined' && Chart.registry && Chart.registry.plugins) {
+                console.log('Registered plugins:', Object.keys(Chart.registry.plugins.items || {}));
+            }
+        });
+        
         // Global variable to store chart instance
         let trendChartInstance = null;
+        // Store chart data globally for panel access
+        let globalChartData = null;
         
         // Reset zoom function
         function resetZoom() {
             if (trendChartInstance) {
-                trendChartInstance.resetZoom();
-                console.log('Chart zoom reset');
+                if (typeof trendChartInstance.resetZoom === 'function') {
+                    trendChartInstance.resetZoom();
+                    console.log('Chart zoom reset');
+                } else {
+                    console.error('resetZoom not available - zoom plugin may not be loaded');
+                    alert('Zoom feature not available. Please refresh the page.');
+                }
+            } else {
+                console.error('Chart instance not found');
             }
         }
+        
+        // Zoom in function
+        function zoomIn() {
+            if (trendChartInstance) {
+                if (typeof trendChartInstance.zoom === 'function') {
+                    trendChartInstance.zoom(1.2, 'default');
+                    console.log('Zoom in');
+                } else {
+                    console.error('zoom not available - zoom plugin may not be loaded');
+                    alert('Zoom feature not available. Please refresh the page.');
+                }
+            } else {
+                console.error('Chart instance not found');
+            }
+        }
+        
+        // Zoom out function
+        function zoomOut() {
+            if (trendChartInstance) {
+                if (typeof trendChartInstance.zoom === 'function') {
+                    trendChartInstance.zoom(0.8, 'default');
+                    console.log('Zoom out');
+                } else {
+                    console.error('zoom not available - zoom plugin may not be loaded');
+                    alert('Zoom feature not available. Please refresh the page.');
+                }
+            } else {
+                console.error('Chart instance not found');
+            }
+        }
+        
+        // Chart Details Panel Functions
+        function openChartDetailsPanel() {
+            document.getElementById('chart-details-panel').classList.remove('translate-x-full');
+            document.getElementById('chart-panel-overlay').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeChartDetailsPanel() {
+            document.getElementById('chart-details-panel').classList.add('translate-x-full');
+            document.getElementById('chart-panel-overlay').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        // Format number in a friendly way
+        function formatProductionValue(value) {
+            if (value >= 1000000) {
+                return (value / 1000000).toFixed(2) + ' Million mt';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(1) + ' Thousand mt';
+            } else {
+                return value.toLocaleString(undefined, {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                }) + ' mt';
+            }
+        }
+        
+        // Handle chart click to show side panel
+        function handleChartClick(event, elements, chart) {
+            if (!elements || elements.length === 0) return;
+            
+            const element = elements[0];
+            const datasetIndex = element.datasetIndex;
+            const dataIndex = element.index;
+            
+            const dataset = chart.data.datasets[datasetIndex];
+            const label = chart.data.labels[dataIndex];
+            const value = dataset.data[dataIndex];
+            const entityName = dataset.label;
+            
+            // Update panel content
+            document.getElementById('panel-title').textContent = entityName;
+            document.getElementById('panel-subtitle').textContent = 'Production Details';
+            document.getElementById('panel-period').textContent = label;
+            document.getElementById('panel-production-value').textContent = formatProductionValue(value);
+            document.getElementById('panel-entity').textContent = entityName;
+            document.getElementById('panel-time-detail').textContent = label;
+            
+            // Calculate all data for this time period and populate the panel
+            let allDataHtml = '';
+            let totalForPeriod = 0;
+            let dataForPeriod = [];
+            
+            chart.data.datasets.forEach((ds, idx) => {
+                const dsValue = ds.data[dataIndex] || 0;
+                totalForPeriod += dsValue;
+                dataForPeriod.push({ name: ds.label, value: dsValue, color: ds.borderColor });
+            });
+            
+            // Sort by value descending
+            dataForPeriod.sort((a, b) => b.value - a.value);
+            
+            // Find rank of clicked item
+            const rank = dataForPeriod.findIndex(d => d.name === entityName) + 1;
+            const percentage = totalForPeriod > 0 ? ((value / totalForPeriod) * 100).toFixed(1) : 0;
+            
+            document.getElementById('panel-rank').textContent = '#' + rank;
+            document.getElementById('panel-percentage').textContent = percentage + '%';
+            
+            // Build all data list
+            dataForPeriod.forEach((item, idx) => {
+                const isSelected = item.name === entityName;
+                const bgClass = isSelected ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-100';
+                const textClass = isSelected ? 'text-green-700 font-bold' : 'text-gray-700';
+                
+                allDataHtml += `
+                    <div class="flex justify-between items-center p-2 rounded-lg border ${bgClass}">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full" style="background-color: ${item.color}"></div>
+                            <span class="text-sm ${textClass}">${item.name}</span>
+                        </div>
+                        <span class="text-sm font-semibold ${textClass}">${formatProductionValue(item.value)}</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('panel-all-data').innerHTML = allDataHtml;
+            
+            // Open the panel
+            openChartDetailsPanel();
+        }
+        
+        // Close panel on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeChartDetailsPanel();
+            }
+        });
         
         function dataAnalytics() {
             return {
@@ -809,6 +1056,12 @@
                         setTimeout(() => this.init(), 100);
                         return;
                     }
+                    
+                    // Check if zoom plugin is available
+                    if (typeof Chart.registry !== 'undefined') {
+                        console.log('Chart.js plugins:', Object.keys(Chart.registry.plugins.items || {}));
+                    }
+                    
                     console.log('Initializing trend chart...');
                     this.initTrendChart();
                 },
@@ -856,9 +1109,9 @@
                         return {
                             ...dataset,
                             borderWidth: 3,
-                            pointRadius: 5,
-                            pointHoverRadius: 10,
-                            pointHitRadius: 15,
+                            pointRadius: 6,
+                            pointHoverRadius: 12,
+                            pointHitRadius: 20,
                             pointBackgroundColor: dataset.borderColor || 'rgb(' + r + ', ' + g + ', ' + b + ')',
                             pointBorderColor: '#ffffff',
                             pointBorderWidth: 2,
@@ -898,14 +1151,14 @@
                             transitions: {
                                 zoom: {
                                     animation: {
-                                        duration: 500,
-                                        easing: 'easeInOutQuart'
+                                        duration: 400,
+                                        easing: 'easeOutCubic'
                                     }
                                 },
                                 pan: {
                                     animation: {
-                                        duration: 300,
-                                        easing: 'easeInOutQuad'
+                                        duration: 200,
+                                        easing: 'easeOutCubic'
                                     }
                                 }
                             },
@@ -927,70 +1180,26 @@
                                     }
                                 },
                                 tooltip: {
-                                    mode: 'index',
-                                    intersect: false,
-                                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                                    titleColor: '#fff',
-                                    bodyColor: 'rgba(255, 255, 255, 0.9)',
-                                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                                    borderWidth: 1,
-                                    cornerRadius: 12,
-                                    padding: 16,
-                                    titleFont: {
-                                        size: 15,
-                                        weight: 'bold',
-                                        family: "'Inter', 'Segoe UI', sans-serif"
-                                    },
-                                    bodyFont: {
-                                        size: 14,
-                                        family: "'Inter', 'Segoe UI', sans-serif"
-                                    },
-                                    bodySpacing: 6,
-                                    boxPadding: 6,
-                                    displayColors: true,
-                                    callbacks: {
-                                        title: function(context) {
-                                            // Simple title
-                                            return '📅 ' + context[0].label;
-                                        },
-                                        label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label = '📍 ' + label + ': ';
-                                            }
-                                            // Format number in a friendly way
-                                            const value = context.parsed.y;
-                                            let formattedValue;
-                                            if (value >= 1000000) {
-                                                formattedValue = (value / 1000000).toFixed(2) + ' Million';
-                                            } else if (value >= 1000) {
-                                                formattedValue = (value / 1000).toFixed(1) + ' Thousand';
-                                            } else {
-                                                formattedValue = value.toLocaleString(undefined, {
-                                                    minimumFractionDigits: 0,
-                                                    maximumFractionDigits: 2
-                                                });
-                                            }
-                                            return label + formattedValue + ' metric tons';
-                                        },
-                                        footer: function(context) {
-                                            return '🌾 Total harvested crop weight';
-                                        }
-                                    }
+                                    enabled: false  // Disabled - use click for details panel instead
                                 },
                                 zoom: {
                                     zoom: {
                                         wheel: {
-                                            enabled: false  // Disabled for simpler UX
+                                            enabled: true,
+                                            speed: 0.05  // Slower, smoother zoom
                                         },
                                         pinch: {
-                                            enabled: false
+                                            enabled: true
                                         },
-                                        mode: 'xy'
+                                        mode: 'x'  // Only zoom horizontally for better UX
                                     },
                                     pan: {
-                                        enabled: false,  // Disabled for simpler UX
-                                        mode: 'xy'
+                                        enabled: true,
+                                        mode: 'x',
+                                        threshold: 10
+                                    },
+                                    limits: {
+                                        x: {min: 'original', max: 'original'}
                                     }
                                 }
                             },
@@ -1070,12 +1279,17 @@
                                 }
                             },
                             interaction: {
-                                mode: 'nearest',
-                                axis: 'x',
-                                intersect: false
+                                mode: 'point',
+                                intersect: true
+                            },
+                            onClick: function(event, elements, chart) {
+                                handleChartClick(event, elements, chart);
                             }
                         }
                     });
+                    
+                    // Store chart data globally
+                    globalChartData = chartData;
                 }
             }
         }
@@ -1089,6 +1303,20 @@
                     if (analytics && typeof analytics.init === 'function') {
                         analytics.init();
                     }
+                }
+                
+                // Add double-click to reset zoom
+                const chartCanvas = document.getElementById('trendChart');
+                if (chartCanvas) {
+                    chartCanvas.addEventListener('dblclick', function(e) {
+                        // Only reset if not clicking on a data point
+                        if (trendChartInstance) {
+                            const points = trendChartInstance.getElementsAtEventForMode(e, 'point', { intersect: true }, false);
+                            if (points.length === 0) {
+                                resetZoom();
+                            }
+                        }
+                    });
                 }
             }, 200);
         });
@@ -1194,7 +1422,7 @@
                                             <p class="text-xl font-bold text-green-700">
                                                 @foreach($municipalityStats as $munName => $stat)
                                                     <span x-show="selectedMunicipality === '{{ $munName }}'">
-                                                        {{ number_format($stat->total_production ?? 0, 2) }} MT
+                                                        {{ number_format($stat->total_production ?? 0, 2) }} mt
                                                     </span>
                                                 @endforeach
                                             </p>
@@ -1214,7 +1442,7 @@
                                             <p class="text-xl font-bold text-green-700">
                                                 @foreach($municipalityStats as $munName => $stat)
                                                     <span x-show="selectedMunicipality === '{{ $munName }}'">
-                                                        {{ number_format($stat->productivity ?? 0, 2) }} MT/ha
+                                                        {{ number_format($stat->productivity ?? 0, 2) }} mt/ha
                                                     </span>
                                                 @endforeach
                                             </p>
@@ -1256,8 +1484,8 @@
                                             $rainfedQuery->where('crop', $filterCrop);
                                         }
                                         
-                                        $irrigated = $irrigatedQuery->sum('production'); // Production is already in MT
-                                        $rainfed = $rainfedQuery->sum('production'); // Production is already in MT
+                                        $irrigated = $irrigatedQuery->sum('production'); // Production is already in mt
+                                        $rainfed = $rainfedQuery->sum('production'); // Production is already in mt
                                         $total = $irrigated + $rainfed;
                                         
                                         $farmTypeDistributions[$mun] = [
@@ -1315,7 +1543,7 @@
                                                 <div class="w-full bg-gray-200 rounded-full h-3">
                                                     <div class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: {{ $distribution['irrigated'] }}%"></div>
                                                 </div>
-                                                <span class="text-xs text-gray-500 mt-1 block">{{ number_format($distribution['irrigated_mt'], 2) }} MT</span>
+                                                <span class="text-xs text-gray-500 mt-1 block">{{ number_format($distribution['irrigated_mt'], 2) }} mt</span>
                                             </div>
 
                                             <!-- Rainfed -->
@@ -1327,7 +1555,7 @@
                                                 <div class="w-full bg-gray-200 rounded-full h-3">
                                                     <div class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: {{ $distribution['rainfed'] }}%"></div>
                                                 </div>
-                                                <span class="text-xs text-gray-500 mt-1 block">{{ number_format($distribution['rainfed_mt'], 2) }} MT</span>
+                                                <span class="text-xs text-gray-500 mt-1 block">{{ number_format($distribution['rainfed_mt'], 2) }} mt</span>
                                             </div>
                                         </div>
                                     @endforeach
@@ -1402,7 +1630,7 @@
                                                             <div class="absolute inset-y-0 left-0 bg-blue-500 transition-all duration-500" 
                                                                  style="width: {{ ($yearData->production / $maxProduction) * 100 }}%"></div>
                                                             <span class="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
-                                                                {{ number_format($yearData->production, 2) }} MT
+                                                                {{ number_format($yearData->production, 2) }} mt
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1425,7 +1653,7 @@
                                                                 <div class="absolute inset-y-0 left-0 bg-green-500 transition-all duration-500" 
                                                                      style="width: {{ ($monthData->production / $maxProduction) * 100 }}%"></div>
                                                                 <span class="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
-                                                                    {{ number_format($monthData->production, 2) }} MT
+                                                                    {{ number_format($monthData->production, 2) }} mt
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -1460,7 +1688,7 @@
                                                             <div class="absolute inset-y-0 left-0 bg-green-600 transition-all duration-500" 
                                                                  style="width: {{ ($cropData->production / $maxCropProduction) * 100 }}%"></div>
                                                             <span class="absolute inset-0 flex items-center justify-center text-xs font-semibold text-gray-700">
-                                                                {{ number_format($cropData->production, 2) }} MT
+                                                                {{ number_format($cropData->production, 2) }} mt
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1564,7 +1792,7 @@
                                                     </div>
                                                     <div class="text-right">
                                                         <span class="text-sm font-bold text-gray-800">{{ number_format($percentage, 1) }}%</span>
-                                                        <span class="text-xs text-gray-500 block">{{ number_format($crop->total_production, 2) }} MT</span>
+                                                        <span class="text-xs text-gray-500 block">{{ number_format($crop->total_production, 2) }} mt</span>
                                                     </div>
                                                 </div>
                                             @endforeach
