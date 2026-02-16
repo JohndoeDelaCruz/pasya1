@@ -39,6 +39,16 @@ class CropsImport implements
      * Cached user ID to avoid repeated Auth::id() calls.
      */
     private ?int $userId = null;
+    
+    /**
+     * Flag to log headers from first row only once
+     */
+    private bool $headersLogged = false;
+    
+    /**
+     * Store detected headers for debugging
+     */
+    public array $detectedHeaders = [];
 
     /**
     * @param array $row
@@ -47,9 +57,31 @@ class CropsImport implements
     */
     public function model(array $row)
     {
-        // Helper function to get value from multiple possible keys
+        // Log headers from first row for debugging
+        if (!$this->headersLogged) {
+            $this->detectedHeaders = array_keys($row);
+            Log::info("[CropsImport] Detected column headers: " . implode(', ', $this->detectedHeaders));
+            $this->headersLogged = true;
+        }
+        
+        // Helper function to get value from multiple possible keys (case-insensitive)
         $getValue = function($keys) use ($row) {
+            // Normalize row keys to lowercase for comparison
+            $normalizedRow = [];
+            foreach ($row as $key => $value) {
+                // Remove spaces, underscores, parentheses and convert to lowercase
+                $normalizedKey = strtolower(preg_replace('/[\s_\(\)\/]+/', '', $key));
+                $normalizedRow[$normalizedKey] = $value;
+                // Also keep original lowercase
+                $normalizedRow[strtolower($key)] = $value;
+            }
+            
             foreach ((array)$keys as $key) {
+                $normalizedSearchKey = strtolower(preg_replace('/[\s_\(\)\/]+/', '', $key));
+                if (isset($normalizedRow[$normalizedSearchKey])) {
+                    return $normalizedRow[$normalizedSearchKey];
+                }
+                // Try original key
                 if (isset($row[$key])) {
                     return $row[$key];
                 }
@@ -57,11 +89,11 @@ class CropsImport implements
             return '';
         };
 
-        $municipality = strtoupper($getValue('municipality'));
-        $farmType = strtoupper($getValue(['farmtype', 'farm_type']));
+        $municipality = strtoupper(trim($getValue(['municipality', 'municipalityname', 'mun', 'location'])));
+        $farmType = strtoupper(trim($getValue(['farmtype', 'farm_type', 'type', 'irrigationtype'])));
         $year = (int) ($getValue('year') ?: 0);
-        $month = strtoupper($getValue('month'));
-        $crop = strtoupper($getValue('crop'));
+        $month = strtoupper(trim($getValue(['month', 'harvestmonth', 'period'])));
+        $crop = strtoupper(trim($getValue(['crop', 'cropname', 'croptype', 'commodity'])));
 
         // Track unique crop names for bulk mapping after import
         $cropUpper = strtoupper(trim($crop));
@@ -71,11 +103,26 @@ class CropsImport implements
 
         $this->importedCount++;
 
-        // Parse numeric values
-        $areaPlanted = (float) ($getValue(['areaplantedha', 'areaplanted_ha', 'area_plantedha']) ?: 0);
-        $areaHarvested = (float) ($getValue(['areaharvestedha', 'areaharvested_ha', 'area_harvestedha']) ?: 0);
-        $production = (float) ($getValue(['productionmt', 'production_mt']) ?: 0);
-        $productivity = (float) ($getValue(['productivitymtha', 'productivity_mtha', 'productivitymt_ha']) ?: 0);
+        // Parse numeric values with more header variations
+        $areaPlanted = (float) ($getValue([
+            'areaplantedha', 'areaplanted_ha', 'area_plantedha', 'areaplanted', 
+            'area_planted', 'areaplantedha', 'planted_area', 'plantedarea'
+        ]) ?: 0);
+        
+        $areaHarvested = (float) ($getValue([
+            'areaharvestedha', 'areaharvested_ha', 'area_harvestedha', 'areaharvested',
+            'area_harvested', 'harvested_area', 'harvestedarea', 'harvestarea'
+        ]) ?: 0);
+        
+        $production = (float) ($getValue([
+            'productionmt', 'production_mt', 'production', 'yield', 'productionmetrictons',
+            'totalproduction', 'total_production', 'harvestmt', 'harvest'
+        ]) ?: 0);
+        
+        $productivity = (float) ($getValue([
+            'productivitymtha', 'productivity_mtha', 'productivitymt_ha', 'productivity',
+            'yieldperha', 'yield_per_ha', 'avgproductivity', 'averageproductivity'
+        ]) ?: 0);
 
         // Detect likely median-imputed placeholder data
         $isImputed = $this->detectImputedRecord($areaHarvested, $production, $productivity);
@@ -192,12 +239,23 @@ class CropsImport implements
     }
 
     /**
+     * Store error details for debugging
+     */
+    public array $errors = [];
+
+    /**
      * Handle errors during import (skip invalid rows)
      */
     public function onError(\Throwable $e)
     {
         $this->skippedCount++;
-        // Skip the error and continue importing
+        
+        // Log the error for debugging (limit to first 100 errors to avoid memory issues)
+        if (count($this->errors) < 100) {
+            $this->errors[] = $e->getMessage();
+        }
+        
+        Log::warning("[CropsImport] Row skipped: " . $e->getMessage());
     }
 
     /**

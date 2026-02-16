@@ -111,7 +111,7 @@ class CropDataController extends Controller
             
             $startTime = microtime(true);
             
-// Temporarily disable CropObserver during bulk import
+            // Temporarily disable CropObserver during bulk import
             // (mappings are created in bulk after import instead of per-row)
             Crop::unsetEventDispatcher();
             
@@ -141,7 +141,7 @@ class CropDataController extends Controller
             
             // Build success message with details
             $message = "Import completed in {$executionTime} seconds. ";
-$message .= "Imported: {$import->importedCount} new records. ";
+            $message .= "Imported: {$import->importedCount} new records. ";
             
             if ($import->duplicateCount > 0) {
                 $message .= "Skipped: {$import->duplicateCount} duplicates. ";
@@ -149,9 +149,29 @@ $message .= "Imported: {$import->importedCount} new records. ";
             
             if ($import->skippedCount > 0) {
                 $message .= "Skipped: {$import->skippedCount} invalid rows. ";
+                
+                // Log detailed errors
+                if (!empty($import->errors)) {
+                    $uniqueErrors = array_unique($import->errors);
+                    $errorSummary = array_slice($uniqueErrors, 0, 5);
+                    Log::info("[CropDataController] Import had {$import->skippedCount} skipped rows. Sample errors: " . implode('; ', $errorSummary));
+                }
             }
             
             $message .= "Total records in database: {$totalRecords}.";
+            
+            // If many rows were skipped, warn about possible column header issues
+            if ($import->skippedCount > 0 && $import->skippedCount > $import->importedCount * 0.1) {
+                $message .= " Warning: Many rows were skipped. Check that your file has correct column headers (municipality, farmtype, year, month, crop, areaplantedha, areaharvestedha, productionmt, productivitymtha).";
+                
+                // Show detected headers for debugging
+                if (!empty($import->detectedHeaders)) {
+                    $message .= " Detected columns: " . implode(', ', array_slice($import->detectedHeaders, 0, 10));
+                    if (count($import->detectedHeaders) > 10) {
+                        $message .= "...";
+                    }
+                }
+            }
 
             return back()->with('success', $message);
 
