@@ -219,7 +219,11 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->month }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->area_planted, 2) }} </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->production, 2) }} </td>
+<<<<<<< HEAD:resources/views/admin/crop-data.blade.php
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->productivity, 2) }} mt/ha</td>
+=======
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->productivity, 2) }} MT/ha</td>
+>>>>>>> origin/main:ProjectPasya/resources/views/admin/crop-data.blade.php
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
                                     <form action="{{ route('admin.crop-data.destroy', $crop) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this crop record?');">
                                         @csrf

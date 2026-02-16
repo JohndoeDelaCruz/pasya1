@@ -11,7 +11,7 @@ Route::get('/debug-chart-data', function () {
     $trendData = $query->select(
         'municipality',
         DB::raw('YEAR(month) as year'),
-        DB::raw('SUM(production) / 1000 as total_production')
+        DB::raw('SUM(production) as total_production') // Production is already in MT
     )
     ->groupBy('municipality', DB::raw('YEAR(month)'))
     ->orderBy(DB::raw('YEAR(month)'))

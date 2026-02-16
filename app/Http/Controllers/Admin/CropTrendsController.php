@@ -100,7 +100,7 @@ class CropTrendsController extends Controller
             $historicalValue = is_numeric($historical) && $historical > 0 ? round($historical, 2) : 0;
             $historicalYields[] = $historicalValue;
             
-            // Use ML prediction for current year (returns production directly)
+            // Use ML prediction for current year (V2 API - Productivity-First)
             if ($topCrop && $topMunicipality && $topFarmType) {
                 $prediction = $this->predictionService->predictProduction([
                     'municipality' => $topMunicipality->municipality,
@@ -110,19 +110,21 @@ class CropTrendsController extends Controller
                     'area_harvested' => $avgAreaHarvested
                 ]);
                 
-                Log::info('Crop Trends Prediction', [
+                Log::info('Crop Trends Prediction (V2)', [
                     'month' => $month,
                     'prediction' => $prediction
                 ]);
                 
                 if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
-                    // Prediction returns production in MT - use directly
+                    // V2 API returns production_mt directly
                     $predictedProduction = round($prediction['prediction']['production_mt'], 2);
                     $predictedYields[] = $predictedProduction;
                     
-                    Log::info('Predicted Production', [
+                    Log::info('Predicted Production (V2)', [
                         'month' => $month,
                         'production_mt' => $predictedProduction,
+                        'productivity_mt_ha' => $prediction['prediction']['productivity_mt_ha'] ?? 'N/A',
+                        'confidence' => $prediction['prediction']['confidence_score'] ?? 'N/A',
                         'area_used_for_prediction' => $avgAreaHarvested
                     ]);
                 } else {
@@ -387,12 +389,23 @@ class CropTrendsController extends Controller
             ->where('farm_type', $request->farm_type)
             ->max('year');
         
+        // Get seasonal average area for each month (to use for future predictions)
+        // This captures natural planting patterns - e.g., more area planted in peak seasons
+        $seasonalAverageAreas = Crop::where('crop', $request->crop)
+            ->where('municipality', $request->municipality)
+            ->where('farm_type', $request->farm_type)
+            ->selectRaw('month, AVG(area_harvested) as avg_area')
+            ->groupBy('month')
+            ->pluck('avg_area', 'month')
+            ->toArray();
+        
         Log::info('Max Historical Year', [
             'crop' => $request->crop,
             'municipality' => $request->municipality,
             'farm_type' => $request->farm_type,
             'max_year' => $maxHistoricalYear,
-            'default_area' => $defaultAreaHarvested
+            'default_area' => $defaultAreaHarvested,
+            'seasonal_areas' => $seasonalAverageAreas
         ]);
 
         foreach ($years as $year) {
@@ -431,8 +444,17 @@ class CropTrendsController extends Controller
                     'area_harvested' => $historicalArea
                 ]);
 
-                // Use actual historical area if available, otherwise use default average
-                $areaForPrediction = $historicalArea ?? $defaultAreaHarvested;
+                // Use actual historical area if available, otherwise use seasonal average for that month
+                // This ensures future predictions reflect natural seasonal planting patterns
+                if ($historicalArea) {
+                    $areaForPrediction = $historicalArea;
+                } elseif (isset($seasonalAverageAreas[$month])) {
+                    // Use seasonal average for this specific month (captures planting patterns)
+                    $areaForPrediction = $seasonalAverageAreas[$month];
+                } else {
+                    // Fallback to overall average
+                    $areaForPrediction = $defaultAreaHarvested;
+                }
 
                 // Get ML prediction with actual area_harvested parameter
                 $confidenceScore = null;
@@ -449,24 +471,24 @@ class CropTrendsController extends Controller
                 $predictedProduction = null;
 
                 if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
-                    // Prediction returns production in MT
+                    // V2 API returns both production_mt and productivity_mt_ha directly
                     $predictedProduction = round($prediction['prediction']['production_mt'], 2);
-                    // Calculate productivity using the SAME area that was passed to the ML API
-                    $predictedProductivity = $areaForPrediction > 0 
-                        ? round($prediction['prediction']['production_mt'] / $areaForPrediction, 2) 
-                        : null;
                     
-                    // Capture confidence score from model_quality.r2_score (ML API returns R² as confidence)
+                    // Use productivity directly from API response (V2 Productivity-First)
+                    $predictedProductivity = isset($prediction['prediction']['productivity_mt_ha']) 
+                        ? round($prediction['prediction']['productivity_mt_ha'], 2)
+                        : ($areaForPrediction > 0 ? round($predictedProduction / $areaForPrediction, 2) : null);
+                    
+                    // V2 API provides confidence_score directly in prediction object
                     $confidenceScore = null;
-                    if (isset($prediction['model_quality']['r2_score'])) {
-                        $confidenceScore = round($prediction['model_quality']['r2_score'], 4);
-                    } elseif (isset($prediction['prediction']['confidence_score'])) {
-                        $confidenceScore = round($prediction['prediction']['confidence_score'], 4);
-                    } elseif (isset($prediction['prediction']['confidence'])) {
-                        $confidenceScore = round($prediction['prediction']['confidence'], 4);
+                    if (isset($prediction['prediction']['confidence_score'])) {
+                        $confidenceScore = round($prediction['prediction']['confidence_score'], 2);
+                    } elseif (isset($prediction['model_info']['r2_score'])) {
+                        // Fallback to R² from model_info
+                        $confidenceScore = round($prediction['model_info']['r2_score'] * 100, 2);
                     }
                     
-                    Log::info('ML Prediction Success', [
+                    Log::info('ML Prediction Success (V2)', [
                         'month' => $month,
                         'year' => $year,
                         'production_mt' => $predictedProduction,

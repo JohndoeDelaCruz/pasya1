@@ -7,14 +7,22 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
- * ML API Service - Clean interface for scalable ML API
+ * ML API Service - Clean interface for ML API V2 (Productivity-First)
  * 
  * Features:
  * - Automatic caching for performance
  * - Error handling and retries
  * - Request logging
- * - Support for all ML API endpoints
- * - Database-backed predictions
+ * - Support for ML API V2 endpoints
+ * - Returns productivity (MT/HA) as primary prediction target
+ * 
+ * Available Endpoints (V2):
+ * - GET  /                 - API info and status
+ * - POST /predict          - Single prediction (returns productivity_mt_ha, production_mt)
+ * - POST /batch-predict    - Batch predictions
+ * - GET  /crops            - Available crops
+ * - GET  /municipalities   - Available municipalities
+ * - GET  /model-info       - Model information and performance metrics
  */
 class MLApiService
 {
@@ -52,25 +60,68 @@ class MLApiService
     }
 
     /**
-     * Get all available options (crops, municipalities, years, months, farm types)
+     * Get all available options (crops and municipalities from API, static values for others)
+     * Note: /available-options endpoint removed in V2, combining crops and municipalities
      */
     public function getAvailableOptions(): array
     {
         return $this->cachedRequest('ml_available_options', 3600, function () {
-            return $this->get('/available-options');
+            $crops = $this->get('/crops');
+            $municipalities = $this->get('/municipalities');
+            
+            return [
+                'success' => true,
+                'values' => [
+                    'crops' => $crops['crops'] ?? [],
+                    'municipalities' => $municipalities['municipalities'] ?? [],
+                    'months' => ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'],
+                    'farm_types' => ['IRRIGATED', 'RAINFED'],
+                    'years' => range(date('Y') - 10, date('Y') + 5)
+                ]
+            ];
         });
     }
 
     /**
      * Get forecast for specific crop and municipality
+     * Note: /forecast endpoint removed in V2 - now uses predict with multiple months
+     * 
+     * @deprecated Use predict() with specific months for forecasting
      */
     public function getForecast(string $crop, string $municipality): array
     {
-        $cacheKey = "ml_forecast_{$crop}_{$municipality}";
+        // V2 doesn't have dedicated forecast endpoint
+        // Generate forecast using predictions for next 12 months
+        $forecasts = [];
+        $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        $currentYear = (int) date('Y');
         
-        return $this->cachedRequest($cacheKey, 3600, function () use ($crop, $municipality) {
-            return $this->get("/forecast/{$crop}/{$municipality}");
-        });
+        foreach ($months as $month) {
+            $prediction = $this->predict([
+                'crop' => $crop,
+                'municipality' => $municipality,
+                'month' => $month,
+                'year' => $currentYear,
+                'farm_type' => 'IRRIGATED',
+                'area_planted' => 1.0,
+                'area_harvested' => 1.0
+            ]);
+            
+            if (isset($prediction['success']) && $prediction['success']) {
+                $forecasts[] = [
+                    'month' => $month,
+                    'productivity_mt_ha' => $prediction['prediction']['productivity_mt_ha'] ?? null,
+                    'production_mt' => $prediction['prediction']['production_mt'] ?? null
+                ];
+            }
+        }
+        
+        return [
+            'success' => true,
+            'crop' => $crop,
+            'municipality' => $municipality,
+            'forecasts' => $forecasts
+        ];
     }
 
     /**
@@ -154,73 +205,58 @@ class MLApiService
 
     /**
      * Get production history with filters
-     * NEW: Uses database for fast queries
+     * Note: /production/history endpoint removed in V2 - use local Crop model instead
      * 
-     * @param array $filters Filter parameters (municipality, crop, year, month, farm_type)
-     * @param int $page Page number for pagination
-     * @param int $perPage Items per page
+     * @deprecated Use App\Models\Crop for production history queries
      */
     public function getProductionHistory(array $filters = [], int $page = 1, int $perPage = 100): array
     {
-        $queryParams = array_merge($filters, [
-            'page' => $page,
-            'per_page' => $perPage
-        ]);
-
-        try {
-            $response = Http::timeout($this->timeout)
-                ->get("{$this->baseUrl}/production/history", $queryParams);
-
-            if ($response->successful()) {
-                return $response->json();
-            }
-
-            return [
-                'success' => false,
-                'error' => 'Failed to fetch history: ' . $response->status()
-            ];
-        } catch (\Exception $e) {
-            Log::error('ML API history error', [
-                'message' => $e->getMessage(),
-                'filters' => $filters
-            ]);
-
-            return [
-                'success' => false,
-                'error' => $e->getMessage()
-            ];
-        }
+        // V2 doesn't have this endpoint - return guidance to use local data
+        Log::info('getProductionHistory: V2 API does not have this endpoint, use local Crop model');
+        
+        return [
+            'success' => false,
+            'error' => 'Production history endpoint not available in ML API V2. Use local database instead.',
+            'suggestion' => 'Query App\\Models\\Crop directly for production history'
+        ];
     }
 
     /**
-     * Get ML API statistics and analytics
-     * NEW: Database statistics
+     * Get ML API statistics and model info
+     * Note: /statistics endpoint replaced with /model-info in V2
      */
     public function getStatistics(): array
     {
         return $this->cachedRequest('ml_statistics', 600, function () {
-            return $this->get('/statistics');
+            return $this->get('/model-info');
+        });
+    }
+    
+    /**
+     * Get detailed model information
+     * NEW: V2 endpoint for model performance metrics
+     */
+    public function getModelInfo(): array
+    {
+        return $this->cachedRequest('ml_model_info', 600, function () {
+            return $this->get('/model-info');
         });
     }
 
     /**
      * Clear ML API cache
-     * NEW: Cache management endpoint
+     * Clear cache
+     * Note: /cache/clear endpoint removed in V2 - only clears Laravel cache now
      */
     public function clearMLCache(): array
     {
         try {
-            $response = Http::timeout($this->timeout)
-                ->post("{$this->baseUrl}/cache/clear");
-
-            // Also clear Laravel cache (using method that works with file cache)
+            // V2 doesn't have cache clear endpoint - just clear Laravel cache
             $this->clearLaravelCache();
 
-            return $response->successful() 
-                ? $response->json() 
-                : ['success' => false, 'error' => 'Failed to clear cache'];
+            return ['success' => true, 'message' => 'Laravel ML cache cleared'];
         } catch (\Exception $e) {
-            Log::error('ML API cache clear error', ['message' => $e->getMessage()]);
+            Log::error('ML cache clear error', ['message' => $e->getMessage()]);
             return ['success' => false, 'error' => $e->getMessage()];
         }
     }

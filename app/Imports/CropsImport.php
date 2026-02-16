@@ -3,8 +3,11 @@
 namespace App\Imports;
 
 use App\Models\Crop;
+use App\Models\CropNameMapping;
+use App\Services\PredictionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
@@ -26,7 +29,17 @@ class CropsImport implements
 {
     public $importedCount = 0;
     public $skippedCount = 0;
-    public $duplicateCount = 0;
+
+    /**
+     * Track new crop names encountered during import for bulk mapping creation.
+     */
+    private array $newCropNames = [];
+
+    /**
+     * Cached user ID to avoid repeated Auth::id() calls.
+     */
+    private ?int $userId = null;
+
     /**
     * @param array $row
     *
@@ -50,17 +63,10 @@ class CropsImport implements
         $month = strtoupper($getValue('month'));
         $crop = strtoupper($getValue('crop'));
 
-        // Check if this exact combination already exists (skip duplicates)
-        $exists = Crop::where('municipality', $municipality)
-                     ->where('farm_type', $farmType)
-                     ->where('year', $year)
-                     ->where('month', $month)
-                     ->where('crop', $crop)
-                     ->exists();
-
-        if ($exists) {
-            $this->duplicateCount++;
-            return null; // Skip this row
+        // Track unique crop names for bulk mapping after import
+        $cropUpper = strtoupper(trim($crop));
+        if ($cropUpper !== '' && !isset($this->newCropNames[$cropUpper])) {
+            $this->newCropNames[$cropUpper] = true;
         }
 
         $this->importedCount++;
@@ -72,7 +78,6 @@ class CropsImport implements
         $productivity = (float) ($getValue(['productivitymtha', 'productivity_mtha', 'productivitymt_ha']) ?: 0);
 
         // Detect likely median-imputed placeholder data
-        // Pattern: Area ≈ 5, Production ≈ 55, Productivity ≈ 11 (since 55/5 = 11)
         $isImputed = $this->detectImputedRecord($areaHarvested, $production, $productivity);
         $qualityScore = $this->calculateDataQualityScore($areaHarvested, $production, $productivity);
 
@@ -88,8 +93,53 @@ class CropsImport implements
             'productivity'       => $productivity,
             'is_imputed'         => $isImputed,
             'data_quality_score' => $qualityScore,
-            'uploaded_by'        => Auth::id(),
+            'uploaded_by'        => $this->userId,
         ]);
+    }
+
+    /**
+     * Bulk-create crop name mappings for all new crops found during import.
+     * Called once after import instead of per-row via observer.
+     */
+    public function createBulkCropMappings(): void
+    {
+        if (empty($this->newCropNames)) {
+            return;
+        }
+
+        // Get existing mappings in one query
+        $existingMappings = CropNameMapping::whereIn('database_name', array_keys($this->newCropNames))
+            ->pluck('database_name')
+            ->flip()
+            ->toArray();
+
+        $service = app(PredictionService::class);
+        $newMappings = [];
+        $now = now();
+
+        foreach (array_keys($this->newCropNames) as $cropName) {
+            if (isset($existingMappings[$cropName])) {
+                continue;
+            }
+
+            $mlName = $service->patternBasedNormalization($cropName);
+            $newMappings[] = [
+                'database_name' => $cropName,
+                'ml_name'       => $mlName,
+                'is_active'     => true,
+                'notes'         => 'Auto-created during bulk import',
+                'created_at'    => $now,
+                'updated_at'    => $now,
+            ];
+        }
+
+        if (!empty($newMappings)) {
+            // Insert in chunks to avoid MySQL packet limits
+            foreach (array_chunk($newMappings, 500) as $chunk) {
+                DB::table('crop_name_mappings')->insert($chunk);
+            }
+            Log::info("[CropsImport] Bulk-created " . count($newMappings) . " crop name mappings");
+        }
     }
 
     /**
@@ -134,11 +184,11 @@ class CropsImport implements
     }
 
     /**
-     * Batch insert size for performance
+     * Batch insert size — larger batches = fewer INSERT statements.
      */
     public function batchSize(): int
     {
-        return 500; // Reduced for better duplicate checking performance
+        return 1000;
     }
 
     /**
@@ -159,17 +209,17 @@ class CropsImport implements
             BeforeImport::class => function(BeforeImport $event) {
                 $this->importedCount = 0;
                 $this->skippedCount = 0;
-                $this->duplicateCount = 0;
+                $this->userId = Auth::id();
             },
         ];
     }
 
     /**
-     * Chunk size for reading large files
+     * Chunk size for reading large files — larger chunks = fewer I/O operations.
      */
     public function chunkSize(): int
     {
-        return 2000; // Increased from 1000 for faster processing
+        return 5000;
     }
 
     /**

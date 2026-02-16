@@ -57,25 +57,6 @@ class RecommendationsController extends Controller
         // Get allocation data for bar chart
         $allocationData = $this->getAllocationData();
 
-        // Get weather data for ALL Benguet municipalities
-        $municipalities = ['La Trinidad', 'Buguias', 'Atok', 'Bakun', 'Bokod', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
-        
-        // Get weather for all municipalities
-        $municipalityWeather = [];
-        foreach ($municipalities as $municipality) {
-            $municipalityWeather[] = $this->weatherService->getForecast($municipality, 4);
-        }
-
-        // Get hourly forecast for La Trinidad (main municipality)
-        $hourlyForecast = $this->weatherService->getHourlyForecast('La Trinidad');
-
-        // Get optimal planting window and climate risk
-        $optimalWindow = $this->weatherService->getOptimalPlantingWindow($hourlyForecast);
-        $climateRisk = $this->weatherService->getClimateRisk($municipalityWeather[0]['forecast']);
-
-        // Best crops for the region
-        $bestCrops = $this->getBestCrops();
-
         return view('admin.recommendations', [
             'crops' => $crops,
             'municipalities' => $municipalities,
@@ -83,11 +64,6 @@ class RecommendationsController extends Controller
             'filterStatus' => $filterStatus,
             'subsidies' => $subsidies,
             'allocationData' => $allocationData,
-            'municipalityWeather' => $municipalityWeather,
-            'hourlyForecast' => $hourlyForecast,
-            'optimalWindow' => $optimalWindow,
-            'climateRisk' => $climateRisk,
-            'bestCrops' => $bestCrops
         ]);
     }
 
@@ -149,10 +125,13 @@ class RecommendationsController extends Controller
                 $allocatedAmount = $totalSubsidyArea * $seedRate;
             } else {
                 // If no subsidy data, allocate 50-80% based on crop priority
-                // Priority based on production success rate
-                $successRate = min(0.80, max(0.50, 
-                    $crop->total_production / ($crop->total_area_planted * 1000)
-                ));
+                // Priority based on average productivity (production / area)
+                // Normalize productivity to 0.5-0.8 range for allocation percentage
+                $avgProductivity = $crop->total_area_planted > 0 
+                    ? $crop->total_production / $crop->total_area_planted 
+                    : 0;
+                // Assume typical productivity range is 5-20 mt/ha, normalize to 0.5-0.8
+                $successRate = min(0.80, max(0.50, 0.5 + ($avgProductivity / 20) * 0.3));
                 $allocatedAmount = $neededAmount * $successRate;
             }
             
