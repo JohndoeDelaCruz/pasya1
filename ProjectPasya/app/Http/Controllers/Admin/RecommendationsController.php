@@ -57,25 +57,6 @@ class RecommendationsController extends Controller
         // Get allocation data for bar chart
         $allocationData = $this->getAllocationData();
 
-        // Get weather data for ALL Benguet municipalities
-        $municipalities = ['La Trinidad', 'Buguias', 'Atok', 'Bakun', 'Bokod', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
-        
-        // Get weather for all municipalities
-        $municipalityWeather = [];
-        foreach ($municipalities as $municipality) {
-            $municipalityWeather[] = $this->weatherService->getForecast($municipality, 4);
-        }
-
-        // Get hourly forecast for La Trinidad (main municipality)
-        $hourlyForecast = $this->weatherService->getHourlyForecast('La Trinidad');
-
-        // Get optimal planting window and climate risk
-        $optimalWindow = $this->weatherService->getOptimalPlantingWindow($hourlyForecast);
-        $climateRisk = $this->weatherService->getClimateRisk($municipalityWeather[0]['forecast']);
-
-        // Best crops for the region
-        $bestCrops = $this->getBestCrops();
-
         return view('admin.recommendations', [
             'crops' => $crops,
             'municipalities' => $municipalities,
@@ -83,11 +64,6 @@ class RecommendationsController extends Controller
             'filterStatus' => $filterStatus,
             'subsidies' => $subsidies,
             'allocationData' => $allocationData,
-            'municipalityWeather' => $municipalityWeather,
-            'hourlyForecast' => $hourlyForecast,
-            'optimalWindow' => $optimalWindow,
-            'climateRisk' => $climateRisk,
-            'bestCrops' => $bestCrops
         ]);
     }
 

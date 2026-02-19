@@ -86,7 +86,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h4 class="font-semibold text-gray-800">Average Monthly Production</h4>
-                        <p class="text-sm text-gray-500">Based on historical data • Production in Metric Tons (MT)</p>
+                        <p class="text-sm text-gray-500">Based on historical data • Production in Metric Tons (mt)</p>
                     </div>
                 </div>
                 
@@ -113,7 +113,7 @@
                                     <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
                                     <span class="font-medium">{{ $item['year'] }}</span>
                                 </div>
-                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} MT</span>
+                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} mt</span>
                             </li>
                         @empty
                             <li class="text-gray-500 text-sm">No data available</li>
@@ -136,7 +136,7 @@
                                     <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
                                     <span class="font-medium">{{ $item['crop'] }}</span>
                                 </div>
-                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} MT</span>
+                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} mt</span>
                             </li>
                         @empty
                             <li class="text-gray-500 text-sm">No data available</li>
@@ -382,7 +382,7 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Historical Production (MT)',
+                                    label: 'Historical Production (mt)',
                                     data: historical,
                                     borderColor: 'rgb(34, 211, 238)',
                                     backgroundColor: 'rgba(34, 211, 238, 0.1)',
@@ -393,7 +393,7 @@
                                     pointHoverRadius: 8
                                 },
                                 {
-                                    label: 'Predicted Production (MT)',
+                                    label: 'Predicted Production (mt)',
                                     data: predicted,
                                     borderColor: 'rgb(34, 197, 94)',
                                     backgroundColor: 'rgba(34, 197, 94, 0.1)',
@@ -471,7 +471,7 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Avg Production (MT)',
+                                    label: 'Avg Production (mt)',
                                     data: productionData,
                                     backgroundColor: 'rgb(34, 197, 94)',
                                     borderRadius: 4,
@@ -504,7 +504,7 @@
                                     bodyFont: { size: 11 },
                                     callbacks: {
                                         label: function(context) {
-                                            return context.parsed.y.toFixed(2) + ' MT';
+                                            return context.parsed.y.toFixed(2) + ' mt';
                                         }
                                     }
                                 }
@@ -514,7 +514,7 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Production (MT)',
+                                        text: 'Production (mt)',
                                         font: {
                                             size: 11,
                                             weight: 'bold'

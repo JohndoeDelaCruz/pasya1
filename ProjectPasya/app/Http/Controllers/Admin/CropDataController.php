@@ -141,7 +141,11 @@ class CropDataController extends Controller
             
             // Build success message with details
             $message = "Import completed in {$executionTime} seconds. ";
-            $message .= "Imported: {$import->importedCount} records. ";
+            $message .= "Imported: {$import->importedCount} new records. ";
+            
+            if ($import->duplicateCount > 0) {
+                $message .= "Skipped: {$import->duplicateCount} duplicates. ";
+            }
             
             if ($import->skippedCount > 0) {
                 $message .= "Skipped: {$import->skippedCount} invalid rows. ";

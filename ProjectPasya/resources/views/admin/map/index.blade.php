@@ -5,8 +5,26 @@
         </h2>
     </x-slot>
 
+    <style>
+        /* Custom scrollbar for weather cards */
+        #weatherCardsContainer::-webkit-scrollbar {
+            height: 8px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-track {
+            background: #F1F5F9;
+            border-radius: 4px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+        #weatherCardsContainer::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+
     <div class="py-4 lg:py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
+        <div class="max-w-full mx-auto lg:px-4">
             <!-- Control Panel -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-4 lg:mb-6">
                 <div class="p-4 lg:p-6">
@@ -72,15 +90,127 @@
             </div>
 
             <!-- Map Container -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-3 lg:p-6 relative">
-                    <div id="map" style="height: 400px; width: 100%;" class="rounded-lg shadow-inner sm:h-[500px] lg:h-[600px]"></div>
-                    
+            <div class="bg-white shadow-md sm:rounded-xl border-2 border-gray-200">
+                <div class="p-3 lg:p-6 relative overflow-hidden rounded-lg">
+                    <div id="map" style="height: 500px; width: 100%;" class="rounded-lg shadow-inner sm:h-[600px] lg:h-[750px]"></div>
+
                     <!-- Legend - Positioned on the left side of map -->
-                    <div id="legend" class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 bg-white p-3 lg:p-4 rounded-lg shadow-lg border-2 border-gray-200 z-[1000] max-w-[200px] sm:max-w-[240px] lg:max-w-[280px]">
-                        <h4 class="font-bold text-gray-800 mb-2 lg:mb-3 text-xs lg:text-sm uppercase tracking-wide">Production Legend</h4>
-                        <div id="legend-content">
+                    <div id="legend" class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 bg-white rounded-lg shadow-lg border-2 border-gray-200 z-[1000] max-w-[200px] sm:max-w-[240px] lg:max-w-[280px]">
+                        <button id="legend-toggle-btn" onclick="toggleLegend()" class="w-full flex items-center justify-between p-3 lg:p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors">
+                            <h4 class="font-bold text-gray-800 text-xs lg:text-sm uppercase tracking-wide">Production Legend</h4>
+                            <svg id="legend-toggle-icon" class="w-4 h-4 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="legend-content" class="px-3 pb-3 lg:px-4 lg:pb-4">
                             <span class="text-xs text-gray-600">Select filters to view data</span>
+                        </div>
+                    </div>
+
+                    <!-- Weather Toggle Button - Top Right of Map -->
+                    <button id="weather-toggle-btn" onclick="toggleWeatherOverlay()" class="absolute top-4 right-4 lg:top-6 lg:right-6 z-[1000] bg-white/95 backdrop-blur-sm hover:bg-white text-gray-700 px-3 py-2 rounded-lg shadow-lg border border-gray-200 flex items-center gap-2 transition-all hover:shadow-xl">
+                        <span class="text-lg">🌤️</span>
+                        <span class="text-xs font-semibold uppercase tracking-wide hidden sm:inline">Weather</span>
+                        <svg id="weather-toggle-icon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+
+                    <!-- Weather Overlay Panel - Bottom of Map -->
+                    <div id="weather-overlay" class="absolute bottom-0 left-0 right-0 z-[1001] transform translate-y-full transition-transform duration-300 ease-in-out">
+                        <div class="bg-white/95 backdrop-blur-md border-t-2 border-gray-200 rounded-b-lg shadow-2xl">
+                            <!-- Weather Header -->
+                            <div class="flex items-center justify-between px-4 py-2 border-b border-gray-100">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Benguet Municipality Weather</h3>
+                                    <span class="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-medium">Live</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] text-gray-400">{{ now()->format('g:i A') }}</span>
+                                    <button onclick="scrollWeatherLeft()" class="p-1 rounded bg-gray-100 hover:bg-gray-200 transition text-gray-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                        </svg>
+                                    </button>
+                                    <button onclick="scrollWeatherRight()" class="p-1 rounded bg-gray-100 hover:bg-gray-200 transition text-gray-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                    <button onclick="toggleWeatherOverlay()" class="p-1 rounded bg-gray-100 hover:bg-gray-200 transition text-gray-500 ml-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Scrollable Weather Cards -->
+                            <div id="weatherCardsContainer" class="flex gap-3 overflow-x-auto px-4 py-3 scroll-smooth snap-x snap-mandatory" style="scrollbar-width: thin; scrollbar-color: #CBD5E1 #F1F5F9;">
+                                @foreach($municipalityWeather as $weather)
+                                <div class="flex-shrink-0 w-56 snap-start bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-lg p-3 hover:shadow-md transition-shadow">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div>
+                                            <div class="text-[10px] font-medium text-sky-600 uppercase tracking-wider">BENGUET</div>
+                                            <div class="text-sm font-bold text-gray-800">{{ $weather['municipality'] }}</div>
+                                        </div>
+                                        <div class="w-8 h-8 bg-white/80 rounded-lg flex items-center justify-center shadow-sm">
+                                            <span class="text-xl">{{ $weather['forecast'][0]['icon'] ?? '⛅' }}</span>
+                                        </div>
+                                    </div>
+
+                                    @if(isset($weather['forecast'][0]))
+                                    <div class="mb-2 p-2 bg-white/60 rounded-md">
+                                        <div class="flex items-center justify-between">
+                                            <div>
+                                                <span class="text-xl font-bold text-gray-800">{{ $weather['forecast'][0]['temp'] }}</span>
+                                                <p class="text-[10px] text-gray-500">{{ $weather['forecast'][0]['condition'] }}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="text-[10px] text-gray-500">AQI</div>
+                                                <div class="text-sm font-semibold {{ $weather['forecast'][0]['aqi'] < 50 ? 'text-green-600' : ($weather['forecast'][0]['aqi'] < 100 ? 'text-yellow-600' : 'text-red-600') }}">
+                                                    {{ $weather['forecast'][0]['aqi'] }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <div class="grid grid-cols-4 gap-0.5">
+                                        @foreach($weather['forecast'] as $index => $day)
+                                        <div class="text-center p-1 rounded {{ $index === 0 ? 'bg-sky-100' : 'bg-white/50' }}">
+                                            <div class="text-[9px] font-medium text-gray-500">{{ Str::limit($day['day'], 3, '') }}</div>
+                                            <div class="text-sm">{{ $day['icon'] }}</div>
+                                            <div class="text-[9px] font-medium text-gray-700">{{ $day['temp'] }}</div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Quick Info Bar -->
+                            <div class="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-b-lg">
+                                <div class="flex items-center gap-4 text-white text-xs">
+                                    <div class="flex items-center gap-1.5">
+                                        <span>⏰</span>
+                                        <span class="font-medium">Planting Window:</span>
+                                        <span class="font-bold">{{ $optimalWindow }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span>🥬</span>
+                                        <span class="font-medium">Best Crops:</span>
+                                        <span class="font-bold">{{ $bestCrops }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5 text-white text-xs">
+                                    <span>⚠️</span>
+                                    <span class="font-medium">Risk:</span>
+                                    <span class="font-bold {{ $climateRisk < 30 ? 'text-green-200' : ($climateRisk < 60 ? 'text-yellow-200' : 'text-red-200') }}">
+                                        {{ $climateRisk }}% {{ $climateRisk < 30 ? 'Low' : ($climateRisk < 60 ? 'Moderate' : 'High') }}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -183,6 +313,8 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
             </div>
         </div>
     </div>
@@ -379,17 +511,17 @@
 
         // Get color for value ratio (0-1)
         function getColor(ratio) {
-            // Blue to Red gradient - much easier to distinguish
+            // Red (lowest) to Green (highest) gradient
             const colors = [
-                '#0ea5e9', // Sky blue (lowest)
-                '#22c55e', // Green
-                '#84cc16', // Lime green
-                '#eab308', // Yellow
-                '#f59e0b', // Amber
-                '#f97316', // Orange
-                '#ef4444', // Red
+                '#991b1b', // Very dark red (lowest)
                 '#dc2626', // Dark red
-                '#991b1b'  // Very dark red (highest)
+                '#ef4444', // Red
+                '#f97316', // Orange
+                '#f59e0b', // Amber
+                '#eab308', // Yellow
+                '#84cc16', // Lime green
+                '#22c55e', // Green
+                '#15803d'  // Dark green (highest)
             ];
 
             const index = Math.floor(ratio * (colors.length - 1));
@@ -414,19 +546,19 @@
                     <!-- Color gradient -->
                     <div class="flex flex-col gap-1.5">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #991b1b;"></div>
+                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #15803d;"></div>
                             <span class="text-xs font-semibold text-gray-700">Highest</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #dc2626;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #22c55e;"></div>
                             <span class="text-xs text-gray-600">Very High</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #ef4444;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #84cc16;"></div>
                             <span class="text-xs text-gray-600">High</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #f97316;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #eab308;"></div>
                             <span class="text-xs text-gray-600">Medium-High</span>
                         </div>
                         <div class="flex items-center gap-2">
@@ -434,28 +566,28 @@
                             <span class="text-xs text-gray-600">Medium</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #eab308;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #f97316;"></div>
                             <span class="text-xs text-gray-600">Medium-Low</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #84cc16;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #ef4444;"></div>
                             <span class="text-xs text-gray-600">Low</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #22c55e;"></div>
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #dc2626;"></div>
                             <span class="text-xs text-gray-600">Very Low</span>
                         </div>
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #0ea5e9;"></div>
+                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #991b1b;"></div>
                             <span class="text-xs font-semibold text-gray-700">Lowest</span>
                         </div>
                     </div>
-                    
+
                     <!-- Range values -->
                     <div class="pt-2 border-t border-gray-200">
                         <div class="text-xs text-gray-600">
-                            <div><span class="font-medium">Max:</span> <span class="font-bold" style="color: #991b1b;">${Number(max).toLocaleString()} ${unit}</span></div>
-                            <div><span class="font-medium">Min:</span> <span class="font-bold" style="color: #0ea5e9;">${Number(min).toLocaleString()} ${unit}</span></div>
+                            <div><span class="font-medium">Max:</span> <span class="font-bold" style="color: #15803d;">${Number(max).toLocaleString()} ${unit}</span></div>
+                            <div><span class="font-medium">Min:</span> <span class="font-bold" style="color: #991b1b;">${Number(min).toLocaleString()} ${unit}</span></div>
                         </div>
                     </div>
                 </div>
@@ -618,7 +750,7 @@
                 data: {
                     labels: monthLabels,
                     datasets: [{
-                        label: 'Production (mt)',
+                        label: 'Production (kg)',
                         data: data,
                         backgroundColor: 'rgba(34, 197, 94, 0.7)',
                         borderColor: 'rgb(34, 197, 94)',
@@ -703,6 +835,58 @@
                     }
                 }
             });
+        }
+
+        // Weather Overlay Toggle
+        let weatherOverlayOpen = false;
+
+        // Toggle legend visibility
+        function toggleLegend() {
+            const legendContent = document.getElementById('legend-content');
+            const icon = document.getElementById('legend-toggle-icon');
+            const isHidden = legendContent.style.display === 'none';
+
+            if (isHidden) {
+                legendContent.style.display = '';
+                icon.classList.remove('rotate-180');
+            } else {
+                legendContent.style.display = 'none';
+                icon.classList.add('rotate-180');
+            }
+        }
+
+        function toggleWeatherOverlay() {
+            const overlay = document.getElementById('weather-overlay');
+            const icon = document.getElementById('weather-toggle-icon');
+            const legend = document.getElementById('legend');
+            weatherOverlayOpen = !weatherOverlayOpen;
+
+            if (weatherOverlayOpen) {
+                overlay.classList.remove('translate-y-full');
+                overlay.classList.add('translate-y-0');
+                icon.classList.add('rotate-180');
+                legend.style.display = 'none';
+            } else {
+                overlay.classList.remove('translate-y-0');
+                overlay.classList.add('translate-y-full');
+                icon.classList.remove('rotate-180');
+                legend.style.display = '';
+            }
+        }
+
+        // Weather Cards Scroll Functions
+        function scrollWeatherLeft() {
+            const container = document.getElementById('weatherCardsContainer');
+            if (container) {
+                container.scrollBy({ left: -300, behavior: 'smooth' });
+            }
+        }
+
+        function scrollWeatherRight() {
+            const container = document.getElementById('weatherCardsContainer');
+            if (container) {
+                container.scrollBy({ left: 300, behavior: 'smooth' });
+            }
         }
 
         // Event listeners

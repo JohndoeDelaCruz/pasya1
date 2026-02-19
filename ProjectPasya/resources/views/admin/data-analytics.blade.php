@@ -1180,7 +1180,56 @@
                                     }
                                 },
                                 tooltip: {
-                                    enabled: false  // Disabled - use click for details panel instead
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                                    titleColor: '#fff',
+                                    bodyColor: 'rgba(255, 255, 255, 0.9)',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1,
+                                    cornerRadius: 12,
+                                    padding: 16,
+                                    titleFont: {
+                                        size: 15,
+                                        weight: 'bold',
+                                        family: "'Inter', 'Segoe UI', sans-serif"
+                                    },
+                                    bodyFont: {
+                                        size: 14,
+                                        family: "'Inter', 'Segoe UI', sans-serif"
+                                    },
+                                    bodySpacing: 6,
+                                    boxPadding: 6,
+                                    displayColors: true,
+                                    callbacks: {
+                                        title: function(context) {
+                                            // Simple title
+                                            return '📅 ' + context[0].label;
+                                        },
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label = '📍 ' + label + ': ';
+                                            }
+                                            // Format number in a friendly way
+                                            const value = context.parsed.y;
+                                            let formattedValue;
+                                            if (value >= 1000000) {
+                                                formattedValue = (value / 1000000).toFixed(2) + ' Million';
+                                            } else if (value >= 1000) {
+                                                formattedValue = (value / 1000).toFixed(1) + ' Thousand';
+                                            } else {
+                                                formattedValue = value.toLocaleString(undefined, {
+                                                    minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 2
+                                                });
+                                            }
+                                            return label + formattedValue + ' metric tons';
+                                        },
+                                        footer: function(context) {
+                                            return '🌾 Total harvested crop weight';
+                                        }
+                                    }
                                 },
                                 zoom: {
                                     zoom: {
@@ -1189,7 +1238,7 @@
                                             speed: 0.05  // Slower, smoother zoom
                                         },
                                         pinch: {
-                                            enabled: true
+                                            enabled: false
                                         },
                                         mode: 'x'  // Only zoom horizontally for better UX
                                     },

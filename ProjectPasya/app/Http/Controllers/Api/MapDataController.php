@@ -34,7 +34,7 @@ class MapDataController extends Controller
 
         // Determine aggregation based on view type
         $selectField = match($view) {
-            'productivity' => 'CASE WHEN SUM(area_harvested) > 0 THEN SUM(production) / SUM(area_harvested) ELSE 0 END as value',
+            'productivity' => 'AVG(productivity) as value',
             'area_planted' => 'SUM(area_planted) as value',
             'area_harvested' => 'SUM(area_harvested) as value',
             default => 'SUM(production) as value'
@@ -123,7 +123,7 @@ class MapDataController extends Controller
         $summary = $summaryQuery
             ->selectRaw('
                 SUM(production) as total_production,
-                CASE WHEN SUM(area_harvested) > 0 THEN SUM(production) / SUM(area_harvested) ELSE 0 END as avg_productivity,
+                AVG(productivity) as avg_productivity,
                 SUM(area_planted) as total_area_planted,
                 SUM(area_harvested) as total_area_harvested
             ')
@@ -205,7 +205,7 @@ class MapDataController extends Controller
         $months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
         $selectField = match($view) {
-            'productivity' => 'CASE WHEN SUM(area_harvested) > 0 THEN SUM(production) / SUM(area_harvested) ELSE 0 END as value',
+            'productivity' => 'AVG(productivity) as value',
             'area_planted' => 'SUM(area_planted) as value',
             'area_harvested' => 'SUM(area_harvested) as value',
             default => 'SUM(production) as value'
@@ -307,7 +307,7 @@ class MapDataController extends Controller
 
         $totalProduction = Crop::sum('production');
         $totalArea = Crop::sum('area_harvested');
-        $avgProductivity = $totalArea > 0 ? $totalProduction / $totalArea : 0;
+        $avgProductivity = Crop::avg('productivity');
 
         // Top producing municipalities
         $topMunicipalities = Crop::select('municipality', DB::raw('SUM(production) as total'))

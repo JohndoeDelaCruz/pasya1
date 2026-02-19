@@ -231,7 +231,7 @@
                             </div>
                             <div class="bg-green-50 rounded-xl p-4 text-center">
                                 <div class="text-3xl mb-1">📦</div>
-                                <p class="text-2xl font-bold text-green-600" x-text="(selectedCrop?.averageYield || '--') + ' MT'"></p>
+                                <p class="text-2xl font-bold text-green-600" x-text="(selectedCrop?.averageYield || '--') + ' mt'"></p>
                                 <p class="text-sm text-gray-700 font-medium">Yield per Hectare</p>
                             </div>
                         </div>

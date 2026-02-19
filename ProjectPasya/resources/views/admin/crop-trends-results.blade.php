@@ -98,7 +98,7 @@
                     </h2>
                     <p class="text-sm text-gray-500 mt-1">
                         <span class="font-medium text-cyan-600">Historical Production</span> vs 
-                        <span class="font-medium text-green-600">Predicted Production</span> (MT)
+                        <span class="font-medium text-green-600">Predicted Production</span> (mt)
                     </p>
                 </div>
                 
@@ -176,10 +176,10 @@
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">
-                                Productivity (MT/ha)
+                                Productivity (mt/ha)
                             </th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">
-                                Production @ {{ number_format($avgAreaHarvested ?? 0, 2) }} ha (MT)
+                                Production @ {{ number_format($avgAreaHarvested ?? 0, 2) }} ha (mt)
                             </th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Accuracy</th>
                         </tr>
@@ -438,7 +438,7 @@
                             labels: labels,
                             datasets: [
                                 {
-                                    label: 'Historical Production (MT)',
+                                    label: 'Historical Production (mt)',
                                     data: historical,
                                     borderColor: 'rgb(34, 211, 238)',
                                     backgroundColor: 'rgba(34, 211, 238, 0.2)',
@@ -453,7 +453,7 @@
                                     pointBorderWidth: 2
                                 },
                                 {
-                                    label: 'Predicted Production (MT)',
+                                    label: 'Predicted Production (mt)',
                                     data: predicted,
                                     borderColor: 'rgb(34, 197, 94)',
                                     backgroundColor: 'rgba(34, 197, 94, 0.2)',
@@ -501,7 +501,7 @@
                                                 label += ': ';
                                             }
                                             if (context.parsed.y !== null) {
-                                                label += context.parsed.y.toFixed(2) + ' MT';
+                                                label += context.parsed.y.toFixed(2) + ' mt';
                                             } else {
                                                 label += 'N/A';
                                             }
@@ -515,7 +515,7 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Production (MT)',
+                                        text: 'Production (mt)',
                                         font: {
                                             size: 14,
                                             weight: 'bold'

@@ -45,7 +45,7 @@
                                 <span class="text-sm text-gray-600 bg-blue-100 px-3 py-1 rounded-full">{{ number_format($item->count) }} records</span>
                             </div>
                             <div class="text-xs text-gray-500">
-                                Total Production: {{ number_format($item->total_production, 2) }} MT
+                                Total Production: {{ number_format($item->total_production, 2) }} mt
                             </div>
                         </div>
                     @endforeach
@@ -63,7 +63,7 @@
                                 <span class="text-sm text-gray-600 bg-yellow-100 px-3 py-1 rounded-full">{{ number_format($item->count) }} records</span>
                             </div>
                             <div class="text-xs text-gray-500">
-                                Avg Productivity: {{ number_format($item->avg_productivity, 2) }} MT/ha
+                                Avg Productivity: {{ number_format($item->avg_productivity, 2) }} mt/ha
                             </div>
                         </div>
                     @endforeach

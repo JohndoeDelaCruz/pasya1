@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         /* Smooth scroll behavior */
         html {
@@ -49,7 +48,7 @@
 <body class="bg-gray-50" x-data="{ sidebarOpen: false }">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-green-800 to-green-900 text-white transform sidebar-transition lg:translate-x-0 lg:static lg:inset-0"
+        <aside class="fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white transform sidebar-transition lg:translate-x-0 lg:static lg:inset-0"
                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
             <div class="flex flex-col h-full">
                 <!-- Admin Profile Section -->
@@ -268,7 +267,7 @@
          x-transition:leave="transition-opacity ease-linear duration-300"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+         class="fixed inset-0 z-[9998] bg-black bg-opacity-50 lg:hidden"
          style="display: none;"></div>
     
     @stack('scripts')
