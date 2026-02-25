@@ -300,14 +300,14 @@ class FarmerDashboardController extends Controller
     private function getFarmerEvents($farmer, $allEvents = false)
     {
         $events = [];
-        
+
         // Get events from farmer's crop plans (database only - no mock data)
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
             ->whereIn('status', ['planned', 'planted', 'growing'])
             ->get();
-        
+
         foreach ($cropPlans as $plan) {
-            // Add planting event
+            // Add planting event (includes basal fertilizer note)
             $plantingKey = $plan->planting_date->format('Y-m-d');
             if (!isset($events[$plantingKey])) {
                 $events[$plantingKey] = [];
@@ -315,12 +315,12 @@ class FarmerDashboardController extends Controller
             $events[$plantingKey][] = [
                 'title' => "Plant {$plan->crop_name}",
                 'type' => 'plant',
-                'description' => "Plant {$plan->crop_name} on {$plan->area_hectares} hectares. Expected harvest: {$plan->expected_harvest_date->format('M d, Y')}. Predicted production: {$plan->formatted_production}",
+                'description' => "Plant {$plan->crop_name} on {$plan->area_hectares} hectares. Apply basal fertilizer at planting. Expected harvest: {$plan->expected_harvest_date->format('M d, Y')}. Predicted production: {$plan->formatted_production}",
                 'crop_plan_id' => $plan->id,
                 'area' => $plan->area_hectares,
                 'predicted_production' => $plan->predicted_production,
             ];
-            
+
             // Add harvest event (EDOH)
             $harvestKey = $plan->expected_harvest_date->format('Y-m-d');
             if (!isset($events[$harvestKey])) {
@@ -335,8 +335,19 @@ class FarmerDashboardController extends Controller
                 'predicted_production' => $plan->predicted_production,
                 'is_edoh' => true,
             ];
+
+            // Add fertilizer events (side-dress applications based on growth stages)
+            $fertilizerEvents = $plan->toFertilizerEvents();
+            foreach ($fertilizerEvents as $dateKey => $dayEvents) {
+                if (!isset($events[$dateKey])) {
+                    $events[$dateKey] = [];
+                }
+                foreach ($dayEvents as $event) {
+                    $events[$dateKey][] = $event;
+                }
+            }
         }
-        
+
         return $events;
     }
     
@@ -367,7 +378,7 @@ class FarmerDashboardController extends Controller
                 'low' => isset($forecastData['forecast'][0]) ? explode('-', str_replace('°C', '', $forecastData['forecast'][0]['temp']))[0] ?? 18 : 18,
                 'location' => $municipality . ', Benguet',
                 'forecast' => $forecastData['forecast'] ?? [],
-                'hourly' => $hourlyForecast ?? [],
+                'hourly' => (is_array($hourlyForecast) && !isset($hourlyForecast['error'])) ? $hourlyForecast : [],
             ];
         } catch (\Exception $e) {
             Log::warning("Weather API error for {$municipality}: " . $e->getMessage());
@@ -845,6 +856,9 @@ class FarmerDashboardController extends Controller
                 // Continue even if notification fails
             }
             
+            // Generate fertilizer events for the response
+            $fertilizerEvents = $cropPlan->toFertilizerEvents();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Crop plan created successfully!',
@@ -858,6 +872,7 @@ class FarmerDashboardController extends Controller
                     'area_hectares' => $cropPlan->area_hectares,
                     'predicted_production' => $cropPlan->predicted_production,
                     'predicted_production_formatted' => $cropPlan->formatted_production,
+                    'fertilizer_events' => $fertilizerEvents,
                 ],
             ]);
             

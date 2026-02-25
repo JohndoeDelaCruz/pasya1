@@ -199,6 +199,7 @@
                                                     'plant' => 'bg-green-400',
                                                     'harvest' => 'bg-amber-500',
                                                     'claim' => 'bg-blue-500',
+                                                    'fertilizer' => 'bg-teal-500',
                                                     default => 'bg-green-500'
                                                 };
                                             @endphp
@@ -232,6 +233,7 @@
                                                     'plant' => 'bg-green-400',
                                                     'harvest' => 'bg-amber-500',
                                                     'claim' => 'bg-blue-500',
+                                                    'fertilizer' => 'bg-teal-500',
                                                     default => 'bg-green-500'
                                                 };
                                                 $timeLabel = $daysUntil == 0 ? 'Today' : ($daysUntil == 1 ? 'Tomorrow' : "in {$daysUntil} days");
@@ -754,7 +756,7 @@
                     switch(this.selectedEvent.eventType) {
                         case 'plant': return 'bg-green-300';
                         case 'harvest': return 'bg-green-500';
-                        case 'fertilizer': return 'bg-green-700';
+                        case 'fertilizer': return 'bg-teal-500';
                         default: return 'bg-gray-400';
                     }
                 }

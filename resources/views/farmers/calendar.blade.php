@@ -28,7 +28,7 @@
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
                         </svg>
                     </button>
-                    <button @click="eventFilter = 'claim'" 
+                    <button @click="eventFilter = 'claim'"
                             :class="eventFilter === 'claim' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
                             class="p-2 rounded-full transition-all duration-200" title="Claim Events">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -41,6 +41,13 @@
                             <circle cx="7" cy="17" r="1.5"/>
                             <circle cx="5" cy="12" r="1.5"/>
                             <circle cx="7" cy="7" r="1.5"/>
+                        </svg>
+                    </button>
+                    <button @click="eventFilter = 'fertilizer'"
+                            :class="eventFilter === 'fertilizer' ? 'bg-teal-600 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
+                            class="p-2 rounded-full transition-all duration-200" title="Fertilizer Events">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M12 3c-1.5 2-4 3-6 3M12 3c1.5 2 4 3 6 3M8 11c-1.5 1-3 3-3 5M16 11c1.5 1 3 3 3 5M10 8l-2 4M14 8l2 4"/>
                         </svg>
                     </button>
                 </div>
@@ -626,7 +633,7 @@
             return {
                 viewMode: savedDefaultView, // 'day', 'week', 'month'
                 defaultView: savedDefaultView,
-                eventFilter: 'all', // 'all', 'plant', 'harvest', 'claim'
+                eventFilter: 'all', // 'all', 'plant', 'harvest', 'claim', 'fertilizer'
                 currentDate: new Date(),
                 selectedDate: new Date(),
                 showEventModal: false,
@@ -828,6 +835,18 @@
                                 predicted_production: data.data.predicted_production,
                                 is_edoh: true
                             });
+
+                            // Add fertilizer events
+                            if (data.data.fertilizer_events) {
+                                for (const [dateKey, dayEvents] of Object.entries(data.data.fertilizer_events)) {
+                                    if (!this.allEvents[dateKey]) {
+                                        this.allEvents[dateKey] = [];
+                                    }
+                                    dayEvents.forEach(event => {
+                                        this.allEvents[dateKey].push(event);
+                                    });
+                                }
+                            }
                             
                             // Reset form and close modal
                             this.resetCropPlanForm();
@@ -1094,33 +1113,37 @@
                         case 'plant': return 'bg-green-500 text-white';
                         case 'harvest': return 'bg-emerald-400 text-white';
                         case 'claim': return 'bg-teal-200 text-teal-800';
+                        case 'fertilizer': return 'bg-teal-500 text-white';
                         default: return 'bg-gray-200 text-gray-700';
                     }
                 },
-                
+
                 getEventBgColorClass(type) {
                     switch(type) {
                         case 'plant': return 'bg-green-300';
                         case 'harvest': return 'bg-emerald-200';
                         case 'claim': return 'bg-teal-100';
+                        case 'fertilizer': return 'bg-teal-200';
                         default: return 'bg-gray-100';
                     }
                 },
-                
+
                 getEventBgClass(type) {
                     switch(type) {
                         case 'plant': return 'bg-green-50 border-green-200';
                         case 'harvest': return 'bg-emerald-50 border-emerald-200';
                         case 'claim': return 'bg-teal-50 border-teal-200';
+                        case 'fertilizer': return 'bg-teal-50 border-teal-300';
                         default: return 'bg-gray-50 border-gray-200';
                     }
                 },
-                
+
                 getEventDotClass(type) {
                     switch(type) {
                         case 'plant': return 'bg-green-500';
                         case 'harvest': return 'bg-emerald-400';
                         case 'claim': return 'bg-teal-400';
+                        case 'fertilizer': return 'bg-teal-500';
                         default: return 'bg-gray-400';
                     }
                 },

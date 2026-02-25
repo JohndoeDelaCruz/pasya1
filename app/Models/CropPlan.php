@@ -169,4 +169,55 @@ class CropPlan extends Model
             'predicted_production' => $this->predicted_production,
         ];
     }
+
+    /**
+     * Generate fertilizer schedule events based on growth stages.
+     *
+     * Uses a general formula based on the crop's total growth cycle:
+     *  - 25% of cycle: Side Dress 1 (Vegetative growth stage)
+     *  - 50% of cycle: Side Dress 2 (Pre-Flowering stage)
+     *  - 75% of cycle: Side Dress 3 (Fruiting/Bulking) — only for crops > 60 days
+     *
+     * Basal fertilizer (at planting) is noted in the planting event instead.
+     *
+     * @return array<string, array<int, array>> Events keyed by 'Y-m-d' date string
+     */
+    public function toFertilizerEvents(): array
+    {
+        $events = [];
+        $totalDays = $this->planting_date->diffInDays($this->expected_harvest_date);
+
+        if ($totalDays <= 0) {
+            return $events;
+        }
+
+        $stages = [
+            ['pct' => 0.25, 'label' => 'Side Dress 1 (Vegetative)', 'desc' => 'Apply first side-dress fertilizer during vegetative growth stage'],
+            ['pct' => 0.50, 'label' => 'Side Dress 2 (Pre-Flowering)', 'desc' => 'Apply second side-dress fertilizer before flowering stage'],
+        ];
+
+        // Add third application only for longer-cycle crops (> 60 days)
+        if ($totalDays > 60) {
+            $stages[] = ['pct' => 0.75, 'label' => 'Side Dress 3 (Fruiting)', 'desc' => 'Apply third side-dress fertilizer during fruiting/bulking stage'];
+        }
+
+        foreach ($stages as $stage) {
+            $fertDate = $this->planting_date->copy()->addDays((int) round($totalDays * $stage['pct']));
+            $dateKey = $fertDate->format('Y-m-d');
+
+            if (!isset($events[$dateKey])) {
+                $events[$dateKey] = [];
+            }
+
+            $events[$dateKey][] = [
+                'title' => "Fertilize {$this->crop_name} - {$stage['label']}",
+                'type' => 'fertilizer',
+                'description' => "{$stage['desc']} for {$this->crop_name} ({$this->area_hectares} ha).",
+                'crop_plan_id' => $this->id,
+                'area' => $this->area_hectares,
+            ];
+        }
+
+        return $events;
+    }
 }
