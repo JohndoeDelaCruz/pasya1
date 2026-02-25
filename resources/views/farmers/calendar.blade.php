@@ -314,7 +314,7 @@
                                         <template x-if="selectedEvent.predicted_production">
                                             <div class="mt-2 text-xs text-gray-500">
                                                 <span class="font-medium">Predicted Production:</span> 
-                                                <span x-text="selectedEvent.predicted_production + ' MT'"></span>
+                                                <span x-text="selectedEvent.predicted_production + ' mt'"></span>
                                             </div>
                                         </template>
                                         <template x-if="selectedEvent.area">
@@ -562,7 +562,7 @@
                                 </div>
                             </div>
                             <p x-show="predictionPreview.average_yield_per_hectare" class="text-xs text-gray-500 mt-2 text-center">
-                                Average yield: <span x-text="predictionPreview.average_yield_per_hectare"></span> MT/hectare
+                                Average yield: <span x-text="predictionPreview.average_yield_per_hectare"></span> mt/hectare
                             </p>
                         </div>
                         
@@ -746,7 +746,7 @@
                     this.predictionPreview = {
                         edoh_formatted: edohFormatted,
                         days_to_harvest: daysToHarvest,
-                        predicted_production_formatted: predictedProduction + ' MT',
+                        predicted_production_formatted: predictedProduction + ' mt',
                         area_hectares: area,
                         average_yield_per_hectare: avgYield
                     };

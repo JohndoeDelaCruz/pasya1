@@ -57,9 +57,9 @@
                                 View Type
                             </label>
                             <select id="view-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm lg:text-base">
-                                <option value="production">Total Production (MT)</option>
+                                <option value="production">Total Production (mt)</option>
                                 <option value="area_harvested">Area Harvested (ha)</option>
-                                <option value="productivity">Productivity (MT/ha)</option>
+                                <option value="productivity">Productivity (mt/ha)</option>
                             </select>
                         </div>
 
@@ -620,9 +620,9 @@
         // Get unit label
         function getUnit(viewType) {
             switch(viewType) {
-                case 'production': return 'MT';
+                case 'production': return 'mt';
                 case 'area_harvested': return 'ha';
-                case 'productivity': return 'MT/ha';
+                case 'productivity': return 'mt/ha';
                 default: return '';
             }
         }
@@ -678,9 +678,9 @@
                 console.log('Municipality data:', data);
                 
                 // Update overview stats
-                document.getElementById('detail-production').textContent = Number(data.summary.total_production).toLocaleString() + ' MT';
+                document.getElementById('detail-production').textContent = Number(data.summary.total_production).toLocaleString() + ' mt';
                 document.getElementById('detail-area').textContent = Number(data.summary.total_area_harvested).toLocaleString() + ' ha';
-                document.getElementById('detail-productivity').textContent = Number(data.summary.avg_productivity).toFixed(2) + ' MT/ha';
+                document.getElementById('detail-productivity').textContent = Number(data.summary.avg_productivity).toFixed(2) + ' mt/ha';
                 document.getElementById('detail-records').textContent = data.monthly_data.length + ' months';
                 
                 // Update farm type breakdown
@@ -723,7 +723,7 @@
                         <div class="w-full bg-gray-200 rounded-full h-2">
                             <div class="bg-green-600 h-2 rounded-full" style="width: ${percentage}%"></div>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1">${Number(production).toLocaleString()} MT</p>
+                        <p class="text-xs text-gray-600 mt-1">${Number(production).toLocaleString()} mt</p>
                     </div>
                 `;
             }).join('');
@@ -828,7 +828,7 @@
                                     const value = Number(context.parsed).toLocaleString();
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                    return `${label}: ${value} MT (${percentage}%)`;
+                                    return `${label}: ${value} mt (${percentage}%)`;
                                 }
                             }
                         }

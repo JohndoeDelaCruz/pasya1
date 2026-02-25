@@ -416,7 +416,7 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-800">{{ number_format($averageYield ?? 0, 2) }} <span class="text-lg font-medium text-gray-500">MT/ha</span></div>
+                <div class="text-3xl font-bold text-gray-800">{{ number_format($averageYield ?? 0, 2) }} <span class="text-lg font-medium text-gray-500">mt/ha</span></div>
                 <div class="flex items-center gap-1 mt-2">
                     <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
@@ -462,7 +462,7 @@
                                     @foreach($topCrops->take(3) as $index => $crop)
                                         <li class="flex items-center gap-2 hover-scale transition-transform">
                                             <span class="font-medium text-green-600">{{ $index + 1 }}.</span>
-                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} MT</span></span>
+                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} mt</span></span>
                                         </li>
                                     @endforeach
                                 @else
@@ -679,7 +679,7 @@
                                                     </svg>
                                                     <span class="font-bold">{{ ucwords(strtolower($municipality)) }}</span>
                                                 </div>
-                                                <span class="font-bold text-lg">{{ number_format($totalProduction, 2) }} MT</span>
+                                                <span class="font-bold text-lg">{{ number_format($totalProduction, 2) }} mt</span>
                                             </div>
                                         </div>
 
@@ -696,7 +696,7 @@
                                                         <span class="font-semibold text-gray-800 text-sm">
                                                             {{ ucwords(strtolower($crop)) }}
                                                         </span>
-                                                        <span class="font-bold text-green-700">{{ number_format($cropTotal, 2) }} MT</span>
+                                                        <span class="font-bold text-green-700">{{ number_format($cropTotal, 2) }} mt</span>
                                                     </div>
                                                     
                                                     @if($hasMonthly)
@@ -705,7 +705,7 @@
                                                             @foreach($cropPredictions as $pred)
                                                                 <div class="bg-white rounded px-2 py-1 text-xs shadow-sm hover:shadow-md transition-shadow">
                                                                     <div class="font-medium text-gray-600">{{ $pred['month'] }}</div>
-                                                                    <div class="font-bold text-green-600">{{ number_format($pred['predicted_production'], 1) }} MT</div>
+                                                                    <div class="font-bold text-green-600">{{ number_format($pred['predicted_production'], 1) }} mt</div>
                                                                     @if(isset($pred['confidence']))
                                                                         <div class="text-gray-500 text-[10px]">{{ $pred['confidence'] }}</div>
                                                                     @endif
@@ -1367,19 +1367,6 @@
                         }
                     });
                 }
-            }
-        }
-        
-        // Initialize chart when DOM is ready (fallback for timing issues)
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                if (typeof dataAnalytics === 'function' && !trendChartInstance) {
-                    console.log('DOMContentLoaded: Initializing chart...');
-                    const analytics = dataAnalytics();
-                    if (analytics && typeof analytics.init === 'function') {
-                        analytics.init();
-                    }
-                }
             }, 200);
         });
     </script>
@@ -1504,7 +1491,7 @@
                                             <p class="text-xl font-bold text-green-700">
                                                 @foreach($municipalityStats as $munName => $stat)
                                                     <span x-show="selectedMunicipality === '{{ $munName }}'">
-                                                        {{ number_format($stat->productivity ?? 0, 2) }} MT/ha
+                                                        {{ number_format($stat->productivity ?? 0, 2) }} mt/ha
                                                     </span>
                                                 @endforeach
                                             </p>
@@ -1546,8 +1533,8 @@
                                             $rainfedQuery->where('crop', $filterCrop);
                                         }
                                         
-                                        $irrigated = $irrigatedQuery->sum('production'); // Production is already in MT
-                                        $rainfed = $rainfedQuery->sum('production'); // Production is already in MT
+                                        $irrigated = $irrigatedQuery->sum('production'); // Production is already in mt
+                                        $rainfed = $rainfedQuery->sum('production'); // Production is already in mt
                                         $total = $irrigated + $rainfed;
                                         
                                         $farmTypeDistributions[$mun] = [
@@ -1854,7 +1841,7 @@
                                                     </div>
                                                     <div class="text-right">
                                                         <span class="text-sm font-bold text-gray-800">{{ number_format($percentage, 1) }}%</span>
-                                                        <span class="text-xs text-gray-500 block">{{ number_format($crop->total_production, 2) }} MT</span>
+                                                        <span class="text-xs text-gray-500 block">{{ number_format($crop->total_production, 2) }} mt</span>
                                                     </div>
                                                 </div>
                                             @endforeach

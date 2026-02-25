@@ -864,6 +864,9 @@ class DataAnalyticsController extends Controller
                             // ML API returns production_mt which is already in metric tons (MT)
                             $productionMT = $prediction['prediction']['production_mt'] ?? 0;
                             
+                            // ML API V2 returns confidence_score (0-100)
+                            $confidenceScore = $prediction['prediction']['confidence_score'] ?? null;
+                            
                             $predictions[] = [
                                 'year' => $year,
                                 'month' => $month,
@@ -872,7 +875,7 @@ class DataAnalyticsController extends Controller
                                 'farm_type' => $farmType,
                                 'area_harvested' => round($avgArea, 2),
                                 'predicted_production' => round($productionMT, 2),
-                                'confidence' => $prediction['prediction']['confidence'] ?? null
+                                'confidence' => $confidenceScore ? round($confidenceScore, 1) . '%' : null
                             ];
                             $predictionCount++;
                         }
