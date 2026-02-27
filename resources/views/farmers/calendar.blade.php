@@ -331,6 +331,20 @@
                                             </div>
                                         </template>
                                     </div>
+                                    <template x-if="selectedEvent.crop_plan_id">
+                                        <button @click="deleteCropPlan(selectedEvent.crop_plan_id)" 
+                                                :disabled="isDeleting"
+                                                class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0"
+                                                title="Delete this crop plan">
+                                            <svg x-show="!isDeleting" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                            </svg>
+                                            <svg x-show="isDeleting" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            </svg>
+                                        </button>
+                                    </template>
                                 </div>
                             </div>
                         </template>
@@ -344,6 +358,20 @@
                                             <h4 class="font-semibold text-gray-800" x-text="event.title"></h4>
                                             <p class="text-gray-600 text-sm mt-1" x-text="event.description || 'No description'"></p>
                                         </div>
+                                        <template x-if="event.crop_plan_id">
+                                            <button @click="deleteCropPlan(event.crop_plan_id)" 
+                                                    :disabled="isDeleting"
+                                                    class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0"
+                                                    title="Delete this crop plan">
+                                                <svg x-show="!isDeleting" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                                <svg x-show="isDeleting" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                                </svg>
+                                            </button>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
@@ -658,6 +686,7 @@
                 showPredictionPreview: false,
                 isCalculating: false,
                 isSubmitting: false,
+                isDeleting: false,
                 predictionPreview: {
                     edoh_formatted: '',
                     days_to_harvest: 0,
@@ -867,6 +896,55 @@
                         alert('Failed to save crop plan. Error: ' + error.message);
                     } finally {
                         this.isSubmitting = false;
+                    }
+                },
+                
+                async deleteCropPlan(cropPlanId) {
+                    if (!confirm('Are you sure you want to delete this crop plan? This will remove all associated events (planting, harvest, and fertilizer).')) {
+                        return;
+                    }
+                    
+                    this.isDeleting = true;
+                    
+                    try {
+                        const response = await fetch('/pasya1/public/farmer/api/crop-plans/' + cropPlanId, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            // Remove all events associated with this crop plan
+                            for (const [dateKey, events] of Object.entries(this.allEvents)) {
+                                this.allEvents[dateKey] = events.filter(e => e.crop_plan_id !== cropPlanId);
+                                if (this.allEvents[dateKey].length === 0) {
+                                    delete this.allEvents[dateKey];
+                                }
+                            }
+                            
+                            // Close modal
+                            this.showEventModal = false;
+                            this.selectedEvent = null;
+                            this.selectedDay = null;
+                            
+                            // Show success toast
+                            this.successMessage = 'Crop plan deleted successfully!';
+                            this.showSuccessToast = true;
+                            setTimeout(() => {
+                                this.showSuccessToast = false;
+                            }, 4000);
+                        } else {
+                            alert('Failed to delete crop plan: ' + (data.message || 'Unknown error'));
+                        }
+                    } catch (error) {
+                        console.error('Error deleting crop plan:', error);
+                        alert('Failed to delete crop plan. Error: ' + error.message);
+                    } finally {
+                        this.isDeleting = false;
                     }
                 },
                 
