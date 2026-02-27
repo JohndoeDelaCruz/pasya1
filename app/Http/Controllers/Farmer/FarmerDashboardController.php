@@ -206,13 +206,13 @@ class FarmerDashboardController extends Controller
         // Get available crop types with all needed info
         $cropTypes = CropType::active()->orderBy('name')->get()->map(function ($crop) {
             return [
-            'id' => $crop->id,
-            'name' => $crop->name,
-            'category' => $crop->category,
-            'description' => $crop->description,
-            'days_to_harvest' => $crop->days_to_harvest_value,
-            'average_yield_per_hectare' => $crop->average_yield_value,
-            'growth_cycle' => $this->formatGrowthCycle($crop->days_to_harvest_value),
+                'id' => $crop->id,
+                'name' => $crop->name,
+                'category' => $crop->category,
+                'description' => $crop->description,
+                'days_to_harvest' => $crop->days_to_harvest_value,
+                'average_yield_per_hectare' => $crop->average_yield_value,
+                'growth_cycle' => $this->formatGrowthCycle($crop->days_to_harvest_value),
             ];
         });
 
@@ -222,30 +222,30 @@ class FarmerDashboardController extends Controller
             ->orderBy('planting_date', 'desc')
             ->get()
             ->map(function ($plan) {
-            $daysUntilHarvest = $plan->days_until_harvest;
-            $progressPercentage = $plan->progress_percentage;
-            $isHarvestReady = $daysUntilHarvest <= 7 && $plan->status !== 'harvested'; // Ready when 7 days or less until harvest
-            $isOverdue = $daysUntilHarvest <= 0 && $plan->status !== 'harvested';
+                $daysUntilHarvest = $plan->days_until_harvest;
+                $progressPercentage = $plan->progress_percentage;
+                $isHarvestReady = $daysUntilHarvest <= 7 && $plan->status !== 'harvested'; // Ready when 7 days or less until harvest
+                $isOverdue = $daysUntilHarvest <= 0 && $plan->status !== 'harvested';
 
-            return [
-            'id' => $plan->id,
-            'cropType' => $plan->crop_name,
-            'datePlanted' => $plan->planting_date->format('M d, Y'),
-            'dateHarvested' => $plan->status === 'harvested'
-            ? $plan->expected_harvest_date->format('M d, Y')
-            : '--',
-            'expectedHarvest' => $plan->expected_harvest_date->format('M d, Y'),
-            'status' => $plan->status === 'harvested' ? 'Completed' : 'Growing',
-            'area' => $plan->area_hectares,
-            'predictedProduction' => $plan->predicted_production,
-            'plan_status' => $plan->status,
-            'daysUntilHarvest' => $daysUntilHarvest,
-            'progressPercentage' => $progressPercentage,
-            'isHarvestReady' => $isHarvestReady,
-            'isOverdue' => $isOverdue,
-            'maturityStatus' => $this->getMaturityStatus($daysUntilHarvest, $plan->status),
-            ];
-        });
+                return [
+                    'id' => $plan->id,
+                    'cropType' => $plan->crop_name,
+                    'datePlanted' => $plan->planting_date->format('M d, Y'),
+                    'dateHarvested' => $plan->status === 'harvested'
+                        ? $plan->expected_harvest_date->format('M d, Y')
+                        : '--',
+                    'expectedHarvest' => $plan->expected_harvest_date->format('M d, Y'),
+                    'status' => $plan->status === 'harvested' ? 'Completed' : 'Growing',
+                    'area' => $plan->area_hectares,
+                    'predictedProduction' => $plan->predicted_production,
+                    'plan_status' => $plan->status,
+                    'daysUntilHarvest' => $daysUntilHarvest,
+                    'progressPercentage' => $progressPercentage,
+                    'isHarvestReady' => $isHarvestReady,
+                    'isOverdue' => $isOverdue,
+                    'maturityStatus' => $this->getMaturityStatus($daysUntilHarvest, $plan->status),
+                ];
+            });
 
         // Get production summary
         $summary = $this->getProductionSummary($farmer);
@@ -261,17 +261,13 @@ class FarmerDashboardController extends Controller
         $months = $days / 30;
         if ($months < 2) {
             return '1-2 months';
-        }
-        elseif ($months < 3) {
+        } elseif ($months < 3) {
             return '2-3 months';
-        }
-        elseif ($months < 4) {
+        } elseif ($months < 4) {
             return '3-4 months';
-        }
-        elseif ($months < 5) {
+        } elseif ($months < 5) {
             return '4-5 months';
-        }
-        else {
+        } else {
             return '5-6 months';
         }
     }
@@ -287,17 +283,13 @@ class FarmerDashboardController extends Controller
 
         if ($daysUntilHarvest <= 0) {
             return 'overdue'; // Past harvest date
-        }
-        elseif ($daysUntilHarvest <= 3) {
+        } elseif ($daysUntilHarvest <= 3) {
             return 'ready'; // Ready to harvest (0-3 days)
-        }
-        elseif ($daysUntilHarvest <= 7) {
+        } elseif ($daysUntilHarvest <= 7) {
             return 'almost_ready'; // Almost ready (4-7 days)
-        }
-        elseif ($daysUntilHarvest <= 14) {
+        } elseif ($daysUntilHarvest <= 14) {
             return 'approaching'; // Approaching harvest (8-14 days)
-        }
-        else {
+        } else {
             return 'growing'; // Still growing (more than 14 days)
         }
     }
@@ -314,6 +306,7 @@ class FarmerDashboardController extends Controller
             ->whereIn('status', ['planned', 'planted', 'growing'])
             ->get();
 
+        /** @var CropPlan $plan */
         foreach ($cropPlans as $plan) {
             // Add planting event (includes basal fertilizer note)
             $plantingKey = $plan->planting_date->format('Y-m-d');
@@ -388,8 +381,7 @@ class FarmerDashboardController extends Controller
                 'forecast' => $forecastData['forecast'] ?? [],
                 'hourly' => (is_array($hourlyForecast) && !isset($hourlyForecast['error'])) ? $hourlyForecast : [],
             ];
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::warning("Weather API error for {$municipality}: " . $e->getMessage());
 
             // Return fallback data
@@ -771,8 +763,7 @@ class FarmerDashboardController extends Controller
                 'weather' => $weather,
                 'updated_at' => now()->format('Y-m-d H:i:s'),
             ]);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error("Weather API error: " . $e->getMessage());
             return response()->json(['error' => 'Failed to fetch weather data'], 500);
         }
@@ -785,6 +776,7 @@ class FarmerDashboardController extends Controller
     {
         Log::info('storeCropPlan: Starting...', ['input' => $request->all()]);
 
+        /** @var \App\Models\Farmer $farmer */
         $farmer = Auth::guard('farmer')->user();
 
         if (!$farmer) {
@@ -807,8 +799,7 @@ class FarmerDashboardController extends Controller
             ]);
 
             Log::info('storeCropPlan: Validation passed', $validated);
-        }
-        catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('storeCropPlan: Validation failed', ['errors' => $e->errors()]);
             return response()->json([
                 'success' => false,
@@ -859,13 +850,12 @@ class FarmerDashboardController extends Controller
             try {
                 FarmerNotification::createCropPlanNotification($farmer, $cropPlan, $cropType->days_to_harvest_value);
                 Log::info('storeCropPlan: Notification created');
-            }
-            catch (\Exception $notifEx) {
+            } catch (\Exception $notifEx) {
                 Log::warning('storeCropPlan: Notification creation failed, but crop plan saved', [
                     'error' => $notifEx->getMessage(),
                     'trace' => $notifEx->getTraceAsString()
                 ]);
-            // Continue even if notification fails
+                // Continue even if notification fails
             }
 
             // Generate fertilizer events for the response
@@ -888,8 +878,7 @@ class FarmerDashboardController extends Controller
                 ],
             ]);
 
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error('Failed to create crop plan', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -954,8 +943,7 @@ class FarmerDashboardController extends Controller
                 ],
             ]);
 
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to calculate prediction.',
@@ -1038,6 +1026,7 @@ class FarmerDashboardController extends Controller
 
         // Format for calendar display
         $events = [];
+        /** @var CropPlan $plan */
         foreach ($cropPlans as $plan) {
             // Add planting event
             $plantingKey = $plan->planting_date->format('Y-m-d');
@@ -1070,14 +1059,14 @@ class FarmerDashboardController extends Controller
             ->orderBy('name')
             ->get()
             ->map(function ($crop) {
-            return [
-            'id' => $crop->id,
-            'name' => $crop->name,
-            'category' => $crop->category,
-            'days_to_harvest' => $crop->days_to_harvest_value,
-            'average_yield_per_hectare' => $crop->average_yield_value,
-            ];
-        });
+                return [
+                    'id' => $crop->id,
+                    'name' => $crop->name,
+                    'category' => $crop->category,
+                    'days_to_harvest' => $crop->days_to_harvest_value,
+                    'average_yield_per_hectare' => $crop->average_yield_value,
+                ];
+            });
 
         return response()->json([
             'success' => true,
@@ -1098,8 +1087,7 @@ class FarmerDashboardController extends Controller
         string $farmType,
         Carbon $plantingDate,
         float $areaHectares
-        ): float
-    {
+    ): float {
         try {
             // Try ML API V2 prediction
             $predictionService = new PredictionService();
@@ -1116,8 +1104,7 @@ class FarmerDashboardController extends Controller
             if (isset($result['success']) && $result['success'] && isset($result['prediction']['production_mt'])) {
                 return floatval($result['prediction']['production_mt']);
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::warning('ML prediction failed, using fallback', [
                 'crop' => $cropName,
                 'error' => $e->getMessage(),
@@ -1143,20 +1130,20 @@ class FarmerDashboardController extends Controller
             ->limit($limit)
             ->get()
             ->map(function ($notification) {
-            return [
-            'id' => $notification->id,
-            'type' => $notification->type,
-            'title' => $notification->title,
-            'message' => $notification->message,
-            'icon_svg' => $notification->icon_svg,
-            'icon_bg_class' => $notification->icon_bg_class,
-            'icon_text_class' => $notification->icon_text_class,
-            'link' => $notification->link,
-            'is_read' => $notification->is_read,
-            'time_ago' => $notification->time_ago,
-            'created_at' => $notification->created_at->format('Y-m-d H:i:s'),
-            ];
-        });
+                return [
+                    'id' => $notification->id,
+                    'type' => $notification->type,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'icon_svg' => $notification->icon_svg,
+                    'icon_bg_class' => $notification->icon_bg_class,
+                    'icon_text_class' => $notification->icon_text_class,
+                    'link' => $notification->link,
+                    'is_read' => $notification->is_read,
+                    'time_ago' => $notification->time_ago,
+                    'created_at' => $notification->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
 
         $unreadCount = FarmerNotification::where('farmer_id', $farmer->id)
             ->cropPlanRelated()
@@ -1202,9 +1189,9 @@ class FarmerDashboardController extends Controller
         FarmerNotification::where('farmer_id', $farmer->id)
             ->unread()
             ->update([
-            'is_read' => true,
-            'read_at' => now(),
-        ]);
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
 
         return response()->json([
             'success' => true,

@@ -7,6 +7,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
 
+/**
+ * @property int $id
+ * @property int $farmer_id
+ * @property int $crop_type_id
+ * @property string $crop_name
+ * @property \Carbon\Carbon $planting_date
+ * @property \Carbon\Carbon $expected_harvest_date
+ * @property float $area_hectares
+ * @property float $predicted_production
+ * @property string $municipality
+ * @property string $farm_type
+ * @property string $status
+ * @property string|null $notes
+ * @property string $formatted_production
+ * @property int $days_until_harvest
+ * @property float $progress_percentage
+ */
 class CropPlan extends Model
 {
     use HasFactory;
@@ -62,8 +79,8 @@ class CropPlan extends Model
     public function scopeUpcomingHarvests($query, $days = 30)
     {
         return $query->where('expected_harvest_date', '>=', now())
-                    ->where('expected_harvest_date', '<=', now()->addDays($days))
-                    ->whereIn('status', ['planted', 'growing']);
+            ->where('expected_harvest_date', '<=', now()->addDays($days))
+            ->whereIn('status', ['planted', 'growing']);
     }
 
     /**
@@ -72,7 +89,7 @@ class CropPlan extends Model
     public function scopePlantingToday($query)
     {
         return $query->whereDate('planting_date', today())
-                    ->where('status', 'planned');
+            ->where('status', 'planned');
     }
 
     /**
@@ -81,7 +98,7 @@ class CropPlan extends Model
     public function scopeHarvestToday($query)
     {
         return $query->whereDate('expected_harvest_date', today())
-                    ->whereIn('status', ['planted', 'growing']);
+            ->whereIn('status', ['planted', 'growing']);
     }
 
     /**
@@ -102,11 +119,11 @@ class CropPlan extends Model
     {
         $totalDays = $this->planting_date->diffInDays($this->expected_harvest_date);
         $daysPassed = $this->planting_date->diffInDays(now());
-        
+
         if ($totalDays <= 0) {
             return 100;
         }
-        
+
         $percentage = ($daysPassed / $totalDays) * 100;
         return min(100, max(0, round($percentage, 1)));
     }

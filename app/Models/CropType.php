@@ -6,6 +6,20 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $category
+ * @property string|null $description
+ * @property string|null $image
+ * @property int $days_to_harvest
+ * @property float $average_yield_per_hectare
+ * @property bool $is_active
+ * @property string $name_display
+ * @property string $category_display
+ * @property int $days_to_harvest_value
+ * @property float $average_yield_value
+ */
 class CropType extends Model
 {
     use HasFactory;
@@ -144,10 +158,10 @@ class CropType extends Model
      */
     public function calculateHarvestDate(\DateTime|string $plantingDate): \Carbon\Carbon
     {
-        $date = $plantingDate instanceof \DateTime 
-            ? \Carbon\Carbon::instance($plantingDate) 
+        $date = $plantingDate instanceof \DateTime
+            ? \Carbon\Carbon::instance($plantingDate)
             : \Carbon\Carbon::parse($plantingDate);
-        
+
         return $date->copy()->addDays($this->days_to_harvest_value);
     }
 
@@ -165,7 +179,7 @@ class CropType extends Model
     public static function getHarvestDays(string $cropName): int
     {
         $cropName = strtoupper(trim($cropName));
-        
+
         // Try to find in database first
         $cropType = self::where('name', 'LIKE', "%{$cropName}%")->first();
         if ($cropType && $cropType->days_to_harvest) {
@@ -182,7 +196,7 @@ class CropType extends Model
     public static function getAverageYield(string $cropName): float
     {
         $cropName = strtoupper(trim($cropName));
-        
+
         // Try to find in database first
         $cropType = self::where('name', 'LIKE', "%{$cropName}%")->first();
         if ($cropType && $cropType->average_yield_per_hectare) {
