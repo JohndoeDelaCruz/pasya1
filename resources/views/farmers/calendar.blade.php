@@ -159,10 +159,16 @@
                             <div class="space-y-2">
                                 <template x-for="(event, index) in getDayEvents(selectedDate)" :key="index">
                                     <div :class="getEventClass(event.type)"
-                                        class="text-sm px-3 py-2 rounded-lg font-medium cursor-pointer hover:opacity-90 hover:shadow-sm transition-all"
+                                        class="text-sm px-3 py-2 rounded-lg font-medium cursor-pointer hover:opacity-90 hover:shadow-sm transition-all flex items-center gap-3"
                                         @click.stop="showEventDetails(event)">
-                                        <span x-text="event.title"></span>
-                                        <p class="text-xs opacity-80 mt-1" x-text="event.description"></p>
+                                        <template x-if="getCropImage(event.crop_name)">
+                                            <img :src="getCropImage(event.crop_name)" :alt="event.crop_name"
+                                                class="w-10 h-10 rounded-full object-cover border-2 border-white/50 shadow-sm flex-shrink-0">
+                                        </template>
+                                        <div class="min-w-0">
+                                            <span x-text="event.title"></span>
+                                            <p class="text-xs opacity-80 mt-1" x-text="event.description"></p>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -201,9 +207,13 @@
                                     <div class="flex-1 space-y-1 overflow-y-auto">
                                         <template x-for="(event, eventIndex) in day.events" :key="eventIndex">
                                             <div :class="getEventClass(event.type)"
-                                                class="text-xs px-2 py-1.5 rounded-md font-medium cursor-pointer hover:opacity-90 transition-all truncate"
+                                                class="text-xs px-2 py-1.5 rounded-md font-medium cursor-pointer hover:opacity-90 transition-all truncate flex items-center gap-1"
                                                 @click.stop="showEventDetails(event)">
-                                                <span x-text="event.title"></span>
+                                                <template x-if="getCropImage(event.crop_name)">
+                                                    <img :src="getCropImage(event.crop_name)" :alt="event.crop_name"
+                                                        class="w-5 h-5 rounded-full object-cover flex-shrink-0">
+                                                </template>
+                                                <span x-text="event.title" class="truncate"></span>
                                             </div>
                                         </template>
                                     </div>
@@ -240,13 +250,25 @@
                                                     <div class="text-sm font-bold mb-1 text-gray-700" x-text="day.date">
                                                     </div>
 
+                                                    <!-- Crop Image -->
+                                                    <template x-if="day.events.length > 0 && getCropImage(day.events[0].crop_name)">
+                                                        <div class="flex justify-center mb-1">
+                                                            <img :src="getCropImage(day.events[0].crop_name)" :alt="day.events[0].crop_name"
+                                                                class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm">
+                                                        </div>
+                                                    </template>
+
                                                     <!-- Events -->
                                                     <div class="space-y-1">
                                                         <template x-for="(event, eventIndex) in day.events.slice(0, 2)"
                                                             :key="eventIndex">
                                                             <div :class="getEventClass(event.type)"
-                                                                class="text-xs px-2 py-1 rounded-md font-medium truncate">
-                                                                <span x-text="event.title"></span>
+                                                                class="text-xs px-2 py-1 rounded-md font-medium truncate flex items-center gap-1">
+                                                                <template x-if="getCropImage(event.crop_name) && eventIndex > 0">
+                                                                    <img :src="getCropImage(event.crop_name)" :alt="event.crop_name"
+                                                                        class="w-4 h-4 rounded-full object-cover flex-shrink-0">
+                                                                </template>
+                                                                <span x-text="event.title" class="truncate"></span>
                                                             </div>
                                                         </template>
                                                         <template x-if="day.events.length > 2">
@@ -875,6 +897,7 @@
                                 this.allEvents[plantingDate].push({
                                     title: 'Plant ' + cropName,
                                     type: 'plant',
+                                    crop_name: cropName,
                                     description: 'Plant ' + cropName + ' on ' + data.data.area_hectares + ' hectares. Expected harvest: ' + data.data.edoh_formatted + '. Predicted production: ' + data.data.predicted_production_formatted,
                                     crop_plan_id: data.data.id,
                                     area: data.data.area_hectares,
@@ -888,6 +911,7 @@
                                 this.allEvents[harvestDate].push({
                                     title: 'Harvest ' + cropName,
                                     type: 'harvest',
+                                    crop_name: cropName,
                                     description: 'Expected harvest of ' + cropName + ' from ' + data.data.area_hectares + ' ha. Predicted production: ' + data.data.predicted_production_formatted,
                                     crop_plan_id: data.data.id,
                                     area: data.data.area_hectares,
@@ -1224,6 +1248,32 @@
                             case 'fertilizer': return 'bg-teal-500 text-white';
                             default: return 'bg-gray-200 text-gray-700';
                         }
+                    },
+
+                    getCropImage(cropName) {
+                        if (!cropName) return null;
+                        const name = cropName.toUpperCase();
+                        const basePath = '{{ asset("images/crops") }}';
+                        const imageMap = {
+                            'CABBAGE': basePath + '/cabbage.jpg',
+                            'CHINESE CABBAGE': basePath + '/Chinese_cabbage.jpg',
+                            'PECHAY': basePath + '/Chinese_cabbage.jpg',
+                            'BELL PEPPER': basePath + '/Bell-peppers.webp',
+                            'BELL PEPPERS': basePath + '/Bell-peppers.webp',
+                            'CAULIFLOWER': basePath + '/Cauli-flower.jpg',
+                            'CAULI FLOWER': basePath + '/Cauli-flower.jpg',
+                            'LETTUCE': basePath + '/Lettuce-Baguio.png',
+                            'WHITE POTATO': basePath + '/White_potato.jpg',
+                            'POTATO': basePath + '/White_potato.jpg',
+                            'BROCCOLI': basePath + '/brocolli.jpg',
+                            'CARROT': basePath + '/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
+                            'CARROTS': basePath + '/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
+                            'GARDEN PEAS': basePath + '/garden_peas.jpg',
+                            'GARDEN PEA': basePath + '/garden_peas.jpg',
+                            'SNAP BEANS': basePath + '/snap_beans.jpg',
+                            'SNAP BEAN': basePath + '/snap_beans.jpg',
+                        };
+                        return imageMap[name] || null;
                     },
 
                     getEventBgColorClass(type) {

@@ -147,6 +147,48 @@ class MapDataController extends Controller
     }
 
     /**
+     * Get crop contribution by municipality
+     * GET /api/map/crop-contribution?crop=CABBAGE&year=2024&farm_type=Irrigated
+     */
+    public function getCropContribution(Request $request)
+    {
+        $crop = $request->input('crop');
+        $year = $request->input('year');
+        $farmType = $request->input('farm_type');
+
+        $query = Crop::query();
+
+        if ($crop) $query->where('crop', $crop);
+        if ($year) $query->where('year', $year);
+        if ($farmType) $query->where('farm_type', $farmType);
+
+        $data = $query
+            ->select('municipality', DB::raw('SUM(production) as total_production'))
+            ->groupBy('municipality')
+            ->orderBy('total_production', 'desc')
+            ->get();
+
+        $grandTotal = $data->sum('total_production');
+
+        $contribution = $data->map(function ($item) use ($grandTotal) {
+            return [
+                'municipality' => $item->municipality,
+                'total_production' => round($item->total_production, 2),
+                'percentage' => $grandTotal > 0 ? round(($item->total_production / $grandTotal) * 100, 1) : 0,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'crop' => $crop,
+            'year' => $year,
+            'farm_type' => $farmType,
+            'grand_total' => round($grandTotal, 2),
+            'contribution' => $contribution,
+        ]);
+    }
+
+    /**
      * Get filter options
      * GET /api/map/filters
      */

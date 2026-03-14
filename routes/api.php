@@ -22,6 +22,9 @@ Route::prefix('map')->name('api.map.')->group(function () {
     // Filter options for dropdowns
     Route::get('/filters', [MapDataController::class, 'getFilterOptions'])->name('filters');
 
+    // Crop contribution by municipality
+    Route::get('/crop-contribution', [MapDataController::class, 'getCropContribution'])->name('crop-contribution');
+
     // Municipality details
     Route::get('/municipality/{municipality}', [MapDataController::class, 'getMunicipalityDetails'])->name('municipality');
 

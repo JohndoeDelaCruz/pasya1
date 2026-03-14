@@ -316,6 +316,7 @@ class FarmerDashboardController extends Controller
             $events[$plantingKey][] = [
                 'title' => "Plant {$plan->crop_name}",
                 'type' => 'plant',
+                'crop_name' => $plan->crop_name,
                 'description' => "Plant {$plan->crop_name} on {$plan->area_hectares} hectares. Apply basal fertilizer at planting. Expected harvest: {$plan->expected_harvest_date->format('M d, Y')}. Predicted production: {$plan->formatted_production}",
                 'crop_plan_id' => $plan->id,
                 'area' => $plan->area_hectares,
@@ -330,6 +331,7 @@ class FarmerDashboardController extends Controller
             $events[$harvestKey][] = [
                 'title' => "Harvest {$plan->crop_name}",
                 'type' => 'harvest',
+                'crop_name' => $plan->crop_name,
                 'description' => "Expected harvest of {$plan->crop_name} from {$plan->area_hectares} ha. Predicted production: {$plan->formatted_production}",
                 'crop_plan_id' => $plan->id,
                 'area' => $plan->area_hectares,

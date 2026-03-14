@@ -279,6 +279,13 @@
                                     <canvas id="monthly-chart" height="200"></canvas>
                                 </div>
 
+                                <!-- Crop Contribution Chart -->
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Crop Contribution</h3>
+                                    <p id="crop-contribution-desc" class="text-xs text-gray-500 mb-2">Municipality share of production based on current filters</p>
+                                    <canvas id="crop-contribution-chart" height="250"></canvas>
+                                </div>
+
                                 <!-- Crop Distribution Chart -->
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Crop Distribution</h3>
@@ -640,6 +647,7 @@
         // Municipality Details Panel Functions
         let monthlyChart = null;
         let cropChart = null;
+        let cropContributionChart = null;
 
         function closeDetailsPanel() {
             document.getElementById('details-panel').classList.add('translate-x-full');
@@ -689,6 +697,9 @@
                 // Update charts
                 updateMonthlyChart(data.monthly_data);
                 updateCropChart(data.crop_distribution);
+
+                // Load crop contribution data
+                loadCropContribution(municipalityName);
                 
                 // Hide loading, show content
                 document.getElementById('panel-loading').classList.add('hidden');
@@ -829,6 +840,125 @@
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((context.parsed / total) * 100).toFixed(1);
                                     return `${label}: ${value} mt (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadCropContribution(highlightMunicipality) {
+            const crop = document.getElementById('crop-filter').value;
+            const year = document.getElementById('year-filter').value;
+            const farmType = document.getElementById('farm-type-filter').value;
+
+            const params = new URLSearchParams();
+            if (crop) params.append('crop', crop);
+            if (year) params.append('year', year);
+            if (farmType) params.append('farm_type', farmType);
+
+            try {
+                const response = await fetch(`${apiBase}/crop-contribution?${params}`);
+                const result = await response.json();
+                updateCropContributionChart(result.contribution, highlightMunicipality);
+
+                // Update description
+                const desc = document.getElementById('crop-contribution-desc');
+                const parts = [];
+                if (crop) parts.push(crop);
+                if (year) parts.push(year);
+                if (farmType) parts.push(farmType);
+                desc.textContent = parts.length > 0
+                    ? `Municipality share for ${parts.join(', ')}`
+                    : 'Municipality share of total production';
+            } catch (error) {
+                console.error('Error loading crop contribution:', error);
+            }
+        }
+
+        function updateCropContributionChart(contribution, highlightMunicipality) {
+            const ctx = document.getElementById('crop-contribution-chart');
+
+            if (cropContributionChart) {
+                cropContributionChart.destroy();
+            }
+
+            if (!contribution || contribution.length === 0) {
+                ctx.parentElement.querySelector('canvas').style.display = 'none';
+                return;
+            }
+            ctx.style.display = '';
+
+            const colors = [
+                '#3b82f6', '#ef4444', '#f59e0b', '#10b981', '#8b5cf6',
+                '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1',
+                '#14b8a6', '#e11d48', '#a855f7', '#0ea5e9'
+            ];
+
+            // Highlight the selected municipality with a brighter/offset slice
+            const bgColors = contribution.map((item, i) => {
+                return colors[i % colors.length];
+            });
+
+            const borderWidths = contribution.map((item) => {
+                return item.municipality.toUpperCase() === highlightMunicipality.toUpperCase() ? 4 : 1;
+            });
+
+            const borderColors = contribution.map((item) => {
+                return item.municipality.toUpperCase() === highlightMunicipality.toUpperCase() ? '#1e3a5f' : '#fff';
+            });
+
+            const offsets = contribution.map((item) => {
+                return item.municipality.toUpperCase() === highlightMunicipality.toUpperCase() ? 12 : 0;
+            });
+
+            cropContributionChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: contribution.map(c => c.municipality),
+                    datasets: [{
+                        data: contribution.map(c => c.percentage),
+                        backgroundColor: bgColors,
+                        borderWidth: borderWidths,
+                        borderColor: borderColors,
+                        offset: offsets
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 10,
+                                font: { size: 10 },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    return data.labels.map((label, i) => {
+                                        const pct = data.datasets[0].data[i];
+                                        const isHighlighted = label.toUpperCase() === highlightMunicipality.toUpperCase();
+                                        return {
+                                            text: `${label} (${pct}%)`,
+                                            fillStyle: data.datasets[0].backgroundColor[i],
+                                            strokeStyle: data.datasets[0].borderColor[i],
+                                            lineWidth: isHighlighted ? 2 : 1,
+                                            hidden: false,
+                                            index: i,
+                                            fontColor: isHighlighted ? '#1e3a5f' : '#6b7280'
+                                        };
+                                    });
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const pct = context.parsed;
+                                    const prodData = contribution[context.dataIndex];
+                                    return `${label}: ${pct}% (${Number(prodData.total_production).toLocaleString()} mt)`;
                                 }
                             }
                         }

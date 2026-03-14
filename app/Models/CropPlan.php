@@ -229,6 +229,7 @@ class CropPlan extends Model
             $events[$dateKey][] = [
                 'title' => "Fertilize {$this->crop_name} - {$stage['label']}",
                 'type' => 'fertilizer',
+                'crop_name' => $this->crop_name,
                 'description' => "{$stage['desc']} for {$this->crop_name} ({$this->area_hectares} ha).",
                 'crop_plan_id' => $this->id,
                 'area' => $this->area_hectares,
