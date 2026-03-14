@@ -283,7 +283,7 @@
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Crop Contribution</h3>
                                     <p id="crop-contribution-desc" class="text-xs text-gray-500 mb-2">Municipality share of production based on current filters</p>
-                                    <canvas id="crop-contribution-chart" height="250"></canvas>
+                                    <canvas id="crop-contribution-chart" height="300"></canvas>
                                 </div>
 
                                 <!-- Crop Distribution Chart -->
@@ -648,9 +648,11 @@
         let monthlyChart = null;
         let cropChart = null;
         let cropContributionChart = null;
+        let currentMunicipality = null;
 
         function closeDetailsPanel() {
             document.getElementById('details-panel').classList.add('translate-x-full');
+            currentMunicipality = null;
         }
 
         function openDetailsPanel() {
@@ -659,7 +661,9 @@
 
         async function loadMunicipalityDetails(municipalityName) {
             console.log('Loading details for:', municipalityName);
-            
+
+            currentMunicipality = municipalityName;
+
             // Show panel
             openDetailsPanel();
             
@@ -852,32 +856,45 @@
             const crop = document.getElementById('crop-filter').value;
             const year = document.getElementById('year-filter').value;
             const farmType = document.getElementById('farm-type-filter').value;
+            const view = document.getElementById('view-filter').value;
+
+            const ctx = document.getElementById('crop-contribution-chart');
+            const desc = document.getElementById('crop-contribution-desc');
+
+            // Only show when a specific crop is selected
+            if (!crop) {
+                if (cropContributionChart) {
+                    cropContributionChart.destroy();
+                    cropContributionChart = null;
+                }
+                ctx.style.display = 'none';
+                desc.textContent = 'Select a specific crop to see municipality contributions';
+                return;
+            }
 
             const params = new URLSearchParams();
-            if (crop) params.append('crop', crop);
+            params.append('crop', crop);
             if (year) params.append('year', year);
             if (farmType) params.append('farm_type', farmType);
+            if (view) params.append('view', view);
 
             try {
                 const response = await fetch(`${apiBase}/crop-contribution?${params}`);
                 const result = await response.json();
-                updateCropContributionChart(result.contribution, highlightMunicipality);
+                ctx.style.display = '';
+                updateCropContributionChart(result.contribution, highlightMunicipality, result.unit || 'mt');
 
-                // Update description
-                const desc = document.getElementById('crop-contribution-desc');
-                const parts = [];
-                if (crop) parts.push(crop);
+                const viewLabel = getViewLabel(view || 'production');
+                const parts = [crop];
                 if (year) parts.push(year);
                 if (farmType) parts.push(farmType);
-                desc.textContent = parts.length > 0
-                    ? `Municipality share for ${parts.join(', ')}`
-                    : 'Municipality share of total production';
+                desc.textContent = `Municipality ${viewLabel.toLowerCase()} share for ${parts.join(', ')}`;
             } catch (error) {
                 console.error('Error loading crop contribution:', error);
             }
         }
 
-        function updateCropContributionChart(contribution, highlightMunicipality) {
+        function updateCropContributionChart(contribution, highlightMunicipality, unit) {
             const ctx = document.getElementById('crop-contribution-chart');
 
             if (cropContributionChart) {
@@ -896,10 +913,7 @@
                 '#14b8a6', '#e11d48', '#a855f7', '#0ea5e9'
             ];
 
-            // Highlight the selected municipality with a brighter/offset slice
-            const bgColors = contribution.map((item, i) => {
-                return colors[i % colors.length];
-            });
+            const bgColors = contribution.map((item, i) => colors[i % colors.length]);
 
             const borderWidths = contribution.map((item) => {
                 return item.municipality.toUpperCase() === highlightMunicipality.toUpperCase() ? 4 : 1;
@@ -932,33 +946,41 @@
                         legend: {
                             position: 'bottom',
                             labels: {
-                                boxWidth: 10,
-                                font: { size: 10 },
+                                boxWidth: 14,
+                                boxHeight: 14,
+                                font: { size: 12 },
+                                padding: 10,
                                 generateLabels: function(chart) {
                                     const data = chart.data;
                                     return data.labels.map((label, i) => {
                                         const pct = data.datasets[0].data[i];
                                         const isHighlighted = label.toUpperCase() === highlightMunicipality.toUpperCase();
                                         return {
-                                            text: `${label} (${pct}%)`,
+                                            text: `${label}  ${pct}%`,
                                             fillStyle: data.datasets[0].backgroundColor[i],
                                             strokeStyle: data.datasets[0].borderColor[i],
                                             lineWidth: isHighlighted ? 2 : 1,
                                             hidden: false,
                                             index: i,
-                                            fontColor: isHighlighted ? '#1e3a5f' : '#6b7280'
+                                            fontColor: isHighlighted ? '#1e3a5f' : '#374151',
+                                            font: isHighlighted
+                                                ? { size: 12, weight: 'bold' }
+                                                : { size: 12, weight: 'normal' }
                                         };
                                     });
                                 }
                             }
                         },
                         tooltip: {
+                            bodyFont: { size: 13 },
+                            titleFont: { size: 13, weight: 'bold' },
+                            padding: 10,
                             callbacks: {
                                 label: function(context) {
                                     const label = context.label || '';
                                     const pct = context.parsed;
-                                    const prodData = contribution[context.dataIndex];
-                                    return `${label}: ${pct}% (${Number(prodData.total_production).toLocaleString()} mt)`;
+                                    const itemData = contribution[context.dataIndex];
+                                    return `  ${label}: ${pct}% (${Number(itemData.value).toLocaleString()} ${unit})`;
                                 }
                             }
                         }
@@ -1020,10 +1042,17 @@
         }
 
         // Event listeners
-        document.getElementById('crop-filter').addEventListener('change', loadMapData);
-        document.getElementById('year-filter').addEventListener('change', loadMapData);
-        document.getElementById('view-filter').addEventListener('change', loadMapData);
-        document.getElementById('farm-type-filter').addEventListener('change', loadMapData);
+        function onFilterChange() {
+            loadMapData();
+            // Auto-refresh side panel if a municipality is currently selected
+            if (currentMunicipality) {
+                loadMunicipalityDetails(currentMunicipality);
+            }
+        }
+        document.getElementById('crop-filter').addEventListener('change', onFilterChange);
+        document.getElementById('year-filter').addEventListener('change', onFilterChange);
+        document.getElementById('view-filter').addEventListener('change', onFilterChange);
+        document.getElementById('farm-type-filter').addEventListener('change', onFilterChange);
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initMap);

@@ -148,13 +148,14 @@ class MapDataController extends Controller
 
     /**
      * Get crop contribution by municipality
-     * GET /api/map/crop-contribution?crop=CABBAGE&year=2024&farm_type=Irrigated
+     * GET /api/map/crop-contribution?crop=CABBAGE&year=2024&farm_type=Irrigated&view=production
      */
     public function getCropContribution(Request $request)
     {
         $crop = $request->input('crop');
         $year = $request->input('year');
         $farmType = $request->input('farm_type');
+        $view = $request->input('view', 'production');
 
         $query = Crop::query();
 
@@ -162,19 +163,27 @@ class MapDataController extends Controller
         if ($year) $query->where('year', $year);
         if ($farmType) $query->where('farm_type', $farmType);
 
+        $selectField = match($view) {
+            'productivity' => 'AVG(productivity) as value',
+            'area_harvested' => 'SUM(area_harvested) as value',
+            default => 'SUM(production) as value'
+        };
+
         $data = $query
-            ->select('municipality', DB::raw('SUM(production) as total_production'))
+            ->select('municipality', DB::raw($selectField))
             ->groupBy('municipality')
-            ->orderBy('total_production', 'desc')
+            ->orderBy('value', 'desc')
             ->get();
 
-        $grandTotal = $data->sum('total_production');
+        $grandTotal = $data->sum('value');
+
+        $unit = $this->getUnit($view);
 
         $contribution = $data->map(function ($item) use ($grandTotal) {
             return [
                 'municipality' => $item->municipality,
-                'total_production' => round($item->total_production, 2),
-                'percentage' => $grandTotal > 0 ? round(($item->total_production / $grandTotal) * 100, 1) : 0,
+                'value' => round($item->value, 2),
+                'percentage' => $grandTotal > 0 ? round(($item->value / $grandTotal) * 100, 1) : 0,
             ];
         });
 
@@ -183,6 +192,8 @@ class MapDataController extends Controller
             'crop' => $crop,
             'year' => $year,
             'farm_type' => $farmType,
+            'view' => $view,
+            'unit' => $unit,
             'grand_total' => round($grandTotal, 2),
             'contribution' => $contribution,
         ]);
