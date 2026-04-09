@@ -58,6 +58,7 @@
                             </label>
                             <select id="view-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm lg:text-base">
                                 <option value="production">Total Production (mt)</option>
+                                <option value="area_planted">Area Planted (ha)</option>
                                 <option value="area_harvested">Area Harvested (ha)</option>
                                 <option value="productivity">Productivity (mt/ha)</option>
                             </select>
@@ -70,8 +71,8 @@
                             </label>
                             <select id="farm-type-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm lg:text-base">
                                 <option value="">All Farm Types</option>
-                                <option value="Irrigated">Irrigated</option>
-                                <option value="Rainfed">Rainfed</option>
+                                <option value="IRRIGATED">Irrigated</option>
+                                <option value="RAINFED">Rainfed</option>
                             </select>
                         </div>
                     </div>
@@ -765,7 +766,7 @@
                 data: {
                     labels: monthLabels,
                     datasets: [{
-                        label: 'Production (kg)',
+                        label: 'Production (mt)',
                         data: data,
                         backgroundColor: 'rgba(34, 197, 94, 0.7)',
                         borderColor: 'rgb(34, 197, 94)',

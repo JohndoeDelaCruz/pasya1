@@ -157,8 +157,8 @@
                 <div class="relative">
                     <select name="farm_type" onchange="document.getElementById('filterForm').submit()" class="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer min-w-[150px]">
                         <option value="">Farm Type</option>
-                        <option value="Rainfed" {{ $filterFarmType == 'Rainfed' ? 'selected' : '' }}>Rainfed</option>
-                        <option value="Irrigated" {{ $filterFarmType == 'Irrigated' ? 'selected' : '' }}>Irrigated</option>
+                        <option value="RAINFED" {{ $filterFarmType == 'RAINFED' ? 'selected' : '' }}>Rainfed</option>
+                        <option value="IRRIGATED" {{ $filterFarmType == 'IRRIGATED' ? 'selected' : '' }}>Irrigated</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1180,54 +1180,86 @@
                                     }
                                 },
                                 tooltip: {
-                                    mode: 'index',
-                                    intersect: false,
-                                    backgroundColor: 'rgba(17, 24, 39, 0.95)',
-                                    titleColor: '#fff',
-                                    bodyColor: 'rgba(255, 255, 255, 0.9)',
-                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    mode: 'nearest',
+                                    intersect: true,
+                                    backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                                    titleColor: '#f8fafc',
+                                    bodyColor: '#e2e8f0',
+                                    borderColor: 'rgba(99, 102, 241, 0.4)',
                                     borderWidth: 1,
-                                    cornerRadius: 12,
-                                    padding: 16,
+                                    cornerRadius: 10,
+                                    padding: { top: 12, bottom: 12, left: 14, right: 14 },
                                     titleFont: {
-                                        size: 15,
-                                        weight: 'bold',
+                                        size: 13,
+                                        weight: '700',
                                         family: "'Inter', 'Segoe UI', sans-serif"
                                     },
                                     bodyFont: {
-                                        size: 14,
+                                        size: 22,
+                                        weight: '700',
                                         family: "'Inter', 'Segoe UI', sans-serif"
                                     },
-                                    bodySpacing: 6,
-                                    boxPadding: 6,
-                                    displayColors: true,
+                                    footerFont: {
+                                        size: 11,
+                                        weight: '400',
+                                        family: "'Inter', 'Segoe UI', sans-serif"
+                                    },
+                                    footerColor: 'rgba(148, 163, 184, 0.9)',
+                                    bodySpacing: 4,
+                                    footerMarginTop: 8,
+                                    displayColors: false,
+                                    caretSize: 6,
+                                    caretPadding: 8,
                                     callbacks: {
                                         title: function(context) {
-                                            // Simple title
-                                            return '📅 ' + context[0].label;
+                                            const item = context[0];
+                                            const name = item.dataset.label || '';
+                                            return name + '  ·  ' + item.label;
                                         },
                                         label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label = '📍 ' + label + ': ';
-                                            }
-                                            // Format number in a friendly way
                                             const value = context.parsed.y;
-                                            let formattedValue;
                                             if (value >= 1000000) {
-                                                formattedValue = (value / 1000000).toFixed(2) + ' Million';
+                                                return (value / 1000000).toFixed(2) + 'M mt';
                                             } else if (value >= 1000) {
-                                                formattedValue = (value / 1000).toFixed(1) + ' Thousand';
-                                            } else {
-                                                formattedValue = value.toLocaleString(undefined, {
-                                                    minimumFractionDigits: 0,
-                                                    maximumFractionDigits: 2
-                                                });
+                                                return Number(value.toFixed(0)).toLocaleString() + ' mt';
                                             }
-                                            return label + formattedValue + ' metric tons';
+                                            return value.toFixed(2) + ' mt';
                                         },
                                         footer: function(context) {
-                                            return '🌾 Total harvested crop weight';
+                                            const item = context[0];
+                                            const labelIndex = item.dataIndex;
+                                            const chart = item.chart;
+                                            
+                                            // Gather all datasets' values at this label index
+                                            const entries = [];
+                                            chart.data.datasets.forEach((ds, i) => {
+                                                const val = ds.data[labelIndex];
+                                                if (val > 0 && !ds.hidden) {
+                                                    entries.push({ name: ds.label, value: val });
+                                                }
+                                            });
+                                            
+                                            if (entries.length <= 1) return '';
+                                            
+                                            // Sort descending and take top 3
+                                            entries.sort((a, b) => b.value - a.value);
+                                            const rank = entries.findIndex(e => e.name === item.dataset.label) + 1;
+                                            const top3 = entries.slice(0, 3);
+                                            
+                                            const lines = ['─────────────────'];
+                                            lines.push('Rank #' + rank + ' of ' + entries.length);
+                                            top3.forEach((e, i) => {
+                                                const marker = e.name === item.dataset.label ? ' ◀' : '';
+                                                const fmtVal = e.value >= 1000 
+                                                    ? Number(e.value.toFixed(0)).toLocaleString() 
+                                                    : e.value.toFixed(1);
+                                                lines.push((i + 1) + '. ' + e.name + ': ' + fmtVal + ' mt' + marker);
+                                            });
+                                            if (entries.length > 3) {
+                                                lines.push('   +' + (entries.length - 3) + ' more');
+                                            }
+                                            
+                                            return lines;
                                         }
                                     }
                                 },
