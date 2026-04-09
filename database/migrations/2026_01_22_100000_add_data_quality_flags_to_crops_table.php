@@ -19,12 +19,19 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $driver = DB::getDriverName();
+
         // Add new columns
-        Schema::table('crops', function (Blueprint $table) {
-            $table->boolean('is_imputed')->default(false)->after('productivity')
-                  ->comment('True if record appears to be median-imputed placeholder data');
-            $table->tinyInteger('data_quality_score')->default(100)->after('is_imputed')
-                  ->comment('Data quality score 0-100, lower = more suspicious');
+        Schema::table('crops', function (Blueprint $table) use ($driver) {
+            $isImputed = $table->boolean('is_imputed')->default(false);
+            $dataQualityScore = $table->tinyInteger('data_quality_score')->default(100);
+
+            if ($driver !== 'sqlite') {
+                $isImputed->after('productivity')
+                    ->comment('True if record appears to be median-imputed placeholder data');
+                $dataQualityScore->after('is_imputed')
+                    ->comment('Data quality score 0-100, lower = more suspicious');
+            }
         });
 
         // Update existing records to flag likely imputed data
@@ -51,14 +58,20 @@ return new class extends Migration
         // Flag records with suspicious productivity (outside realistic range)
         DB::statement("
             UPDATE crops 
-            SET data_quality_score = LEAST(data_quality_score, 30)
+            SET data_quality_score = CASE
+                WHEN data_quality_score < 30 THEN data_quality_score
+                ELSE 30
+            END
             WHERE productivity <= 0.5 OR productivity > 100
         ");
 
         // Flag records where calculated productivity differs from stored
         DB::statement("
             UPDATE crops 
-            SET data_quality_score = LEAST(data_quality_score, 50)
+            SET data_quality_score = CASE
+                WHEN data_quality_score < 50 THEN data_quality_score
+                ELSE 50
+            END
             WHERE area_harvested > 0 
               AND ABS(productivity - (production / area_harvested)) > 0.5
               AND is_imputed = 0

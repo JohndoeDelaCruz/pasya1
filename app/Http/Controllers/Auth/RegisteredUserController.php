@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -37,14 +38,39 @@ class RegisteredUserController extends Controller
 
         $user = User::create([
             'name' => $request->name,
+            'username' => $this->makeUniqueUsername($request->name, $request->email),
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
+        Auth::guard('web')->login($user);
+        $request->session()->regenerate();
 
         return redirect(route('dashboard', absolute: false));
+    }
+
+    private function makeUniqueUsername(string $name, string $email): string
+    {
+        $baseUsername = Str::slug(Str::before($email, '@'), '_');
+
+        if ($baseUsername === '') {
+            $baseUsername = Str::slug($name, '_');
+        }
+
+        if ($baseUsername === '') {
+            $baseUsername = 'user';
+        }
+
+        $username = $baseUsername;
+        $suffix = 1;
+
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername . '_' . $suffix;
+            $suffix++;
+        }
+
+        return $username;
     }
 }

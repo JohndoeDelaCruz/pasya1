@@ -14,7 +14,7 @@ class WeatherService
     public function __construct()
     {
         // Google Weather API (https://weather.googleapis.com/)
-        $this->apiKey = env('GOOGLE_WEATHER_API_KEY', 'AIzaSyApL1FMpz-YmofnouGJStne7oPv09Ah7jM');
+        $this->apiKey = env('GOOGLE_WEATHER_API_KEY');
         $this->baseUrl = 'https://weather.googleapis.com/v1';
     }
 

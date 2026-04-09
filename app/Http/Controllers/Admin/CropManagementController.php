@@ -8,6 +8,7 @@ use App\Models\Municipality;
 use App\Models\Crop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CropManagementController extends Controller
 {
@@ -161,9 +162,7 @@ class CropManagementController extends Controller
         // Handle image upload
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $imageName = time() . '_' . preg_replace('/[^a-zA-Z0-9.]/', '_', $image->getClientOriginalName());
-            $image->move(public_path('images/crops'), $imageName);
-            $validated['image'] = 'images/crops/' . $imageName;
+            $validated['image'] = $this->storeCropImage($image);
         }
 
         try {
@@ -198,22 +197,13 @@ class CropManagementController extends Controller
 
         // Handle image upload
         if ($request->hasFile('image')) {
-            // Delete old image if exists and is not a default image
-            if ($cropType->image && file_exists(public_path($cropType->image))) {
-                unlink(public_path($cropType->image));
-            }
-            
-            $image = $request->file('image');
-            $imageName = time() . '_' . preg_replace('/[^a-zA-Z0-9.]/', '_', $image->getClientOriginalName());
-            $image->move(public_path('images/crops'), $imageName);
-            $validated['image'] = 'images/crops/' . $imageName;
+            $this->deleteCropImage($cropType->image);
+            $validated['image'] = $this->storeCropImage($request->file('image'));
         }
 
         // Handle image removal
         if ($request->has('remove_image') && $request->remove_image == '1') {
-            if ($cropType->image && file_exists(public_path($cropType->image))) {
-                unlink(public_path($cropType->image));
-            }
+            $this->deleteCropImage($cropType->image);
             $validated['image'] = null;
         }
 
@@ -299,5 +289,34 @@ class CropManagementController extends Controller
 
         return redirect()->route('admin.crop-management.index')
             ->with('success', 'Municipality deleted successfully!');
+    }
+
+    private function storeCropImage($image): string
+    {
+        $imageName = time() . '_' . Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME));
+        $extension = $image->getClientOriginalExtension();
+        $filename = trim($imageName . '.' . $extension, '.');
+
+        $path = $image->storeAs('crops', $filename, 'public');
+
+        return 'storage/' . $path;
+    }
+
+    private function deleteCropImage(?string $path): void
+    {
+        if (! $path) {
+            return;
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            Storage::disk('public')->delete(Str::after($path, 'storage/'));
+            return;
+        }
+
+        $fullPath = public_path($path);
+
+        if (file_exists($fullPath)) {
+            unlink($fullPath);
+        }
     }
 }

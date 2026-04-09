@@ -49,7 +49,7 @@ return [
         'provider' => env('WEATHER_API_PROVIDER', 'google'),
         
         'google' => [
-            'key' => env('GOOGLE_WEATHER_API_KEY', 'AIzaSyApL1FMpz-YmofnouGJStne7oPv09Ah7jM'),
+            'key' => env('GOOGLE_WEATHER_API_KEY'),
             'base_url' => 'https://weather.googleapis.com/v1',
         ],
         

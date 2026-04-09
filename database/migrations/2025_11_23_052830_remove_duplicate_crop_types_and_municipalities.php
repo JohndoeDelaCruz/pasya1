@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -31,14 +29,14 @@ return new class extends Migration
             }
         }
 
-        // Remove any other duplicates by keeping only the first occurrence
-        DB::statement("
-            DELETE ct1 FROM crop_types ct1
-            INNER JOIN crop_types ct2 
-            WHERE 
-                REPLACE(ct1.name, ' ', '') = REPLACE(ct2.name, ' ', '')
-                AND ct1.id > ct2.id
-        ");
+        // Remove any other duplicates by keeping only the first normalized occurrence.
+        DB::table('crop_types')
+            ->whereNotIn('id', function ($query) {
+                $query->from('crop_types')
+                    ->selectRaw('MIN(id)')
+                    ->groupBy(DB::raw("REPLACE(name, ' ', '')"));
+            })
+            ->delete();
     }
 
     /**
