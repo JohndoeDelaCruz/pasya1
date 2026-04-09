@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 use App\Models\Crop;
 use App\Models\CropType;
 use App\Models\Municipality;
@@ -25,6 +26,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->isProduction() && str_starts_with(config('app.url'), 'https://')) {
+            URL::forceRootUrl(rtrim(config('app.url'), '/'));
+            URL::forceScheme('https');
+        }
+
         // Register Excel facade alias
         if (!class_exists('Excel')) {
             class_alias(\Maatwebsite\Excel\Facades\Excel::class, 'Excel');
