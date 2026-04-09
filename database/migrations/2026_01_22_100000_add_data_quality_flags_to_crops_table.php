@@ -20,6 +20,8 @@ return new class extends Migration
     public function up(): void
     {
         $driver = DB::getDriverName();
+        $trueValue = $driver === 'pgsql' ? 'true' : '1';
+        $falseValue = $driver === 'pgsql' ? 'false' : '0';
 
         // Add new columns
         Schema::table('crops', function (Blueprint $table) use ($driver) {
@@ -38,7 +40,7 @@ return new class extends Migration
         // Pattern: Area ≈ 5, Production ≈ 55, Productivity ≈ 11
         DB::statement("
             UPDATE crops 
-            SET is_imputed = 1,
+            SET is_imputed = {$trueValue},
                 data_quality_score = CASE
                     WHEN ABS(area_harvested - 5) < 0.01 
                          AND ABS(production - 55) < 0.01 
@@ -74,7 +76,7 @@ return new class extends Migration
             END
             WHERE area_harvested > 0 
               AND ABS(productivity - (production / area_harvested)) > 0.5
-              AND is_imputed = 0
+              AND is_imputed = {$falseValue}
         ");
     }
 
