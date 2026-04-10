@@ -20,15 +20,15 @@
                     <form method="POST" action="{{ route('login') }}" class="space-y-6">
                         @csrf
 
-                        <!-- Farmer ID / Username -->
+                        <!-- Farmer ID / Email / Username -->
                         <div>
-                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2">Farmer ID / Username</label>
+                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2">Farmer ID / Email / Username</label>
                             <input 
                                 id="email" 
                                 type="text" 
                                 name="email" 
                                 value="{{ old('email') }}"
-                                placeholder="Enter your Farmer ID or Username"
+                                placeholder="Enter your Farmer ID, email, or username"
                                 required 
                                 autofocus 
                                 autocomplete="username"

@@ -14,6 +14,7 @@ use App\Http\Controllers\Farmer\FarmerDashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
+use App\Services\FarmerAccountBridgeService;
 
 // Debug route
 require __DIR__.'/debug.php';
@@ -22,13 +23,29 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
+Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBridgeService) {
+    if (Auth::guard('farmer')->check()) {
+        return redirect()->route('farmers.dashboard');
+    }
+
     // Redirect admin users to admin dashboard
-    if (Auth::check() && Auth::user()->email === 'DAadmin@gmail.com') {
+    if (Auth::guard('web')->check() && Auth::user()->email === 'DAadmin@gmail.com') {
         return redirect()->route('admin.dashboard');
     }
+
+    if (Auth::guard('web')->check()) {
+        $user = Auth::guard('web')->user();
+        $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);
+
+        Auth::guard('web')->logout();
+        Auth::guard('farmer')->login($farmer);
+        request()->session()->regenerate();
+
+        return redirect()->route('farmers.dashboard');
+    }
+
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth:web,farmer'])->name('dashboard');
 
 // Farmer Routes
 Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(function () {

@@ -46,6 +46,7 @@ class LoginRequest extends FormRequest
         Auth::guard('farmer')->logout();
 
         $loginInput = $this->input('email');
+        $remember = $this->boolean('remember');
         
         // Try to authenticate as admin user first (email or username)
         $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
@@ -55,13 +56,19 @@ class LoginRequest extends FormRequest
             'password' => $this->input('password')
         ];
 
-        if (Auth::attempt($credentials, $this->boolean('remember'))) {
+        if (Auth::attempt($credentials, $remember)) {
             RateLimiter::clear($this->throttleKey());
             return;
         }
 
-        // If admin auth fails, try to authenticate as farmer
-        if (Auth::guard('farmer')->attempt(['farmer_id' => $loginInput, 'password' => $this->input('password')], $this->boolean('remember'))) {
+        // If web auth fails, try to authenticate as farmer by farmer ID.
+        if (Auth::guard('farmer')->attempt(['farmer_id' => $loginInput, 'password' => $this->input('password')], $remember)) {
+            RateLimiter::clear($this->throttleKey());
+            return;
+        }
+
+        // If an email was provided, also allow farmer login by email.
+        if ($fieldType === 'email' && Auth::guard('farmer')->attempt(['email' => $loginInput, 'password' => $this->input('password')], $remember)) {
             RateLimiter::clear($this->throttleKey());
             return;
         }

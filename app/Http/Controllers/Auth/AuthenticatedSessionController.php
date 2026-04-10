@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\FarmerAccountBridgeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request, FarmerAccountBridgeService $farmerAccountBridgeService): RedirectResponse
     {
         $request->authenticate();
 
@@ -35,12 +36,19 @@ class AuthenticatedSessionController extends Controller
 
         // Check if logged in as regular web user
         if (Auth::guard('web')->check()) {
-            return redirect()->intended(route('dashboard', absolute: false));
+            $user = Auth::guard('web')->user();
+            $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);
+
+            Auth::guard('web')->logout();
+            Auth::guard('farmer')->login($farmer, $request->boolean('remember'));
+            $request->session()->regenerate();
+
+            return redirect()->route('farmers.dashboard');
         }
 
         // Check if logged in as farmer
         if (Auth::guard('farmer')->check()) {
-            return redirect()->intended(route('farmers.dashboard', absolute: false));
+            return redirect()->route('farmers.dashboard');
         }
 
         return redirect()->intended(route('dashboard', absolute: false));
