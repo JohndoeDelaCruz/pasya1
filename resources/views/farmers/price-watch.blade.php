@@ -100,46 +100,128 @@
                 </template>
             </div>
 
-            <!-- Price Trends Chart -->
+            <!-- Price Trends Module -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
                     <div>
                         <h2 class="text-xl font-bold text-gray-800">Price Trends</h2>
                         <p class="text-sm text-gray-500">Last 6 months comparison</p>
                     </div>
-                    <select x-model="selectedTrendCrop" class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500">
-                        <option value="all">All Selected</option>
-                        <template x-for="dataset in trendData.datasets" :key="dataset.label">
-                            <option :value="dataset.label" x-text="dataset.label"></option>
-                        </template>
-                    </select>
-                </div>
-                
-                <!-- Simple Chart Visualization -->
-                <div class="relative h-64">
-                    <div class="absolute inset-0 flex items-end justify-between px-2">
-                        <template x-for="(month, index) in trendData.labels" :key="index">
-                            <div class="flex-1 flex flex-col items-center space-y-1 mx-1">
-                                <!-- Bars -->
-                                <div class="w-full flex justify-center space-x-1">
-                                    <template x-for="(dataset, dIndex) in trendData.datasets.slice(0, 5)" :key="dataset.label">
-                                        <div class="w-3 rounded-t transition-all duration-500"
-                                             :style="'height: ' + Math.min(dataset.data[index] * 0.5, 200) + 'px; background-color: ' + dataset.color"></div>
-                                    </template>
-                                </div>
-                                <span class="text-xs text-gray-500" x-text="month"></span>
-                            </div>
-                        </template>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">View</label>
+                        <select x-model="selectedTrendCrop" class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500">
+                            <option value="all">Market Basket</option>
+                            <template x-for="dataset in trendData.datasets" :key="dataset.label">
+                                <option :value="dataset.label" x-text="dataset.label"></option>
+                            </template>
+                        </select>
                     </div>
                 </div>
-                
-                <!-- Legend (Dynamic) -->
-                <div class="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t border-gray-100">
-                    <template x-for="dataset in trendData.datasets.slice(0, 5)" :key="dataset.label">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-3 h-3 rounded" :style="'background-color: ' + dataset.color"></div>
-                            <span class="text-sm text-gray-600" x-text="dataset.label"></span>
+
+                <!-- Trend Snapshot -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+                    <div class="bg-green-50 border border-green-100 rounded-xl p-4">
+                        <p class="text-xs text-green-700 uppercase tracking-wider">Latest Avg</p>
+                        <p class="text-2xl font-bold text-green-800" x-text="formatPeso(trendSummary.latest)"></p>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                        <p class="text-xs text-amber-700 uppercase tracking-wider">Peak Price</p>
+                        <p class="text-2xl font-bold text-amber-800" x-text="formatPeso(trendSummary.peak)"></p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                        <p class="text-xs text-blue-700 uppercase tracking-wider">6-Month Change</p>
+                        <p class="text-2xl font-bold"
+                           :class="trendSummary.momentum >= 0 ? 'text-blue-800' : 'text-red-700'"
+                           x-text="(trendSummary.momentum >= 0 ? '+' : '') + trendSummary.momentum.toFixed(1) + '%'">
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Chart Panel -->
+                <div class="trend-chart-panel relative rounded-2xl border border-gray-100 bg-gradient-to-b from-gray-50 to-white p-4 sm:p-5">
+                    <template x-if="visibleTrendDatasets.length === 0">
+                        <div class="h-64 flex items-center justify-center text-sm text-gray-500">
+                            No trend data available yet.
                         </div>
+                    </template>
+
+                    <template x-if="visibleTrendDatasets.length > 0">
+                        <div>
+                            <div class="relative h-64 sm:h-72">
+                                <!-- Horizontal Grid + Y labels -->
+                                <div class="absolute inset-0">
+                                    <template x-for="(tick, index) in trendTicks" :key="index">
+                                        <div class="absolute left-0 right-0 border-t border-dashed border-gray-200"
+                                             :style="'top: ' + ((index / (trendTicks.length - 1)) * 100) + '%'">
+                                            <span class="absolute -top-2 left-0 text-[11px] text-gray-400 bg-white px-1"
+                                                  x-text="'₱' + tick.toFixed(0)"></span>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- Trend Lines -->
+                                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">
+                                    <template x-for="dataset in visibleTrendDatasets" :key="dataset.label">
+                                        <g>
+                                            <path :d="buildTrendPath(dataset)"
+                                                  :stroke="dataset.color"
+                                                  stroke-width="3"
+                                                  fill="none"
+                                                  stroke-linecap="round"
+                                                  stroke-linejoin="round"
+                                                  class="drop-shadow-sm"></path>
+
+                                            <template x-for="(value, pointIndex) in dataset.data" :key="dataset.label + '-' + pointIndex">
+                                                <circle :cx="getTrendX(pointIndex, dataset.data.length)"
+                                                        :cy="getTrendY(value)"
+                                                        r="5"
+                                                        :fill="dataset.color"
+                                                        class="cursor-pointer transition-transform hover:scale-125"
+                                                        @mouseenter="showTrendPointTooltip($event, dataset.label, trendData.labels[pointIndex], value, dataset.color)"
+                                                        @mouseleave="hideTrendPointTooltip()"></circle>
+                                            </template>
+                                        </g>
+                                    </template>
+                                </svg>
+
+                                <!-- Tooltip -->
+                                <div x-show="trendTooltip.show"
+                                     x-transition
+                                     class="absolute z-20 pointer-events-none bg-white shadow-lg border border-gray-200 rounded-xl px-3 py-2 text-xs"
+                                     :style="'left:' + trendTooltip.x + 'px; top:' + trendTooltip.y + 'px; transform: translate(-50%, -115%);'"
+                                     style="display: none;">
+                                    <p class="font-semibold text-gray-800" x-text="trendTooltip.label"></p>
+                                    <p class="text-gray-500" x-text="trendTooltip.month"></p>
+                                    <p class="font-bold" :style="'color:' + trendTooltip.color" x-text="formatPeso(trendTooltip.value)"></p>
+                                </div>
+                            </div>
+
+                            <!-- Month Labels -->
+                            <div class="mt-3 grid" :style="'grid-template-columns: repeat(' + trendData.labels.length + ', minmax(0, 1fr));'">
+                                <template x-for="(month, index) in trendData.labels" :key="index">
+                                    <div class="text-center text-xs text-gray-500 font-medium" x-text="month"></div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Interactive Legend -->
+                <div class="flex flex-wrap justify-center gap-2 mt-5 pt-4 border-t border-gray-100">
+                    <button @click="selectedTrendCrop = 'all'"
+                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition"
+                            :class="selectedTrendCrop === 'all' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'">
+                        All Crops
+                    </button>
+                    <template x-for="dataset in trendData.datasets" :key="dataset.label">
+                        <button @click="selectedTrendCrop = dataset.label"
+                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition"
+                                :class="selectedTrendCrop === dataset.label ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'"
+                                :style="selectedTrendCrop === dataset.label ? 'background-color:' + dataset.color : ''">
+                            <span class="w-2.5 h-2.5 rounded-full"
+                                  :style="selectedTrendCrop === dataset.label ? 'background: rgba(255,255,255,0.9)' : 'background:' + dataset.color"></span>
+                            <span x-text="dataset.label"></span>
+                        </button>
                     </template>
                 </div>
             </div>
@@ -239,6 +321,15 @@
                 selectedTrendCrop: 'all',
                 showDetailModal: false,
                 selectedPrice: null,
+                trendTooltip: {
+                    show: false,
+                    x: 0,
+                    y: 0,
+                    label: '',
+                    month: '',
+                    value: 0,
+                    color: '#22c55e',
+                },
                 
                 prices: @json($prices),
                 
@@ -250,6 +341,47 @@
                         const matchesSearch = price.name.toLowerCase().includes(this.searchQuery.toLowerCase());
                         return matchesCategory && matchesSearch;
                     });
+                },
+
+                get visibleTrendDatasets() {
+                    const datasets = this.trendData?.datasets || [];
+                    if (this.selectedTrendCrop === 'all') {
+                        return datasets;
+                    }
+                    return datasets.filter(dataset => dataset.label === this.selectedTrendCrop);
+                },
+
+                get trendMaxValue() {
+                    const values = this.visibleTrendDatasets.flatMap(dataset => dataset.data || []);
+                    const max = values.length ? Math.max(...values.map(value => Number(value) || 0)) : 0;
+                    return Math.max(max, 1);
+                },
+
+                get trendTicks() {
+                    const max = this.trendMaxValue;
+                    const steps = 4;
+                    return Array.from({ length: steps + 1 }, (_, index) => {
+                        const ratio = (steps - index) / steps;
+                        return max * ratio;
+                    });
+                },
+
+                get trendSummary() {
+                    const datasets = this.visibleTrendDatasets;
+                    if (!datasets.length) {
+                        return { latest: 0, peak: 0, momentum: 0 };
+                    }
+
+                    const allValues = datasets.flatMap(dataset => dataset.data.map(value => Number(value) || 0));
+                    const latestValues = datasets.map(dataset => Number(dataset.data[dataset.data.length - 1]) || 0);
+                    const firstValues = datasets.map(dataset => Number(dataset.data[0]) || 0);
+
+                    const latest = latestValues.reduce((sum, value) => sum + value, 0) / latestValues.length;
+                    const first = firstValues.reduce((sum, value) => sum + value, 0) / firstValues.length;
+                    const peak = allValues.length ? Math.max(...allValues) : 0;
+                    const momentum = first > 0 ? ((latest - first) / first) * 100 : 0;
+
+                    return { latest, peak, momentum };
                 },
                 
                 getCategoryBgClass(category) {
@@ -266,6 +398,61 @@
                 showPriceDetail(price) {
                     this.selectedPrice = price;
                     this.showDetailModal = true;
+                },
+
+                formatPeso(value) {
+                    return `₱${(Number(value) || 0).toFixed(2)}`;
+                },
+
+                getTrendX(index, points) {
+                    const leftPadding = 58;
+                    const rightPadding = 22;
+                    const width = 1000 - leftPadding - rightPadding;
+                    if (points <= 1) {
+                        return leftPadding + width / 2;
+                    }
+                    return leftPadding + ((width * index) / (points - 1));
+                },
+
+                getTrendY(value) {
+                    const topPadding = 24;
+                    const bottomPadding = 24;
+                    const height = 300 - topPadding - bottomPadding;
+                    const normalized = (Number(value) || 0) / this.trendMaxValue;
+                    return topPadding + (height * (1 - normalized));
+                },
+
+                buildTrendPath(dataset) {
+                    const points = dataset.data.map((value, index) => {
+                        const x = this.getTrendX(index, dataset.data.length);
+                        const y = this.getTrendY(value);
+                        return `${x},${y}`;
+                    });
+
+                    return points.length ? `M ${points.join(' L ')}` : '';
+                },
+
+                showTrendPointTooltip(event, label, month, value, color) {
+                    const panel = event.currentTarget.closest('.trend-chart-panel');
+                    if (!panel) {
+                        return;
+                    }
+
+                    const rect = panel.getBoundingClientRect();
+
+                    this.trendTooltip = {
+                        show: true,
+                        x: event.clientX - rect.left,
+                        y: event.clientY - rect.top,
+                        label,
+                        month,
+                        value: Number(value) || 0,
+                        color,
+                    };
+                },
+
+                hideTrendPointTooltip() {
+                    this.trendTooltip.show = false;
                 },
                 
                 async refreshPrices() {
