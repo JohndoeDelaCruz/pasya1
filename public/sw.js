@@ -1,10 +1,8 @@
-const CACHE_NAME = 'pasya-farmer-v1';
+const CACHE_NAME = 'pasya-farmer-v2';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately on install
 const PRECACHE_ASSETS = [
-    '/',
-    '/farmer/dashboard',
     '/offline.html',
     '/images/PASYA.png',
     '/images/titleh.png',
@@ -57,6 +55,29 @@ self.addEventListener('fetch', (event) => {
 
     // Skip API requests - always fetch from network
     if (event.request.url.includes('/api/')) {
+        return;
+    }
+
+    // For page navigations, prefer fresh network HTML and fallback to cache/offline.
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    if (response && response.status === 200) {
+                        const responseClone = response.clone();
+                        event.waitUntil(
+                            caches.open(CACHE_NAME).then((cache) => {
+                                cache.put(event.request, responseClone);
+                            })
+                        );
+                    }
+                    return response;
+                })
+                .catch(async () => {
+                    const cachedPage = await caches.match(event.request);
+                    return cachedPage || caches.match(OFFLINE_URL);
+                })
+        );
         return;
     }
 

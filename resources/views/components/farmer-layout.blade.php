@@ -370,18 +370,22 @@
                 showInstallPrompt: false,
                 deferredPrompt: null,
                 installDismissed: false,
+                installPromptSeen: false,
                 isAppInstalled: false,
 
                 initPwaPrompt() {
                     this.installDismissed = localStorage.getItem('pasya_install_prompt_dismissed') === '1';
+                    this.installPromptSeen = localStorage.getItem('pasya_install_prompt_seen') === '1';
                     this.isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
                     window.addEventListener('beforeinstallprompt', (event) => {
                         event.preventDefault();
                         this.deferredPrompt = event;
 
-                        if (!this.installDismissed && !this.isAppInstalled) {
+                        if (!this.installDismissed && !this.installPromptSeen && !this.isAppInstalled) {
                             this.showInstallPrompt = true;
+                            this.installPromptSeen = true;
+                            localStorage.setItem('pasya_install_prompt_seen', '1');
                         }
                     });
 
@@ -398,7 +402,9 @@
                 dismissInstallPrompt() {
                     this.showInstallPrompt = false;
                     this.installDismissed = true;
+                    this.installPromptSeen = true;
                     localStorage.setItem('pasya_install_prompt_dismissed', '1');
+                    localStorage.setItem('pasya_install_prompt_seen', '1');
                 },
 
                 openInstallPrompt() {
@@ -429,7 +435,9 @@
 
                     if (choice.outcome !== 'accepted') {
                         this.installDismissed = true;
+                        this.installPromptSeen = true;
                         localStorage.setItem('pasya_install_prompt_dismissed', '1');
+                        localStorage.setItem('pasya_install_prompt_seen', '1');
                     }
                 },
             };
