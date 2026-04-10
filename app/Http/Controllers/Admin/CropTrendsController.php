@@ -333,13 +333,19 @@ class CropTrendsController extends Controller
     {
         $request->validate([
             'municipality' => 'required|string',
-            'farm_type' => 'required|in:Rainfed,Irrigated',
+            'farm_type' => 'required|string|in:Rainfed,Irrigated,RAINFED,IRRIGATED',
             'month_from' => 'required|string',
             'month_to' => 'required|string',
             'year_from' => 'required|integer|min:2000|max:2050',
             'year_to' => 'required|integer|min:2000|max:2050',
             'crop' => 'required|string'
         ]);
+
+        $normalizedMunicipality = strtoupper(trim($request->municipality));
+        $normalizedFarmType = $this->normalizeFarmType($request->farm_type);
+        $normalizedCrop = strtoupper(trim($request->crop));
+        $normalizedMonthFrom = $this->normalizeMonth($request->month_from);
+        $normalizedMonthTo = $this->normalizeMonth($request->month_to);
 
         // Log the request parameters for debugging
         Log::info('Prediction Request', [
@@ -349,13 +355,20 @@ class CropTrendsController extends Controller
             'month_from' => $request->month_from,
             'month_to' => $request->month_to,
             'year_from' => $request->year_from,
-            'year_to' => $request->year_to
+            'year_to' => $request->year_to,
+            'normalized' => [
+                'municipality' => $normalizedMunicipality,
+                'farm_type' => $normalizedFarmType,
+                'crop' => $normalizedCrop,
+                'month_from' => $normalizedMonthFrom,
+                'month_to' => $normalizedMonthTo,
+            ],
         ]);
 
         // Define month order for range calculation
         $monthOrder = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-        $monthFromIndex = array_search($request->month_from, $monthOrder);
-        $monthToIndex = array_search($request->month_to, $monthOrder);
+        $monthFromIndex = array_search($normalizedMonthFrom, $monthOrder, true);
+        $monthToIndex = array_search($normalizedMonthTo, $monthOrder, true);
         
         // Generate months in range
         $months = [];
@@ -378,31 +391,39 @@ class CropTrendsController extends Controller
         $predictions = [];
         
         // Get default area (average) for cases where no historical data exists
-        $defaultAreaHarvested = Crop::where('crop', $request->crop)
-            ->where('municipality', $request->municipality)
-            ->where('farm_type', $request->farm_type)
+        $defaultAreaHarvested = Crop::where('crop', $normalizedCrop)
+            ->where('municipality', $normalizedMunicipality)
+            ->where('farm_type', $normalizedFarmType)
             ->avg('area_harvested') ?? 100;
 
         // Get the maximum year with actual historical data for this crop/municipality/farm_type
-        $maxHistoricalYear = Crop::where('crop', $request->crop)
-            ->where('municipality', $request->municipality)
-            ->where('farm_type', $request->farm_type)
+        $maxHistoricalYear = Crop::where('crop', $normalizedCrop)
+            ->where('municipality', $normalizedMunicipality)
+            ->where('farm_type', $normalizedFarmType)
             ->max('year');
         
         // Get seasonal average area for each month (to use for future predictions)
         // This captures natural planting patterns - e.g., more area planted in peak seasons
-        $seasonalAverageAreas = Crop::where('crop', $request->crop)
-            ->where('municipality', $request->municipality)
-            ->where('farm_type', $request->farm_type)
+        $seasonalAverageAreasRaw = Crop::where('crop', $normalizedCrop)
+            ->where('municipality', $normalizedMunicipality)
+            ->where('farm_type', $normalizedFarmType)
             ->selectRaw('month, AVG(area_harvested) as avg_area')
             ->groupBy('month')
             ->pluck('avg_area', 'month')
             ->toArray();
+
+        $seasonalAverageAreas = [];
+        foreach ($seasonalAverageAreasRaw as $dbMonth => $avgArea) {
+            $normalizedDbMonth = $this->normalizeMonth($dbMonth);
+            if ($normalizedDbMonth !== null) {
+                $seasonalAverageAreas[$normalizedDbMonth] = (float) $avgArea;
+            }
+        }
         
         Log::info('Max Historical Year', [
-            'crop' => $request->crop,
-            'municipality' => $request->municipality,
-            'farm_type' => $request->farm_type,
+            'crop' => $normalizedCrop,
+            'municipality' => $normalizedMunicipality,
+            'farm_type' => $normalizedFarmType,
             'max_year' => $maxHistoricalYear,
             'default_area' => $defaultAreaHarvested,
             'seasonal_areas' => $seasonalAverageAreas
@@ -419,10 +440,10 @@ class CropTrendsController extends Controller
                 
                 if ($maxHistoricalYear && $year <= $maxHistoricalYear) {
                     // Get historical data for comparison - only for years with actual data
-                    $historical = Crop::where('municipality', $request->municipality)
-                        ->where('farm_type', $request->farm_type)
-                        ->where('crop', $request->crop)
-                        ->where('month', $month)
+                    $historical = Crop::where('municipality', $normalizedMunicipality)
+                        ->where('farm_type', $normalizedFarmType)
+                        ->where('crop', $normalizedCrop)
+                        ->whereIn('month', $this->getMonthVariants($month))
                         ->where('year', $year)
                         ->first();
 
@@ -435,9 +456,9 @@ class CropTrendsController extends Controller
                 Log::info('Historical Data Query', [
                     'month' => $month,
                     'year' => $year,
-                    'crop' => $request->crop,
-                    'municipality' => $request->municipality,
-                    'farm_type' => $request->farm_type,
+                    'crop' => $normalizedCrop,
+                    'municipality' => $normalizedMunicipality,
+                    'farm_type' => $normalizedFarmType,
                     'found' => $historical ? 'Yes' : 'No',
                     'productivity_mt_ha' => $historicalProductivity,
                     'production_mt' => $historicalProduction,
@@ -459,10 +480,10 @@ class CropTrendsController extends Controller
                 // Get ML prediction with actual area_harvested parameter
                 $confidenceScore = null;
                 $prediction = $this->predictionService->predictProduction([
-                    'municipality' => $request->municipality,
-                    'farm_type' => $request->farm_type,
+                    'municipality' => $normalizedMunicipality,
+                    'farm_type' => $normalizedFarmType,
                     'month' => $month,
-                    'crop' => $request->crop,
+                    'crop' => $normalizedCrop,
                     'area_harvested' => $areaForPrediction,
                     'year' => $year
                 ]);
@@ -518,10 +539,10 @@ class CropTrendsController extends Controller
                         ]);
                     } else {
                         // Strategy 2: Compute trend-adjusted average from recent years
-                        $recentYears = Crop::where('crop', $request->crop)
-                            ->where('municipality', $request->municipality)
-                            ->where('farm_type', $request->farm_type)
-                            ->where('month', $month)
+                        $recentYears = Crop::where('crop', $normalizedCrop)
+                            ->where('municipality', $normalizedMunicipality)
+                            ->where('farm_type', $normalizedFarmType)
+                            ->whereIn('month', $this->getMonthVariants($month))
                             ->where('year', '>=', $year - 5) // Last 5 years
                             ->where('year', '<', $year)
                             ->orderBy('year', 'desc')
@@ -555,10 +576,10 @@ class CropTrendsController extends Controller
                             ]);
                         } else {
                             // Strategy 3: Overall average (if not enough recent data)
-                            $fallbackData = Crop::where('crop', $request->crop)
-                                ->where('municipality', $request->municipality)
-                                ->where('farm_type', $request->farm_type)
-                                ->where('month', $month)
+                            $fallbackData = Crop::where('crop', $normalizedCrop)
+                                ->where('municipality', $normalizedMunicipality)
+                                ->where('farm_type', $normalizedFarmType)
+                                ->whereIn('month', $this->getMonthVariants($month))
                                 ->select(
                                     DB::raw('AVG(productivity) as avg_productivity'),
                                     DB::raw('AVG(production) as avg_production_mt')
@@ -574,19 +595,19 @@ class CropTrendsController extends Controller
                                     'year' => $year,
                                     'productivity_mt_ha' => $predictedProductivity,
                                     'production_mt' => $predictedProduction,
-                                    'total_records' => Crop::where('crop', $request->crop)
-                                        ->where('municipality', $request->municipality)
-                                        ->where('farm_type', $request->farm_type)
-                                        ->where('month', $month)
+                                    'total_records' => Crop::where('crop', $normalizedCrop)
+                                        ->where('municipality', $normalizedMunicipality)
+                                        ->where('farm_type', $normalizedFarmType)
+                                        ->whereIn('month', $this->getMonthVariants($month))
                                         ->count()
                                 ]);
                             } else {
                                 Log::warning('No Historical Data Available', [
                                     'month' => $month,
                                     'year' => $year,
-                                    'crop' => $request->crop,
-                                    'municipality' => $request->municipality,
-                                    'farm_type' => $request->farm_type
+                                    'crop' => $normalizedCrop,
+                                    'municipality' => $normalizedMunicipality,
+                                    'farm_type' => $normalizedFarmType
                                 ]);
                             }
                         }
@@ -672,5 +693,71 @@ class CropTrendsController extends Controller
             'crops' => $crops,
             'avgAreaHarvested' => round($defaultAreaHarvested, 2)
         ]);
+    }
+
+    private function normalizeFarmType(string $farmType): string
+    {
+        $normalized = strtoupper(trim($farmType));
+        return str_replace(' ', '', $normalized);
+    }
+
+    private function normalizeMonth(string $month): ?string
+    {
+        $normalized = strtoupper(trim($month));
+
+        $monthMap = [
+            'JAN' => 'JAN',
+            'JANUARY' => 'JAN',
+            'FEB' => 'FEB',
+            'FEBRUARY' => 'FEB',
+            'MAR' => 'MAR',
+            'MARCH' => 'MAR',
+            'APR' => 'APR',
+            'APRIL' => 'APR',
+            'MAY' => 'MAY',
+            'JUN' => 'JUN',
+            'JUNE' => 'JUN',
+            'JUL' => 'JUL',
+            'JULY' => 'JUL',
+            'AUG' => 'AUG',
+            'AUGUST' => 'AUG',
+            'SEP' => 'SEP',
+            'SEPT' => 'SEP',
+            'SEPTEMBER' => 'SEP',
+            'OCT' => 'OCT',
+            'OCTOBER' => 'OCT',
+            'NOV' => 'NOV',
+            'NOVEMBER' => 'NOV',
+            'DEC' => 'DEC',
+            'DECEMBER' => 'DEC',
+        ];
+
+        return $monthMap[$normalized] ?? null;
+    }
+
+    private function getMonthVariants(string $month): array
+    {
+        $normalized = $this->normalizeMonth($month);
+
+        if ($normalized === null) {
+            return [strtoupper(trim($month))];
+        }
+
+        $fullMonthNames = [
+            'JAN' => 'JANUARY',
+            'FEB' => 'FEBRUARY',
+            'MAR' => 'MARCH',
+            'APR' => 'APRIL',
+            'MAY' => 'MAY',
+            'JUN' => 'JUNE',
+            'JUL' => 'JULY',
+            'AUG' => 'AUGUST',
+            'SEP' => 'SEPTEMBER',
+            'OCT' => 'OCTOBER',
+            'NOV' => 'NOVEMBER',
+            'DEC' => 'DECEMBER',
+        ];
+
+        return array_values(array_unique([$normalized, $fullMonthNames[$normalized]]));
     }
 }
