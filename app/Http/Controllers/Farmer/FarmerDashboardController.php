@@ -418,8 +418,8 @@ class FarmerDashboardController extends Controller
      */
     private function getAllPrices()
     {
-        // Get crops from database
-        $cropTypes = CropType::active()->orderBy('name')->get();
+        // Prefer active crop types, then any crop types, then built-in defaults.
+        $cropTypes = $this->getPriceWatchCropTypes();
 
         // Emoji mapping based on crop name
         $emojiMap = [
@@ -597,8 +597,8 @@ class FarmerDashboardController extends Controller
      */
     private function getPriceTrends()
     {
-        // Get up to 5 crops from database for the trend chart
-        $cropTypes = CropType::active()->orderBy('name')->take(5)->get();
+        // Use the same resilient source as cards so chart never renders empty.
+        $cropTypes = $this->getPriceWatchCropTypes(5);
 
         // Generate months labels
         $months = [];
@@ -669,6 +669,43 @@ class FarmerDashboardController extends Controller
             'labels' => $months,
             'datasets' => $datasets,
         ];
+    }
+
+    /**
+     * Resolve crop types for Price Watch with graceful fallbacks.
+     */
+    private function getPriceWatchCropTypes(?int $limit = null)
+    {
+        $activeQuery = CropType::active()->orderBy('name');
+        $activeCropTypes = $limit ? $activeQuery->take($limit)->get() : $activeQuery->get();
+
+        if ($activeCropTypes->isNotEmpty()) {
+            return $activeCropTypes;
+        }
+
+        $allQuery = CropType::query()->orderBy('name');
+        $allCropTypes = $limit ? $allQuery->take($limit)->get() : $allQuery->get();
+
+        if ($allCropTypes->isNotEmpty()) {
+            return $allCropTypes;
+        }
+
+        $defaults = collect([
+            ['name' => 'Cabbage', 'category' => 'Leafy Vegetables', 'description' => 'Cool weather crop.'],
+            ['name' => 'Chinese Cabbage', 'category' => 'Leafy Vegetables', 'description' => 'Also known as Wombok.'],
+            ['name' => 'Lettuce', 'category' => 'Leafy Vegetables', 'description' => 'Popular salad green.'],
+            ['name' => 'Carrots', 'category' => 'Root Vegetables', 'description' => 'Popular root vegetable.'],
+            ['name' => 'Potatoes', 'category' => 'Root Vegetables', 'description' => 'Major highland tuber crop.'],
+            ['name' => 'Broccoli', 'category' => 'Cruciferous', 'description' => 'High-value cool weather crop.'],
+            ['name' => 'Cauliflower', 'category' => 'Cruciferous', 'description' => 'Cool-climate vegetable.'],
+            ['name' => 'Snap Beans', 'category' => 'Legumes', 'description' => 'Also known as Baguio beans.'],
+            ['name' => 'String Beans', 'category' => 'Legumes', 'description' => 'Long pod bean variety.'],
+            ['name' => 'Tomatoes', 'category' => 'Fruit Vegetables', 'description' => 'Versatile fruit vegetable.'],
+            ['name' => 'Bell Pepper', 'category' => 'Fruit Vegetables', 'description' => 'Sweet pepper variety.'],
+            ['name' => 'Sayote', 'category' => 'Fruit Vegetables', 'description' => 'Also known as chayote.'],
+        ])->map(static fn (array $crop) => (object) $crop);
+
+        return $limit ? $defaults->take($limit)->values() : $defaults;
     }
 
     /**
