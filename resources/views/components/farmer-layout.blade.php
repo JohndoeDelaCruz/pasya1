@@ -39,8 +39,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-gray-50" x-data="{ sidebarOpen: false, showInstallPrompt: false, deferredPrompt: null }"
-      @beforeinstallprompt.window="deferredPrompt = $event; showInstallPrompt = true;">
+<body class="bg-gray-50" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-green-700 to-green-800 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0"
@@ -275,6 +274,15 @@
                                         </svg>
                                         <span>Settings</span>
                                     </a>
+                                    <button type="button"
+                                            x-show="!isAppInstalled"
+                                            @click="openInstallPrompt(); userOpen = false"
+                                            class="flex items-center space-x-3 px-4 py-2 text-sm text-green-700 hover:bg-green-50 w-full text-left">
+                                        <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                        </svg>
+                                        <span>Install App</span>
+                                    </button>
                                 </div>
                                 <div class="border-t border-gray-100">
                                     <form method="POST" action="{{ route('logout') }}">
@@ -314,7 +322,7 @@
     </div>
 
     <!-- PWA Install Prompt -->
-    <div x-show="showInstallPrompt" 
+    <div x-show="showInstallPrompt && !isAppInstalled" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0 transform translate-y-full"
          x-transition:enter-end="opacity-100 transform translate-y-0"
@@ -338,21 +346,10 @@
             <div class="p-4">
                 <p class="text-gray-600 text-sm mb-4">Install PASYA on your device for quick access and offline functionality. No app store needed!</p>
                 <div class="flex space-x-3">
-                    <button @click="showInstallPrompt = false" class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition">
+                    <button @click="dismissInstallPrompt()" class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition">
                         Not Now
                     </button>
-                    <button @click="
-                        if (deferredPrompt) {
-                            deferredPrompt.prompt();
-                            deferredPrompt.userChoice.then((choice) => {
-                                if (choice.outcome === 'accepted') {
-                                    console.log('PASYA installed');
-                                }
-                                deferredPrompt = null;
-                                showInstallPrompt = false;
-                            });
-                        }
-                    " class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition flex items-center justify-center space-x-2">
+                    <button @click="installApp()" class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition flex items-center justify-center space-x-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
@@ -367,6 +364,77 @@
     
     <!-- Service Worker Registration -->
     <script>
+        function pwaInstallPrompt() {
+            return {
+                sidebarOpen: false,
+                showInstallPrompt: false,
+                deferredPrompt: null,
+                installDismissed: false,
+                isAppInstalled: false,
+
+                initPwaPrompt() {
+                    this.installDismissed = localStorage.getItem('pasya_install_prompt_dismissed') === '1';
+                    this.isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+                    window.addEventListener('beforeinstallprompt', (event) => {
+                        event.preventDefault();
+                        this.deferredPrompt = event;
+
+                        if (!this.installDismissed && !this.isAppInstalled) {
+                            this.showInstallPrompt = true;
+                        }
+                    });
+
+                    window.addEventListener('appinstalled', () => {
+                        console.log('PASYA was installed successfully');
+                        this.isAppInstalled = true;
+                        this.showInstallPrompt = false;
+                        this.deferredPrompt = null;
+                        this.installDismissed = true;
+                        localStorage.setItem('pasya_install_prompt_dismissed', '1');
+                    });
+                },
+
+                dismissInstallPrompt() {
+                    this.showInstallPrompt = false;
+                    this.installDismissed = true;
+                    localStorage.setItem('pasya_install_prompt_dismissed', '1');
+                },
+
+                openInstallPrompt() {
+                    if (this.isAppInstalled) {
+                        return;
+                    }
+
+                    if (this.deferredPrompt) {
+                        this.showInstallPrompt = true;
+                        return;
+                    }
+
+                    alert('Install is not available right now. Use your browser menu and choose "Install app" or "Add to Home Screen".');
+                },
+
+                async installApp() {
+                    if (!this.deferredPrompt) {
+                        this.openInstallPrompt();
+                        return;
+                    }
+
+                    const promptEvent = this.deferredPrompt;
+                    promptEvent.prompt();
+
+                    const choice = await promptEvent.userChoice;
+                    this.deferredPrompt = null;
+                    this.showInstallPrompt = false;
+
+                    if (choice.outcome !== 'accepted') {
+                        this.installDismissed = true;
+                        localStorage.setItem('pasya_install_prompt_dismissed', '1');
+                    }
+                },
+            };
+        }
+
         // Register service worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -392,21 +460,6 @@
                     });
             });
         }
-
-        // Handle beforeinstallprompt event for Alpine.js
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            // Dispatch custom event for Alpine.js
-            window.dispatchEvent(new CustomEvent('beforeinstallprompt', { detail: e }));
-            // Store the event
-            window.deferredPrompt = e;
-        });
-
-        // Track successful installation
-        window.addEventListener('appinstalled', () => {
-            console.log('PASYA was installed successfully');
-            window.deferredPrompt = null;
-        });
 
         // Notifications dropdown component
         function notificationsDropdown() {
