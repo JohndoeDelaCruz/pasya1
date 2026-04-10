@@ -331,6 +331,11 @@ class CropTrendsController extends Controller
 
     public function predict(Request $request)
     {
+        // Large month/year ranges can trigger many API calls; allow more processing time.
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(180);
+        }
+
         $request->validate([
             'municipality' => 'required|string',
             'farm_type' => 'required|string|in:Rainfed,Irrigated,RAINFED,IRRIGATED',
@@ -450,6 +455,32 @@ class CropTrendsController extends Controller
                     $historicalProductivity = $historical ? $historical->productivity : null;
                     $historicalProduction = $historical ? $historical->production : null; // Production is already in MT
                     $historicalArea = $historical ? $historical->area_harvested : null;
+                }
+
+                // For periods with known historical rows, avoid extra ML requests to prevent timeouts.
+                if ($historical) {
+                    $predictions[] = [
+                        'month' => $month,
+                        'year' => $year,
+                        'historical_productivity' => $historicalProductivity,
+                        'predicted_productivity' => $historicalProductivity,
+                        'historical_production' => $historicalProduction,
+                        'predicted_production' => $historicalProduction,
+                        'normalized_historical_production' => $historicalProduction,
+                        'historical_area' => $historicalArea,
+                        'prediction_area' => round((float) $historicalArea, 2),
+                        'confidence_score' => null,
+                    ];
+
+                    Log::info('Prediction shortcut: using historical row', [
+                        'month' => $month,
+                        'year' => $year,
+                        'crop' => $normalizedCrop,
+                        'municipality' => $normalizedMunicipality,
+                        'farm_type' => $normalizedFarmType,
+                    ]);
+
+                    continue;
                 }
                 
                 // Log historical data found
