@@ -1,18 +1,39 @@
 <div>
     {{-- Hero Section --}}
+    @php
+        $isAuthenticated = auth()->guard('web')->check() || auth()->guard('farmer')->check();
+        $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
+    @endphp
     <section id="home" class="bg-gradient-to-b from-green-200 via-white to-green-200">
         <div class="px-4 mx-auto max-w-screen-xl text-center py-24 lg:py-32">
             <img class="h-48 max-w-sm mx-auto" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
             <h1 class="mt-16 mb-4 text-2xl font-extrabold tracking-tight leading-none text-green-500 md:text-2xl lg:text-3xl">PASYA: Predictive Analytics for Yield Advancement</h1>
             <p class="mb-4 text-md font-bold text-gray-700 lg:text-xl sm:px-16 lg:px-4">Harvest Intelligence, Grow with Certainty</p>
-            <div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0">
-                <a href="#blog" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300">
+            <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                @if ($isAuthenticated)
+                    <a href="{{ $dashboardRoute }}" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-semibold text-center text-white rounded-lg bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 shadow-lg">
+                        Go to Dashboard
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-semibold text-center text-green-700 rounded-lg border-2 border-green-500 bg-white hover:bg-green-50 focus:ring-4 focus:ring-green-200 shadow-sm">
+                        Log In
+                    </a>
+                    <a href="{{ route('register') }}" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-semibold text-center text-white rounded-lg bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 shadow-lg">
+                        Register
+                    </a>
+                @endif
+                <a href="#blog" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-medium text-center text-white rounded-lg bg-gray-800 hover:bg-gray-900 focus:ring-4 focus:ring-gray-300">
                     Learn how it works
                     <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
                     </svg>
                 </a>
             </div>
+            @unless ($isAuthenticated)
+                <p class="mt-4 text-sm text-gray-600">
+                    Already part of PASYA? Sign in. New here? Create your account to get started.
+                </p>
+            @endunless
         </div>
 
         {{-- Terraces Banner Image --}}
