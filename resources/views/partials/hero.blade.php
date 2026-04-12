@@ -4,19 +4,20 @@
         $isAuthenticated = auth()->guard('web')->check() || auth()->guard('farmer')->check();
         $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
     @endphp
-    <section id="home" class="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden">
+    <section id="home" class="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden font-['Inter']">
         <div id="hero-scenery" class="absolute inset-0 w-full h-full">
             <img class="h-full w-full object-cover" src="{{ asset('images/Rice_Terraces.png') }}" alt="PASYA Land" aria-hidden="true"/>
-            <div class="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_50%,rgba(255,255,255,0.75)_0%,rgba(255,255,255,0)_100%)]"></div>
+            <div class="absolute inset-0 bg-black/25"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0)_100%)]"></div>
         </div>
 
         <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center flex flex-col items-center justify-center w-full pt-16">
             <div class="hero-panel mx-auto max-w-5xl px-5 sm:px-10 lg:px-12 flex flex-col items-center">
-                <img class="h-32 sm:h-44 max-w-sm mx-auto mb-6" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
-                <h1 class="hero-title mb-3 text-4xl font-extrabold tracking-tight leading-tight md:text-5xl lg:text-6xl text-[#143d29]">
+                <img class="h-32 sm:h-44 max-w-sm mx-auto mb-6 drop-shadow-xl hover:scale-105 transition-transform duration-500 ease-in-out" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
+                <h1 class="hero-title mb-4 text-4xl font-extrabold tracking-tight leading-tight md:text-5xl lg:text-7xl text-white font-['Outfit'] drop-shadow-lg">
                     PASYA: Predictive Analytics for Yield Advancement
                 </h1>
-                <p class="hero-subtitle mb-8 text-xl font-semibold lg:text-2xl sm:px-8 lg:px-10 text-gray-800">
+                <p class="hero-subtitle mb-10 text-xl font-medium lg:text-2xl sm:px-8 lg:px-10 text-gray-200 font-['Outfit'] drop-shadow">
                     Harvest Intelligence, Grow with Certainty
                 </p>
                 <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -37,7 +38,7 @@
                     </a>
                 </div>
                 @unless ($isAuthenticated)
-                    <p class="mt-6 text-sm md:text-base text-white font-medium mix-blend-color-burn">
+                    <p class="mt-8 text-sm md:text-base text-gray-200 font-medium tracking-wide drop-shadow">
                         Already part of PASYA? Sign in. New here? Create your account to get started.
                     </p>
                 @endunless
