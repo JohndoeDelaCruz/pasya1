@@ -48,6 +48,8 @@ const setupNavbarSmoothScroll = () => {
 	const navbar = document.getElementById('main-pill-navbar');
 	const navList = document.getElementById('pill-nav-list');
 	const navIndicator = document.getElementById('pill-nav-indicator');
+	const mobileMenu = document.getElementById('navbar-sticky');
+	const menuToggle = document.querySelector('[data-collapse-toggle="navbar-sticky"]');
 	const navLinks = Array.from(document.querySelectorAll('[data-nav-scroll]'));
 
 	if (!navLinks.length) {
@@ -57,6 +59,7 @@ const setupNavbarSmoothScroll = () => {
 	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 	const normalizedPath = (pathname) => pathname.replace(/\/+$/, '') || '/';
+	const isDesktopViewport = () => window.matchMedia('(min-width: 768px)').matches;
 
 	const getLinkHash = (link) => {
 		const href = link.getAttribute('href');
@@ -79,7 +82,16 @@ const setupNavbarSmoothScroll = () => {
 	};
 
 	const positionIndicator = (activeLink) => {
-		if (!navList || !navIndicator || !activeLink) {
+		if (!navIndicator) {
+			return;
+		}
+
+		if (!isDesktopViewport()) {
+			navIndicator.style.opacity = '0';
+			return;
+		}
+
+		if (!navList || !activeLink) {
 			return;
 		}
 
@@ -94,6 +106,18 @@ const setupNavbarSmoothScroll = () => {
 		navIndicator.style.height = `${linkRect.height}px`;
 		navIndicator.style.transform = `translate(${linkRect.left - listRect.left}px, ${linkRect.top - listRect.top}px)`;
 		navIndicator.style.opacity = '1';
+	};
+
+	const closeMobileMenu = () => {
+		if (isDesktopViewport() || !mobileMenu) {
+			return;
+		}
+
+		mobileMenu.classList.add('hidden');
+
+		if (menuToggle) {
+			menuToggle.setAttribute('aria-expanded', 'false');
+		}
 	};
 
 	const activateByHash = (hash) => {
@@ -153,6 +177,7 @@ const setupNavbarSmoothScroll = () => {
 
 			if (scrollToHashTarget(targetUrl.hash, true)) {
 				event.preventDefault();
+				closeMobileMenu();
 			}
 		});
 	});
@@ -164,8 +189,6 @@ const setupNavbarSmoothScroll = () => {
 	window.addEventListener('hashchange', () => {
 		activateByHash(window.location.hash);
 	});
-
-	const menuToggle = document.querySelector('[data-collapse-toggle="navbar-sticky"]');
 
 	if (menuToggle) {
 		menuToggle.addEventListener('click', () => {

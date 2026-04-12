@@ -33,19 +33,19 @@
             </div>
 
             <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-                <ul id="pill-nav-list" class="nav-pill-list relative flex flex-col md:flex-row gap-1 mt-2 md:mt-0 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50">
-                    <li id="pill-nav-indicator" class="nav-pill-indicator" aria-hidden="true"></li>
+                <ul id="pill-nav-list" class="nav-pill-list relative flex flex-col md:flex-row items-stretch md:items-center gap-1 mt-2 md:mt-0 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50 w-full md:w-auto">
+                    <li id="pill-nav-indicator" class="nav-pill-indicator hidden md:block" aria-hidden="true"></li>
                     <li>
-                        <a href="{{ url('/#home') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">Home</a>
+                        <a href="{{ url('/#home') }}" data-nav-scroll class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">Home</a>
                     </li>
                     <li>
-                        <a href="{{ url('/#about') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">About us</a>
+                        <a href="{{ url('/#about') }}" data-nav-scroll class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">About us</a>
                     </li>
                     <li>
-                        <a href="{{ url('/#work_with_us') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">Work with us</a>
+                        <a href="{{ url('/#work_with_us') }}" data-nav-scroll class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">Work with us</a>
                     </li>
                     <li>
-                        <a href="{{ url('/#blog') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">Blog</a>
+                        <a href="{{ url('/#blog') }}" data-nav-scroll class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">Blog</a>
                     </li>
                 </ul>
             </div>
