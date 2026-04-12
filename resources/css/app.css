@@ -311,11 +311,11 @@
 }
 
 .hero-title {
-    color: #0f172a;
+    font-family: 'Outfit', sans-serif;
 }
 
 .hero-subtitle {
-    color: #14532d;
+    font-family: 'Outfit', sans-serif;
 }
 
 .hero-cta {
