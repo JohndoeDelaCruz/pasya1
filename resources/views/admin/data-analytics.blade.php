@@ -1,7 +1,7 @@
 <x-admin-layout>
     <x-slot name="title">Data & Analytics</x-slot>
 
-    <div class="space-y-6" x-data="{ 
+    <div class="space-y-5 lg:space-y-6 admin-dashboard-shell dashboard-reduced-motion" x-data="{ 
         showMunicipalityModal: false,
         showResourceModal: false,
         selectedMunicipality: '{{ $filterMunicipality ?? '' }}',
@@ -27,94 +27,95 @@
             }
         }
     }, 100)">
-        <!-- Page Header with Filters -->
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 animate-fade-in-down">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <!-- Page Header -->
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div class="max-w-3xl">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-green-700">Admin Dashboard</p>
+                <h1 class="mt-1 text-3xl font-bold text-gray-900 lg:text-4xl">Data & Analytics</h1>
+                <p class="mt-2 text-sm text-gray-600 lg:text-base">
+                    Monitor crop production performance, track municipality trends, and review AI forecasts from one workspace.
+                </p>
             </div>
-            
-            <!-- Filter Controls and Action Buttons -->
-            <div class="flex flex-wrap items-center gap-3">
-                <!-- Allocate Resource Button -->
-                <button type="button" 
+
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('admin.export-summary') }}" class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+                    Export Summary
+                </a>
+                <button type="button"
                         @click="showResourceModal = true"
-                        class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm hover-lift animate-fade-in animate-delay-100">
+                        class="inline-flex items-center px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg transition-colors shadow-sm">
                     Allocate Resource
                 </button>
-                
-                <!-- Recommend Button -->
-                <button onclick="document.getElementById('predictions-section')?.scrollIntoView({ behavior: 'smooth' })" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-colors shadow-sm hover-lift animate-fade-in animate-delay-200">
-                    Recommend
+                <button onclick="document.getElementById('predictions-section')?.scrollIntoView({ behavior: 'smooth' })"
+                        class="inline-flex items-center px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold rounded-lg transition-colors border border-emerald-200">
+                    View AI Predictions
                 </button>
             </div>
         </div>
 
         <!-- Filter Bar -->
-        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between animate-fade-in-up animate-delay-200">
-            <div class="flex items-center gap-3">
-                <label class="text-sm text-gray-700 font-medium whitespace-nowrap">Filter by:</label>
+        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-section-card p-4 lg:p-5">
+            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="admin-section-title">Filters</h2>
+                    <p class="admin-section-subtitle">Refine production data by crop, location, period, and farm type.</p>
+                </div>
+                <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors whitespace-nowrap">
+                    Reset All
+                </a>
             </div>
-            
-            <div class="flex items-center gap-3 flex-wrap">
+
+            <div class="admin-filter-grid">
                 <!-- Crop Filter -->
-                <div class="relative">
-                    <select name="crop" 
+                <div class="admin-filter-field relative">
+                    <label for="cropFilter">Crop</label>
+                    <select name="crop"
                             id="cropFilter"
-                            onchange="handleCropFilterChange()" 
-                            class="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer min-w-[150px]">
-                        <option value="">Crop</option>
+                            onchange="handleCropFilterChange()"
+                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
+                        <option value="">All crops</option>
                         @foreach(App\Models\Crop::select('crop')->distinct()->orderBy('crop')->pluck('crop') as $crop)
                             <option value="{{ $crop }}" {{ request('crop') == $crop ? 'selected' : '' }}>
                                 {{ ucwords(strtolower($crop)) }}
                             </option>
                         @endforeach
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
-                </div>
-                
-                <!-- Municipality Filter -->
-                <div class="relative">
-                    <select name="municipality" 
-                            id="municipalityFilter"
-                            onchange="handleMunicipalityFilterChange()"
-                            class="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer min-w-[150px]">
-                        <option value="">Municipality</option>
-                        @foreach($allMunicipalities as $municipality)
-                            <option value="{{ $municipality }}" {{ $filterMunicipality == $municipality ? 'selected' : '' }}>
-                                {{ ucwords(strtolower($municipality)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </div>
                 </div>
 
-                <!-- Toggle Municipality Details Button -->
-                @if($filterMunicipality)
-                    <button type="button" 
-                            @click="toggleMunicipalityModal()"
-                            class="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center gap-2">
+                <!-- Municipality Filter -->
+                <div class="admin-filter-field relative">
+                    <label for="municipalityFilter">Municipality</label>
+                    <select name="municipality"
+                            id="municipalityFilter"
+                            onchange="handleMunicipalityFilterChange()"
+                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
+                        <option value="">All municipalities</option>
+                        @foreach($allMunicipalities as $municipality)
+                            <option value="{{ $municipality }}" {{ $filterMunicipality == $municipality ? 'selected' : '' }}>
+                                {{ ucwords(strtolower($municipality)) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
-                        <span x-text="showMunicipalityModal ? 'Hide Details' : 'View Details'"></span>
-                    </button>
-                @endif
-                
+                    </div>
+                </div>
+
                 <!-- Month Filter -->
-                <div class="relative">
-                    <select name="month" 
+                <div class="admin-filter-field relative">
+                    <label for="monthFilter">Month</label>
+                    <select name="month"
                             id="monthFilter"
-                            onchange="document.getElementById('filterForm').submit()" 
-                            class="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer min-w-[150px]">
-                        <option value="">Month</option>
+                            onchange="document.getElementById('filterForm').submit()"
+                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
+                        <option value="">All months</option>
                         <option value="JAN" {{ $filterMonth == 'JAN' ? 'selected' : '' }}>January</option>
                         <option value="FEB" {{ $filterMonth == 'FEB' ? 'selected' : '' }}>February</option>
                         <option value="MAR" {{ $filterMonth == 'MAR' ? 'selected' : '' }}>March</option>
@@ -128,80 +129,92 @@
                         <option value="NOV" {{ $filterMonth == 'NOV' ? 'selected' : '' }}>November</option>
                         <option value="DEC" {{ $filterMonth == 'DEC' ? 'selected' : '' }}>December</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </div>
                 </div>
-                
+
                 <!-- Year Filter -->
-                <div class="relative">
-                    <select name="year" 
+                <div class="admin-filter-field relative">
+                    <label for="yearFilter">Year</label>
+                    <select name="year"
                             id="yearFilter"
-                            onchange="handleYearFilterChange()" 
-                            class="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer min-w-[150px]">
-                        <option value="">Year</option>
+                            onchange="handleYearFilterChange()"
+                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
+                        <option value="">All years</option>
                         @foreach($allYears as $year)
                             <option value="{{ $year }}" {{ $filterYear == $year ? 'selected' : '' }}>{{ $year }}</option>
                         @endforeach
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </div>
                 </div>
-                
+
                 <!-- Farm Type Filter -->
-                <div class="relative">
-                    <select name="farm_type" onchange="document.getElementById('filterForm').submit()" class="appearance-none px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer min-w-[150px]">
-                        <option value="">Farm Type</option>
+                <div class="admin-filter-field relative">
+                    <label for="farmTypeFilter">Farm Type</label>
+                    <select id="farmTypeFilter" name="farm_type" onchange="document.getElementById('filterForm').submit()" class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
+                        <option value="">All types</option>
                         <option value="RAINFED" {{ $filterFarmType == 'RAINFED' ? 'selected' : '' }}>Rainfed</option>
                         <option value="IRRIGATED" {{ $filterFarmType == 'IRRIGATED' ? 'selected' : '' }}>Irrigated</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
                     </div>
                 </div>
-                
-                <!-- Reset Button -->
-                <a href="{{ route('admin.dashboard') }}" class="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm whitespace-nowrap">
-                    Reset
-                </a>
             </div>
+
+            @if($filterMunicipality)
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                    <button type="button"
+                            @click="toggleMunicipalityModal()"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        <span x-text="showMunicipalityModal ? 'Hide Municipality Details' : 'View Municipality Details'"></span>
+                    </button>
+                    <p class="text-sm text-gray-600">
+                        Focused on <span class="font-semibold text-gray-800">{{ ucwords(strtolower($filterMunicipality)) }}</span>.
+                    </p>
+                </div>
+            @endif
         </form>
 
-        <!-- Crop Production Chart - Simplified for Easy Understanding -->
-        <div class="bg-white rounded-xl shadow-md p-6 card-animate hover-lift animate-scale-in animate-delay-300">
-            <!-- Simple Header -->
-            <div class="mb-6">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+        <!-- Crop Production Chart -->
+        <div class="admin-section-card p-5 lg:p-6">
+            <div class="admin-section-header mb-5">
+                <div class="flex items-start gap-3">
+                    <div class="admin-kpi-icon">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                     </div>
                     <div>
                         @php
-                            $monthNames = ['JAN' => 'January', 'FEB' => 'February', 'MAR' => 'March', 'APR' => 'April', 
+                            $monthNames = ['JAN' => 'January', 'FEB' => 'February', 'MAR' => 'March', 'APR' => 'April',
                                           'MAY' => 'May', 'JUN' => 'June', 'JUL' => 'July', 'AUG' => 'August',
                                           'SEP' => 'September', 'OCT' => 'October', 'NOV' => 'November', 'DEC' => 'December'];
                         @endphp
-                        <h2 class="text-xl font-bold text-gray-800">
+                        <h2 class="admin-section-title">
                             @if($chartMode === 'crop_breakdown' || $chartMode === 'crops')
-                                🌾 What Crops Are We Producing?
+                                Top Crop Production Breakdown
                             @elseif($chartMode === 'municipalities')
-                                📍 How Are Different Areas Performing?
+                                Municipality Performance Comparison
                             @elseif($chartMode === 'monthly_crop' || $chartMode === 'monthly' || $chartMode === 'monthly_year')
-                                📅 Monthly Harvest Overview
+                                Monthly Harvest Overview
                             @else
-                                📈 Yearly Production Overview
+                                Year-over-Year Production Overview
                             @endif
                         </h2>
-                        <p class="text-sm text-gray-500">
+                        <p class="admin-section-subtitle mt-1">
                             @if($chartMode === 'crop_breakdown')
                                 Showing crops produced in {{ ucwords(strtolower($filterMunicipality)) }}
                                 @if($filterMonth) during {{ $monthNames[$filterMonth] ?? $filterMonth }} @endif
@@ -217,107 +230,90 @@
                             @elseif($chartMode === 'monthly')
                                 Monthly harvest for {{ $filterMunicipality ? ucwords(strtolower($filterMunicipality)) : 'all areas' }}
                             @else
-                                How much we've harvested each year across all areas
+                                Total harvested volume over time across all municipalities
                             @endif
                         </p>
                     </div>
                 </div>
+                <span class="admin-chip bg-green-100 text-green-800">Click data points for details</span>
             </div>
-            
-            <!-- Chart Container -->
+
             @php
-                // Debug: Check what data we have
-                \Log::info('Chart Display Check:', [
-                    'years_count' => count($years ?? []),
-                    'municipalities_count' => count($municipalities ?? []),
-                    'years' => $years ?? [],
-                    'municipalities' => $municipalities ?? [],
-                    'trendChartData_labels' => $trendChartData['labels'] ?? [],
-                    'trendChartData_datasets_count' => count($trendChartData['datasets'] ?? [])
-                ]);
-                
-                // Check if we have any chart data at all
-                $hasChartData = isset($trendChartData) && 
-                               isset($trendChartData['labels']) && 
+                $hasChartData = isset($trendChartData) &&
+                               isset($trendChartData['labels']) &&
                                isset($trendChartData['datasets']) &&
-                               count($trendChartData['labels']) > 0 && 
+                               count($trendChartData['labels']) > 0 &&
                                count($trendChartData['datasets']) > 0;
             @endphp
-            
+
             @if($hasChartData)
-                <div class="h-[600px] relative">
-                    <canvas id="trendChart"></canvas>
-                    <!-- Zoom Controls -->
-                    <div class="absolute top-2 right-2 flex items-center gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-1">
-                        <button onclick="zoomIn()" title="Zoom In" class="p-2 hover:bg-gray-100 text-gray-600 hover:text-gray-800 rounded-md transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/>
-                            </svg>
+                <div class="admin-chart-card relative h-[440px] md:h-[500px] xl:h-[560px] p-2 sm:p-3">
+                    <canvas id="trendChart" class="h-full w-full cursor-pointer"></canvas>
+                    <div class="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg border border-gray-200 bg-white/90 p-1.5 shadow-md backdrop-blur-sm">
+                        <button onclick="zoomIn()" title="Zoom in chart" class="px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                            Zoom +
                         </button>
-                        <button onclick="zoomOut()" title="Zoom Out" class="p-2 hover:bg-gray-100 text-gray-600 hover:text-gray-800 rounded-md transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/>
-                            </svg>
+                        <button onclick="zoomOut()" title="Zoom out chart" class="px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                            Zoom -
                         </button>
-                        <div class="w-px h-6 bg-gray-300 mx-1"></div>
-                        <button onclick="resetZoom()" title="Reset Zoom" class="px-2 py-1.5 hover:bg-gray-100 text-gray-600 hover:text-gray-800 rounded-md transition-colors text-xs font-medium">
+                        <div class="mx-1 h-5 w-px bg-gray-300"></div>
+                        <button onclick="resetZoom()" title="Reset chart zoom" class="px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
                             Reset
                         </button>
                     </div>
                 </div>
             @else
-                <div class="h-[600px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                <div class="admin-chart-card h-[440px] md:h-[500px] xl:h-[560px] flex items-center justify-center border-2 border-dashed border-gray-200">
                     <div class="text-center px-4">
-                        <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-20 h-20 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        <p class="text-gray-600 font-semibold mb-1">No data matches your filters</p>
-                        <p class="text-sm text-gray-500 mb-4">
+                        <p class="text-gray-700 font-semibold text-lg mb-1">No data matches your current filters</p>
+                        <p class="text-sm text-gray-600 mb-4">
                             @if($filterMunicipality || $filterMonth || $filterYear)
-                                Try adjusting your filters or clear them to see all data
+                                Try adjusting your filters or clear them to see all production records.
                             @else
-                                Upload crop production data to see trends and analytics
+                                Upload crop production data to unlock trend analytics.
                             @endif
                         </p>
                         @if($filterMunicipality || $filterMonth || $filterYear)
-                            <a href="{{ route('admin.dashboard') }}" class="inline-block px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors">
+                            <a href="{{ route('admin.dashboard') }}" class="inline-block px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg text-sm transition-colors">
                                 Clear Filters
                             </a>
                         @else
-                            <a href="{{ route('admin.crop-data.upload') }}" class="inline-block px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors">
+                            <a href="{{ route('admin.crop-data.upload') }}" class="inline-block px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg text-sm transition-colors">
                                 Upload Data
                             </a>
                         @endif
                     </div>
                 </div>
             @endif
-
-
         </div>
 
         <!-- Chart Details Side Panel - Slides from right on click -->
-        <div id="chart-details-panel" class="fixed top-0 right-0 h-full bg-white shadow-2xl z-[2000] transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto w-full sm:w-[400px] lg:w-[450px]">
+        <div id="chart-details-panel" class="fixed top-0 right-0 z-[2000] h-full w-full transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto border-l border-gray-200 bg-gray-50 shadow-2xl sm:w-[420px] xl:w-[460px]">
             <div class="p-4 lg:p-6">
                 <!-- Close Button -->
-                <button onclick="closeChartDetailsPanel()" class="absolute top-3 right-3 lg:top-4 lg:right-4 text-gray-500 hover:text-gray-700 z-10">
-                    <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onclick="closeChartDetailsPanel()" class="absolute top-3 right-3 z-10 rounded-full border border-gray-200 bg-white p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 lg:top-4 lg:right-4" aria-label="Close chart details panel">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
 
                 <!-- Panel Header -->
-                <div class="mb-4 lg:mb-6 pr-8">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <div class="mb-4 lg:mb-6 pr-10">
+                    <div class="flex items-start gap-3 mb-2">
+                        <div class="admin-kpi-icon">
                             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                             </svg>
                         </div>
                         <div>
                             <h2 id="panel-title" class="text-xl lg:text-2xl font-bold text-gray-800">Production Details</h2>
-                            <p id="panel-subtitle" class="text-sm text-gray-500">Click on a data point</p>
+                            <p id="panel-subtitle" class="text-sm text-gray-600">Select a point from the chart to inspect exact values.</p>
                         </div>
                     </div>
+                    <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Press Esc to close</p>
                 </div>
 
                 <!-- Panel Content -->
@@ -388,130 +384,115 @@
         <!-- Key Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Total Area Planted/Harvested -->
-            <div class="bg-white rounded-xl shadow-md p-6 card-animate hover-lift animate-fade-in-up animate-delay-300">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-medium text-gray-600">Total Area planted/Harvested</h3>
-                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
-                        <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <div class="admin-section-card p-5 lg:p-6">
+                <div class="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-600">Total Area Planted and Harvested</h3>
+                        <p class="text-sm text-gray-600 mt-1">Combined planted and harvested footprint.</p>
+                    </div>
+                    <div class="admin-kpi-icon">
+                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"/>
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-800">{{ number_format($totalAreaHarvested ?? 0, 0) }} ha</div>
-                <div class="flex items-center gap-1 mt-2">
+                <div class="admin-kpi-value">{{ number_format($totalAreaHarvested ?? 0, 0) }} <span class="text-xl font-semibold text-gray-500">ha</span></div>
+                <div class="admin-kpi-meta mt-2 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                     </svg>
-                    <span class="text-xs text-gray-400">Updated {{ $lastUpdate->format('F Y') ?? 'July 2025' }}</span>
+                    <span>Updated {{ $lastUpdate->format('F Y') ?? 'July 2025' }}</span>
                 </div>
             </div>
 
             <!-- Average Yield -->
-            <div class="bg-white rounded-xl shadow-md p-6 card-animate hover-lift animate-fade-in-up animate-delay-400">
-                <div class="flex items-center justify-between mb-2">
-                    <h3 class="text-sm font-medium text-gray-600">Average Yield</h3>
-                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
+            <div class="admin-section-card p-5 lg:p-6">
+                <div class="mb-3 flex items-start justify-between gap-3">
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-600">Average Yield</h3>
+                        <p class="text-sm text-gray-600 mt-1">Average output per hectare across selected records.</p>
+                    </div>
+                    <div class="admin-kpi-icon">
                         <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
                         </svg>
                     </div>
                 </div>
-                <div class="text-3xl font-bold text-gray-800">{{ number_format($averageYield ?? 0, 2) }} <span class="text-lg font-medium text-gray-500">mt/ha</span></div>
-                <div class="flex items-center gap-1 mt-2">
+                <div class="admin-kpi-value">{{ number_format($averageYield ?? 0, 2) }} <span class="text-xl font-semibold text-gray-500">mt/ha</span></div>
+                <div class="admin-kpi-meta mt-2 flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                     </svg>
-                    <span class="text-xs text-gray-400">Updated {{ $lastUpdate->format('F Y') ?? 'July 2025' }}</span>
+                    <span>Updated {{ $lastUpdate->format('F Y') ?? 'July 2025' }}</span>
                 </div>
                 <div class="mt-4 flex gap-2">
-                    <a href="{{ route('admin.crop-data.index') }}" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors text-center hover-scale">
+                    <a href="{{ route('admin.crop-data.index') }}" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors text-center">
                         View All Data
-                    </a>
-                    <a href="{{ route('admin.export-summary') }}" class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-medium rounded-lg text-sm transition-colors whitespace-nowrap hover-scale">
-                        Export Summary
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Summary Cards and Demand Chart -->
+        <!-- Summary and Announcements -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Summary Cards -->
-            <div class="bg-white rounded-xl shadow-md p-6 card-animate hover-lift animate-fade-in-left animate-delay-500">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-800">Summary Cards</h2>
-                    <button class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </button>
+            <!-- Performance Snapshot -->
+            <div class="admin-section-card p-5 lg:p-6">
+                <div class="admin-section-header mb-4">
+                    <div>
+                        <h2 class="admin-section-title">Performance Snapshot</h2>
+                        <p class="admin-section-subtitle">Current leaders based on the active filters.</p>
+                    </div>
                 </div>
 
                 <div class="space-y-4">
-                    <!-- Top 3 Crops -->
-                    <div class="flex items-start gap-3 hover-lift p-3 rounded-lg transition-all">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse-slow">
-                            <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-gray-800 mb-1">Top 3 Crops</h3>
-                            <ul class="text-sm text-gray-600 space-y-1">
-                                @if(isset($topCrops) && $topCrops->count() > 0)
-                                    @foreach($topCrops->take(3) as $index => $crop)
-                                        <li class="flex items-center gap-2 hover-scale transition-transform">
-                                            <span class="font-medium text-green-600">{{ $index + 1 }}.</span>
-                                            <span>{{ ucwords(strtolower($crop->crop)) }} - <span class="font-medium">{{ number_format($crop->total_production, 2) }} mt</span></span>
-                                        </li>
-                                    @endforeach
-                                @else
-                                    <li class="text-gray-400 italic">No crop data available for selected filters</li>
-                                @endif
+                    <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-3">Top 3 Crops</h3>
+                        @if(isset($topCrops) && $topCrops->count() > 0)
+                            @php
+                                $topCropEntries = $topCrops->take(3);
+                                $topCropMax = max($topCropEntries->max('total_production'), 1);
+                            @endphp
+                            <ul class="space-y-2.5">
+                                @foreach($topCropEntries as $index => $crop)
+                                    <li class="rounded-lg border border-gray-100 bg-white p-2.5">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <span class="text-xs font-bold text-green-700">{{ $index + 1 }}</span>
+                                                <span class="text-sm font-medium text-gray-700 truncate">{{ ucwords(strtolower($crop->crop)) }}</span>
+                                            </div>
+                                            <span class="text-sm font-semibold text-gray-800 whitespace-nowrap">{{ number_format($crop->total_production, 2) }} mt</span>
+                                        </div>
+                                        <div class="mt-2 h-1.5 w-full rounded-full bg-gray-200">
+                                            <div class="h-1.5 rounded-full bg-green-600" style="width: {{ max(($crop->total_production / $topCropMax) * 100, 4) }}%"></div>
+                                        </div>
+                                    </li>
+                                @endforeach
                             </ul>
-                            <div class="flex items-center gap-1 mt-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                                </svg>
-                                <span class="text-xs text-gray-400">Updated {{ $lastUpdate->format('M d, Y') }}</span>
-                            </div>
-                        </div>
+                        @else
+                            <p class="text-sm text-gray-500 italic">No crop data available for selected filters.</p>
+                        @endif
+                        <p class="admin-kpi-meta mt-3">Updated {{ $lastUpdate->format('M d, Y') }}</p>
                     </div>
 
-                    <div class="border-t border-gray-200"></div>
-
-                    <!-- Most Productive Municipality -->
-                    <div class="flex items-start gap-3 hover-lift p-3 rounded-lg transition-all">
-                        <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse-slow">
-                            <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <h3 class="font-semibold text-gray-800 mb-1">Most Productive Municipality</h3>
-                            <p class="text-sm text-gray-600">
-                                @if(isset($topMunicipality))
-                                    <span class="font-semibold text-green-700">{{ ucwords(strtolower($topMunicipality->municipality)) }}</span>
-                                    <span class="text-gray-500"> - {{ number_format($topMunicipality->total_production, 2) }} mt total</span>
-                                @else
-                                    <span class="text-gray-400 italic">No data available for selected filters</span>
-                                @endif
-                            </p>
-                            <div class="flex items-center gap-1 mt-2">
-                                <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                                </svg>
-                                <span class="text-xs text-gray-400">Updated {{ $lastUpdate->format('M d, Y') }}</span>
-                            </div>
-                        </div>
+                    <div class="rounded-lg border border-gray-200 bg-white p-4">
+                        <h3 class="text-sm font-semibold text-gray-800 mb-2">Most Productive Municipality</h3>
+                        <p class="text-sm text-gray-600">
+                            @if(isset($topMunicipality))
+                                <span class="font-semibold text-green-700">{{ ucwords(strtolower($topMunicipality->municipality)) }}</span>
+                                <span class="text-gray-500"> - {{ number_format($topMunicipality->total_production, 2) }} mt total</span>
+                            @else
+                                <span class="text-gray-500 italic">No data available for selected filters.</span>
+                            @endif
+                        </p>
+                        <p class="admin-kpi-meta mt-2">Updated {{ $lastUpdate->format('M d, Y') }}</p>
                     </div>
                 </div>
             </div>
 
         <!-- Announcements Management Widget -->
-        <div class="bg-white rounded-xl shadow-md overflow-hidden card-animate hover-lift animate-fade-in-up animate-delay-550">
-            <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4">
-                <div class="flex items-center justify-between">
+        <div class="admin-section-card overflow-hidden">
+            <div class="bg-gradient-to-r from-green-700 to-emerald-700 px-6 py-4">
+                <div class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                             <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -520,14 +501,14 @@
                         </div>
                         <div class="text-white">
                             <h2 class="text-lg font-bold">Announcements</h2>
-                            <p class="text-amber-100 text-sm">Manage farmer notifications</p>
+                            <p class="text-green-100 text-sm">Manage farmer notifications</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="px-3 py-1 bg-white/20 text-white text-xs font-semibold rounded-full">
+                        <span class="admin-chip bg-white/20 text-white">
                             {{ $activeAnnouncementsCount ?? 0 }} Active
                         </span>
-                        <a href="{{ route('admin.announcements.create') }}" class="px-4 py-2 bg-white text-orange-600 font-semibold rounded-lg hover:bg-orange-50 transition-colors text-sm">
+                        <a href="{{ route('admin.announcements.create') }}" class="px-4 py-2 bg-white text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-colors text-sm">
                             + New
                         </a>
                     </div>
@@ -608,7 +589,7 @@
 
         <!-- ML Predictions Section -->
         @if(isset($predictions) && $predictions['available'])
-            <div id="predictions-section" class="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-md p-6 border border-green-200 card-animate hover-lift animate-fade-in-up animate-delay-600">
+            <div id="predictions-section" class="admin-section-card p-5 lg:p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
@@ -617,12 +598,12 @@
                             </svg>
                         </div>
                         <div>
-                            <h2 class="text-xl font-bold text-gray-800">AI-Powered Production Predictions</h2>
-                            <p class="text-sm text-gray-600">Machine Learning predictions based on historical data</p>
+                            <h2 class="admin-section-title">AI Production Predictions</h2>
+                            <p class="admin-section-subtitle">Machine learning forecasts based on historical production patterns.</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <span class="px-3 py-1 bg-green-600 text-white text-xs font-semibold rounded-full">
+                        <span class="admin-chip bg-green-600 text-white">
                             {{ $predictions['count'] }} Predictions
                         </span>
                     </div>
@@ -639,91 +620,72 @@
                     @endphp
 
                     @foreach($groupedPredictions as $year => $municipalityGroups)
-                        <div class="mb-6">
-                            <!-- Year Header -->
-                            <div class="bg-gradient-to-r from-green-700 to-blue-700 text-white px-4 py-3 rounded-t-lg shadow-md">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="font-bold text-lg">Predictions for {{ $year }}</h3>
-                                    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">
-                                        {{ collect($municipalityGroups)->flatten(1)->count() }} predictions
+                        <details class="mb-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm" {{ $loop->first ? 'open' : '' }}>
+                            <summary class="cursor-pointer list-none bg-gray-50 px-4 py-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <h3 class="text-base font-semibold text-gray-800">Predictions for {{ $year }}</h3>
+                                    <span class="admin-chip bg-green-100 text-green-700">
+                                        {{ collect($municipalityGroups)->flatten(1)->count() }} records
                                     </span>
                                 </div>
-                            </div>
+                            </summary>
 
-                            <!-- Municipality Predictions -->
-                            <div class="bg-white border border-gray-200 rounded-b-lg p-4 shadow-sm">
+                            <div class="space-y-3 border-t border-gray-200 p-4">
                                 @foreach($municipalityGroups as $municipality => $municipalityPredictions)
-                                    <div class="mb-6 last:mb-0">
-                                        @php
-                                            // Group by crop within municipality
-                                            $cropGroups = collect($municipalityPredictions)->groupBy('crop_type');
-                                            $totalProduction = collect($municipalityPredictions)->sum('predicted_production');
-                                            
-                                            $colors = [
-                                                'from-blue-500 to-blue-600', 'from-green-500 to-green-600', 
-                                                'from-yellow-500 to-yellow-600', 'from-purple-500 to-purple-600',
-                                                'from-pink-500 to-pink-600', 'from-orange-500 to-orange-600',
-                                                'from-red-500 to-red-600', 'from-indigo-500 to-indigo-600',
-                                                'from-teal-500 to-teal-600', 'from-cyan-500 to-cyan-600'
-                                            ];
-                                            $colorIndex = crc32($municipality) % count($colors);
-                                            $gradient = $colors[$colorIndex];
-                                        @endphp
-                                        
-                                        <!-- Municipality Header -->
-                                        <div class="bg-gradient-to-r {{ $gradient }} text-white px-4 py-2 rounded-lg mb-3 shadow">
-                                            <div class="flex items-center justify-between">
+                                    @php
+                                        $cropGroups = collect($municipalityPredictions)->groupBy('crop_type');
+                                        $totalProduction = collect($municipalityPredictions)->sum('predicted_production');
+                                    @endphp
+
+                                    <details class="rounded-lg border border-gray-200 bg-white" {{ $loop->first ? 'open' : '' }}>
+                                        <summary class="cursor-pointer list-none px-4 py-3">
+                                            <div class="flex items-center justify-between gap-3">
                                                 <div class="flex items-center gap-2">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                                     </svg>
-                                                    <span class="font-bold">{{ ucwords(strtolower($municipality)) }}</span>
+                                                    <span class="font-semibold text-gray-800">{{ ucwords(strtolower($municipality)) }}</span>
                                                 </div>
-                                                <span class="font-bold text-lg">{{ number_format($totalProduction, 2) }} mt</span>
+                                                <span class="text-sm font-bold text-green-700">{{ number_format($totalProduction, 2) }} mt</span>
                                             </div>
-                                        </div>
+                                        </summary>
 
-                                        <!-- Crop Predictions -->
-                                        <div class="space-y-3 pl-4">
+                                        <div class="space-y-3 border-t border-gray-100 p-4">
                                             @foreach($cropGroups as $crop => $cropPredictions)
                                                 @php
                                                     $cropTotal = collect($cropPredictions)->sum('predicted_production');
                                                     $hasMonthly = count($cropPredictions) > 1;
                                                 @endphp
-                                                
-                                                <div class="border-l-4 border-green-500 pl-4 py-2 bg-green-50 rounded-r">
-                                                    <div class="flex items-center justify-between mb-2">
-                                                        <span class="font-semibold text-gray-800 text-sm">
-                                                            {{ ucwords(strtolower($crop)) }}
-                                                        </span>
-                                                        <span class="font-bold text-green-700">{{ number_format($cropTotal, 2) }} mt</span>
+
+                                                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                                                    <div class="mb-2 flex items-center justify-between gap-2">
+                                                        <span class="text-sm font-semibold text-gray-800">{{ ucwords(strtolower($crop)) }}</span>
+                                                        <span class="text-sm font-bold text-green-700">{{ number_format($cropTotal, 2) }} mt</span>
                                                     </div>
-                                                    
+
                                                     @if($hasMonthly)
-                                                        <!-- Monthly Breakdown -->
-                                                        <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 mt-2">
+                                                        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2">
                                                             @foreach($cropPredictions as $pred)
-                                                                <div class="bg-white rounded px-2 py-1 text-xs shadow-sm hover:shadow-md transition-shadow">
+                                                                <div class="rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs">
                                                                     <div class="font-medium text-gray-600">{{ $pred['month'] }}</div>
-                                                                    <div class="font-bold text-green-600">{{ number_format($pred['predicted_production'], 1) }} mt</div>
+                                                                    <div class="font-bold text-gray-800">{{ number_format($pred['predicted_production'], 1) }} mt</div>
                                                                     @if(isset($pred['confidence']))
-                                                                        <div class="text-gray-500 text-[10px]">{{ $pred['confidence'] }}</div>
+                                                                        <div class="text-[10px] text-gray-500">{{ $pred['confidence'] }}</div>
                                                                     @endif
                                                                 </div>
                                                             @endforeach
                                                         </div>
                                                     @else
-                                                        <!-- Single Prediction -->
                                                         @foreach($cropPredictions as $pred)
-                                                            <div class="flex items-center gap-2 text-xs text-gray-600">
-                                                                <span class="font-medium">{{ $pred['month'] }}</span>
+                                                            <div class="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                                                                <span class="font-medium text-gray-700">{{ $pred['month'] }}</span>
                                                                 <span>•</span>
                                                                 <span>{{ ucwords(strtolower($pred['farm_type'])) }}</span>
                                                                 <span>•</span>
                                                                 <span>{{ number_format($pred['area_harvested']) }} ha</span>
                                                                 @if(isset($pred['confidence']))
                                                                     <span>•</span>
-                                                                    <span class="text-green-600">{{ $pred['confidence'] }}</span>
+                                                                    <span class="text-green-700">{{ $pred['confidence'] }}</span>
                                                                 @endif
                                                             </div>
                                                         @endforeach
@@ -731,10 +693,10 @@
                                                 </div>
                                             @endforeach
                                         </div>
-                                    </div>
+                                    </details>
                                 @endforeach
                             </div>
-                        </div>
+                        </details>
                     @endforeach
 
                     <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
@@ -874,7 +836,7 @@
                         <!-- Submit Button -->
                         <div class="flex justify-start pt-4">
                             <button type="submit"
-                                    class="px-8 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold rounded-md transition-colors shadow-sm">
+                                    class="px-8 py-2.5 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-md transition-colors shadow-sm">
                                 Submit
                             </button>
                         </div>
@@ -889,15 +851,6 @@
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script>
-        // Verify zoom plugin loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Chart available:', typeof Chart !== 'undefined');
-            console.log('Hammer available:', typeof Hammer !== 'undefined');
-            if (typeof Chart !== 'undefined' && Chart.registry && Chart.registry.plugins) {
-                console.log('Registered plugins:', Object.keys(Chart.registry.plugins.items || {}));
-            }
-        });
-        
         // Global variable to store chart instance
         let trendChartInstance = null;
         // Store chart data globally for panel access
@@ -908,7 +861,6 @@
             if (trendChartInstance) {
                 if (typeof trendChartInstance.resetZoom === 'function') {
                     trendChartInstance.resetZoom();
-                    console.log('Chart zoom reset');
                 } else {
                     console.error('resetZoom not available - zoom plugin may not be loaded');
                     alert('Zoom feature not available. Please refresh the page.');
@@ -923,7 +875,6 @@
             if (trendChartInstance) {
                 if (typeof trendChartInstance.zoom === 'function') {
                     trendChartInstance.zoom(1.2, 'default');
-                    console.log('Zoom in');
                 } else {
                     console.error('zoom not available - zoom plugin may not be loaded');
                     alert('Zoom feature not available. Please refresh the page.');
@@ -938,7 +889,6 @@
             if (trendChartInstance) {
                 if (typeof trendChartInstance.zoom === 'function') {
                     trendChartInstance.zoom(0.8, 'default');
-                    console.log('Zoom out');
                 } else {
                     console.error('zoom not available - zoom plugin may not be loaded');
                     alert('Zoom feature not available. Please refresh the page.');
@@ -1050,42 +1000,21 @@
         function dataAnalytics() {
             return {
                 init() {
-                    // Wait for Chart.js to be fully loaded
                     if (typeof Chart === 'undefined') {
-                        console.log('Chart.js not loaded yet, waiting...');
                         setTimeout(() => this.init(), 100);
                         return;
                     }
-                    
-                    // Check if zoom plugin is available
-                    if (typeof Chart.registry !== 'undefined') {
-                        console.log('Chart.js plugins:', Object.keys(Chart.registry.plugins.items || {}));
-                    }
-                    
-                    console.log('Initializing trend chart...');
+
                     this.initTrendChart();
                 },
 
                 initTrendChart() {
                     const ctx = document.getElementById('trendChart');
                     if (!ctx) {
-                        console.log('Chart canvas not found');
                         return;
                     }
 
-                    // Get actual data from database (already formatted)
                     const chartData = @json($trendChartData);
-                    console.log('Chart Data:', chartData);
-                    console.log('Labels:', chartData.labels);
-                    console.log('Datasets count:', chartData.datasets.length);
-                    
-                    // Log each dataset details
-                    chartData.datasets.forEach((dataset, index) => {
-                        console.log(`Dataset ${index} (${dataset.label}):`, dataset.data);
-                        console.log(`  - Has data:`, dataset.data.some(val => val > 0));
-                        console.log(`  - Max value:`, Math.max(...dataset.data));
-                        console.log(`  - Sum:`, dataset.data.reduce((a, b) => a + b, 0));
-                    });
                     
                     if (!chartData || !chartData.labels || !chartData.datasets) {
                         console.error('Invalid chart data structure');
@@ -1093,7 +1022,6 @@
                     }
 
                     if (chartData.labels.length === 0 || chartData.datasets.length === 0) {
-                        console.log('No data to display');
                         return;
                     }
                     
@@ -1128,9 +1056,6 @@
                         };
                     });
                     
-                    console.log('Final chart data being passed to Chart.js:', chartData);
-                    
-                    // Store chart instance globally for zoom reset
                     trendChartInstance = new Chart(ctx, {
                         type: 'line',
                         data: chartData,
@@ -1289,7 +1214,7 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: '⬆️ Total Harvest (Metric Tons)',
+                                        text: 'Total Harvest (Metric Tons)',
                                         font: {
                                             size: 13,
                                             weight: '600',
@@ -1328,7 +1253,7 @@
                                 x: {
                                     title: {
                                         display: true,
-                                        text: '📆 Time Period',
+                                        text: 'Time Period',
                                         font: {
                                             size: 13,
                                             weight: '600',
@@ -1363,6 +1288,12 @@
                                 mode: 'point',
                                 intersect: true
                             },
+                            onHover: function(event, elements) {
+                                const nativeEvent = event?.native;
+                                if (nativeEvent?.target) {
+                                    nativeEvent.target.style.cursor = elements && elements.length ? 'pointer' : 'default';
+                                }
+                            },
                             onClick: function(event, elements, chart) {
                                 handleChartClick(event, elements, chart);
                             }
@@ -1379,7 +1310,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 if (typeof dataAnalytics === 'function' && !trendChartInstance) {
-                    console.log('DOMContentLoaded: Initializing chart...');
                     const analytics = dataAnalytics();
                     if (analytics && typeof analytics.init === 'function') {
                         analytics.init();
@@ -1495,7 +1425,7 @@
                         <template x-for="(municipality, index) in {{ json_encode(array_keys($municipalityStats)) }}" :key="index">
                             <div x-show="selectedMunicipality === municipality" class="space-y-6">
                                 <!-- Overview Section -->
-                                <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-5 border border-green-200 animate-fade-in-up animate-delay-100">
+                                <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-5 border border-green-200">
                                     <h4 class="text-sm font-semibold text-gray-700 mb-4">OVERVIEW</h4>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div class="hover-lift">

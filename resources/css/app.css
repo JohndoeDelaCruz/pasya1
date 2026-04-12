@@ -536,6 +536,118 @@ textarea {
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
+/* Admin dashboard utilities */
+.admin-dashboard-shell {
+    --admin-card-border: #e5e7eb;
+    --admin-card-bg: #ffffff;
+    --admin-heading: #111827;
+    --admin-muted: #4b5563;
+}
+
+.admin-section-card {
+    background: var(--admin-card-bg);
+    border: 1px solid var(--admin-card-border);
+    border-radius: 0.9rem;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+}
+
+.admin-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.admin-section-title {
+    color: var(--admin-heading);
+    font-size: 1.125rem;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.admin-section-subtitle {
+    color: var(--admin-muted);
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+
+.admin-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+    .admin-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1280px) {
+    .admin-filter-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+.admin-filter-field label {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #374151;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.admin-chart-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.85rem;
+    background: linear-gradient(180deg, rgba(249, 250, 251, 0.85) 0%, rgba(255, 255, 255, 1) 100%);
+}
+
+.admin-kpi-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ecfdf5;
+}
+
+.admin-kpi-value {
+    color: #111827;
+    font-size: 1.875rem;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.admin-kpi-meta {
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.admin-chip {
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+}
+
+.dashboard-reduced-motion .animate-bounce,
+.dashboard-reduced-motion .animate-pulse-slow,
+.dashboard-reduced-motion .animate-float {
+    animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-reduced-motion * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 /* Loading shimmer effect */
 .shimmer {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
