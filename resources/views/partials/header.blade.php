@@ -4,7 +4,7 @@
         $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
     @endphp
     <div class="mx-auto w-full lg:w-fit">
-        <div class="nav-pill-animate flex flex-wrap items-center justify-between gap-1.5 rounded-full border border-green-100 bg-white/95 backdrop-blur-md shadow-md px-2 sm:px-3 py-1.5">
+        <div class="nav-pill-animate relative flex flex-wrap items-center justify-between gap-1.5 rounded-full border border-green-100 bg-white/95 backdrop-blur-md shadow-md px-2 sm:px-3 py-1.5">
             <a href="{{ url('/') }}" class="flex items-center rtl:space-x-reverse cursor-pointer">
                 <img src="{{ asset('images/PASYA.png') }}" class="h-9" alt="PASYA Logo"/>
                 <img src="{{ asset('images/titleh.png') }}" class="h-9" alt="PASYA Title"/>
@@ -32,8 +32,8 @@
                 </button>
             </div>
 
-            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-                <ul id="pill-nav-list" class="nav-pill-list relative flex flex-col md:flex-row items-stretch md:items-center gap-1 mt-2 md:mt-0 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50 w-full md:w-auto">
+            <div class="hidden absolute left-0 right-0 top-full mt-2 z-40 md:z-auto md:mt-0 md:static w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
+                <ul id="pill-nav-list" class="nav-pill-list relative flex flex-col md:flex-row items-stretch md:items-center gap-1 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50 w-full md:w-auto shadow-md md:shadow-none">
                     <li id="pill-nav-indicator" class="nav-pill-indicator hidden md:block" aria-hidden="true"></li>
                     <li>
                         <a href="{{ url('/#home') }}" data-nav-scroll class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">Home</a>
