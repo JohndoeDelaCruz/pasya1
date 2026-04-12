@@ -3,23 +3,23 @@
         $isAuthenticated = auth()->guard('web')->check() || auth()->guard('farmer')->check();
         $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
     @endphp
-    <div class="max-w-screen-xl mx-auto">
-        <div class="flex flex-wrap items-center justify-between gap-2 rounded-full border border-green-100 bg-white/95 backdrop-blur-md shadow-md px-3 sm:px-4 py-2">
+    <div class="mx-auto w-full lg:w-fit">
+        <div class="flex flex-wrap items-center justify-between gap-1.5 rounded-full border border-green-100 bg-white/95 backdrop-blur-md shadow-md px-2 sm:px-3 py-1.5">
             <a href="{{ url('/') }}" class="flex items-center rtl:space-x-reverse cursor-pointer">
-                <img src="{{ asset('images/PASYA.png') }}" class="h-10" alt="PASYA Logo"/>
-                <img src="{{ asset('images/titleh.png') }}" class="h-10" alt="PASYA Title"/>
+                <img src="{{ asset('images/PASYA.png') }}" class="h-9" alt="PASYA Logo"/>
+                <img src="{{ asset('images/titleh.png') }}" class="h-9" alt="PASYA Title"/>
             </a>
 
-            <div class="flex items-center md:order-2 gap-2 rtl:space-x-reverse">
+            <div class="flex items-center md:order-2 gap-1.5 rtl:space-x-reverse">
                 @if ($isAuthenticated)
-                    <a href="{{ $dashboardRoute }}" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-xs sm:text-sm px-3 sm:px-4 py-2 text-center whitespace-nowrap">
+                    <a href="{{ $dashboardRoute }}" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-xs sm:text-sm px-3 py-1.5 text-center whitespace-nowrap">
                         Dashboard
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="hidden sm:inline-flex text-green-700 border border-green-500 hover:bg-green-50 focus:ring-4 focus:outline-none focus:ring-green-200 font-medium rounded-full text-xs sm:text-sm px-3 sm:px-4 py-2 text-center whitespace-nowrap">
+                    <a href="{{ route('login') }}" class="hidden sm:inline-flex text-green-700 border border-green-500 hover:bg-green-50 focus:ring-4 focus:outline-none focus:ring-green-200 font-medium rounded-full text-xs sm:text-sm px-3 py-1.5 text-center whitespace-nowrap">
                         Log In
                     </a>
-                    <a href="{{ route('register') }}" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-xs sm:text-sm px-3 sm:px-4 py-2 text-center shadow-sm whitespace-nowrap">
+                    <a href="{{ route('register') }}" class="text-white bg-green-500 hover:bg-green-600 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-xs sm:text-sm px-3 py-1.5 text-center shadow-sm whitespace-nowrap">
                         Register
                     </a>
                 @endif
@@ -35,16 +35,16 @@
             <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
                 <ul class="flex flex-col md:flex-row gap-1 mt-2 md:mt-0 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50">
                     <li>
-                        <a href="{{ url('/') }}" class="block py-1.5 px-4 text-sm text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors">Home</a>
+                        <a href="{{ url('/') }}" class="block py-1.5 px-3 text-sm text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors">Home</a>
                     </li>
                     <li>
-                        <a href="#about" class="block py-1.5 px-4 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">About us</a>
+                        <a href="#about" class="block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">About us</a>
                     </li>
                     <li>
-                        <a href="#work_with_us" class="block py-1.5 px-4 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Work with us</a>
+                        <a href="#work_with_us" class="block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Work with us</a>
                     </li>
                     <li>
-                        <a href="#blog" class="block py-1.5 px-4 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Blog</a>
+                        <a href="#blog" class="block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Blog</a>
                     </li>
                 </ul>
             </div>
