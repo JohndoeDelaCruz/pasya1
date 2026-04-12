@@ -7,8 +7,7 @@
     <section id="home" class="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden font-['Inter']">
         <div id="hero-scenery" class="absolute inset-0 w-full h-full">
             <img class="h-full w-full object-cover" src="{{ asset('images/Rice_Terraces.png') }}" alt="PASYA Land" aria-hidden="true"/>
-            <div class="absolute inset-0 bg-black/25"></div>
-            <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,rgba(0,0,0,0.65)_0%,rgba(0,0,0,0)_100%)]"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(0,0,0,0.30)_0%,rgba(0,0,0,0)_100%)]"></div>
         </div>
 
         <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center flex flex-col items-center justify-center w-full pt-16">
