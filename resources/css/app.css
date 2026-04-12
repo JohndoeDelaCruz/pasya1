@@ -300,14 +300,14 @@
 }
 
 .hero-overlay-soft {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0.58) 48%, rgba(247, 252, 248, 0.72) 100%);
+    background: linear-gradient(180deg, rgba(248, 253, 250, 0.16) 0%, rgba(242, 251, 245, 0.26) 48%, rgba(236, 248, 238, 0.34) 100%);
 }
 
 .hero-panel {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.56) 0%, rgba(248, 253, 250, 0.66) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    background: transparent;
+    border: 0;
+    backdrop-filter: none;
+    box-shadow: none;
 }
 
 .hero-title {

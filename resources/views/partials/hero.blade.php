@@ -12,7 +12,7 @@
             </div>
 
             <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center pt-28 pb-24 lg:pt-36 lg:pb-32">
-                <div class="hero-panel mx-auto max-w-5xl rounded-3xl px-5 py-10 sm:px-10 lg:px-12">
+                <div class="hero-panel mx-auto max-w-5xl px-5 py-10 sm:px-10 lg:px-12">
                     <img class="h-36 sm:h-40 max-w-sm mx-auto" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
                     <h1 class="hero-title mt-8 mb-4 text-3xl font-extrabold tracking-tight leading-tight md:text-4xl lg:text-5xl">PASYA: Predictive Analytics for Yield Advancement</h1>
                     <p class="hero-subtitle mb-6 text-lg font-semibold lg:text-2xl sm:px-8 lg:px-10">Harvest Intelligence, Grow with Certainty</p>
