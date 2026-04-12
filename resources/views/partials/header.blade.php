@@ -1,4 +1,4 @@
-<nav class="fixed top-3 inset-x-0 z-30 px-3 sm:px-4">
+<nav id="site-navbar" class="fixed top-3 inset-x-0 z-30 px-3 sm:px-4 opacity-100 transition-all duration-300 ease-out" style="transform: translateY(0);">
     @php
         $isAuthenticated = auth()->guard('web')->check() || auth()->guard('farmer')->check();
         $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
