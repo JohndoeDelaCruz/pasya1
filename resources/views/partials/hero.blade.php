@@ -4,46 +4,46 @@
         $isAuthenticated = auth()->guard('web')->check() || auth()->guard('farmer')->check();
         $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
     @endphp
-    <section id="home" class="bg-gradient-to-b from-green-100 via-white to-green-200">
-        <div class="relative overflow-hidden">
-            <div id="hero-scenery" class="absolute inset-0 transition-opacity duration-300 ease-out" style="opacity: 1;">
-                <img class="h-full w-full object-cover blur-sm scale-105" src="{{ asset('images/terraces.jpg') }}" alt="" aria-hidden="true"/>
-                <div class="absolute inset-0 hero-overlay-soft"></div>
-            </div>
+    <section id="home" class="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden">
+        <div id="hero-scenery" class="absolute inset-0 w-full h-full">
+            <img class="h-full w-full object-cover" src="{{ asset('images/rice-terraces.jpg') }}" alt="PASYA Land" aria-hidden="true"/>
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_50%,rgba(255,255,255,0.75)_0%,rgba(255,255,255,0)_100%)]"></div>
+        </div>
 
-            <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center pt-28 pb-24 lg:pt-36 lg:pb-32">
-                <div class="hero-panel mx-auto max-w-5xl px-5 py-10 sm:px-10 lg:px-12">
-                    <img class="h-36 sm:h-40 max-w-sm mx-auto" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
-                    <h1 class="hero-title mt-8 mb-4 text-3xl font-extrabold tracking-tight leading-tight md:text-4xl lg:text-5xl">PASYA: Predictive Analytics for Yield Advancement</h1>
-                    <p class="hero-subtitle mb-6 text-lg font-semibold lg:text-2xl sm:px-8 lg:px-10">Harvest Intelligence, Grow with Certainty</p>
-                    <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                        @if ($isAuthenticated)
-                            <a href="{{ $dashboardRoute }}" class="hero-cta hero-cta-primary inline-flex min-w-44 justify-center items-center text-base text-center">
-                                Go to Dashboard
-                            </a>
-                        @else
-                            <a href="{{ route('login') }}" class="hero-cta hero-cta-secondary inline-flex min-w-44 justify-center items-center text-base text-center">
-                                Log In
-                            </a>
-                            <a href="{{ route('register') }}" class="hero-cta hero-cta-primary inline-flex min-w-44 justify-center items-center text-base text-center">
-                                Register
-                            </a>
-                        @endif
-                        <a href="#blog" class="hero-cta hero-cta-tertiary inline-flex min-w-44 justify-center items-center text-base text-center">
-                            Learn how it works
-                            <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-                            </svg>
+        <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center flex flex-col items-center justify-center w-full pt-16">
+            <div class="hero-panel mx-auto max-w-5xl px-5 sm:px-10 lg:px-12 flex flex-col items-center">
+                <img class="h-32 sm:h-44 max-w-sm mx-auto mb-6" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
+                <h1 class="hero-title mb-3 text-4xl font-extrabold tracking-tight leading-tight md:text-5xl lg:text-6xl text-[#143d29]">
+                    PASYA: Predictive Analytics for Yield<br class="hidden md:block"> Advancement
+                </h1>
+                <p class="hero-subtitle mb-8 text-xl font-semibold lg:text-2xl sm:px-8 lg:px-10 text-gray-800">
+                    Harvest Intelligence, Grow with Certainty
+                </p>
+                <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                    @if ($isAuthenticated)
+                        <a href="{{ $dashboardRoute }}" class="bg-white text-gray-800 hover:bg-gray-50 focus:ring-4 focus:ring-green-300 font-medium rounded-full text-lg px-8 py-3.5 text-center shadow-lg transition-all">
+                            Go to Dashboard
                         </a>
-                    </div>
-                    @unless ($isAuthenticated)
-                        <p class="mt-5 text-sm text-gray-700 sm:text-base">
-                            Already part of PASYA? Sign in. New here? Create your account to get started.
-                        </p>
-                    @endunless
+                    @else
+                        <a href="{{ route('login') }}" class="bg-white text-gray-900 hover:bg-gray-50 focus:ring-4 focus:ring-green-300 font-medium rounded-2xl text-lg px-10 py-3.5 text-center shadow border border-gray-100 transition-all">
+                            Log In
+                        </a>
+                        <a href="{{ route('register') }}" class="bg-[#119c63] text-white hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-2xl text-lg px-10 py-3.5 text-center shadow transition-all">
+                            Register
+                        </a>
+                    @endif
+                    <a href="#blog" class="bg-white text-gray-900 hover:bg-gray-50 focus:ring-4 focus:ring-green-300 font-medium rounded-2xl text-lg px-10 py-3.5 text-center shadow border border-gray-100 inline-flex justify-center items-center transition-all">
+                        Learn how it works &rarr;
+                    </a>
                 </div>
+                @unless ($isAuthenticated)
+                    <p class="mt-6 text-sm md:text-base text-gray-900 font-medium mix-blend-color-burn">
+                        Already part of PASYA? Sign in. New here? Create your account to get started.
+                    </p>
+                @endunless
             </div>
         </div>
+    </section>
 
         {{-- Stats Cards --}}
         <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-4">
