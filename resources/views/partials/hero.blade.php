@@ -6,7 +6,7 @@
     @endphp
     <section id="home" class="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden">
         <div id="hero-scenery" class="absolute inset-0 w-full h-full">
-            <img class="h-full w-full object-cover" src="{{ asset('images/rice-terraces.jpg') }}" alt="PASYA Land" aria-hidden="true"/>
+            <img class="h-full w-full object-cover" src="{{ asset('images/Rice_Terraces.png') }}" alt="PASYA Land" aria-hidden="true"/>
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_50%,rgba(255,255,255,0.75)_0%,rgba(255,255,255,0)_100%)]"></div>
         </div>
 
