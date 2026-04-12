@@ -61,7 +61,7 @@
                 </div>
 
                 <!-- Navigation Menu -->
-                <nav class="flex-1 overflow-y-auto py-4">
+                <nav class="flex-1 overflow-y-auto py-4 farmer-sidebar-scrollbar">
                     <!-- Dashboard Section -->
                     <div class="px-4 mb-6">
                         <h4 class="text-xs font-semibold text-green-200 uppercase tracking-wider mb-2">Dashboard</h4>
