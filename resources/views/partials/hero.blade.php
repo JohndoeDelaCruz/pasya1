@@ -37,7 +37,7 @@
                     </a>
                 </div>
                 @unless ($isAuthenticated)
-                    <p class="mt-6 text-sm md:text-base text-gray-900 font-medium mix-blend-color-burn">
+                    <p class="mt-6 text-sm md:text-base text-white font-medium mix-blend-color-burn">
                         Already part of PASYA? Sign in. New here? Create your account to get started.
                     </p>
                 @endunless
