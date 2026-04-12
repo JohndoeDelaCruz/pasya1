@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pasya-farmer-v2';
+const CACHE_NAME = 'pasya-farmer-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache immediately on install
@@ -43,8 +43,10 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
+    const requestUrl = new URL(event.request.url);
+
     // Skip cross-origin requests
-    if (!event.request.url.startsWith(self.location.origin)) {
+    if (!requestUrl.origin.startsWith(self.location.origin)) {
         return;
     }
 
@@ -54,7 +56,13 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Skip API requests - always fetch from network
-    if (event.request.url.includes('/api/')) {
+    if (requestUrl.pathname.startsWith('/api/')) {
+        return;
+    }
+
+    // Keep admin/auth pages network-only to avoid stale cached UIs after deploys.
+    const networkOnlyPrefixes = ['/admin', '/login', '/register', '/logout', '/password', '/profile'];
+    if (networkOnlyPrefixes.some((prefix) => requestUrl.pathname.startsWith(prefix))) {
         return;
     }
 
