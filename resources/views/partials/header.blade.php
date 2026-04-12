@@ -33,18 +33,19 @@
             </div>
 
             <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-                <ul class="flex flex-col md:flex-row gap-1 mt-2 md:mt-0 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50">
+                <ul id="pill-nav-list" class="nav-pill-list relative flex flex-col md:flex-row gap-1 mt-2 md:mt-0 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50">
+                    <li id="pill-nav-indicator" class="nav-pill-indicator" aria-hidden="true"></li>
                     <li>
-                        <a href="{{ url('/#home') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors">Home</a>
+                        <a href="{{ url('/#home') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">Home</a>
                     </li>
                     <li>
-                        <a href="{{ url('/#about') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">About us</a>
+                        <a href="{{ url('/#about') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">About us</a>
                     </li>
                     <li>
-                        <a href="{{ url('/#work_with_us') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Work with us</a>
+                        <a href="{{ url('/#work_with_us') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">Work with us</a>
                     </li>
                     <li>
-                        <a href="{{ url('/#blog') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Blog</a>
+                        <a href="{{ url('/#blog') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm rounded-full">Blog</a>
                     </li>
                 </ul>
             </div>

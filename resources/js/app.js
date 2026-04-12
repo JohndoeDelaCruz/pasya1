@@ -46,7 +46,9 @@ const setupHeroSceneryFade = () => {
 
 const setupNavbarSmoothScroll = () => {
 	const navbar = document.getElementById('main-pill-navbar');
-	const navLinks = document.querySelectorAll('[data-nav-scroll]');
+	const navList = document.getElementById('pill-nav-list');
+	const navIndicator = document.getElementById('pill-nav-indicator');
+	const navLinks = Array.from(document.querySelectorAll('[data-nav-scroll]'));
 
 	if (!navLinks.length) {
 		return;
@@ -55,6 +57,54 @@ const setupNavbarSmoothScroll = () => {
 	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 	const normalizedPath = (pathname) => pathname.replace(/\/+$/, '') || '/';
+
+	const getLinkHash = (link) => {
+		const href = link.getAttribute('href');
+
+		if (!href || !href.includes('#')) {
+			return '';
+		}
+
+		try {
+			return new URL(href, window.location.origin).hash;
+		} catch {
+			return '';
+		}
+	};
+
+	const setActiveLink = (activeLink) => {
+		navLinks.forEach((link) => {
+			link.classList.toggle('is-active', link === activeLink);
+		});
+	};
+
+	const positionIndicator = (activeLink) => {
+		if (!navList || !navIndicator || !activeLink) {
+			return;
+		}
+
+		if (navList.offsetParent === null) {
+			return;
+		}
+
+		const listRect = navList.getBoundingClientRect();
+		const linkRect = activeLink.getBoundingClientRect();
+
+		navIndicator.style.width = `${linkRect.width}px`;
+		navIndicator.style.height = `${linkRect.height}px`;
+		navIndicator.style.transform = `translate(${linkRect.left - listRect.left}px, ${linkRect.top - listRect.top}px)`;
+		navIndicator.style.opacity = '1';
+	};
+
+	const activateByHash = (hash) => {
+		const normalizedHash = hash && hash !== '#' ? hash : '#home';
+		const activeLink = navLinks.find((link) => getLinkHash(link) === normalizedHash) || navLinks[0];
+
+		setActiveLink(activeLink);
+		positionIndicator(activeLink);
+
+		return activeLink;
+	};
 
 	const scrollToHashTarget = (hash, updateHistory = false) => {
 		if (!hash || hash === '#') {
@@ -95,6 +145,8 @@ const setupNavbarSmoothScroll = () => {
 			const currentPath = normalizedPath(window.location.pathname);
 			const destinationPath = normalizedPath(targetUrl.pathname);
 
+			activateByHash(targetUrl.hash);
+
 			if (currentPath !== destinationPath) {
 				return;
 			}
@@ -105,18 +157,44 @@ const setupNavbarSmoothScroll = () => {
 		});
 	});
 
+	window.addEventListener('resize', () => {
+		activateByHash(window.location.hash);
+	});
+
+	window.addEventListener('hashchange', () => {
+		activateByHash(window.location.hash);
+	});
+
+	const menuToggle = document.querySelector('[data-collapse-toggle="navbar-sticky"]');
+
+	if (menuToggle) {
+		menuToggle.addEventListener('click', () => {
+			window.requestAnimationFrame(() => {
+				window.requestAnimationFrame(() => {
+					activateByHash(window.location.hash);
+				});
+			});
+		});
+	}
+
+	activateByHash(window.location.hash);
+
 	if (window.location.hash) {
 		window.requestAnimationFrame(() => {
+			activateByHash(window.location.hash);
 			scrollToHashTarget(window.location.hash, false);
 		});
 
 		window.addEventListener(
 			'load',
 			() => {
+				activateByHash(window.location.hash);
 				scrollToHashTarget(window.location.hash, false);
 			},
 			{ once: true }
 		);
+	} else {
+		activateByHash('#home');
 	}
 };
 
