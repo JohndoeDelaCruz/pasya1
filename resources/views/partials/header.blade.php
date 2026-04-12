@@ -1,10 +1,10 @@
-<nav class="fixed top-3 inset-x-0 z-30 px-3 sm:px-4">
+<nav id="main-pill-navbar" class="fixed top-3 inset-x-0 z-30 px-3 sm:px-4">
     @php
         $isAuthenticated = auth()->guard('web')->check() || auth()->guard('farmer')->check();
         $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
     @endphp
     <div class="mx-auto w-full lg:w-fit">
-        <div class="flex flex-wrap items-center justify-between gap-1.5 rounded-full border border-green-100 bg-white/95 backdrop-blur-md shadow-md px-2 sm:px-3 py-1.5">
+        <div class="nav-pill-animate flex flex-wrap items-center justify-between gap-1.5 rounded-full border border-green-100 bg-white/95 backdrop-blur-md shadow-md px-2 sm:px-3 py-1.5">
             <a href="{{ url('/') }}" class="flex items-center rtl:space-x-reverse cursor-pointer">
                 <img src="{{ asset('images/PASYA.png') }}" class="h-9" alt="PASYA Logo"/>
                 <img src="{{ asset('images/titleh.png') }}" class="h-9" alt="PASYA Title"/>
@@ -35,16 +35,16 @@
             <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
                 <ul class="flex flex-col md:flex-row gap-1 mt-2 md:mt-0 p-2 md:p-1 font-medium rounded-2xl md:rounded-full border border-green-100 bg-white md:bg-green-50">
                     <li>
-                        <a href="{{ url('/') }}" class="block py-1.5 px-3 text-sm text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors">Home</a>
+                        <a href="{{ url('/#home') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors">Home</a>
                     </li>
                     <li>
-                        <a href="#about" class="block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">About us</a>
+                        <a href="{{ url('/#about') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">About us</a>
                     </li>
                     <li>
-                        <a href="#work_with_us" class="block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Work with us</a>
+                        <a href="{{ url('/#work_with_us') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Work with us</a>
                     </li>
                     <li>
-                        <a href="#blog" class="block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Blog</a>
+                        <a href="{{ url('/#blog') }}" data-nav-scroll class="nav-pill-link block py-1.5 px-3 text-sm text-gray-700 rounded-full hover:bg-green-100 hover:text-green-800 transition-colors">Blog</a>
                     </li>
                 </ul>
             </div>
