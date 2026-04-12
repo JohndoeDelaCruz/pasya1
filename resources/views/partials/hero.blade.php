@@ -8,38 +8,40 @@
         <div class="relative overflow-hidden">
             <div id="hero-scenery" class="absolute inset-0 transition-opacity duration-300 ease-out" style="opacity: 1;">
                 <img class="h-full w-full object-cover blur-sm scale-105" src="{{ asset('images/terraces.jpg') }}" alt="" aria-hidden="true"/>
-                <div class="absolute inset-0 bg-white/55"></div>
+                <div class="absolute inset-0 hero-overlay-soft"></div>
             </div>
 
             <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center pt-28 pb-24 lg:pt-36 lg:pb-32">
-                <img class="h-48 max-w-sm mx-auto" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
-                <h1 class="mt-16 mb-4 text-2xl font-extrabold tracking-tight leading-none text-green-600 md:text-2xl lg:text-3xl">PASYA: Predictive Analytics for Yield Advancement</h1>
-                <p class="mb-4 text-md font-bold text-gray-700 lg:text-xl sm:px-16 lg:px-4">Harvest Intelligence, Grow with Certainty</p>
-                <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                    @if ($isAuthenticated)
-                        <a href="{{ $dashboardRoute }}" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-semibold text-center text-white rounded-lg bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 shadow-lg">
-                            Go to Dashboard
+                <div class="hero-panel mx-auto max-w-5xl rounded-3xl px-5 py-10 sm:px-10 lg:px-12">
+                    <img class="h-36 sm:h-40 max-w-sm mx-auto" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
+                    <h1 class="hero-title mt-8 mb-4 text-3xl font-extrabold tracking-tight leading-tight md:text-4xl lg:text-5xl">PASYA: Predictive Analytics for Yield Advancement</h1>
+                    <p class="hero-subtitle mb-6 text-lg font-semibold lg:text-2xl sm:px-8 lg:px-10">Harvest Intelligence, Grow with Certainty</p>
+                    <div class="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                        @if ($isAuthenticated)
+                            <a href="{{ $dashboardRoute }}" class="hero-cta hero-cta-primary inline-flex min-w-44 justify-center items-center text-base text-center">
+                                Go to Dashboard
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="hero-cta hero-cta-secondary inline-flex min-w-44 justify-center items-center text-base text-center">
+                                Log In
+                            </a>
+                            <a href="{{ route('register') }}" class="hero-cta hero-cta-primary inline-flex min-w-44 justify-center items-center text-base text-center">
+                                Register
+                            </a>
+                        @endif
+                        <a href="#blog" class="hero-cta hero-cta-tertiary inline-flex min-w-44 justify-center items-center text-base text-center">
+                            Learn how it works
+                            <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                            </svg>
                         </a>
-                    @else
-                        <a href="{{ route('login') }}" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-semibold text-center text-green-700 rounded-lg border-2 border-green-500 bg-white hover:bg-green-50 focus:ring-4 focus:ring-green-200 shadow-sm">
-                            Log In
-                        </a>
-                        <a href="{{ route('register') }}" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-semibold text-center text-white rounded-lg bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 shadow-lg">
-                            Register
-                        </a>
-                    @endif
-                    <a href="#blog" class="inline-flex min-w-44 justify-center items-center py-3 px-6 text-base font-medium text-center text-white rounded-lg bg-gray-800 hover:bg-gray-900 focus:ring-4 focus:ring-gray-300">
-                        Learn how it works
-                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-                        </svg>
-                    </a>
+                    </div>
+                    @unless ($isAuthenticated)
+                        <p class="mt-5 text-sm text-gray-700 sm:text-base">
+                            Already part of PASYA? Sign in. New here? Create your account to get started.
+                        </p>
+                    @endunless
                 </div>
-                @unless ($isAuthenticated)
-                    <p class="mt-4 text-sm text-gray-600">
-                        Already part of PASYA? Sign in. New here? Create your account to get started.
-                    </p>
-                @endunless
             </div>
         </div>
 
