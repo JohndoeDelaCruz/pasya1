@@ -14,7 +14,7 @@
             <div class="hero-panel mx-auto max-w-5xl px-5 sm:px-10 lg:px-12 flex flex-col items-center">
                 <img class="h-32 sm:h-44 max-w-sm mx-auto mb-6" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"/>
                 <h1 class="hero-title mb-3 text-4xl font-extrabold tracking-tight leading-tight md:text-5xl lg:text-6xl text-[#143d29]">
-                    PASYA: Predictive Analytics for Yield<br class="hidden md:block"> Advancement
+                    PASYA: Predictive Analytics for Yield Advancement
                 </h1>
                 <p class="hero-subtitle mb-8 text-xl font-semibold lg:text-2xl sm:px-8 lg:px-10 text-gray-800">
                     Harvest Intelligence, Grow with Certainty
