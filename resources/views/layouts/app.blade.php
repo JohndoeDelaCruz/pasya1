@@ -14,7 +14,7 @@
 <body class="antialiased min-h-screen flex flex-col bg-gray-50">
     @include('partials.header')
 
-    <main class="flex-1 pt-24">
+    <main class="flex-1">
         @isset($header)
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
                 <div class="bg-white shadow-sm rounded-lg p-4 sm:p-6">
