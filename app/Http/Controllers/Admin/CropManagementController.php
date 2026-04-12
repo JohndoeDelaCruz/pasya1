@@ -17,8 +17,13 @@ class CropManagementController extends Controller
      */
     public function index(Request $request)
     {
-        // Sync data from imported crops if not already in master tables
-        $this->syncDataFromImports();
+        // Sync data from imported crops if not already in master tables.
+        // Do not fail page rendering if sync hits an unexpected data/database issue.
+        try {
+            $this->syncDataFromImports();
+        } catch (\Throwable $e) {
+            report($e);
+        }
         
         // Search functionality for crop types
         $cropTypeQuery = CropType::query();
@@ -62,9 +67,13 @@ class CropManagementController extends Controller
         foreach ($uniqueCrops as $cropName) {
             // Normalize the crop name (remove extra spaces, trim)
             $normalizedName = trim($cropName);
+
+            if ($normalizedName === '') {
+                continue;
+            }
             
             // Check if a similar crop type already exists (case-insensitive, ignore spaces)
-            $existingCrop = CropType::whereRaw('REPLACE(LOWER(name), " ", "") = ?', [
+            $existingCrop = CropType::whereRaw("REPLACE(LOWER(name), ' ', '') = ?", [
                 str_replace(' ', '', strtolower($normalizedName))
             ])->first();
             
@@ -90,9 +99,13 @@ class CropManagementController extends Controller
         foreach ($uniqueMunicipalities as $municipalityName) {
             // Normalize the municipality name
             $normalizedName = trim($municipalityName);
+
+            if ($normalizedName === '') {
+                continue;
+            }
             
             // Check if already exists
-            $existingMunicipality = Municipality::whereRaw('REPLACE(LOWER(name), " ", "") = ?', [
+            $existingMunicipality = Municipality::whereRaw("REPLACE(LOWER(name), ' ', '') = ?", [
                 str_replace(' ', '', strtolower($normalizedName))
             ])->first();
             
