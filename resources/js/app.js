@@ -6,10 +6,10 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
-const setupScrollAwareNavbar = () => {
-	const navbar = document.getElementById('site-navbar');
+const setupHeroSceneryFade = () => {
+	const scenery = document.getElementById('hero-scenery');
 
-	if (!navbar) {
+	if (!scenery) {
 		return;
 	}
 
@@ -17,43 +17,16 @@ const setupScrollAwareNavbar = () => {
 		return;
 	}
 
-	let lastScrollY = window.scrollY;
 	let ticking = false;
-	const minDelta = 8;
-	const topThreshold = 24;
-
-	const showNavbar = () => {
-		navbar.style.opacity = '1';
-		navbar.style.transform = 'translateY(0)';
-		navbar.style.pointerEvents = 'auto';
-	};
-
-	const hideNavbar = () => {
-		navbar.style.opacity = '0';
-		navbar.style.transform = 'translateY(-120%)';
-		navbar.style.pointerEvents = 'none';
-	};
+	const maxScrollForFade = 420;
+	const minOpacity = 0.18;
 
 	const handleScroll = () => {
-		const currentScrollY = window.scrollY;
-		const delta = currentScrollY - lastScrollY;
+		const currentScrollY = Math.max(window.scrollY, 0);
+		const progress = Math.min(currentScrollY / maxScrollForFade, 1);
+		const opacity = 1 - progress * (1 - minOpacity);
 
-		if (currentScrollY <= topThreshold) {
-			showNavbar();
-			lastScrollY = currentScrollY;
-			ticking = false;
-			return;
-		}
-
-		if (Math.abs(delta) >= minDelta) {
-			if (delta > 0) {
-				hideNavbar();
-			} else {
-				showNavbar();
-			}
-			lastScrollY = currentScrollY;
-		}
-
+		scenery.style.opacity = opacity.toFixed(3);
 		ticking = false;
 	};
 
@@ -67,6 +40,8 @@ const setupScrollAwareNavbar = () => {
 		},
 		{ passive: true }
 	);
+
+	handleScroll();
 };
 
-document.addEventListener('DOMContentLoaded', setupScrollAwareNavbar);
+document.addEventListener('DOMContentLoaded', setupHeroSceneryFade);

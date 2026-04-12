@@ -6,7 +6,7 @@
     @endphp
     <section id="home" class="bg-gradient-to-b from-green-100 via-white to-green-200">
         <div class="relative overflow-hidden">
-            <div class="absolute inset-0">
+            <div id="hero-scenery" class="absolute inset-0 transition-opacity duration-300 ease-out" style="opacity: 1;">
                 <img class="h-full w-full object-cover blur-sm scale-105" src="{{ asset('images/terraces.jpg') }}" alt="" aria-hidden="true"/>
                 <div class="absolute inset-0 bg-white/55"></div>
             </div>
