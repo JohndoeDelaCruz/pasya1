@@ -190,16 +190,6 @@ const setupNavbarSmoothScroll = () => {
 		activateByHash(window.location.hash);
 	});
 
-	if (menuToggle) {
-		menuToggle.addEventListener('click', () => {
-			window.requestAnimationFrame(() => {
-				window.requestAnimationFrame(() => {
-					activateByHash(window.location.hash);
-				});
-			});
-		});
-	}
-
 	activateByHash(window.location.hash);
 
 	if (window.location.hash) {

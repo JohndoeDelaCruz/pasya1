@@ -358,6 +358,25 @@
     }
 }
 
+@media (max-width: 767px) {
+    .nav-pill-link {
+        transition: none;
+    }
+
+    .nav-pill-link:hover {
+        color: #374151;
+        background-color: transparent;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .nav-pill-link.is-active,
+    .nav-pill-link.is-active:hover {
+        background-color: #22c55e;
+        color: #ffffff;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .nav-pill-animate {
         animation: none;
