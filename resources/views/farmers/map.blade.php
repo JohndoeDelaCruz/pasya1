@@ -5,7 +5,7 @@
         <div class="max-w-full mx-auto lg:px-4">
             <div class="flex flex-col gap-4 lg:gap-6">
             <!-- Control Panel -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg order-2 lg:order-1">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg order-3 lg:order-1">
                 <div class="p-4 lg:p-6">
                     <h3 class="text-base lg:text-lg font-semibold text-gray-800 mb-3 lg:mb-4">Map Controls</h3>
                     
@@ -171,7 +171,7 @@
             </div>
 
             <!-- Statistics Panel -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mt-4 lg:mt-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg order-2 lg:order-3">
                 <div class="p-4 lg:p-6">
                     <h3 class="text-base lg:text-lg font-semibold text-gray-800 mb-3 lg:mb-4">Summary Statistics</h3>
                     <div id="stats-content" class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
