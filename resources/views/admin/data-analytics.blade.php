@@ -992,7 +992,7 @@
             return Number(value).toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 2
-            }) + ' mt';
+            }) + ' (metric tons)';
         }
 
         function renderYearlyBarChart(selectedYear) {
@@ -1266,14 +1266,14 @@
         // Format number in a friendly way
         function formatProductionValue(value) {
             if (value >= 1000000) {
-                return (value / 1000000).toFixed(2) + ' Million mt';
+                return (value / 1000000).toFixed(2) + ' Million (metric tons)';
             } else if (value >= 1000) {
-                return (value / 1000).toFixed(1) + ' Thousand mt';
+                return (value / 1000).toFixed(1) + ' Thousand (metric tons)';
             } else {
                 return value.toLocaleString(undefined, {
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 2
-                }) + ' mt';
+                }) + ' (metric tons)';
             }
         }
         
@@ -1514,11 +1514,11 @@
                                         label: function(context) {
                                             const value = context.parsed.y;
                                             if (value >= 1000000) {
-                                                return (value / 1000000).toFixed(2) + 'M mt';
+                                                return (value / 1000000).toFixed(2) + 'M (metric tons)';
                                             } else if (value >= 1000) {
-                                                return Number(value.toFixed(0)).toLocaleString() + ' mt';
+                                                return Number(value.toFixed(0)).toLocaleString() + ' (metric tons)';
                                             }
-                                            return value.toFixed(2) + ' mt';
+                                            return value.toFixed(2) + ' (metric tons)';
                                         },
                                         footer: function(context) {
                                             const item = context[0];
@@ -1548,7 +1548,7 @@
                                                 const fmtVal = e.value >= 1000 
                                                     ? Number(e.value.toFixed(0)).toLocaleString() 
                                                     : e.value.toFixed(1);
-                                                lines.push((i + 1) + '. ' + e.name + ': ' + fmtVal + ' mt' + marker);
+                                                lines.push((i + 1) + '. ' + e.name + ': ' + fmtVal + ' (metric tons)' + marker);
                                             });
                                             if (entries.length > 3) {
                                                 lines.push('   +' + (entries.length - 3) + ' more');
