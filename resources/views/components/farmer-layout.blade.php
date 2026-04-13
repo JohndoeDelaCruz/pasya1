@@ -71,6 +71,12 @@
                             </svg>
                             <span class="font-medium">Home</span>
                         </a>
+                        <a href="{{ route('farmers.map') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg mt-2 {{ request()->routeIs('farmers.map') ? 'bg-green-600' : '' }} text-white hover:bg-green-600 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium">Interactive Map</span>
+                        </a>
                     </div>
 
                     <div class="px-4 mb-6">

@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\RecommendationsController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Farmer\FarmerDashboardController;
+use App\Http\Controllers\Farmer\FarmerMapController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
@@ -50,6 +51,7 @@ Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBrid
 // Farmer Routes
 Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(function () {
     Route::get('/dashboard', [FarmerDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/map', [FarmerMapController::class, 'index'])->name('map');
     Route::get('/calendar', [FarmerDashboardController::class, 'calendar'])->name('calendar');
     Route::get('/price-watch', [FarmerDashboardController::class, 'priceWatch'])->name('price-watch');
     Route::get('/harvest-history', [FarmerDashboardController::class, 'harvestHistory'])->name('harvest-history');
