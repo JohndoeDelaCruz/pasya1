@@ -7,8 +7,9 @@
 
     <div class="py-4 lg:py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-full mx-auto lg:px-4">
+            <div class="flex flex-col gap-4 lg:gap-6">
             <!-- Control Panel -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-4 lg:mb-6">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg order-2 lg:order-1">
                 <div class="p-4 lg:p-6">
                     <h3 class="text-base lg:text-lg font-semibold text-gray-800 mb-3 lg:mb-4">Map Controls</h3>
                     
@@ -73,7 +74,7 @@
             </div>
 
             <!-- Map Container -->
-            <div class="bg-white shadow-md sm:rounded-xl border-2 border-gray-200">
+            <div class="bg-white shadow-md sm:rounded-xl border-2 border-gray-200 order-1 lg:order-2">
                 <div class="p-3 lg:p-6 relative overflow-hidden rounded-lg">
                     <div id="map" style="height: 500px; width: 100%;" class="rounded-lg shadow-inner sm:h-[600px] lg:h-[750px]"></div>
 
