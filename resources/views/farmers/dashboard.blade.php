@@ -47,18 +47,7 @@
 
         <div class="px-6 pb-6">
             <!-- Quick Stats Row -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <span class="text-xl">{{ $weather['icon'] ?? '⛅' }}</span>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase tracking-wider">Weather</p>
-                            <p class="text-lg font-bold text-gray-800">{{ $weather['temperature'] ?? 22 }}°C</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
                 <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
@@ -255,162 +244,56 @@
                         </div>
                     </div>
 
-                    <!-- Bottom Row: Weather and Price Watch -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Weather Widget - Enhanced with API Data -->
-                        <div class="bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 rounded-2xl shadow-lg text-white relative overflow-hidden">
-                            <!-- Weather Background Pattern -->
-                            <div class="absolute inset-0 opacity-10">
-                                <svg class="absolute -right-10 -top-10 w-40 h-40 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
-                                </svg>
+                    <!-- Daily Price Watch -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-3">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-bold text-white">Daily Price Watch</h3>
+                                <span class="text-xs bg-white/20 text-white px-2 py-1 rounded-full">{{ ucwords(strtolower(Auth::guard('farmer')->user()->municipality ?? 'Benguet')) }}</span>
                             </div>
-                            
-                            <!-- Current Weather -->
-                            <div class="p-5 relative">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div>
-                                        <div class="flex items-center space-x-2 text-blue-100 mb-1">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                                            </svg>
-                                            <span class="text-sm font-medium">{{ $weather['location'] ?? (Auth::guard('farmer')->user()->municipality ?? 'Buguias') . ', Benguet' }}</span>
-                                        </div>
-                                        <h3 class="text-base font-semibold">{{ now()->format('l') }}</h3>
-                                        <p class="text-blue-200 text-xs">{{ now()->format('F d, Y') }}</p>
-                                    </div>
-                                    <div class="bg-white/20 backdrop-blur-sm rounded-xl p-2.5">
-                                        <span class="text-4xl">{{ $weather['icon'] ?? '⛅' }}</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-end justify-between">
-                                    <div>
-                                        <div class="flex items-baseline space-x-1">
-                                            <span class="text-4xl font-bold">{{ $weather['temperature'] ?? 22 }}</span>
-                                            <span class="text-xl font-light">°C</span>
-                                        </div>
-                                        <p class="text-blue-100 text-xs mt-1">Feels like {{ $weather['feels_like'] ?? 24 }}°C</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="font-semibold text-sm">{{ $weather['condition'] ?? 'Partly Cloudy' }}</p>
-                                        <div class="flex items-center justify-end space-x-3 mt-1 text-xs text-blue-100">
-                                            <span class="flex items-center space-x-1">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                                <span>{{ $weather['high'] ?? 28 }}°</span>
-                                            </span>
-                                            <span class="flex items-center space-x-1">
-                                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                </svg>
-                                                <span>{{ $weather['low'] ?? 18 }}°</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Weather Details Row -->
-                                <div class="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/20">
-                                    <div class="text-center">
-                                        <div class="text-blue-100 text-xs mb-0.5">Humidity</div>
-                                        <div class="font-semibold text-sm">{{ $weather['humidity'] ?? 75 }}%</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-blue-100 text-xs mb-0.5">Wind</div>
-                                        <div class="font-semibold text-sm">{{ $weather['wind_speed'] ?? 12 }} km/h</div>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-blue-100 text-xs mb-0.5">UV Index</div>
-                                        <div class="font-semibold text-sm">{{ $weather['uv_index'] ?? 5 }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Hourly Forecast -->
-                            @if(isset($weather['hourly']) && count($weather['hourly']) > 0)
-                            <div class="bg-white/10 backdrop-blur-sm px-5 py-3">
-                                <div class="flex justify-between items-center overflow-x-auto scrollbar-hide">
-                                    @foreach($weather['hourly'] as $hour)
-                                    <div class="text-center flex-shrink-0 px-2">
-                                        <div class="text-xs text-blue-100 mb-1">{{ $hour['time'] }}</div>
-                                        <div class="text-xl mb-1">{{ $hour['icon'] }}</div>
-                                        <div class="text-xs font-semibold">{{ $hour['temp'] }}</div>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
-                            
-                            <!-- 4-Day Forecast -->
-                            @if(isset($weather['forecast']) && count($weather['forecast']) > 0)
-                            <div class="bg-white/5 px-5 py-3">
-                                <div class="text-xs text-blue-100 mb-2 font-medium">4-Day Forecast</div>
-                                <div class="grid grid-cols-4 gap-2">
-                                    @foreach($weather['forecast'] as $day)
-                                    <div class="text-center bg-white/10 rounded-lg p-2">
-                                        <div class="text-xs text-blue-100">{{ $day['day'] }}</div>
-                                        <div class="text-lg my-1">{{ $day['icon'] }}</div>
-                                        <div class="text-xs font-medium">{{ $day['temp'] }}</div>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
                         </div>
-
-                        <!-- Daily Price Watch -->
-                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-3">
-                                <div class="flex items-center justify-between">
-                                    <h3 class="text-lg font-bold text-white">Daily Price Watch</h3>
-                                    <span class="text-xs bg-white/20 text-white px-2 py-1 rounded-full">{{ ucwords(strtolower(Auth::guard('farmer')->user()->municipality ?? 'Benguet')) }}</span>
-                                </div>
-                            </div>
-                            <div class="p-5">
-                                <div class="space-y-3">
-                                    @if(isset($prices) && count($prices) > 0)
-                                        @foreach($prices as $price)
-                                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                                <div class="flex items-center space-x-3">
-                                                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center overflow-hidden">
-                                                        @if(isset($price['image']))
-                                                            <img src="{{ $price['image'] }}" alt="{{ $price['name'] }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                            <span class="text-xl hidden items-center justify-center">{{ $price['emoji'] ?? '🌱' }}</span>
-                                                        @else
-                                                            <span class="text-xl">{{ $price['emoji'] ?? '🌱' }}</span>
-                                                        @endif
-                                                    </div>
-                                                    <span class="font-medium text-gray-700">{{ $price['name'] }}</span>
+                        <div class="p-5">
+                            <div class="space-y-3">
+                                @if(isset($prices) && count($prices) > 0)
+                                    @foreach($prices as $price)
+                                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                                    @if(isset($price['image']))
+                                                        <img src="{{ $price['image'] }}" alt="{{ $price['name'] }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                        <span class="text-xl hidden items-center justify-center">{{ $price['emoji'] ?? '🌱' }}</span>
+                                                    @else
+                                                        <span class="text-xl">{{ $price['emoji'] ?? '🌱' }}</span>
+                                                    @endif
                                                 </div>
-                                                <div class="text-right">
-                                                    <span class="font-bold text-gray-800">₱{{ number_format($price['price'], 2) }}</span>
-                                                    <div class="flex items-center justify-end space-x-1 {{ $price['change'] >= 0 ? 'text-green-500' : 'text-red-500' }} text-xs">
-                                                        @if($price['change'] >= 0)
-                                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                                            </svg>
-                                                        @else
-                                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                                            </svg>
-                                                        @endif
-                                                        <span>₱{{ number_format(abs($price['change']), 2) }}</span>
-                                                    </div>
+                                                <span class="font-medium text-gray-700">{{ $price['name'] }}</span>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="font-bold text-gray-800">₱{{ number_format($price['price'], 2) }}</span>
+                                                <div class="flex items-center justify-end space-x-1 {{ $price['change'] >= 0 ? 'text-green-500' : 'text-red-500' }} text-xs">
+                                                    @if($price['change'] >= 0)
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    @else
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                                        </svg>
+                                                    @endif
+                                                    <span>₱{{ number_format(abs($price['change']), 2) }}</span>
                                                 </div>
                                             </div>
-                                        @endforeach
-                                    @else
-                                        <div class="text-center py-4 text-gray-500">
-                                            <p>No price data available</p>
                                         </div>
-                                    @endif
-                                </div>
-                                <a href="{{ route('farmers.price-watch') }}" class="mt-4 block text-center text-sm text-green-600 hover:text-green-700 font-medium">
-                                    View All Prices →
-                                </a>
+                                    @endforeach
+                                @else
+                                    <div class="text-center py-4 text-gray-500">
+                                        <p>No price data available</p>
+                                    </div>
+                                @endif
                             </div>
+                            <a href="{{ route('farmers.price-watch') }}" class="mt-4 block text-center text-sm text-green-600 hover:text-green-700 font-medium">
+                                View All Prices →
+                            </a>
                         </div>
                     </div>
                 </div>

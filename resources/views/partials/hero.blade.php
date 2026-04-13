@@ -76,7 +76,7 @@
                     <div class="flex flex-col justify-between md:p-4 leading-normal">
                         <h5 class="mb-2 text-green-500 text-2xl font-bold tracking-tight">Data-Driven Precision</h5>
                         <p class="mb-6 text-gray-600">Our models are trained on 10+ years of regional data, achieving over 90% accuracy in trend forecasting for key highland vegetables.</p>
-                        <p class="mb-6 text-gray-600">Using advanced machine learning algorithms and real-time weather data integration, PASYA empowers farmers to make informed decisions about planting, harvesting, and resource allocation.</p>
+                        <p class="mb-6 text-gray-600">Using advanced machine learning algorithms and multi-year production records, PASYA empowers farmers to make informed decisions about planting, harvesting, and resource allocation.</p>
                         <div>
                             <span class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 cursor-pointer">
                                 Learn more

@@ -78,8 +78,8 @@
                             <p class="text-gray-700">• What permissions does the app require, and why?</p>
                             <div x-show="openAnswer === 'tech2'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
                                 PASYA may request:<br>
-                                - <strong>Location:</strong> To provide accurate weather data for your municipality<br>
-                                - <strong>Notifications:</strong> To alert you about weather changes, price updates, and harvest reminders<br>
+                                - <strong>Location:</strong> To personalize municipality-level crop insights and recommendations<br>
+                                - <strong>Notifications:</strong> To alert you about price updates, plan schedules, and announcements<br>
                                 - <strong>Camera (optional):</strong> For uploading crop photos if needed
                             </div>
                         </div>
@@ -165,12 +165,12 @@
                             </div>
                         </div>
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('feat3')">
-                            <p class="text-gray-700">• What do the weather forecasts mean for my crops?</p>
+                            <p class="text-gray-700">• How do harvest predictions help with crop planning?</p>
                             <div x-show="openAnswer === 'feat3'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                The weather widget shows current conditions and forecasts for your municipality. Pay attention to:<br>
-                                - <strong>Temperature:</strong> Most Benguet vegetables prefer 15-25°C<br>
-                                - <strong>Rain:</strong> Heavy rain may affect planting or harvesting<br>
-                                - <strong>Humidity:</strong> High humidity can increase disease risk
+                                PASYA uses your crop plan details and historical records to estimate production and timeline outcomes. Use these values to:<br>
+                                - <strong>Set realistic targets:</strong> Compare expected yield versus your planted area<br>
+                                - <strong>Schedule operations:</strong> Follow expected harvest dates and fertilizer milestones in the calendar<br>
+                                - <strong>Plan selling decisions:</strong> Coordinate harvest timing with Price Watch trends
                             </div>
                         </div>
                     </div>

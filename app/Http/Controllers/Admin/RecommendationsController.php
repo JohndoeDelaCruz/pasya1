@@ -5,21 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Crop;
 use App\Models\Subsidy;
-use App\Services\WeatherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class RecommendationsController extends Controller
 {
-    protected $weatherService;
-
-    public function __construct(WeatherService $weatherService)
-    {
-        $this->weatherService = $weatherService;
-    }
-
     public function index(Request $request)
     {
         // Get filter parameters for subsidies
@@ -248,70 +238,5 @@ class RecommendationsController extends Controller
 
         return redirect()->route('admin.recommendations')
             ->with('success', 'Resource allocated successfully!');
-    }
-
-    /**
-     * Get weather data for a specific municipality via AJAX
-     */
-    public function getWeather(Request $request)
-    {
-        $municipality = $request->input('municipality', 'La Trinidad');
-        
-        // Validate municipality
-        $validMunicipalities = ['Atok', 'Bakun', 'Bokod', 'Buguias', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'La Trinidad', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
-        
-        if (!in_array($municipality, $validMunicipalities)) {
-            return response()->json(['error' => 'Invalid municipality'], 400);
-        }
-        
-        try {
-            $forecast = $this->weatherService->getForecast($municipality, 4);
-            $hourly = $this->weatherService->getHourlyForecast($municipality, 6);
-            $current = $this->weatherService->getCurrentConditions($municipality);
-            
-            return response()->json([
-                'success' => true,
-                'municipality' => $municipality,
-                'current' => $current,
-                'forecast' => $forecast,
-                'hourly' => $hourly,
-                'optimalWindow' => $this->weatherService->getOptimalPlantingWindow($hourly),
-                'climateRisk' => $this->weatherService->getClimateRisk($forecast['forecast'] ?? [])
-            ]);
-        } catch (\Exception $e) {
-            Log::error("Weather API error: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to fetch weather data'], 500);
-        }
-    }
-
-    /**
-     * Get weather for all municipalities
-     */
-    public function getAllWeather()
-    {
-        $municipalities = ['Atok', 'Bakun', 'Bokod', 'Buguias', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'La Trinidad', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
-        
-        $weatherData = [];
-        
-        foreach ($municipalities as $municipality) {
-            try {
-                $weatherData[] = [
-                    'municipality' => $municipality,
-                    'current' => $this->weatherService->getCurrentConditions($municipality),
-                    'forecast' => $this->weatherService->getForecast($municipality, 4)
-                ];
-            } catch (\Exception $e) {
-                Log::warning("Weather API error for {$municipality}: " . $e->getMessage());
-                $weatherData[] = [
-                    'municipality' => $municipality,
-                    'error' => true
-                ];
-            }
-        }
-        
-        return response()->json([
-            'success' => true,
-            'data' => $weatherData
-        ]);
     }
 }

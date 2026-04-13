@@ -12,7 +12,6 @@ Recommended Railway setup:
 - Set `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL` to your Railway domain, and `LOG_CHANNEL=stderr`.
 - Set `APP_KEY` to a real generated key.
 - Set `ML_API_URL` to your ML service's Railway private URL if predictions are required.
-- Set `GOOGLE_WEATHER_API_KEY` in Railway instead of relying on a code default.
 - Attach a volume to `/app/storage` if you want local public-disk uploads to persist between deploys.
 
 Railway can use a custom config file per service. In the service settings, point each service at the matching absolute path above.

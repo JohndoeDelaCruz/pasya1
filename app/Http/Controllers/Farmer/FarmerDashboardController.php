@@ -10,7 +10,6 @@ use App\Models\CropPlan;
 use App\Models\Crop;
 use App\Models\FarmerNotification;
 use App\Services\PredictionService;
-use App\Services\WeatherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,20 +17,12 @@ use Carbon\Carbon;
 
 class FarmerDashboardController extends Controller
 {
-    protected $weatherService;
-
-    public function __construct(WeatherService $weatherService)
-    {
-        $this->weatherService = $weatherService;
-    }
-
     /**
      * Show the farmer dashboard
      */
     public function dashboard()
     {
         $farmer = Auth::guard('farmer')->user();
-        $municipality = $farmer->municipality ?? 'Buguias';
 
         // Get announcements for this farmer
         $announcements = Announcement::active()
@@ -44,9 +35,6 @@ class FarmerDashboardController extends Controller
 
         // Get farmer's events/tasks
         $events = $this->getFarmerEvents($farmer);
-
-        // Get weather data from Google Weather API
-        $weather = $this->getWeatherData($municipality);
 
         // Get price watch data
         $prices = $this->getPriceWatchData();
@@ -62,13 +50,12 @@ class FarmerDashboardController extends Controller
 
         // Get stats
         $stats = [
-            'weather_temp' => $weather['temperature'] ?? 28,
             'events_count' => $thisMonthEvents,
             'active_crops' => $this->getActiveCropsCount($farmer),
             'announcements_count' => $announcements->count(),
         ];
 
-        return view('farmers.dashboard', compact('announcements', 'events', 'weather', 'prices', 'stats'));
+        return view('farmers.dashboard', compact('announcements', 'events', 'prices', 'stats'));
     }
 
     /**
@@ -352,56 +339,6 @@ class FarmerDashboardController extends Controller
         }
 
         return $events;
-    }
-
-    /**
-     * Get weather data from Google Weather API
-     */
-    private function getWeatherData($municipality)
-    {
-        try {
-            // Get current conditions from Google Weather API
-            $currentConditions = $this->weatherService->getCurrentConditions($municipality);
-
-            // Get forecast data
-            $forecastData = $this->weatherService->getForecast($municipality, 4);
-
-            // Get hourly forecast
-            $hourlyForecast = $this->weatherService->getHourlyForecast($municipality, 6);
-
-            return [
-                'temperature' => $currentConditions['temperature'] ?? 22,
-                'feels_like' => $currentConditions['feels_like'] ?? 24,
-                'condition' => $currentConditions['condition'] ?? 'Partly Cloudy',
-                'icon' => $currentConditions['icon'] ?? '⛅',
-                'humidity' => $currentConditions['humidity'] ?? 75,
-                'wind_speed' => $currentConditions['wind_speed'] ?? 12,
-                'uv_index' => $currentConditions['uv_index'] ?? 5,
-                'high' => isset($forecastData['forecast'][0]) ? explode('-', str_replace('°C', '', $forecastData['forecast'][0]['temp']))[1] ?? 28 : 28,
-                'low' => isset($forecastData['forecast'][0]) ? explode('-', str_replace('°C', '', $forecastData['forecast'][0]['temp']))[0] ?? 18 : 18,
-                'location' => $municipality . ', Benguet',
-                'forecast' => $forecastData['forecast'] ?? [],
-                'hourly' => (is_array($hourlyForecast) && !isset($hourlyForecast['error'])) ? $hourlyForecast : [],
-            ];
-        } catch (\Exception $e) {
-            Log::warning("Weather API error for {$municipality}: " . $e->getMessage());
-
-            // Return fallback data
-            return [
-                'temperature' => 22,
-                'feels_like' => 24,
-                'condition' => 'Partly Cloudy',
-                'icon' => '⛅',
-                'humidity' => 75,
-                'wind_speed' => 12,
-                'uv_index' => 5,
-                'high' => 28,
-                'low' => 18,
-                'location' => $municipality . ', Benguet',
-                'forecast' => [],
-                'hourly' => [],
-            ];
-        }
     }
 
     /**
@@ -776,36 +713,6 @@ class FarmerDashboardController extends Controller
             'prices' => $prices,
             'updated_at' => now()->format('Y-m-d H:i:s'),
         ]);
-    }
-
-    /**
-     * API: Get weather data for farmer's municipality
-     */
-    public function getWeatherApi(Request $request)
-    {
-        $farmer = Auth::guard('farmer')->user();
-        $municipality = $request->input('municipality', $farmer->municipality ?? 'Buguias');
-
-        // Validate municipality
-        $validMunicipalities = ['Atok', 'Bakun', 'Bokod', 'Buguias', 'Itogon', 'Kabayan', 'Kapangan', 'Kibungan', 'La Trinidad', 'Mankayan', 'Sablan', 'Tuba', 'Tublay'];
-
-        if (!in_array($municipality, $validMunicipalities)) {
-            return response()->json(['error' => 'Invalid municipality'], 400);
-        }
-
-        try {
-            $weather = $this->getWeatherData($municipality);
-
-            return response()->json([
-                'success' => true,
-                'municipality' => $municipality,
-                'weather' => $weather,
-                'updated_at' => now()->format('Y-m-d H:i:s'),
-            ]);
-        } catch (\Exception $e) {
-            Log::error("Weather API error: " . $e->getMessage());
-            return response()->json(['error' => 'Failed to fetch weather data'], 500);
-        }
     }
 
     /**
