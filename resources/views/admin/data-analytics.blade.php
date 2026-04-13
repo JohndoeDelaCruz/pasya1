@@ -247,9 +247,44 @@
             @endphp
 
             @if($hasChartData)
-                <div class="admin-chart-card relative h-[440px] md:h-[500px] xl:h-[560px] p-2 sm:p-3">
-                    <canvas id="trendChart" class="h-full w-full cursor-pointer"></canvas>
-                </div>
+                @if($chartMode === 'yearly')
+                    <div class="space-y-3">
+                        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <label for="yoyYearSelector" class="text-sm font-semibold text-gray-700">Select year:</label>
+                                <select id="yoyYearSelector" class="min-w-[140px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-200">
+                                    <option value="">Choose year</option>
+                                    @foreach($yoyBarYears as $yearOption)
+                                        <option value="{{ $yearOption }}">{{ $yearOption }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="ml-1 inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1">
+                                    <button id="yoyTop10Btn" type="button" class="rounded-md px-2.5 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100">
+                                        Top 10
+                                    </button>
+                                    <button id="yoyShowAllBtn" type="button" class="rounded-md bg-green-600 px-2.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-700">
+                                        Show All
+                                    </button>
+                                </div>
+                            </div>
+                            <p id="yoyDisplayMeta" class="text-xs text-gray-500">Municipalities are ranked from highest to lowest production.</p>
+                        </div>
+
+                        <div id="yoyChartEmptyState" class="admin-chart-card flex h-[260px] items-center justify-center border border-dashed border-gray-200">
+                            <p data-empty-message class="text-sm text-gray-600">Select a year to view municipality rankings.</p>
+                        </div>
+
+                        <div id="yoyChartScrollWrapper" class="admin-chart-card hidden max-h-[560px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div id="yoyChartInner" class="min-h-[360px] p-2 sm:p-3">
+                                <canvas id="trendChart" class="h-full w-full cursor-pointer"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="admin-chart-card relative h-[440px] md:h-[500px] xl:h-[560px] p-2 sm:p-3">
+                        <canvas id="trendChart" class="h-full w-full cursor-pointer"></canvas>
+                    </div>
+                @endif
             @else
                 <div class="admin-chart-card h-[440px] md:h-[500px] xl:h-[560px] flex items-center justify-center border-2 border-dashed border-gray-200">
                     <div class="text-center px-4">
@@ -837,10 +872,376 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
+        const dashboardChartMode = @json($chartMode);
+        const yearlyBarDataByYear = @json($yoyBarDataByYear ?? []);
+        const YOY_TOP_LIMIT = 10;
+
         // Global variable to store chart instance
         let trendChartInstance = null;
         // Store chart data globally for panel access
         let globalChartData = null;
+        let yoyDisplayMode = 'all';
+
+        function getYearlyEntries(selectedYear) {
+            const yearData = yearlyBarDataByYear[String(selectedYear)];
+            if (!yearData || !Array.isArray(yearData.labels)) {
+                return [];
+            }
+
+            const labels = yearData.labels || [];
+            const values = yearData.values || [];
+            const colors = yearData.colors || [];
+
+            return labels.map((label, index) => ({
+                name: label,
+                value: Number(values[index] || 0),
+                color: colors[index] || 'rgb(107, 114, 128)',
+            }));
+        }
+
+        function updateYoYDisplayButtons() {
+            const top10Button = document.getElementById('yoyTop10Btn');
+            const showAllButton = document.getElementById('yoyShowAllBtn');
+            if (!top10Button || !showAllButton) {
+                return;
+            }
+
+            const top10Active = yoyDisplayMode === 'top10';
+
+            top10Button.classList.toggle('bg-green-600', top10Active);
+            top10Button.classList.toggle('text-white', top10Active);
+            top10Button.classList.toggle('hover:bg-green-700', top10Active);
+            top10Button.classList.toggle('text-gray-700', !top10Active);
+            top10Button.classList.toggle('hover:bg-gray-100', !top10Active);
+
+            showAllButton.classList.toggle('bg-green-600', !top10Active);
+            showAllButton.classList.toggle('text-white', !top10Active);
+            showAllButton.classList.toggle('hover:bg-green-700', !top10Active);
+            showAllButton.classList.toggle('text-gray-700', top10Active);
+            showAllButton.classList.toggle('hover:bg-gray-100', top10Active);
+        }
+
+        function updateYoYDisplayMeta(visibleCount, totalCount, selectedYear) {
+            const meta = document.getElementById('yoyDisplayMeta');
+            if (!meta) {
+                return;
+            }
+
+            if (!selectedYear) {
+                meta.textContent = 'Municipalities are ranked from highest to lowest production.';
+                return;
+            }
+
+            if (totalCount === 0) {
+                meta.textContent = 'No municipality records found for ' + selectedYear + '.';
+                return;
+            }
+
+            if (visibleCount === totalCount) {
+                meta.textContent = 'Showing all ' + totalCount + ' municipalities for ' + selectedYear + '.';
+                return;
+            }
+
+            meta.textContent = 'Showing top ' + visibleCount + ' of ' + totalCount + ' municipalities for ' + selectedYear + '.';
+        }
+
+        function setYoYChartEmptyMessage(message) {
+            const emptyMessage = document.querySelector('#yoyChartEmptyState [data-empty-message]');
+            if (emptyMessage) {
+                emptyMessage.textContent = message;
+            }
+        }
+
+        function setYoYChartVisibility(showChart, emptyMessage = 'Select a year to view municipality rankings.') {
+            const chartWrapper = document.getElementById('yoyChartScrollWrapper');
+            const emptyState = document.getElementById('yoyChartEmptyState');
+
+            if (!chartWrapper || !emptyState) {
+                return;
+            }
+
+            if (showChart) {
+                chartWrapper.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                return;
+            }
+
+            chartWrapper.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            setYoYChartEmptyMessage(emptyMessage);
+        }
+
+        function getSelectedYoYYear() {
+            const selector = document.getElementById('yoyYearSelector');
+            return selector ? selector.value : '';
+        }
+
+        function getFriendlyNumber(value) {
+            if (value >= 1000000) {
+                return (value / 1000000).toFixed(1) + 'M';
+            }
+
+            if (value >= 1000) {
+                return (value / 1000).toFixed(0) + 'K';
+            }
+
+            return Number(value).toLocaleString();
+        }
+
+        function renderYearlyBarChart(selectedYear) {
+            if (trendChartInstance) {
+                trendChartInstance.destroy();
+                trendChartInstance = null;
+            }
+
+            if (!selectedYear) {
+                updateYoYDisplayMeta(0, 0, '');
+                setYoYChartVisibility(false, 'Select a year to view municipality rankings.');
+                return;
+            }
+
+            const fullEntries = getYearlyEntries(selectedYear);
+            if (fullEntries.length === 0) {
+                updateYoYDisplayMeta(0, 0, selectedYear);
+                setYoYChartVisibility(false, 'No municipality data is available for the selected year.');
+                return;
+            }
+
+            const hasAnyProduction = fullEntries.some((entry) => entry.value > 0);
+
+            if (!hasAnyProduction) {
+                updateYoYDisplayMeta(0, fullEntries.length, selectedYear);
+                setYoYChartVisibility(false, 'No production values are available for the selected year.');
+                return;
+            }
+
+            const visibleEntries = yoyDisplayMode === 'top10'
+                ? fullEntries.slice(0, YOY_TOP_LIMIT)
+                : fullEntries;
+
+            const labels = visibleEntries.map((entry) => entry.name);
+            const values = visibleEntries.map((entry) => entry.value);
+            const colors = visibleEntries.map((entry) => entry.color);
+
+            updateYoYDisplayMeta(visibleEntries.length, fullEntries.length, selectedYear);
+
+            const chartInner = document.getElementById('yoyChartInner');
+            if (chartInner) {
+                const dynamicHeight = Math.max(360, labels.length * 34 + 120);
+                chartInner.style.height = dynamicHeight + 'px';
+            }
+
+            setYoYChartVisibility(true);
+
+            const ctx = document.getElementById('trendChart');
+            if (!ctx) {
+                return;
+            }
+
+            const chartData = {
+                labels: labels,
+                datasets: [{
+                    label: selectedYear + ' Production',
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: colors,
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    barThickness: 18,
+                    maxBarThickness: 22,
+                }]
+            };
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 550,
+                        easing: 'easeOutCubic'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'nearest',
+                            intersect: true,
+                            backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                            titleColor: '#f8fafc',
+                            bodyColor: '#e2e8f0',
+                            borderColor: 'rgba(99, 102, 241, 0.4)',
+                            borderWidth: 1,
+                            cornerRadius: 10,
+                            padding: { top: 12, bottom: 12, left: 14, right: 14 },
+                            titleFont: {
+                                size: 13,
+                                weight: '700',
+                                family: "'Inter', 'Segoe UI', sans-serif"
+                            },
+                            bodyFont: {
+                                size: 16,
+                                weight: '700',
+                                family: "'Inter', 'Segoe UI', sans-serif"
+                            },
+                            footerFont: {
+                                size: 11,
+                                weight: '400',
+                                family: "'Inter', 'Segoe UI', sans-serif"
+                            },
+                            footerColor: 'rgba(148, 163, 184, 0.9)',
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label + ' · ' + selectedYear;
+                                },
+                                label: function(context) {
+                                    const value = context.parsed.x;
+                                    return formatProductionValue(value);
+                                },
+                                footer: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const ranking = fullEntries.map((entry) => ({
+                                        name: entry.name,
+                                        value: Number(entry.value || 0)
+                                    }));
+
+                                    ranking.sort((a, b) => b.value - a.value);
+                                    const currentName = chartData.labels[index];
+                                    const rank = ranking.findIndex((entry) => entry.name === currentName) + 1;
+                                    const topThree = ranking.slice(0, 3);
+
+                                    const lines = ['─────────────────'];
+                                    lines.push('Rank #' + rank + ' of ' + ranking.length);
+                                    topThree.forEach((entry, rankIndex) => {
+                                        const marker = entry.name === currentName ? ' ◀' : '';
+                                        lines.push((rankIndex + 1) + '. ' + entry.name + ': ' + getFriendlyNumber(entry.value) + ' mt' + marker);
+                                    });
+
+                                    return lines;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Total Harvest (Metric Tons)',
+                                font: {
+                                    size: 13,
+                                    weight: '600',
+                                    family: "'Inter', 'Segoe UI', sans-serif"
+                                },
+                                color: '#374151',
+                                padding: { top: 10, bottom: 0 }
+                            },
+                            ticks: {
+                                color: '#6B7280',
+                                font: {
+                                    size: 12,
+                                    family: "'Inter', 'Segoe UI', sans-serif"
+                                },
+                                callback: function(value) {
+                                    return getFriendlyNumber(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(229, 231, 235, 0.5)',
+                                drawBorder: false
+                            },
+                            border: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#374151',
+                                font: {
+                                    size: 11,
+                                    weight: '600',
+                                    family: "'Inter', 'Segoe UI', sans-serif"
+                                }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            border: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+                    onHover: function(event, elements) {
+                        const nativeEvent = event?.native;
+                        if (nativeEvent?.target) {
+                            nativeEvent.target.style.cursor = elements && elements.length ? 'pointer' : 'default';
+                        }
+                    },
+                    onClick: function(event, elements, chart) {
+                        handleChartClick(event, elements, chart);
+                    }
+                }
+            });
+
+            globalChartData = chartData;
+        }
+
+        function initializeYoYBarControls() {
+            const selector = document.getElementById('yoyYearSelector');
+            if (!selector) {
+                return;
+            }
+
+            if (selector.dataset.bound === '1') {
+                return;
+            }
+
+            selector.dataset.bound = '1';
+            selector.value = '';
+            updateYoYDisplayButtons();
+            updateYoYDisplayMeta(0, 0, '');
+            setYoYChartVisibility(false, 'Select a year to view municipality rankings.');
+
+            selector.addEventListener('change', function(event) {
+                renderYearlyBarChart(event.target.value);
+            });
+
+            const top10Button = document.getElementById('yoyTop10Btn');
+            const showAllButton = document.getElementById('yoyShowAllBtn');
+
+            if (top10Button) {
+                top10Button.addEventListener('click', function() {
+                    if (yoyDisplayMode === 'top10') {
+                        return;
+                    }
+
+                    yoyDisplayMode = 'top10';
+                    updateYoYDisplayButtons();
+                    renderYearlyBarChart(selector.value);
+                });
+            }
+
+            if (showAllButton) {
+                showAllButton.addEventListener('click', function() {
+                    if (yoyDisplayMode === 'all') {
+                        return;
+                    }
+
+                    yoyDisplayMode = 'all';
+                    updateYoYDisplayButtons();
+                    renderYearlyBarChart(selector.value);
+                });
+            }
+        }
         
         // Chart Details Panel Functions
         function openChartDetailsPanel() {
@@ -876,11 +1277,45 @@
             const element = elements[0];
             const datasetIndex = element.datasetIndex;
             const dataIndex = element.index;
-            
-            const dataset = chart.data.datasets[datasetIndex];
-            const label = chart.data.labels[dataIndex];
-            const value = dataset.data[dataIndex];
-            const entityName = dataset.label;
+
+            const isYearlyBarChart = chart?.config?.type === 'bar' && chart?.options?.indexAxis === 'y';
+
+            let label;
+            let value;
+            let entityName;
+            let dataForPeriod = [];
+            let totalForPeriod = 0;
+
+            if (isYearlyBarChart) {
+                const barDataset = chart.data.datasets[datasetIndex];
+                const selectedYear = getSelectedYoYYear() || 'Selected Year';
+                const municipality = chart.data.labels[dataIndex];
+                const fullEntries = getYearlyEntries(selectedYear);
+                const selectedEntry = fullEntries.find((entry) => entry.name === municipality);
+
+                label = selectedYear;
+                value = selectedEntry ? selectedEntry.value : Number(barDataset.data[dataIndex] || 0);
+                entityName = municipality;
+
+                dataForPeriod = fullEntries.map((entry) => ({
+                    name: entry.name,
+                    value: Number(entry.value || 0),
+                    color: entry.color || 'rgb(107, 114, 128)'
+                }));
+
+                totalForPeriod = dataForPeriod.reduce((sum, entry) => sum + entry.value, 0);
+            } else {
+                const dataset = chart.data.datasets[datasetIndex];
+                label = chart.data.labels[dataIndex];
+                value = dataset.data[dataIndex];
+                entityName = dataset.label;
+
+                chart.data.datasets.forEach((ds) => {
+                    const dsValue = Number(ds.data[dataIndex] || 0);
+                    totalForPeriod += dsValue;
+                    dataForPeriod.push({ name: ds.label, value: dsValue, color: ds.borderColor });
+                });
+            }
             
             // Update panel content
             document.getElementById('panel-title').textContent = entityName;
@@ -890,16 +1325,7 @@
             document.getElementById('panel-entity').textContent = entityName;
             document.getElementById('panel-time-detail').textContent = label;
             
-            // Calculate all data for this time period and populate the panel
             let allDataHtml = '';
-            let totalForPeriod = 0;
-            let dataForPeriod = [];
-            
-            chart.data.datasets.forEach((ds, idx) => {
-                const dsValue = ds.data[dataIndex] || 0;
-                totalForPeriod += dsValue;
-                dataForPeriod.push({ name: ds.label, value: dsValue, color: ds.borderColor });
-            });
             
             // Sort by value descending
             dataForPeriod.sort((a, b) => b.value - a.value);
@@ -953,6 +1379,11 @@
                 },
 
                 initTrendChart() {
+                    if (dashboardChartMode === 'yearly') {
+                        initializeYoYBarControls();
+                        return;
+                    }
+
                     const ctx = document.getElementById('trendChart');
                     if (!ctx) {
                         return;

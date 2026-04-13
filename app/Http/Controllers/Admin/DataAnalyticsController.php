@@ -428,6 +428,44 @@ class DataAnalyticsController extends Controller
             ];
         }
 
+        // Build YoY horizontal-bar payload keyed by year for chart mode switching in the view.
+        $yoyBarDataByYear = [];
+        $trendLookup = $trendData->keyBy(function ($item) {
+            return strtoupper($item->municipality) . '_' . $item->year;
+        });
+
+        foreach ($years as $year) {
+            $rows = [];
+
+            foreach ($municipalities as $municipality) {
+                $lookupKey = strtoupper($municipality) . '_' . $year;
+                $production = $trendLookup->has($lookupKey)
+                    ? round($trendLookup[$lookupKey]->total_production, 2)
+                    : 0;
+
+                $rows[] = [
+                    'municipality' => $municipality,
+                    'production' => $production,
+                    'color' => $this->getMunicipalityColor($municipality),
+                ];
+            }
+
+            usort($rows, function ($a, $b) {
+                return $b['production'] <=> $a['production'];
+            });
+
+            $yearKey = (string) $year;
+            $yoyBarDataByYear[$yearKey] = [
+                'labels' => array_column($rows, 'municipality'),
+                'values' => array_column($rows, 'production'),
+                'colors' => array_column($rows, 'color'),
+            ];
+        }
+
+        $yoyBarYears = $years->map(function ($year) {
+            return (string) $year;
+        })->values()->toArray();
+
         // Debug: Log chart data structure
         \Log::info('Chart Data Debug:', [
             'chart_mode' => $filters['municipality'] && $filters['year'] ? 'monthly' : 'yearly',
@@ -524,6 +562,8 @@ class DataAnalyticsController extends Controller
             'chartMode' => $chartMode,
             'chartData' => $chartData,
             'trendChartData' => $chartData,
+            'yoyBarDataByYear' => $yoyBarDataByYear,
+            'yoyBarYears' => $yoyBarYears,
             'monthlyData' => $monthlyChartData,
             'monthlyDemand' => $monthlyDemand,
             'metrics' => $metrics,
