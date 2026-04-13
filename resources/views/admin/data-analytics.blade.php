@@ -249,18 +249,6 @@
             @if($hasChartData)
                 <div class="admin-chart-card relative h-[440px] md:h-[500px] xl:h-[560px] p-2 sm:p-3">
                     <canvas id="trendChart" class="h-full w-full cursor-pointer"></canvas>
-                    <div class="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg border border-gray-200 bg-white/90 p-1.5 shadow-md backdrop-blur-sm">
-                        <button onclick="zoomIn()" title="Zoom in chart" class="px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                            Zoom +
-                        </button>
-                        <button onclick="zoomOut()" title="Zoom out chart" class="px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                            Zoom -
-                        </button>
-                        <div class="mx-1 h-5 w-px bg-gray-300"></div>
-                        <button onclick="resetZoom()" title="Reset chart zoom" class="px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
-                            Reset
-                        </button>
-                    </div>
                 </div>
             @else
                 <div class="admin-chart-card h-[440px] md:h-[500px] xl:h-[560px] flex items-center justify-center border-2 border-dashed border-gray-200">
@@ -848,55 +836,11 @@
 
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script>
         // Global variable to store chart instance
         let trendChartInstance = null;
         // Store chart data globally for panel access
         let globalChartData = null;
-        
-        // Reset zoom function
-        function resetZoom() {
-            if (trendChartInstance) {
-                if (typeof trendChartInstance.resetZoom === 'function') {
-                    trendChartInstance.resetZoom();
-                } else {
-                    console.error('resetZoom not available - zoom plugin may not be loaded');
-                    alert('Zoom feature not available. Please refresh the page.');
-                }
-            } else {
-                console.error('Chart instance not found');
-            }
-        }
-        
-        // Zoom in function
-        function zoomIn() {
-            if (trendChartInstance) {
-                if (typeof trendChartInstance.zoom === 'function') {
-                    trendChartInstance.zoom(1.2, 'default');
-                } else {
-                    console.error('zoom not available - zoom plugin may not be loaded');
-                    alert('Zoom feature not available. Please refresh the page.');
-                }
-            } else {
-                console.error('Chart instance not found');
-            }
-        }
-        
-        // Zoom out function
-        function zoomOut() {
-            if (trendChartInstance) {
-                if (typeof trendChartInstance.zoom === 'function') {
-                    trendChartInstance.zoom(0.8, 'default');
-                } else {
-                    console.error('zoom not available - zoom plugin may not be loaded');
-                    alert('Zoom feature not available. Please refresh the page.');
-                }
-            } else {
-                console.error('Chart instance not found');
-            }
-        }
         
         // Chart Details Panel Functions
         function openChartDetailsPanel() {
@@ -1024,6 +968,8 @@
                     if (chartData.labels.length === 0 || chartData.datasets.length === 0) {
                         return;
                     }
+
+                    const hasYearLabels = chartData.labels.every((label) => /^\d{4}$/.test(String(label)));
                     
                     // Modern chart styling with enhanced visual effects
                     const isSingleDataset = chartData.datasets.length === 1;
@@ -1071,20 +1017,6 @@
                                         delay = context.dataIndex * 30 + context.datasetIndex * 100;
                                     }
                                     return delay;
-                                }
-                            },
-                            transitions: {
-                                zoom: {
-                                    animation: {
-                                        duration: 400,
-                                        easing: 'easeOutCubic'
-                                    }
-                                },
-                                pan: {
-                                    animation: {
-                                        duration: 200,
-                                        easing: 'easeOutCubic'
-                                    }
                                 }
                             },
                             plugins: {
@@ -1187,26 +1119,6 @@
                                             return lines;
                                         }
                                     }
-                                },
-                                zoom: {
-                                    zoom: {
-                                        wheel: {
-                                            enabled: true,
-                                            speed: 0.05  // Slower, smoother zoom
-                                        },
-                                        pinch: {
-                                            enabled: false
-                                        },
-                                        mode: 'x'  // Only zoom horizontally for better UX
-                                    },
-                                    pan: {
-                                        enabled: true,
-                                        mode: 'x',
-                                        threshold: 10
-                                    },
-                                    limits: {
-                                        x: {min: 'original', max: 'original'}
-                                    }
                                 }
                             },
                             scales: {
@@ -1269,7 +1181,7 @@
                                             family: "'Inter', 'Segoe UI', sans-serif"
                                         },
                                         color: '#374151',
-                                        autoSkip: true,
+                                        autoSkip: !hasYearLabels,
                                         maxRotation: 0,
                                         minRotation: 0
                                     },
@@ -1314,20 +1226,6 @@
                     if (analytics && typeof analytics.init === 'function') {
                         analytics.init();
                     }
-                }
-                
-                // Add double-click to reset zoom
-                const chartCanvas = document.getElementById('trendChart');
-                if (chartCanvas) {
-                    chartCanvas.addEventListener('dblclick', function(e) {
-                        // Only reset if not clicking on a data point
-                        if (trendChartInstance) {
-                            const points = trendChartInstance.getElementsAtEventForMode(e, 'point', { intersect: true }, false);
-                            if (points.length === 0) {
-                                resetZoom();
-                            }
-                        }
-                    });
                 }
             }, 200);
         });
