@@ -988,6 +988,13 @@
             return Number(value).toLocaleString();
         }
 
+        function formatRawMetricTons(value) {
+            return Number(value).toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }) + ' mt';
+        }
+
         function renderYearlyBarChart(selectedYear) {
             if (trendChartInstance) {
                 trendChartInstance.destroy();
@@ -1101,7 +1108,7 @@
                                 },
                                 label: function(context) {
                                     const value = context.parsed.x;
-                                    return formatProductionValue(value);
+                                    return formatRawMetricTons(value);
                                 },
                                 footer: function(context) {
                                     const index = context[0].dataIndex;
@@ -1119,7 +1126,7 @@
                                     lines.push('Rank #' + rank + ' of ' + ranking.length);
                                     topThree.forEach((entry, rankIndex) => {
                                         const marker = entry.name === currentName ? ' ◀' : '';
-                                        lines.push((rankIndex + 1) + '. ' + entry.name + ': ' + getFriendlyNumber(entry.value) + ' mt' + marker);
+                                        lines.push((rankIndex + 1) + '. ' + entry.name + ': ' + formatRawMetricTons(entry.value) + marker);
                                     });
 
                                     return lines;
