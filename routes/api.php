@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\MapDataController;
+use App\Http\Controllers\Api\WeatherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,4 +37,8 @@ Route::prefix('map')->name('api.map.')->group(function () {
 
     // Statistics summary
     Route::get('/statistics', [MapDataController::class, 'getStatistics'])->name('statistics');
+});
+
+Route::prefix('weather')->name('api.weather.')->group(function () {
+    Route::get('/current', [WeatherController::class, 'current'])->name('current');
 });

@@ -138,6 +138,38 @@
                                     </div>
                                 </div>
 
+                                <!-- Current Weather -->
+                                <div class="bg-sky-50 rounded-lg p-4 border border-sky-200">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h3 class="text-sm font-semibold text-sky-800 uppercase">Current Weather</h3>
+                                        <span id="weather-updated" class="text-xs text-sky-700">--</span>
+                                    </div>
+                                    <p id="weather-status" class="text-sm text-sky-700 mb-3">Select a municipality to load weather data.</p>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <p class="text-xs text-gray-600">Temperature</p>
+                                            <p id="weather-temperature" class="text-base font-bold text-sky-800">-</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600">Feels Like</p>
+                                            <p id="weather-feels-like" class="text-base font-bold text-sky-800">-</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600">Humidity</p>
+                                            <p id="weather-humidity" class="text-base font-bold text-sky-800">-</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-600">Rain Chance</p>
+                                            <p id="weather-rain" class="text-base font-bold text-sky-800">-</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-t border-sky-200">
+                                        <p class="text-xs text-gray-600">Wind</p>
+                                        <p id="weather-wind" class="text-sm font-semibold text-sky-800">-</p>
+                                        <p id="weather-condition" class="text-sm text-sky-700 mt-1">-</p>
+                                    </div>
+                                </div>
+
                                 <!-- Farm Type Breakdown -->
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Farm Type Distribution</h3>
@@ -216,6 +248,7 @@
         
         // Base URLs using Laravel's url() helper
         const apiBase = '{{ url("/api/map") }}';
+        const weatherApiBase = '{{ url("/api/weather") }}';
         const dataPath = '{{ asset("data") }}';
 
         // Initialize map
@@ -546,6 +579,7 @@
             // Show loading
             document.getElementById('panel-loading').classList.remove('hidden');
             document.getElementById('panel-content').classList.add('hidden');
+            setWeatherLoadingState(municipalityName);
             
             try {
                 const crop = document.getElementById('crop-filter').value;
@@ -577,6 +611,9 @@
 
                 // Load crop contribution data
                 loadCropContribution(municipalityName);
+
+                // Load weather data from Google Weather API
+                loadMunicipalityWeather(municipalityName);
                 
                 // Hide loading, show content
                 document.getElementById('panel-loading').classList.add('hidden');
@@ -860,6 +897,101 @@
                     }
                 }
             });
+        }
+
+        async function loadMunicipalityWeather(municipalityName) {
+            const requestedMunicipality = municipalityName;
+
+            try {
+                const params = new URLSearchParams({ municipality: municipalityName });
+                const response = await fetch(`${weatherApiBase}/current?${params}`);
+                const payload = await response.json();
+
+                if (!response.ok || !payload.success) {
+                    throw new Error(payload.message || 'Weather service is unavailable.');
+                }
+
+                if (currentMunicipality !== requestedMunicipality) {
+                    return;
+                }
+
+                updateWeatherPanel(payload.weather || {});
+            } catch (error) {
+                if (currentMunicipality !== requestedMunicipality) {
+                    return;
+                }
+                console.error('Error loading municipality weather:', error);
+                setWeatherErrorState(error.message || 'Unable to load weather data.');
+            }
+        }
+
+        function setWeatherLoadingState(municipalityName) {
+            document.getElementById('weather-status').textContent = `Loading weather for ${municipalityName}...`;
+            document.getElementById('weather-updated').textContent = '--';
+            document.getElementById('weather-temperature').textContent = '-';
+            document.getElementById('weather-feels-like').textContent = '-';
+            document.getElementById('weather-humidity').textContent = '-';
+            document.getElementById('weather-rain').textContent = '-';
+            document.getElementById('weather-wind').textContent = '-';
+            document.getElementById('weather-condition').textContent = '-';
+        }
+
+        function setWeatherErrorState(message) {
+            document.getElementById('weather-status').textContent = message;
+            document.getElementById('weather-updated').textContent = '--';
+            document.getElementById('weather-temperature').textContent = '-';
+            document.getElementById('weather-feels-like').textContent = '-';
+            document.getElementById('weather-humidity').textContent = '-';
+            document.getElementById('weather-rain').textContent = '-';
+            document.getElementById('weather-wind').textContent = '-';
+            document.getElementById('weather-condition').textContent = '-';
+        }
+
+        function updateWeatherPanel(weather) {
+            const temperature = weather.temperature?.display || '-';
+            const feelsLike = weather.feels_like?.display || '-';
+            const humidity = weather.humidity_percent !== null && weather.humidity_percent !== undefined
+                ? `${weather.humidity_percent}%`
+                : '-';
+            const rainChance = weather.precipitation_probability_percent !== null && weather.precipitation_probability_percent !== undefined
+                ? `${weather.precipitation_probability_percent}%`
+                : '-';
+
+            const windSpeed = weather.wind?.speed?.display || '';
+            const windDirection = weather.wind?.direction
+                ? String(weather.wind.direction).replace(/_/g, ' ')
+                : '';
+            const windText = [windSpeed, windDirection].filter(Boolean).join(' • ') || '-';
+
+            const conditionParts = [];
+            if (weather.description) {
+                conditionParts.push(weather.description);
+            }
+            if (weather.condition_type) {
+                conditionParts.push(String(weather.condition_type).replace(/_/g, ' '));
+            }
+
+            document.getElementById('weather-status').textContent = weather.is_daytime ? 'Daytime conditions' : 'Nighttime conditions';
+            document.getElementById('weather-updated').textContent = formatWeatherTimestamp(weather.observed_at);
+            document.getElementById('weather-temperature').textContent = temperature;
+            document.getElementById('weather-feels-like').textContent = feelsLike;
+            document.getElementById('weather-humidity').textContent = humidity;
+            document.getElementById('weather-rain').textContent = rainChance;
+            document.getElementById('weather-wind').textContent = windText;
+            document.getElementById('weather-condition').textContent = conditionParts.join(' • ') || 'Condition not available';
+        }
+
+        function formatWeatherTimestamp(timestamp) {
+            if (!timestamp) {
+                return '--';
+            }
+
+            const parsedDate = new Date(timestamp);
+            if (Number.isNaN(parsedDate.getTime())) {
+                return '--';
+            }
+
+            return `Updated ${parsedDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
         }
 
         // Toggle legend visibility

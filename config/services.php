@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'google_weather' => [
+        'api_key' => env('GOOGLE_WEATHER_API_KEY'),
+        'base_url' => env('GOOGLE_WEATHER_BASE_URL', 'https://weather.googleapis.com/v1'),
+        'timeout' => (int) env('GOOGLE_WEATHER_TIMEOUT', 15),
+        'units' => env('GOOGLE_WEATHER_UNITS', 'METRIC'),
+        'cache_ttl' => (int) env('GOOGLE_WEATHER_CACHE_TTL', 900),
+    ],
+
 ];
