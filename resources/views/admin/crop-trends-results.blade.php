@@ -11,6 +11,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     @endpush
 
+    @php
+        $totalPredictions = count($predictions);
+        $mlBackedCount = $mlBackedPredictions ?? collect($predictions)->where('prediction_source', 'ml')->count();
+        $fallbackCount = max(0, $totalPredictions - $mlBackedCount);
+        $mlCoveragePercent = $totalPredictions > 0 ? round(($mlBackedCount / $totalPredictions) * 100, 1) : 0;
+        $sourceBreakdown = $sourceCounts ?? [];
+        $mlUnavailableCount = (int) ($sourceBreakdown['ml_unavailable'] ?? 0);
+        $fallbackDerivedCount = max(0, $fallbackCount - $mlUnavailableCount);
+        $strictMlModeEnabled = isset($strictMlMode)
+            ? (bool) $strictMlMode
+            : filter_var((string) env('ML_STRICT_MODE', 'true'), FILTER_VALIDATE_BOOLEAN);
+    @endphp
+
     <div class="space-y-6" x-data="predictionResults()">
         <!-- Page Header -->
         <div class="flex items-center justify-between">
@@ -28,10 +41,15 @@
                         <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                         <span class="text-xs font-medium text-green-700">ML Predictions Active</span>
                     </div>
+                @elseif($strictMlModeEnabled)
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span class="text-xs font-medium text-red-700">Strict ML Mode • API Unavailable</span>
+                    </div>
                 @else
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <span class="text-xs font-medium text-yellow-700">Using Historical Data</span>
+                        <span class="text-xs font-medium text-yellow-700">Fallback Prediction Mode</span>
                     </div>
                 @endif
             </div>
@@ -79,6 +97,21 @@
                             <span class="font-medium text-gray-800 ml-2">{{ $filters['year_from'] }} - {{ $filters['year_to'] }}</span>
                         </div>
                     </div>
+                    <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            ML-backed: {{ $mlBackedCount }}/{{ $totalPredictions }} ({{ $mlCoveragePercent }}%)
+                        </span>
+                        @if($mlUnavailableCount > 0)
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">
+                                ML unavailable periods: {{ $mlUnavailableCount }}
+                            </span>
+                        @endif
+                        @if($fallbackDerivedCount > 0)
+                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                Fallback periods: {{ $fallbackDerivedCount }}
+                            </span>
+                        @endif
+                    </div>
                 </div>
                 <button @click="$dispatch('open-modal', 'prediction-modal')" class="ml-6 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">
                     Modify Filters
@@ -94,23 +127,18 @@
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Production Comparison: {{ ucwords(strtolower($filters['crop'])) }}
+                        Predicted Production: {{ ucwords(strtolower($filters['crop'])) }}
                     </h2>
                     <p class="text-sm text-gray-500 mt-1">
-                        <span class="font-medium text-cyan-600">Historical Production</span> vs 
-                        <span class="font-medium text-green-600">Predicted Production</span> (mt)
+                        <span class="font-medium text-green-600">Predicted Production</span> (mt) across selected periods
                     </p>
                 </div>
                 
                 <!-- Legend -->
                 <div class="flex items-center gap-6">
                     <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
-                        <span class="text-sm text-gray-600">Historical Data</span>
-                    </div>
-                    <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-sm text-gray-600">ML Predictions</span>
+                        <span class="text-sm text-gray-600">Predicted Data</span>
                     </div>
                 </div>
             </div>
@@ -123,9 +151,15 @@
             <!-- Chart Info -->
             <div class="mt-4 flex items-center justify-between text-sm">
                 <div class="flex items-center gap-2 text-gray-600">
+                    @if($mlUnavailableCount > 0)
+                        <span class="text-red-700">{{ $mlUnavailableCount }} period(s) have no ML output due API connectivity or response issues.</span>
+                    @endif
+                    @if($fallbackDerivedCount > 0)
+                        <span class="text-yellow-700">{{ $fallbackDerivedCount }} period(s) are using fallback predictions.</span>
+                    @endif
                 </div>
-                @if(collect($predictions)->whereNotNull('normalized_historical_production')->count() === 0)
-                    <span class="text-yellow-600 font-medium">⚠ No historical data found for these filters</span>
+                @if(collect($predictions)->whereNotNull('predicted_production')->count() === 0)
+                    <span class="text-yellow-600 font-medium">⚠ No predicted data found for these filters</span>
                 @endif
             </div>
         </div>
@@ -148,15 +182,11 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="font-semibold text-gray-800">How to Read This Chart</p>
-                        <p class="text-sm text-gray-600">Production values use the <span class="font-bold text-blue-600">actual recorded farm sizes</span> for each period</p>
+                        <p class="font-semibold text-gray-800">How to Read This Data</p>
+                        <p class="text-sm text-gray-600">Values show <span class="font-bold text-green-600">predicted productivity and production</span> for each period</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
-                        <span><strong class="text-cyan-700">Historical</strong></span>
-                    </div>
+                <div class="grid grid-cols-1 gap-3 text-sm">
                     <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-green-500"></span>
                         <span><strong class="text-green-700">Predicted</strong></span>
@@ -165,7 +195,11 @@
                 @if(!$mlApiHealthy)
                     <p class="mt-3 text-sm text-yellow-700 flex items-center gap-2">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                        Using historical averages as predictions
+                        @if($strictMlModeEnabled)
+                            ML API is unavailable. Strict mode keeps affected periods empty (no fallback replacement).
+                        @else
+                            ML API is unavailable. Fallback predictions may be used.
+                        @endif
                     </p>
                 @endif
             </div>
@@ -175,67 +209,25 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">
-                                Productivity (mt/ha)
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Predicted Productivity (mt/ha)
                             </th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" colspan="2">
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Production @ {{ number_format($avgAreaHarvested ?? 0, 2) }} ha (mt)
                             </th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Accuracy</th>
-                        </tr>
-                        <tr class="bg-gray-100">
-                            <th class="px-4 py-2"></th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-cyan-600 bg-cyan-50">Historical</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-green-600 bg-green-50">Predicted</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-cyan-600 bg-cyan-50">Historical</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-green-600 bg-green-50">Predicted</th>
-                            <th class="px-4 py-2 text-center text-xs font-medium text-gray-500">
-                                <span class="text-xs">(Difference)</span>
-                            </th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($predictions as $prediction)
-                            @php
-                                // Calculate difference percentage between normalized historical and predicted
-                                $diffPercent = null;
-                                $diffClass = 'text-gray-400';
-                                $diffIcon = '';
-                                if (isset($prediction['normalized_historical_production']) && $prediction['normalized_historical_production'] > 0 && $prediction['predicted_production']) {
-                                    $diffPercent = (($prediction['predicted_production'] - $prediction['normalized_historical_production']) / $prediction['normalized_historical_production']) * 100;
-                                    if (abs($diffPercent) <= 10) {
-                                        $diffClass = 'text-green-600 bg-green-50';
-                                        $diffIcon = '✓';
-                                    } elseif (abs($diffPercent) <= 25) {
-                                        $diffClass = 'text-yellow-600 bg-yellow-50';
-                                        $diffIcon = '~';
-                                    } else {
-                                        $diffClass = 'text-red-600 bg-red-50';
-                                        $diffIcon = '!';
-                                    }
-                                }
-                            @endphp
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {{ $prediction['month'] }} {{ $prediction['year'] }}
                                 </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-cyan-50/50">
-                                    @if($prediction['historical_productivity'])
-                                        <span class="text-cyan-700 font-medium">{{ number_format($prediction['historical_productivity'], 2) }}</span>
-                                    @else
-                                        <span class="text-gray-400">—</span>
-                                    @endif
-                                </td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-green-50/50">
                                     @if($prediction['predicted_productivity'])
                                         <span class="text-green-700 font-medium">{{ number_format($prediction['predicted_productivity'], 2) }}</span>
-                                    @else
-                                        <span class="text-gray-400">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-cyan-50/50">
-                                    @if(isset($prediction['normalized_historical_production']) && $prediction['normalized_historical_production'])
-                                        <span class="text-cyan-700 font-semibold">{{ number_format($prediction['normalized_historical_production'], 2) }}</span>
                                     @else
                                         <span class="text-gray-400">—</span>
                                     @endif
@@ -247,27 +239,40 @@
                                         <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center {{ $diffClass }} rounded">
-                                    @if($diffPercent !== null)
-                                        <span class="font-medium">
-                                            {{ $diffIcon }} {{ $diffPercent > 0 ? '+' : '' }}{{ number_format($diffPercent, 1) }}%
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
+                                    @if(isset($prediction['confidence_score']) && $prediction['confidence_score'] !== null)
+                                        <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700">
+                                            {{ number_format($prediction['confidence_score'], 1) }}%
                                         </span>
                                     @else
                                         <span class="text-gray-400">—</span>
                                     @endif
                                 </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center">
+                                    @php
+                                        $source = $prediction['prediction_source'] ?? 'unknown';
+                                        $sourceLabel = match ($source) {
+                                            'ml' => 'ML API',
+                                            'ml_unavailable' => 'ML unavailable',
+                                            'fallback_historical' => 'Fallback: historical',
+                                            'fallback_trend' => 'Fallback: trend',
+                                            'fallback_average' => 'Fallback: average',
+                                            default => 'Fallback: unavailable',
+                                        };
+                                        $sourceClass = match ($source) {
+                                            'ml' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                            'ml_unavailable' => 'bg-red-50 text-red-700 border-red-200',
+                                            default => 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                                        };
+                                    @endphp
+                                    <span class="inline-flex px-2 py-0.5 text-xs font-semibold rounded-full border {{ $sourceClass }}">
+                                        {{ $sourceLabel }}
+                                    </span>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-            
-            <!-- Legend for accuracy indicators -->
-            <div class="mt-4 flex flex-wrap items-center gap-4 text-xs text-gray-600">
-                <span class="font-medium">Accuracy Legend:</span>
-                <span class="flex items-center gap-1"><span class="px-2 py-0.5 bg-green-50 text-green-600 rounded">✓ ±10%</span> High accuracy</span>
-                <span class="flex items-center gap-1"><span class="px-2 py-0.5 bg-yellow-50 text-yellow-600 rounded">~ ±25%</span> Moderate</span>
-                <span class="flex items-center gap-1"><span class="px-2 py-0.5 bg-red-50 text-red-600 rounded">! >25%</span> Large difference</span>
             </div>
         </div>
 
@@ -424,12 +429,10 @@
                     }
 
                     const labels = @json($chartLabels);
-                    const historical = @json($historicalData);
                     const predicted = @json($predictedData);
 
                     // Debug: Log the data
                     console.log('Chart Labels:', labels);
-                    console.log('Historical Data:', historical);
                     console.log('Predicted Data:', predicted);
 
                     new Chart(ctx, {
@@ -437,21 +440,6 @@
                         data: {
                             labels: labels,
                             datasets: [
-                                {
-                                    label: 'Historical Production (mt)',
-                                    data: historical,
-                                    borderColor: 'rgb(34, 211, 238)',
-                                    backgroundColor: 'rgba(34, 211, 238, 0.2)',
-                                    borderWidth: 3,
-                                    tension: 0.4,
-                                    fill: true,
-                                    pointRadius: 5,
-                                    pointHoverRadius: 8,
-                                    spanGaps: false, // Don't connect across gaps to show missing data
-                                    pointBackgroundColor: 'rgb(34, 211, 238)',
-                                    pointBorderColor: '#fff',
-                                    pointBorderWidth: 2
-                                },
                                 {
                                     label: 'Predicted Production (mt)',
                                     data: predicted,

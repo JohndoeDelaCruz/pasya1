@@ -26,9 +26,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if ($this->app->isProduction() && str_starts_with(config('app.url'), 'https://')) {
-            URL::forceRootUrl(rtrim(config('app.url'), '/'));
+        if ($this->app->isProduction()) {
             URL::forceScheme('https');
+
+            if (str_starts_with((string) config('app.url'), 'https://')) {
+                URL::forceRootUrl(rtrim((string) config('app.url'), '/'));
+            }
         }
 
         // Register Excel facade alias

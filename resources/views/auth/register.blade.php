@@ -14,7 +14,7 @@
                     <h1 class="text-4xl md:text-5xl font-bold text-yellow-400 text-center mb-3">Register</h1>
                     <p class="text-center text-green-100 mb-8">Create your PASYA account and start using data-driven agriculture tools.</p>
 
-                    <form method="POST" action="{{ route('register') }}" class="space-y-5">
+                    <form method="POST" action="{{ route('register', absolute: false) }}" class="space-y-5">
                         @csrf
 
                         <div>

@@ -17,7 +17,16 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $trustedProxies = env('TRUSTED_PROXIES');
+
+        if (!is_null($trustedProxies) && $trustedProxies !== '') {
+            $middleware->trustProxies(at: $trustedProxies);
+            return;
+        }
+
+        if (env('APP_ENV') === 'production') {
+            $middleware->trustProxies(at: '*');
+        }
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -351,6 +351,7 @@ class CropTrendsController extends Controller
         $normalizedCrop = strtoupper(trim($request->crop));
         $normalizedMonthFrom = $this->normalizeMonth($request->month_from);
         $normalizedMonthTo = $this->normalizeMonth($request->month_to);
+        $strictMlMode = filter_var((string) env('ML_STRICT_MODE', 'true'), FILTER_VALIDATE_BOOLEAN);
 
         // Log the request parameters for debugging
         Log::info('Prediction Request', [
@@ -368,6 +369,7 @@ class CropTrendsController extends Controller
                 'month_from' => $normalizedMonthFrom,
                 'month_to' => $normalizedMonthTo,
             ],
+            'strict_ml_mode' => $strictMlMode,
         ]);
 
         // Define month order for range calculation
@@ -457,32 +459,6 @@ class CropTrendsController extends Controller
                     $historicalArea = $historical ? $historical->area_harvested : null;
                 }
 
-                // For periods with known historical rows, avoid extra ML requests to prevent timeouts.
-                if ($historical) {
-                    $predictions[] = [
-                        'month' => $month,
-                        'year' => $year,
-                        'historical_productivity' => $historicalProductivity,
-                        'predicted_productivity' => $historicalProductivity,
-                        'historical_production' => $historicalProduction,
-                        'predicted_production' => $historicalProduction,
-                        'normalized_historical_production' => $historicalProduction,
-                        'historical_area' => $historicalArea,
-                        'prediction_area' => round((float) $historicalArea, 2),
-                        'confidence_score' => null,
-                    ];
-
-                    Log::info('Prediction shortcut: using historical row', [
-                        'month' => $month,
-                        'year' => $year,
-                        'crop' => $normalizedCrop,
-                        'municipality' => $normalizedMunicipality,
-                        'farm_type' => $normalizedFarmType,
-                    ]);
-
-                    continue;
-                }
-                
                 // Log historical data found
                 Log::info('Historical Data Query', [
                     'month' => $month,
@@ -521,6 +497,8 @@ class CropTrendsController extends Controller
 
                 $predictedProductivity = null;
                 $predictedProduction = null;
+                $predictionSource = 'ml';
+                $mlError = null;
 
                 if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
                     // V2 API returns both production_mt and productivity_mt_ha directly
@@ -550,96 +528,111 @@ class CropTrendsController extends Controller
                         'area_source' => $historicalArea ? 'historical' : 'default'
                     ]);
                 } else {
-                    // ML prediction failed - use intelligent fallback
-                    Log::warning('ML Prediction Failed - Using Intelligent Fallback', [
+                    // ML prediction failed - either mark unavailable (strict mode) or use fallback strategies.
+                    $mlError = $prediction['error'] ?? 'Unknown error';
+                    Log::warning('ML Prediction Failed', [
                         'month' => $month,
                         'year' => $year,
-                        'error' => $prediction['error'] ?? 'Unknown error'
+                        'error' => $mlError,
+                        'strict_ml_mode' => $strictMlMode,
                     ]);
-                    
-                    // Strategy 1: If historical data exists for this exact period, use it
-                    if ($historical) {
-                        $predictedProductivity = $historicalProductivity;
-                        $predictedProduction = $historicalProduction;
-                        
-                        Log::info('Fallback: Using Exact Historical Data', [
+
+                    if ($strictMlMode) {
+                        $predictionSource = 'ml_unavailable';
+                        Log::warning('Strict ML mode active: prediction left unavailable', [
                             'month' => $month,
                             'year' => $year,
-                            'productivity_mt_ha' => $predictedProductivity,
-                            'production_mt' => $predictedProduction
+                            'crop' => $normalizedCrop,
+                            'municipality' => $normalizedMunicipality,
+                            'farm_type' => $normalizedFarmType,
                         ]);
                     } else {
-                        // Strategy 2: Compute trend-adjusted average from recent years
-                        $recentYears = Crop::where('crop', $normalizedCrop)
-                            ->where('municipality', $normalizedMunicipality)
-                            ->where('farm_type', $normalizedFarmType)
-                            ->whereIn('month', $this->getMonthVariants($month))
-                            ->where('year', '>=', $year - 5) // Last 5 years
-                            ->where('year', '<', $year)
-                            ->orderBy('year', 'desc')
-                            ->select('year', 'productivity', DB::raw('production as production_mt'))
-                            ->get();
-                        
-                        if ($recentYears->count() >= 2) {
-                            // Calculate trend (simple linear regression)
-                            $avgProductivity = $recentYears->avg('productivity');
-                            $avgProduction = $recentYears->avg('production_mt');
-                            
-                            // Apply 3% growth factor for future predictions (industry average)
-                            if ($year > now()->year) {
-                                $yearsAhead = $year - now()->year;
-                                $growthFactor = pow(1.03, $yearsAhead);
-                                $predictedProductivity = round($avgProductivity * $growthFactor, 2);
-                                $predictedProduction = round($avgProduction * $growthFactor, 2);
-                            } else {
-                                $predictedProductivity = round($avgProductivity, 2);
-                                $predictedProduction = round($avgProduction, 2);
-                            }
-                            
-                            Log::info('Fallback: Using Trend-Adjusted Average', [
+                        // Strategy 1: If historical data exists for this exact period, use it.
+                        if ($historical) {
+                            $predictedProductivity = $historicalProductivity;
+                            $predictedProduction = $historicalProduction;
+                            $predictionSource = 'fallback_historical';
+
+                            Log::info('Fallback: Using Exact Historical Data', [
                                 'month' => $month,
                                 'year' => $year,
                                 'productivity_mt_ha' => $predictedProductivity,
-                                'production_mt' => $predictedProduction,
-                                'records_used' => $recentYears->count(),
-                                'years_used' => $recentYears->pluck('year')->toArray(),
-                                'growth_applied' => $year > now()->year
+                                'production_mt' => $predictedProduction
                             ]);
                         } else {
-                            // Strategy 3: Overall average (if not enough recent data)
-                            $fallbackData = Crop::where('crop', $normalizedCrop)
+                            // Strategy 2: Compute trend-adjusted average from recent years.
+                            $recentYears = Crop::where('crop', $normalizedCrop)
                                 ->where('municipality', $normalizedMunicipality)
                                 ->where('farm_type', $normalizedFarmType)
                                 ->whereIn('month', $this->getMonthVariants($month))
-                                ->select(
-                                    DB::raw('AVG(productivity) as avg_productivity'),
-                                    DB::raw('AVG(production) as avg_production_mt')
-                                )
-                                ->first();
-                            
-                            if ($fallbackData && $fallbackData->avg_productivity) {
-                                $predictedProductivity = round($fallbackData->avg_productivity, 2);
-                                $predictedProduction = round($fallbackData->avg_production_mt, 2);
-                                
-                                Log::info('Fallback: Using Overall Average', [
+                                ->where('year', '>=', $year - 5)
+                                ->where('year', '<', $year)
+                                ->orderBy('year', 'desc')
+                                ->select('year', 'productivity', DB::raw('production as production_mt'))
+                                ->get();
+
+                            if ($recentYears->count() >= 2) {
+                                $avgProductivity = $recentYears->avg('productivity');
+                                $avgProduction = $recentYears->avg('production_mt');
+
+                                if ($year > now()->year) {
+                                    $yearsAhead = $year - now()->year;
+                                    $growthFactor = pow(1.03, $yearsAhead);
+                                    $predictedProductivity = round($avgProductivity * $growthFactor, 2);
+                                    $predictedProduction = round($avgProduction * $growthFactor, 2);
+                                } else {
+                                    $predictedProductivity = round($avgProductivity, 2);
+                                    $predictedProduction = round($avgProduction, 2);
+                                }
+                                $predictionSource = 'fallback_trend';
+
+                                Log::info('Fallback: Using Trend-Adjusted Average', [
                                     'month' => $month,
                                     'year' => $year,
                                     'productivity_mt_ha' => $predictedProductivity,
                                     'production_mt' => $predictedProduction,
-                                    'total_records' => Crop::where('crop', $normalizedCrop)
-                                        ->where('municipality', $normalizedMunicipality)
-                                        ->where('farm_type', $normalizedFarmType)
-                                        ->whereIn('month', $this->getMonthVariants($month))
-                                        ->count()
+                                    'records_used' => $recentYears->count(),
+                                    'years_used' => $recentYears->pluck('year')->toArray(),
+                                    'growth_applied' => $year > now()->year
                                 ]);
                             } else {
-                                Log::warning('No Historical Data Available', [
-                                    'month' => $month,
-                                    'year' => $year,
-                                    'crop' => $normalizedCrop,
-                                    'municipality' => $normalizedMunicipality,
-                                    'farm_type' => $normalizedFarmType
-                                ]);
+                                // Strategy 3: Overall average (if not enough recent data).
+                                $fallbackData = Crop::where('crop', $normalizedCrop)
+                                    ->where('municipality', $normalizedMunicipality)
+                                    ->where('farm_type', $normalizedFarmType)
+                                    ->whereIn('month', $this->getMonthVariants($month))
+                                    ->select(
+                                        DB::raw('AVG(productivity) as avg_productivity'),
+                                        DB::raw('AVG(production) as avg_production_mt')
+                                    )
+                                    ->first();
+
+                                if ($fallbackData && $fallbackData->avg_productivity) {
+                                    $predictedProductivity = round($fallbackData->avg_productivity, 2);
+                                    $predictedProduction = round($fallbackData->avg_production_mt, 2);
+                                    $predictionSource = 'fallback_average';
+
+                                    Log::info('Fallback: Using Overall Average', [
+                                        'month' => $month,
+                                        'year' => $year,
+                                        'productivity_mt_ha' => $predictedProductivity,
+                                        'production_mt' => $predictedProduction,
+                                        'total_records' => Crop::where('crop', $normalizedCrop)
+                                            ->where('municipality', $normalizedMunicipality)
+                                            ->where('farm_type', $normalizedFarmType)
+                                            ->whereIn('month', $this->getMonthVariants($month))
+                                            ->count()
+                                    ]);
+                                } else {
+                                    $predictionSource = 'fallback_none';
+                                    Log::warning('No Historical Data Available', [
+                                        'month' => $month,
+                                        'year' => $year,
+                                        'crop' => $normalizedCrop,
+                                        'municipality' => $normalizedMunicipality,
+                                        'farm_type' => $normalizedFarmType
+                                    ]);
+                                }
                             }
                         }
                     }
@@ -661,6 +654,8 @@ class CropTrendsController extends Controller
                     'historical_area' => $historicalArea,
                     'prediction_area' => round($areaForPrediction, 2),
                     'confidence_score' => $confidenceScore ?? null,
+                    'prediction_source' => $predictionSource,
+                    'ml_error' => $mlError,
                 ];
             }
         }
@@ -682,15 +677,26 @@ class CropTrendsController extends Controller
             $predictedData[] = $pred['predicted_production'];
         }
 
+        $sourceCounts = collect($predictions)
+            ->pluck('prediction_source')
+            ->filter()
+            ->countBy()
+            ->toArray();
+
+        $mlBackedPredictions = collect($predictions)
+            ->where('prediction_source', 'ml')
+            ->count();
+
         // Log summary of predictions
         Log::info('Prediction Results Summary', [
             'total_predictions' => count($predictions),
             'predictions_with_historical' => collect($predictions)->whereNotNull('normalized_historical_production')->count(),
-            'predictions_with_ml' => collect($predictions)->whereNotNull('predicted_production')->count(),
+            'predictions_with_ml' => $mlBackedPredictions,
             'predictions_with_confidence' => collect($predictions)->whereNotNull('confidence_score')->count(),
             'avg_confidence' => collect($predictions)->whereNotNull('confidence_score')->avg('confidence_score'),
             'historical_data_points' => collect($historicalData)->filter()->count(),
-            'predicted_data_points' => collect($predictedData)->filter()->count()
+            'predicted_data_points' => collect($predictedData)->filter()->count(),
+            'source_breakdown' => $sourceCounts
         ]);
 
         // Check ML API health
@@ -704,7 +710,8 @@ class CropTrendsController extends Controller
         Log::info('Prediction Results Generated', [
             'total_predictions' => count($predictions),
             'predictions_with_historical' => collect($predictions)->whereNotNull('normalized_historical_production')->count(),
-            'predictions_with_ml' => collect($predictions)->whereNotNull('predicted_production')->count()
+            'predictions_with_ml' => $mlBackedPredictions,
+            'source_breakdown' => $sourceCounts
         ]);
 
         // Add debug log to verify view is being returned
@@ -720,6 +727,9 @@ class CropTrendsController extends Controller
             'predictedData' => $predictedData,
             'filters' => $request->all(),
             'mlApiHealthy' => $mlApiHealthy,
+            'strictMlMode' => $strictMlMode,
+            'sourceCounts' => $sourceCounts,
+            'mlBackedPredictions' => $mlBackedPredictions,
             'municipalities' => $municipalities,
             'crops' => $crops,
             'avgAreaHarvested' => round($defaultAreaHarvested, 2)

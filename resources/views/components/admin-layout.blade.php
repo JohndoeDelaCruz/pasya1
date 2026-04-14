@@ -135,7 +135,7 @@
 
                 <!-- Logout Button -->
                 <div class="p-4 border-t border-green-700">
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout', absolute: false) }}">
                         @csrf
                         <button type="submit" class="flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-red-600 transition-colors w-full">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -235,7 +235,7 @@
                                         <span class="font-medium">Help</span>
                                     </a>
 
-                                    <form method="POST" action="{{ route('logout') }}">
+                                    <form method="POST" action="{{ route('logout', absolute: false) }}">
                                         @csrf
                                         <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors text-left">
                                             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
