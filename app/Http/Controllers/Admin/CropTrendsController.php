@@ -336,6 +336,8 @@ class CropTrendsController extends Controller
             @set_time_limit(180);
         }
 
+        $predictionStart = microtime(true);
+
         $request->validate([
             'municipality' => 'required|string',
             'farm_type' => 'required|string|in:Rainfed,Irrigated,RAINFED,IRRIGATED',
@@ -436,31 +438,87 @@ class CropTrendsController extends Controller
             'seasonal_areas' => $seasonalAverageAreas
         ]);
 
-        foreach ($years as $year) {
+        // Preload historical rows once to avoid N+1 queries inside the loop.
+        $historicalRowsByPeriod = [];
+        if (!empty($years) && !empty($months)) {
+            $monthVariants = [];
             foreach ($months as $month) {
-                // Only query historical data for years that have actual data
-                // Years beyond the max historical year should not show historical data
-                $historicalProductivity = null;
-                $historicalProduction = null;
-                $historicalArea = null;
-                $historical = null;
-                
-                if ($maxHistoricalYear && $year <= $maxHistoricalYear) {
-                    // Get historical data for comparison - only for years with actual data
-                    $historical = Crop::where('municipality', $normalizedMunicipality)
-                        ->where('farm_type', $normalizedFarmType)
-                        ->where('crop', $normalizedCrop)
-                        ->whereIn('month', $this->getMonthVariants($month))
-                        ->where('year', $year)
-                        ->first();
+                $monthVariants = array_merge($monthVariants, $this->getMonthVariants($month));
+            }
+            $monthVariants = array_values(array_unique($monthVariants));
 
-                    $historicalProductivity = $historical ? $historical->productivity : null;
-                    $historicalProduction = $historical ? $historical->production : null; // Production is already in MT
-                    $historicalArea = $historical ? $historical->area_harvested : null;
+            $historicalRows = Crop::where('municipality', $normalizedMunicipality)
+                ->where('farm_type', $normalizedFarmType)
+                ->where('crop', $normalizedCrop)
+                ->whereIn('month', $monthVariants)
+                ->whereIn('year', $years)
+                ->get(['year', 'month', 'productivity', 'production', 'area_harvested']);
+
+            foreach ($historicalRows as $row) {
+                $normalizedRowMonth = $this->normalizeMonth((string) $row->month);
+                if (!$normalizedRowMonth) {
+                    continue;
                 }
 
-                // Log historical data found
-                Log::info('Historical Data Query', [
+                // Keep first row for compatibility with previous first() behavior.
+                if (!isset($historicalRowsByPeriod[$row->year][$normalizedRowMonth])) {
+                    $historicalRowsByPeriod[$row->year][$normalizedRowMonth] = $row;
+                }
+            }
+        }
+
+        $periodContexts = [];
+        $batchInputs = [];
+
+        foreach ($years as $year) {
+            foreach ($months as $month) {
+                $historical = $historicalRowsByPeriod[$year][$month] ?? null;
+                $historicalProductivity = $historical ? $historical->productivity : null;
+                $historicalProduction = $historical ? $historical->production : null;
+                $historicalArea = $historical ? $historical->area_harvested : null;
+
+                if ($historicalArea) {
+                    $areaForPrediction = $historicalArea;
+                } elseif (isset($seasonalAverageAreas[$month])) {
+                    $areaForPrediction = $seasonalAverageAreas[$month];
+                } else {
+                    $areaForPrediction = $defaultAreaHarvested;
+                }
+
+                $periodContexts[] = [
+                    'month' => $month,
+                    'year' => $year,
+                    'historical' => $historical,
+                    'historical_productivity' => $historicalProductivity,
+                    'historical_production' => $historicalProduction,
+                    'historical_area' => $historicalArea,
+                    'prediction_area' => (float) $areaForPrediction,
+                ];
+
+                $batchInputs[] = [
+                    'municipality' => $normalizedMunicipality,
+                    'farm_type' => $normalizedFarmType,
+                    'month' => $month,
+                    'crop' => $normalizedCrop,
+                    'area_harvested' => (float) $areaForPrediction,
+                    'year' => $year,
+                ];
+            }
+        }
+
+        $batchResult = $this->predictionService->predictBatch($batchInputs);
+        $batchPredictions = $this->normalizeBatchPredictionResults($batchResult, count($batchInputs));
+
+        foreach ($periodContexts as $index => $context) {
+                $month = $context['month'];
+                $year = $context['year'];
+                $historical = $context['historical'];
+                $historicalProductivity = $context['historical_productivity'];
+                $historicalProduction = $context['historical_production'];
+                $historicalArea = $context['historical_area'];
+                $areaForPrediction = $context['prediction_area'];
+
+                Log::debug('Historical Data Context', [
                     'month' => $month,
                     'year' => $year,
                     'crop' => $normalizedCrop,
@@ -472,53 +530,31 @@ class CropTrendsController extends Controller
                     'area_harvested' => $historicalArea
                 ]);
 
-                // Use actual historical area if available, otherwise use seasonal average for that month
-                // This ensures future predictions reflect natural seasonal planting patterns
-                if ($historicalArea) {
-                    $areaForPrediction = $historicalArea;
-                } elseif (isset($seasonalAverageAreas[$month])) {
-                    // Use seasonal average for this specific month (captures planting patterns)
-                    $areaForPrediction = $seasonalAverageAreas[$month];
-                } else {
-                    // Fallback to overall average
-                    $areaForPrediction = $defaultAreaHarvested;
-                }
-
-                // Get ML prediction with actual area_harvested parameter
                 $confidenceScore = null;
-                $prediction = $this->predictionService->predictProduction([
-                    'municipality' => $normalizedMunicipality,
-                    'farm_type' => $normalizedFarmType,
-                    'month' => $month,
-                    'crop' => $normalizedCrop,
-                    'area_harvested' => $areaForPrediction,
-                    'year' => $year
-                ]);
+                $prediction = $batchPredictions[$index] ?? [
+                    'success' => false,
+                    'error' => 'Missing batch prediction result',
+                ];
 
                 $predictedProductivity = null;
                 $predictedProduction = null;
                 $predictionSource = 'ml';
                 $mlError = null;
 
-                if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
-                    // V2 API returns both production_mt and productivity_mt_ha directly
-                    $predictedProduction = round($prediction['prediction']['production_mt'], 2);
-                    
-                    // Use productivity directly from API response (V2 Productivity-First)
-                    $predictedProductivity = isset($prediction['prediction']['productivity_mt_ha']) 
-                        ? round($prediction['prediction']['productivity_mt_ha'], 2)
+                if (($prediction['success'] ?? false) === true && isset($prediction['production_mt']) && $prediction['production_mt'] !== null) {
+                    $predictedProduction = round((float) $prediction['production_mt'], 2);
+
+                    $predictedProductivity = isset($prediction['productivity_mt_ha']) && $prediction['productivity_mt_ha'] !== null
+                        ? round((float) $prediction['productivity_mt_ha'], 2)
                         : ($areaForPrediction > 0 ? round($predictedProduction / $areaForPrediction, 2) : null);
-                    
-                    // V2 API provides confidence_score directly in prediction object
-                    $confidenceScore = null;
-                    if (isset($prediction['prediction']['confidence_score'])) {
-                        $confidenceScore = round($prediction['prediction']['confidence_score'], 2);
-                    } elseif (isset($prediction['model_info']['r2_score'])) {
-                        // Fallback to R² from model_info
-                        $confidenceScore = round($prediction['model_info']['r2_score'] * 100, 2);
+
+                    if (isset($prediction['confidence_score']) && $prediction['confidence_score'] !== null) {
+                        $confidenceScore = round((float) $prediction['confidence_score'], 2);
+                    } elseif (isset($prediction['model_r2']) && $prediction['model_r2'] !== null) {
+                        $confidenceScore = round(((float) $prediction['model_r2']) * 100, 2);
                     }
-                    
-                    Log::info('ML Prediction Success (V2)', [
+
+                    Log::debug('ML Prediction Success (Batch)', [
                         'month' => $month,
                         'year' => $year,
                         'production_mt' => $predictedProduction,
@@ -657,7 +693,6 @@ class CropTrendsController extends Controller
                     'prediction_source' => $predictionSource,
                     'ml_error' => $mlError,
                 ];
-            }
         }
 
         // Prepare chart data - using Production (MT) instead of Productivity
@@ -696,7 +731,8 @@ class CropTrendsController extends Controller
             'avg_confidence' => collect($predictions)->whereNotNull('confidence_score')->avg('confidence_score'),
             'historical_data_points' => collect($historicalData)->filter()->count(),
             'predicted_data_points' => collect($predictedData)->filter()->count(),
-            'source_breakdown' => $sourceCounts
+            'source_breakdown' => $sourceCounts,
+            'duration_ms' => round((microtime(true) - $predictionStart) * 1000, 2),
         ]);
 
         // Check ML API health
@@ -734,6 +770,85 @@ class CropTrendsController extends Controller
             'crops' => $crops,
             'avgAreaHarvested' => round($defaultAreaHarvested, 2)
         ]);
+    }
+
+    /**
+     * Normalize batch prediction responses into a fixed indexed structure.
+     */
+    private function normalizeBatchPredictionResults(array $batchResult, int $expectedCount): array
+    {
+        $items = [];
+
+        if ($this->isSequentialArray($batchResult)) {
+            $items = $batchResult;
+        } else {
+            foreach (['predictions', 'results', 'data', 'items'] as $key) {
+                if (isset($batchResult[$key]) && is_array($batchResult[$key])) {
+                    $items = $batchResult[$key];
+                    break;
+                }
+            }
+
+            if ($items === [] && isset($batchResult['prediction']) && is_array($batchResult['prediction'])) {
+                $items = [$batchResult];
+            }
+        }
+
+        if (!is_array($items)) {
+            $items = [];
+        }
+
+        if (!$this->isSequentialArray($items)) {
+            $items = array_values($items);
+        }
+
+        $normalized = [];
+
+        for ($index = 0; $index < $expectedCount; $index++) {
+            $item = $items[$index] ?? null;
+
+            if (!is_array($item)) {
+                $normalized[] = [
+                    'success' => false,
+                    'error' => 'Missing batch prediction result',
+                ];
+                continue;
+            }
+
+            $predictionNode = isset($item['prediction']) && is_array($item['prediction'])
+                ? $item['prediction']
+                : $item;
+
+            $production = $predictionNode['production_mt'] ?? null;
+            $productivity = $predictionNode['productivity_mt_ha'] ?? null;
+            $confidence = $predictionNode['confidence_score'] ?? ($item['confidence_score'] ?? null);
+            $modelR2 = data_get($item, 'model_info.r2_score');
+
+            $isSuccess = (bool) ($item['success'] ?? (is_numeric($production) || is_numeric($productivity)));
+
+            if ($isSuccess && (is_numeric($production) || is_numeric($productivity))) {
+                $normalized[] = [
+                    'success' => true,
+                    'production_mt' => is_numeric($production) ? (float) $production : null,
+                    'productivity_mt_ha' => is_numeric($productivity) ? (float) $productivity : null,
+                    'confidence_score' => is_numeric($confidence) ? (float) $confidence : null,
+                    'model_r2' => is_numeric($modelR2) ? (float) $modelR2 : null,
+                ];
+                continue;
+            }
+
+            $normalized[] = [
+                'success' => false,
+                'error' => $item['error'] ?? data_get($item, 'message', 'Invalid batch prediction response'),
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function isSequentialArray(array $array): bool
+    {
+        return $array === [] || array_keys($array) === range(0, count($array) - 1);
     }
 
     private function normalizeFarmType(string $farmType): string

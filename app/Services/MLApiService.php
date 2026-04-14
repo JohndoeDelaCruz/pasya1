@@ -171,24 +171,49 @@ class MLApiService
      */
     public function batchPredict(array $predictions): array
     {
+        $attempts = [
+            [
+                'endpoint' => '/batch-predict',
+                'payload' => ['predictions' => $predictions],
+                'description' => 'default endpoint with predictions key',
+            ],
+            [
+                'endpoint' => '/batch-predict',
+                'payload' => ['inputs' => $predictions],
+                'description' => 'default endpoint with inputs key',
+            ],
+            [
+                'endpoint' => '/predict/batch',
+                'payload' => ['predictions' => $predictions],
+                'description' => 'alternate endpoint with predictions key',
+            ],
+        ];
+
+        $lastError = 'Unknown batch prediction error';
+
         try {
-            $response = Http::timeout($this->timeout * 2) // Double timeout for batch
-                ->post("{$this->baseUrl}/batch-predict", [
-                    'predictions' => $predictions
+            foreach ($attempts as $attempt) {
+                $response = Http::timeout($this->timeout * 2)
+                    ->post("{$this->baseUrl}{$attempt['endpoint']}", $attempt['payload']);
+
+                if ($response->successful()) {
+                    return $response->json();
+                }
+
+                $lastError = 'Batch prediction failed: ' . $response->status();
+
+                Log::warning('ML API batch prediction attempt failed', [
+                    'endpoint' => $attempt['endpoint'],
+                    'attempt' => $attempt['description'],
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                    'count' => count($predictions),
                 ]);
-
-            if ($response->successful()) {
-                return $response->json();
             }
-
-            Log::warning('ML API batch prediction failed', [
-                'status' => $response->status(),
-                'count' => count($predictions)
-            ]);
 
             return [
                 'success' => false,
-                'error' => 'Batch prediction failed: ' . $response->status()
+                'error' => $lastError,
             ];
         } catch (\Exception $e) {
             Log::error('ML API batch prediction error', [

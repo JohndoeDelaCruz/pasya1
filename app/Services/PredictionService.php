@@ -307,6 +307,7 @@ class PredictionService
             $processedData = array_map(function($data) {
                 $originalCrop = strtoupper($data['crop'] ?? '');
                 $normalizedCrop = $this->normalizeCropName($originalCrop);
+                $areaValue = floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0);
                 
                 return [
                     'municipality' => strtoupper($data['municipality'] ?? ''),
@@ -314,7 +315,8 @@ class PredictionService
                     'year' => (int) ($data['year'] ?? date('Y')),
                     'month' => strtoupper($data['month'] ?? ''),
                     'crop' => $normalizedCrop,
-                    'area_planted' => floatval($data['area_harvested'] ?? $data['area_planted'] ?? 0)
+                    'area_planted' => $areaValue,
+                    'area_harvested' => $areaValue,
                 ];
             }, $batchData);
             
