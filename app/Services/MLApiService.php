@@ -288,17 +288,36 @@ class MLApiService
 
     /**
      * Check ML API health status
-     * Uses root endpoint which returns API info and status
+     * Prefer /health endpoint and only report healthy when model is ready.
      */
     public function checkHealth(): array
     {
         try {
-            $response = Http::timeout(5)->get("{$this->baseUrl}/");
-            
+            $healthResponse = Http::timeout(5)->get("{$this->baseUrl}/health");
+
+            if ($healthResponse->successful()) {
+                $data = $healthResponse->json();
+                $status = strtolower((string) data_get($data, 'status', ''));
+                $modelLoaded = data_get($data, 'model_loaded');
+
+                // Treat degraded/unloaded model as unavailable for predictions.
+                $isHealthy = $modelLoaded === true
+                    || ($modelLoaded === null && !in_array($status, ['degraded', 'down', 'error'], true));
+
+                return [
+                    'success' => $isHealthy,
+                    'status' => $healthResponse->status(),
+                    'data' => $data,
+                ];
+            }
+
+            // Backward compatibility for legacy ML APIs without /health.
+            $rootResponse = Http::timeout(5)->get("{$this->baseUrl}/");
+
             return [
-                'success' => $response->successful(),
-                'status' => $response->status(),
-                'data' => $response->successful() ? $response->json() : null
+                'success' => $rootResponse->successful(),
+                'status' => $rootResponse->status(),
+                'data' => $rootResponse->successful() ? $rootResponse->json() : null,
             ];
         } catch (\Exception $e) {
             return [
