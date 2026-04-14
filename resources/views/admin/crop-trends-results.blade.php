@@ -16,6 +16,8 @@
         $mlBackedCount = $mlBackedPredictions ?? collect($predictions)->where('prediction_source', 'ml')->count();
         $fallbackCount = max(0, $totalPredictions - $mlBackedCount);
         $mlCoveragePercent = $totalPredictions > 0 ? round(($mlBackedCount / $totalPredictions) * 100, 1) : 0;
+        $historicalCount = collect($predictions)->whereNotNull('historical_production')->count();
+        $historicalCoveragePercent = $totalPredictions > 0 ? round(($historicalCount / $totalPredictions) * 100, 1) : 0;
         $sourceBreakdown = $sourceCounts ?? [];
         $mlUnavailableCount = (int) ($sourceBreakdown['ml_unavailable'] ?? 0);
         $fallbackDerivedCount = max(0, $fallbackCount - $mlUnavailableCount);
@@ -101,6 +103,9 @@
                         <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                             ML-backed: {{ $mlBackedCount }}/{{ $totalPredictions }} ({{ $mlCoveragePercent }}%)
                         </span>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200">
+                            Historical data: {{ $historicalCount }}/{{ $totalPredictions }} ({{ $historicalCoveragePercent }}%)
+                        </span>
                         @if($mlUnavailableCount > 0)
                             <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-200">
                                 ML unavailable periods: {{ $mlUnavailableCount }}
@@ -136,6 +141,10 @@
                 
                 <!-- Legend -->
                 <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-slate-500"></div>
+                        <span class="text-sm text-gray-600">Historical Data</span>
+                    </div>
                     <div class="flex items-center gap-2">
                         <div class="w-3 h-3 rounded-full bg-green-500"></div>
                         <span class="text-sm text-gray-600">Predicted Data</span>
@@ -188,8 +197,12 @@
                 </div>
                 <div class="grid grid-cols-1 gap-3 text-sm">
                     <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-slate-500"></span>
+                        <span><strong class="text-slate-700">Historical</strong> from crop records (same filter and period)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-green-500"></span>
-                        <span><strong class="text-green-700">Predicted</strong></span>
+                        <span><strong class="text-green-700">Predicted</strong> from ML API or fallback (depends on source)</span>
                     </div>
                 </div>
                 @if(!$mlApiHealthy)
@@ -210,7 +223,13 @@
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Historical Productivity (mt/ha)
+                            </th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Predicted Productivity (mt/ha)
+                            </th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Historical Production (mt)
                             </th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Production @ {{ number_format($avgAreaHarvested ?? 0, 2) }} ha (mt)
@@ -225,9 +244,23 @@
                                 <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     {{ $prediction['month'] }} {{ $prediction['year'] }}
                                 </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-slate-50/60">
+                                    @if($prediction['historical_productivity'])
+                                        <span class="text-slate-700 font-medium">{{ number_format($prediction['historical_productivity'], 2) }}</span>
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-green-50/50">
                                     @if($prediction['predicted_productivity'])
                                         <span class="text-green-700 font-medium">{{ number_format($prediction['predicted_productivity'], 2) }}</span>
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-4 whitespace-nowrap text-sm text-center bg-slate-50/60">
+                                    @if($prediction['historical_production'])
+                                        <span class="text-slate-700 font-semibold">{{ number_format($prediction['historical_production'], 2) }}</span>
                                     @else
                                         <span class="text-gray-400">—</span>
                                     @endif
@@ -429,10 +462,12 @@
                     }
 
                     const labels = @json($chartLabels);
+                    const historical = @json($historicalData);
                     const predicted = @json($predictedData);
 
                     // Debug: Log the data
                     console.log('Chart Labels:', labels);
+                    console.log('Historical Data:', historical);
                     console.log('Predicted Data:', predicted);
 
                     new Chart(ctx, {
@@ -440,6 +475,22 @@
                         data: {
                             labels: labels,
                             datasets: [
+                                {
+                                    label: 'Historical Production (mt)',
+                                    data: historical,
+                                    borderColor: 'rgb(71, 85, 105)',
+                                    backgroundColor: 'rgba(71, 85, 105, 0.08)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 4],
+                                    tension: 0.35,
+                                    fill: false,
+                                    pointRadius: 3,
+                                    pointHoverRadius: 6,
+                                    spanGaps: false,
+                                    pointBackgroundColor: 'rgb(71, 85, 105)',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 1.5
+                                },
                                 {
                                     label: 'Predicted Production (mt)',
                                     data: predicted,
