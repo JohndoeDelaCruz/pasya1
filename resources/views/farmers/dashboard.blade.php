@@ -1,7 +1,7 @@
 <x-farmer-layout>
     <x-slot name="title">Home</x-slot>
 
-    <div class="min-h-full bg-gradient-to-br from-gray-50 to-green-50/30" x-data="dashboardModals()">
+    <div class="min-h-full bg-gradient-to-br from-gray-50 to-green-50/30" x-data="{ ...dashboardModals(), ...dashboardWeather() }" x-init="initWeather()">
         <!-- Welcome Header -->
         <div class="relative overflow-hidden bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-8 py-8 mb-6 rounded-2xl mx-6 mt-6 shadow-lg">
             <!-- Background Pattern -->
@@ -85,6 +85,118 @@
                         <div>
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Announcements</p>
                             <p class="text-lg font-bold text-gray-800">{{ isset($announcements) ? $announcements->count() : 0 }} New</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Widget -->
+            <div class="mb-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <!-- Weather Loading State -->
+                    <div x-show="weatherLoading && !weatherData" class="px-6 py-8 text-center">
+                        <div class="w-8 h-8 border-3 border-sky-300 border-t-sky-600 rounded-full animate-spin mx-auto mb-2"></div>
+                        <p class="text-sm text-gray-400">Loading weather...</p>
+                    </div>
+
+                    <!-- Weather Error State -->
+                    <div x-show="weatherError && !weatherData" x-cloak class="px-6 py-6 text-center">
+                        <div class="flex items-center justify-center gap-2 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                            </svg>
+                            <span class="text-sm">Weather data unavailable</span>
+                            <button @click="loadWeather()" class="text-sky-600 hover:text-sky-700 text-sm font-medium ml-2">Retry</button>
+                        </div>
+                    </div>
+
+                    <!-- Weather Content -->
+                    <div x-show="weatherData" x-cloak>
+                        <div class="flex flex-col sm:flex-row">
+                            <!-- Left: Main Weather -->
+                            <div class="bg-gradient-to-br from-sky-500 to-blue-600 text-white px-6 py-5 sm:w-72 flex-shrink-0">
+                                <div class="flex items-start justify-between">
+                                    <div>
+                                        <p class="text-sky-200 text-xs font-medium uppercase tracking-wider">Current Weather</p>
+                                        <h3 class="text-lg font-bold mt-1">{{ $farmerMunicipality ?? 'Your Location' }}</h3>
+                                        <p class="text-sky-200 text-xs mt-0.5" x-text="weatherData?.description || ''"></p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-4xl font-bold leading-none" x-text="weatherData?.temperature?.display || '--'"></div>
+                                        <p class="text-sky-200 text-xs mt-1">Feels <span class="text-white font-medium" x-text="weatherData?.feels_like?.display || '--'"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Weather Details Strip -->
+                            <div class="flex-1 px-4 py-4 flex items-center">
+                                <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 w-full">
+                                    <div class="text-center">
+                                        <div class="w-8 h-8 mx-auto bg-blue-50 rounded-lg flex items-center justify-center mb-1">
+                                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-xs text-gray-400">Humidity</p>
+                                        <p class="text-sm font-bold text-gray-800" x-text="weatherData?.humidity_percent != null ? weatherData.humidity_percent + '%' : '--'"></p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-8 h-8 mx-auto bg-sky-50 rounded-lg flex items-center justify-center mb-1">
+                                            <svg class="w-4 h-4 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-xs text-gray-400">Rain</p>
+                                        <p class="text-sm font-bold text-gray-800" x-text="weatherData?.precipitation_probability_percent != null ? weatherData.precipitation_probability_percent + '%' : '--'"></p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-8 h-8 mx-auto bg-teal-50 rounded-lg flex items-center justify-center mb-1">
+                                            <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-xs text-gray-400">Wind</p>
+                                        <p class="text-sm font-bold text-gray-800" x-text="weatherData?.wind?.speed?.display || '--'"></p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-8 h-8 mx-auto bg-amber-50 rounded-lg flex items-center justify-center mb-1">
+                                            <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-xs text-gray-400">UV</p>
+                                        <p class="text-sm font-bold text-gray-800" x-text="weatherData?.uv_index != null ? weatherData.uv_index : '--'"></p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-8 h-8 mx-auto bg-gray-50 rounded-lg flex items-center justify-center mb-1">
+                                            <svg class="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-xs text-gray-400">Clouds</p>
+                                        <p class="text-sm font-bold text-gray-800" x-text="weatherData?.cloud_cover_percent != null ? weatherData.cloud_cover_percent + '%' : '--'"></p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-8 h-8 mx-auto bg-purple-50 rounded-lg flex items-center justify-center mb-1">
+                                            <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-xs text-gray-400">Storm</p>
+                                        <p class="text-sm font-bold text-gray-800" x-text="weatherData?.thunderstorm_probability_percent != null ? weatherData.thunderstorm_probability_percent + '%' : '--'"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Farming Tips Strip -->
+                        <div x-show="getWeatherTips().length > 0" class="border-t border-gray-100 px-5 py-3 bg-green-50/50">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
+                                </svg>
+                                <p class="text-xs text-green-800"><span class="font-semibold">Tip:</span> <span x-text="getWeatherTips()[0]"></span></p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -550,6 +662,80 @@
 
     @push('scripts')
     <script>
+        function dashboardWeather() {
+            return {
+                weatherData: null,
+                weatherLoading: false,
+                weatherError: false,
+                weatherMunicipality: @json($farmerMunicipality ?? 'La Trinidad'),
+
+                initWeather() {
+                    this.loadWeather();
+                },
+
+                async loadWeather() {
+                    this.weatherLoading = true;
+                    this.weatherError = false;
+
+                    try {
+                        const params = new URLSearchParams({ municipality: this.weatherMunicipality });
+                        const response = await fetch(`/api/weather/current?${params}`);
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            throw new Error(data.message || 'Failed to load weather');
+                        }
+
+                        this.weatherData = data.weather;
+                    } catch (error) {
+                        this.weatherError = true;
+                    } finally {
+                        this.weatherLoading = false;
+                    }
+                },
+
+                getWeatherTips() {
+                    const w = this.weatherData;
+                    if (!w) return [];
+
+                    const tips = [];
+                    const rain = w.precipitation_probability_percent || 0;
+                    const humidity = w.humidity_percent || 0;
+                    const uv = w.uv_index || 0;
+                    const windSpeed = w.wind?.speed?.value || 0;
+                    const temp = w.temperature?.value || 0;
+
+                    if (rain > 60) {
+                        tips.push('High chance of rain — postpone pesticide spraying and fertilizer application. Ensure proper field drainage.');
+                    } else if (rain > 30) {
+                        tips.push('Moderate rain expected — good time for transplanting seedlings.');
+                    } else {
+                        tips.push('Low rain probability — check irrigation and water your crops if needed.');
+                    }
+
+                    if (humidity > 80) {
+                        tips.push('High humidity increases risk of fungal diseases — inspect crops for early signs.');
+                    }
+
+                    if (uv > 7) {
+                        tips.push('High UV levels — avoid prolonged field work between 10 AM and 3 PM.');
+                    }
+
+                    if (windSpeed > 25) {
+                        tips.push('Strong winds — secure crop supports and avoid spraying chemicals.');
+                    }
+
+                    if (temp > 30) {
+                        tips.push('Hot temperatures — apply mulch to retain soil moisture and shade young plants.');
+                    } else if (temp < 15) {
+                        tips.push('Cool weather — protect frost-sensitive crops with covers overnight.');
+                    }
+
+                    return tips;
+                }
+            }
+        }
+
         function dashboardModals() {
             return {
                 // Calendar Modal State

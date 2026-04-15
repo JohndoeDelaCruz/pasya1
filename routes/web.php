@@ -53,7 +53,6 @@ Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBrid
 Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(function () {
     Route::get('/dashboard', [FarmerDashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/map', [FarmerMapController::class, 'index'])->name('map');
-    Route::get('/weather', [FarmerDashboardController::class, 'weather'])->name('weather');
     Route::get('/calendar', [FarmerDashboardController::class, 'calendar'])->name('calendar');
     Route::get('/price-watch', [FarmerDashboardController::class, 'priceWatch'])->name('price-watch');
     Route::get('/harvest-history', [FarmerDashboardController::class, 'harvestHistory'])->name('harvest-history');

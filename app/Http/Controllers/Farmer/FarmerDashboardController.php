@@ -55,7 +55,11 @@ class FarmerDashboardController extends Controller
             'announcements_count' => $announcements->count(),
         ];
 
-        return view('farmers.dashboard', compact('announcements', 'events', 'prices', 'stats'));
+        $farmerMunicipality = $farmer->municipality
+            ? ucwords(strtolower($farmer->municipality))
+            : null;
+
+        return view('farmers.dashboard', compact('announcements', 'events', 'prices', 'stats', 'farmerMunicipality'));
     }
 
     /**
