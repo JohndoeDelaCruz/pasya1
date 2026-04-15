@@ -30,7 +30,7 @@
 
         <!-- Crop Production Forecasting Chart -->
         <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-5">
                 <div>
                     <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,23 +38,35 @@
                         </svg>
                         Crop Production Forecasting
                     </h2>
-                    <p class="text-sm text-gray-500 mt-1">Prediction<span class="text-gray-400 ml-2">Jan - June 2025</span></p>
+                    <p class="text-sm text-gray-500 mt-1">
+                        <span class="font-medium text-gray-700">{{ $selectedCrop }}</span>
+                        <span class="text-gray-400 mx-1">&bull;</span>
+                        <span>{{ $selectedMunicipality }}</span>
+                        <span class="text-gray-400 mx-1">&bull;</span>
+                        <span>{{ $selectedFarmType }}</span>
+                        <span class="text-gray-400 mx-1">&bull;</span>
+                        <span>Jan – Jun {{ $currentYear }}</span>
+                    </p>
                 </div>
                 
                 <!-- Legend -->
-                <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-cyan-400"></div>
-                        <span class="text-sm text-gray-600">Historical Production</span>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
+                        <svg width="24" height="10" class="flex-shrink-0">
+                            <line x1="0" y1="5" x2="24" y2="5" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3"/>
+                            <circle cx="12" cy="5" r="3" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/>
+                        </svg>
+                        <span class="text-xs font-medium text-blue-700">Historical</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-sm text-gray-600">Predicted Production</span>
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                        <svg width="24" height="10" class="flex-shrink-0">
+                            <line x1="0" y1="5" x2="24" y2="5" stroke="#16a34a" stroke-width="3"/>
+                            <circle cx="12" cy="5" r="3.5" fill="#16a34a" stroke="#fff" stroke-width="1.5"/>
+                        </svg>
+                        <span class="text-xs font-medium text-green-700">Predicted</span>
                     </div>
                 </div>
             </div>
-            
-            {{-- Data source banner removed as requested --}}
 
             <!-- Forecast Chart -->
             <div class="h-[350px] relative">
@@ -66,54 +78,57 @@
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                     </svg>
-                    <span>Showing comparison for the six months</span>
+                    <span>Historical = avg of yearly totals</span>
                     @if($mlApiHealthy)
-                        <span class="ml-2 text-green-600">• ML-powered predictions</span>
+                        <span class="ml-2 text-green-600 font-medium">&bull; ML-powered predictions</span>
                     @endif
                 </div>
-                <svg class="w-4 h-4 cursor-pointer hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                </svg>
             </div>
         </div>
 
-        <!-- Summary Card Statistics -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6">Summary Statistics</h3>
-            
-            <!-- Monthly Production Chart -->
-            <div class="bg-gray-50 rounded-lg p-6 mb-6">
+        <!-- Summary Statistics -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Monthly Production Chart (spans 2 cols) -->
+            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
-                        <h4 class="font-semibold text-gray-800">Average Monthly Production</h4>
-                        <p class="text-sm text-gray-500">Based on historical data • Production in Metric Tons (mt)</p>
+                        <h3 class="text-lg font-semibold text-gray-800">Average Monthly Production</h3>
+                        <p class="text-sm text-gray-500">{{ $selectedCrop }} • {{ $selectedMunicipality }} • Production in Metric Tons (mt)</p>
                     </div>
                 </div>
-                
-                <!-- Production Bar Chart -->
-                <div class="h-[200px]">
+                <div class="h-[240px]">
                     <canvas id="demandChart"></canvas>
                 </div>
             </div>
 
-            <!-- Top Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Top Stats Column -->
+            <div class="space-y-6">
                 <!-- Top 3 Most Productive Years -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h5 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-white rounded-xl shadow-md p-5">
+                    <h5 class="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
+                        <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
                         </svg>
-                        Top 3 Most Productive Years
+                        Top 3 Productive Years
                     </h5>
-                    <ol class="space-y-2">
+                    <ol class="space-y-3">
                         @forelse($topYearsWithProduction as $index => $item)
-                            <li class="flex items-center justify-between text-gray-700">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
-                                    <span class="font-medium">{{ $item['year'] }}</span>
+                            @php
+                                $maxProd = $topYearsWithProduction[0]['production'] ?? 1;
+                                $pct = $maxProd > 0 ? round(($item['production'] / $maxProd) * 100) : 0;
+                                $colors = ['bg-amber-500', 'bg-amber-400', 'bg-amber-300'];
+                            @endphp
+                            <li>
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 flex items-center justify-center rounded-full {{ $colors[$index] ?? 'bg-gray-300' }} text-white text-xs font-bold">{{ $index + 1 }}</span>
+                                        <span class="font-semibold text-gray-800">{{ $item['year'] }}</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-600">{{ number_format($item['production'], 0) }} mt</span>
                                 </div>
-                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} mt</span>
+                                <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                    <div class="{{ $colors[$index] ?? 'bg-gray-300' }} h-1.5 rounded-full" style="width: {{ $pct }}%"></div>
+                                </div>
                             </li>
                         @empty
                             <li class="text-gray-500 text-sm">No data available</li>
@@ -122,21 +137,31 @@
                 </div>
 
                 <!-- Top 3 Most Productive Crops -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h5 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-white rounded-xl shadow-md p-5">
+                    <h5 class="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
+                        <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
                         </svg>
-                        Top 3 Most Productive Crops
+                        Top 3 Productive Crops
                     </h5>
-                    <ol class="space-y-2">
+                    <ol class="space-y-3">
                         @forelse($topCropsWithProduction as $index => $item)
-                            <li class="flex items-center justify-between text-gray-700">
-                                <div class="flex items-center gap-2">
-                                    <span class="font-semibold text-green-600">{{ $index + 1 }}.</span>
-                                    <span class="font-medium">{{ $item['crop'] }}</span>
+                            @php
+                                $maxCropProd = $topCropsWithProduction[0]['production'] ?? 1;
+                                $cropPct = $maxCropProd > 0 ? round(($item['production'] / $maxCropProd) * 100) : 0;
+                                $cropColors = ['bg-green-500', 'bg-green-400', 'bg-green-300'];
+                            @endphp
+                            <li>
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-5 h-5 flex items-center justify-center rounded-full {{ $cropColors[$index] ?? 'bg-gray-300' }} text-white text-xs font-bold">{{ $index + 1 }}</span>
+                                        <span class="font-semibold text-gray-800">{{ $item['crop'] }}</span>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-600">{{ number_format($item['production'], 0) }} mt</span>
                                 </div>
-                                <span class="text-sm text-gray-500">{{ number_format($item['production'], 0) }} mt</span>
+                                <div class="w-full bg-gray-100 rounded-full h-1.5">
+                                    <div class="{{ $cropColors[$index] ?? 'bg-gray-300' }} h-1.5 rounded-full" style="width: {{ $cropPct }}%"></div>
+                                </div>
                             </li>
                         @empty
                             <li class="text-gray-500 text-sm">No data available</li>
@@ -376,6 +401,11 @@
 
                     console.log('- Month Labels:', monthLabels);
 
+                    // Gradient for predicted line
+                    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, ctx.parentElement.clientHeight || 350);
+                    gradient.addColorStop(0, 'rgba(22, 163, 74, 0.25)');
+                    gradient.addColorStop(1, 'rgba(22, 163, 74, 0.02)');
+
                     new Chart(ctx, {
                         type: 'line',
                         data: {
@@ -384,24 +414,33 @@
                                 {
                                     label: 'Historical Production (mt)',
                                     data: historical,
-                                    borderColor: 'rgb(34, 211, 238)',
-                                    backgroundColor: 'rgba(34, 211, 238, 0.1)',
-                                    borderWidth: 3,
+                                    borderColor: 'rgb(59, 130, 246)',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.06)',
+                                    borderWidth: 2.5,
+                                    borderDash: [6, 4],
                                     tension: 0.4,
                                     fill: true,
-                                    pointRadius: 5,
-                                    pointHoverRadius: 8
+                                    pointStyle: 'rectRot',
+                                    pointRadius: 6,
+                                    pointHoverRadius: 9,
+                                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2
                                 },
                                 {
                                     label: 'Predicted Production (mt)',
                                     data: predicted,
-                                    borderColor: 'rgb(34, 197, 94)',
-                                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                    borderColor: 'rgb(22, 163, 74)',
+                                    backgroundColor: gradient,
                                     borderWidth: 3,
                                     tension: 0.4,
                                     fill: true,
+                                    pointStyle: 'circle',
                                     pointRadius: 5,
-                                    pointHoverRadius: 8
+                                    pointHoverRadius: 9,
+                                    pointBackgroundColor: 'rgb(22, 163, 74)',
+                                    pointBorderColor: '#fff',
+                                    pointBorderWidth: 2
                                 }
                             ]
                         },
@@ -424,15 +463,45 @@
                                     display: false
                                 },
                                 tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 12,
-                                    titleFont: { size: 13 },
-                                    bodyFont: { size: 12 }
+                                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                    padding: 14,
+                                    titleFont: { size: 13, weight: 'bold' },
+                                    bodyFont: { size: 12 },
+                                    cornerRadius: 8,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: function(items) {
+                                            return items[0].label + ' Production';
+                                        },
+                                        label: function(context) {
+                                            const icon = context.datasetIndex === 0 ? '◆' : '●';
+                                            return icon + ' ' + context.dataset.label.replace(' (mt)', '') + ': ' + context.parsed.y.toFixed(2) + ' mt';
+                                        },
+                                        afterBody: function(items) {
+                                            if (items.length >= 2) {
+                                                const hist = items[0].parsed.y;
+                                                const pred = items[1].parsed.y;
+                                                if (hist && pred) {
+                                                    const diff = pred - hist;
+                                                    const pct = hist !== 0 ? ((diff / hist) * 100).toFixed(1) : 'N/A';
+                                                    const arrow = diff >= 0 ? '▲' : '▼';
+                                                    return ['', arrow + ' Difference: ' + diff.toFixed(2) + ' mt (' + pct + '%)'];
+                                                }
+                                            }
+                                            return [];
+                                        }
+                                    }
                                 }
                             },
                             scales: {
                                 y: {
                                     beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Production (mt)',
+                                        font: { size: 11, weight: 'bold' },
+                                        color: '#6b7280'
+                                    },
                                     grid: {
                                         color: 'rgba(0, 0, 0, 0.05)'
                                     },
@@ -445,7 +514,7 @@
                                         display: false
                                     },
                                     ticks: {
-                                        font: { size: 11 }
+                                        font: { size: 11, weight: '500' }
                                     }
                                 }
                             }
@@ -465,6 +534,24 @@
                         return monthMap[m] || m;
                     });
 
+                    // Gradient bars
+                    const barColors = [
+                        'rgba(34, 197, 94, 0.85)',
+                        'rgba(16, 185, 129, 0.85)',
+                        'rgba(20, 184, 166, 0.85)',
+                        'rgba(6, 182, 212, 0.85)',
+                        'rgba(59, 130, 246, 0.85)',
+                        'rgba(99, 102, 241, 0.85)'
+                    ];
+                    const barBorders = [
+                        'rgb(34, 197, 94)',
+                        'rgb(16, 185, 129)',
+                        'rgb(20, 184, 166)',
+                        'rgb(6, 182, 212)',
+                        'rgb(59, 130, 246)',
+                        'rgb(99, 102, 241)'
+                    ];
+
                     new Chart(ctx, {
                         type: 'bar',
                         data: {
@@ -473,8 +560,10 @@
                                 {
                                     label: 'Avg Production (mt)',
                                     data: productionData,
-                                    backgroundColor: 'rgb(34, 197, 94)',
-                                    borderRadius: 4,
+                                    backgroundColor: barColors.slice(0, productionData.length),
+                                    borderColor: barBorders.slice(0, productionData.length),
+                                    borderWidth: 1.5,
+                                    borderRadius: 6,
                                     barThickness: 30
                                 }
                             ]
