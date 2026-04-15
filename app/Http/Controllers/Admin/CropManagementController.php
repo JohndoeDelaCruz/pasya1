@@ -257,6 +257,14 @@ class CropManagementController extends Controller
     public function destroyCropType(CropType $cropType)
     {
         $name = $cropType->name;
+
+        // Check if any crop plans reference this crop type
+        $planCount = \App\Models\CropPlan::where('crop_type_id', $cropType->id)->count();
+        if ($planCount > 0) {
+            return redirect()->route('admin.crop-management.index')
+                ->with('error', 'Cannot delete "' . $name . '": ' . $planCount . ' crop plan(s) are using this crop type. Archive it instead.');
+        }
+
         $cropType->delete();
 
         return redirect()->route('admin.crop-management.index')

@@ -961,7 +961,8 @@
                         this.isDeleting = true;
 
                         try {
-                            const response = await fetch('/pasya1/public/farmer/api/crop-plans/' + cropPlanId, {
+                            const deleteBaseUrl = '{{ route("farmers.api.crop-plans.destroy", ":id") }}'.replace(':id', cropPlanId);
+                            const response = await fetch(deleteBaseUrl, {
                                 method: 'DELETE',
                                 headers: {
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
