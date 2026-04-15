@@ -32,11 +32,11 @@
                 </a>
                 @if($stats['total_records'] > 0)
                 <button onclick="confirmDeleteAll()" 
-                   class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                   class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                     </svg>
-                    Delete All Data
+                    Archive All Data
                 </button>
                 @endif
             </div>
@@ -201,11 +201,11 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Municipality</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crop</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farm Type</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
+                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Area Harvested (ha)</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Production (mt)</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity (mt/ha)</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -214,22 +214,31 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{{ $crop->municipality_display }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->crop_display }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->farm_type_display }}</td></td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->year }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->month }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->area_planted, 2) }} </td>
-                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->production, 2) }} </td>
-                                <td class=\"px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right\">{{ number_format($crop->productivity, 2) }} mt/ha</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{{ $crop->farm_type_display }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-center">{{ $crop->year }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-center">{{ $crop->month }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->area_harvested, 2) }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->production, 2) }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 text-right">{{ number_format($crop->productivity, 2) }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
-                                    <form action="{{ route('admin.crop-data.destroy', $crop) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this crop record?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 transition">
+                                    <div class="flex items-center justify-center gap-2">
+                                        {{-- Edit --}}
+                                        <a href="{{ route('admin.crop-data.edit', $crop) }}" class="text-blue-600 hover:text-blue-800 transition" title="Edit">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                             </svg>
-                                        </button>
-                                    </form>
+                                        </a>
+                                        {{-- Archive --}}
+                                        <form action="{{ route('admin.crop-data.destroy', $crop) }}" method="POST" class="inline" onsubmit="return confirm('Archive this crop record? You can restore it later.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-amber-500 hover:text-amber-700 transition" title="Archive">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -417,7 +426,7 @@
         }
 
         function confirmDeleteAll() {
-            if (confirm('⚠️ WARNING: This will permanently delete ALL crop data ({{ number_format($stats['total_records']) }} records).\n\nThis action CANNOT be undone!\n\nAre you absolutely sure you want to continue?')) {
+            if (confirm('⚠️ WARNING: This will archive ALL crop data ({{ number_format($stats['total_records']) }} records).\n\nArchived records can be restored later.\n\nAre you sure you want to continue?')) {
                 // Create and submit form for delete all
                 const form = document.createElement('form');
                 form.method = 'POST';

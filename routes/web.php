@@ -105,6 +105,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('/crop-data/import', [CropDataController::class, 'import'])->name('crop-data.import');
     Route::post('/crop-data/store', [CropDataController::class, 'store'])->name('crop-data.store');
     Route::get('/crop-statistics', [CropDataController::class, 'statistics'])->name('crop-statistics');
+    Route::get('/crop-data/{crop}/edit', [CropDataController::class, 'edit'])->name('crop-data.edit');
+    Route::put('/crop-data/{crop}', [CropDataController::class, 'update'])->name('crop-data.update');
+    Route::post('/crop-data/{id}/restore', [CropDataController::class, 'restore'])->name('crop-data.restore');
     Route::delete('/crop-data/{crop}', [CropDataController::class, 'destroy'])->name('crop-data.destroy');
     Route::delete('/crop-data', [CropDataController::class, 'deleteAll'])->name('crop-data.delete-all');
     

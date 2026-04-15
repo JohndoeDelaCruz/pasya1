@@ -260,23 +260,79 @@ class CropDataController extends Controller
     }
 
     /**
-     * Delete a crop record
+     * Archive (soft delete) a crop record
      */
     public function destroy(Crop $crop)
     {
         $crop->delete();
-        return back()->with('success', 'Crop record deleted successfully!');
+        return back()->with('success', 'Crop record archived successfully!');
     }
 
     /**
-     * Delete all crop records
+     * Show edit form for a crop record
+     */
+    public function edit(Crop $crop)
+    {
+        $filters = [
+            'municipalities' => \App\Models\Municipality::active()->orderBy('name')->pluck('name'),
+            'crops' => \App\Models\CropType::active()->orderBy('name')->pluck('name'),
+        ];
+
+        return view('admin.crop-data-edit', compact('crop', 'filters'));
+    }
+
+    /**
+     * Update a crop record
+     */
+    public function update(Request $request, Crop $crop)
+    {
+        $validated = $request->validate([
+            'municipality' => 'required|string|max:255',
+            'farm_type' => 'required|string|max:255',
+            'year' => 'required|integer|min:2000|max:' . (date('Y') + 1),
+            'month' => 'required|string|max:50',
+            'crop' => 'required|string|max:255',
+            'area_planted' => 'required|numeric|min:0',
+            'area_harvested' => 'required|numeric|min:0',
+            'production' => 'required|numeric|min:0',
+            'productivity' => 'nullable|numeric|min:0',
+        ]);
+
+        // Recalculate productivity if not provided
+        if (!isset($validated['productivity']) || $validated['productivity'] == 0) {
+            if ($validated['area_harvested'] > 0) {
+                $validated['productivity'] = round($validated['production'] / $validated['area_harvested'], 2);
+            } else {
+                $validated['productivity'] = 0;
+            }
+        }
+
+        $crop->update($validated);
+
+        return redirect()->route('admin.crop-data.index')
+            ->with('success', 'Crop record updated successfully!');
+    }
+
+    /**
+     * Restore an archived crop record
+     */
+    public function restore($id)
+    {
+        $crop = Crop::onlyTrashed()->findOrFail($id);
+        $crop->restore();
+
+        return back()->with('success', 'Crop record restored successfully!');
+    }
+
+    /**
+     * Archive all crop records (soft delete)
      */
     public function deleteAll()
     {
         $count = Crop::count();
-        Crop::truncate();
+        Crop::query()->delete();
         
-        return back()->with('success', "Successfully deleted {$count} crop records!");
+        return back()->with('success', "Successfully archived {$count} crop records!");
     }
 
     /**
