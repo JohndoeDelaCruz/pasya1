@@ -54,136 +54,72 @@
         </div>
 
         <!-- Filter Bar -->
-        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-section-card p-4 lg:p-5">
-            <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 class="admin-section-title">Filters</h2>
-                    <p class="admin-section-subtitle">Refine production data by crop, location, period, and farm type.</p>
-                </div>
-                <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors whitespace-nowrap">
-                    Reset All
-                </a>
-            </div>
-
-            <div class="admin-filter-grid">
-                <!-- Crop Filter -->
-                <div class="admin-filter-field relative">
-                    <label for="cropFilter">Crop</label>
-                    <select name="crop"
-                            id="cropFilter"
-                            onchange="handleCropFilterChange()"
-                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
-                        <option value="">All crops</option>
-                        @foreach(App\Models\Crop::select('crop')->distinct()->orderBy('crop')->pluck('crop') as $crop)
-                            <option value="{{ $crop }}" {{ request('crop') == $crop ? 'selected' : '' }}>
-                                {{ ucwords(strtolower($crop)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
+        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-section-card p-4">
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    Filters
                 </div>
 
-                <!-- Municipality Filter -->
-                <div class="admin-filter-field relative">
-                    <label for="municipalityFilter">Municipality</label>
-                    <select name="municipality"
-                            id="municipalityFilter"
-                            onchange="handleMunicipalityFilterChange()"
-                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
-                        <option value="">All municipalities</option>
-                        @foreach($allMunicipalities as $municipality)
-                            <option value="{{ $municipality }}" {{ $filterMunicipality == $municipality ? 'selected' : '' }}>
-                                {{ ucwords(strtolower($municipality)) }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
-                </div>
+                <select name="crop" id="cropFilter" onchange="document.getElementById('filterForm').submit()"
+                    class="min-w-[130px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    <option value="">All crops</option>
+                    @foreach(App\Models\Crop::select('crop')->distinct()->orderBy('crop')->pluck('crop') as $crop)
+                        <option value="{{ $crop }}" {{ request('crop') == $crop ? 'selected' : '' }}>{{ ucwords(strtolower($crop)) }}</option>
+                    @endforeach
+                </select>
 
-                <!-- Month Filter -->
-                <div class="admin-filter-field relative">
-                    <label for="monthFilter">Month</label>
-                    <select name="month"
-                            id="monthFilter"
-                            onchange="document.getElementById('filterForm').submit()"
-                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
-                        <option value="">All months</option>
-                        <option value="JAN" {{ $filterMonth == 'JAN' ? 'selected' : '' }}>January</option>
-                        <option value="FEB" {{ $filterMonth == 'FEB' ? 'selected' : '' }}>February</option>
-                        <option value="MAR" {{ $filterMonth == 'MAR' ? 'selected' : '' }}>March</option>
-                        <option value="APR" {{ $filterMonth == 'APR' ? 'selected' : '' }}>April</option>
-                        <option value="MAY" {{ $filterMonth == 'MAY' ? 'selected' : '' }}>May</option>
-                        <option value="JUN" {{ $filterMonth == 'JUN' ? 'selected' : '' }}>June</option>
-                        <option value="JUL" {{ $filterMonth == 'JUL' ? 'selected' : '' }}>July</option>
-                        <option value="AUG" {{ $filterMonth == 'AUG' ? 'selected' : '' }}>August</option>
-                        <option value="SEP" {{ $filterMonth == 'SEP' ? 'selected' : '' }}>September</option>
-                        <option value="OCT" {{ $filterMonth == 'OCT' ? 'selected' : '' }}>October</option>
-                        <option value="NOV" {{ $filterMonth == 'NOV' ? 'selected' : '' }}>November</option>
-                        <option value="DEC" {{ $filterMonth == 'DEC' ? 'selected' : '' }}>December</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
-                </div>
+                <select name="municipality" id="municipalityFilter" onchange="document.getElementById('filterForm').submit()"
+                    class="min-w-[150px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    <option value="">All municipalities</option>
+                    @foreach($allMunicipalities as $municipality)
+                        <option value="{{ $municipality }}" {{ $filterMunicipality == $municipality ? 'selected' : '' }}>{{ ucwords(strtolower($municipality)) }}</option>
+                    @endforeach
+                </select>
 
-                <!-- Year Filter -->
-                <div class="admin-filter-field relative">
-                    <label for="yearFilter">Year</label>
-                    <select name="year"
-                            id="yearFilter"
-                            onchange="handleYearFilterChange()"
-                            class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
-                        <option value="">All years</option>
-                        @foreach($allYears as $year)
-                            <option value="{{ $year }}" {{ $filterYear == $year ? 'selected' : '' }}>{{ $year }}</option>
-                        @endforeach
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
-                </div>
+                <select name="month" id="monthFilter" onchange="document.getElementById('filterForm').submit()"
+                    class="min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    <option value="">All months</option>
+                    @foreach(['JAN'=>'Jan','FEB'=>'Feb','MAR'=>'Mar','APR'=>'Apr','MAY'=>'May','JUN'=>'Jun','JUL'=>'Jul','AUG'=>'Aug','SEP'=>'Sep','OCT'=>'Oct','NOV'=>'Nov','DEC'=>'Dec'] as $code => $name)
+                        <option value="{{ $code }}" {{ $filterMonth == $code ? 'selected' : '' }}>{{ $name }}</option>
+                    @endforeach
+                </select>
 
-                <!-- Farm Type Filter -->
-                <div class="admin-filter-field relative">
-                    <label for="farmTypeFilter">Farm Type</label>
-                    <select id="farmTypeFilter" name="farm_type" onchange="document.getElementById('filterForm').submit()" class="appearance-none w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 cursor-pointer">
-                        <option value="">All types</option>
-                        <option value="RAINFED" {{ $filterFarmType == 'RAINFED' ? 'selected' : '' }}>Rainfed</option>
-                        <option value="IRRIGATED" {{ $filterFarmType == 'IRRIGATED' ? 'selected' : '' }}>Irrigated</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 top-6 flex items-center px-3 text-gray-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
-                </div>
+                <select name="year" id="yearFilter" onchange="document.getElementById('filterForm').submit()"
+                    class="min-w-[100px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    <option value="">All years</option>
+                    @foreach($allYears as $year)
+                        <option value="{{ $year }}" {{ $filterYear == $year ? 'selected' : '' }}>{{ $year }}</option>
+                    @endforeach
+                </select>
+
+                <select name="farm_type" id="farmTypeFilter" onchange="document.getElementById('filterForm').submit()"
+                    class="min-w-[110px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    <option value="">All types</option>
+                    <option value="RAINFED" {{ $filterFarmType == 'RAINFED' ? 'selected' : '' }}>Rainfed</option>
+                    <option value="IRRIGATED" {{ $filterFarmType == 'IRRIGATED' ? 'selected' : '' }}>Irrigated</option>
+                </select>
+
+                @if($filterCrop || $filterMunicipality || $filterMonth || $filterYear || $filterFarmType)
+                    <a href="{{ route('admin.dashboard') }}" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-lg transition-colors">
+                        Reset
+                    </a>
+                @endif
             </div>
 
             @if($filterMunicipality)
-                <div class="mt-4 flex flex-wrap items-center gap-3">
+                <div class="mt-3 flex items-center gap-3">
                     <button type="button"
                             @click="toggleMunicipalityModal()"
-                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors shadow-sm">
+                            class="inline-flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        <span x-text="showMunicipalityModal ? 'Hide Municipality Details' : 'View Municipality Details'"></span>
+                        <span x-text="showMunicipalityModal ? 'Hide Details' : 'Municipality Details'"></span>
                     </button>
-                    <p class="text-sm text-gray-600">
-                        Focused on <span class="font-semibold text-gray-800">{{ ucwords(strtolower($filterMunicipality)) }}</span>.
-                    </p>
+                    <p class="text-sm text-gray-500">Showing <span class="font-semibold text-gray-800">{{ ucwords(strtolower($filterMunicipality)) }}</span></p>
                 </div>
             @endif
         </form>
@@ -1409,39 +1345,19 @@
 
                     const hasYearLabels = chartData.labels.every((label) => /^\d{4}$/.test(String(label)));
                     
-                    // Modern chart styling with enhanced visual effects
-                    const isSingleDataset = chartData.datasets.length === 1;
+                    // Bar chart styling
                     chartData.datasets = chartData.datasets.map((dataset, index) => {
-                        // Extract RGB values for gradient
-                        const colorMatch = dataset.borderColor ? dataset.borderColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/) : null;
-                        const r = colorMatch ? colorMatch[1] : '16';
-                        const g = colorMatch ? colorMatch[2] : '185';
-                        const b = colorMatch ? colorMatch[3] : '129';
-                        
                         return {
                             ...dataset,
-                            borderWidth: 3,
-                            pointRadius: 6,
-                            pointHoverRadius: 12,
-                            pointHitRadius: 20,
-                            pointBackgroundColor: dataset.borderColor || 'rgb(' + r + ', ' + g + ', ' + b + ')',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointHoverBackgroundColor: '#ffffff',
-                            pointHoverBorderColor: dataset.borderColor || 'rgb(' + r + ', ' + g + ', ' + b + ')',
-                            pointHoverBorderWidth: 3,
-                            fill: isSingleDataset ? 'origin' : false,
-                            backgroundColor: isSingleDataset 
-                                ? 'rgba(' + r + ', ' + g + ', ' + b + ', 0.12)' 
-                                : 'transparent',
-                            tension: 0.35,
-                            borderCapStyle: 'round',
-                            borderJoinStyle: 'round'
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            maxBarThickness: 48,
+                            borderSkipped: false,
                         };
                     });
                     
                     trendChartInstance = new Chart(ctx, {
-                        type: 'line',
+                        type: 'bar',
                         data: chartData,
                         options: {
                             responsive: true,
@@ -1476,7 +1392,7 @@
                                 },
                                 tooltip: {
                                     mode: 'nearest',
-                                    intersect: true,
+                                    intersect: false,
                                     backgroundColor: 'rgba(15, 23, 42, 0.96)',
                                     titleColor: '#f8fafc',
                                     bodyColor: '#e2e8f0',
@@ -1635,8 +1551,8 @@
                                 }
                             },
                             interaction: {
-                                mode: 'point',
-                                intersect: true
+                                mode: 'nearest',
+                                intersect: false
                             },
                             onHover: function(event, elements) {
                                 const nativeEvent = event?.native;

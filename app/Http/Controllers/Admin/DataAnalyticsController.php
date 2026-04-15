@@ -141,11 +141,8 @@ class DataAnalyticsController extends Controller
                     'data' => $cropProduction,
                     'backgroundColor' => array_slice($colors, 0, count($cropLabels)),
                     'borderColor' => array_slice($colors, 0, count($cropLabels)),
-                    'borderWidth' => 3,
-                    'tension' => 0.4,
-                    'fill' => false,
-                    'pointRadius' => 6,
-                    'pointHoverRadius' => 9
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
                 ]]
             ];
         }
@@ -198,13 +195,10 @@ class DataAnalyticsController extends Controller
                 $datasets[] = [
                     'label' => ucwords(strtolower($municipality)),
                     'data' => $data,
+                    'backgroundColor' => $this->getMunicipalityColor($municipality),
                     'borderColor' => $this->getMunicipalityColor($municipality),
-                    'backgroundColor' => 'transparent',
-                    'borderWidth' => 2,
-                    'tension' => 0.4,
-                    'fill' => false,
-                    'pointRadius' => 4,
-                    'pointHoverRadius' => 7
+                    'borderWidth' => 1,
+                    'borderRadius' => 4,
                 ];
             }
 
@@ -268,13 +262,10 @@ class DataAnalyticsController extends Controller
                 $datasets[] = [
                     'label' => $municipality,
                     'data' => $data,
+                    'backgroundColor' => $this->getMunicipalityColor($municipality),
                     'borderColor' => $this->getMunicipalityColor($municipality),
-                    'backgroundColor' => 'transparent',
-                    'borderWidth' => 2,
-                    'tension' => 0.4,
-                    'fill' => false,
-                    'pointRadius' => 4,
-                    'pointHoverRadius' => 7
+                    'borderWidth' => 1,
+                    'borderRadius' => 4,
                 ];
             }
 
@@ -325,16 +316,10 @@ class DataAnalyticsController extends Controller
                 'datasets' => [[
                     'label' => ucwords(strtolower($filters['crop'])) . ' - ' . $filters['municipality'] . ' (' . $filters['year'] . ')',
                     'data' => $monthData,
+                    'backgroundColor' => 'rgba(16, 185, 129, 0.85)',
                     'borderColor' => 'rgb(16, 185, 129)',
-                    'backgroundColor' => 'rgba(16, 185, 129, 0.15)',
-                    'borderWidth' => 3,
-                    'tension' => 0.4,
-                    'fill' => true,
-                    'pointRadius' => 6,
-                    'pointHoverRadius' => 10,
-                    'pointBackgroundColor' => 'rgb(16, 185, 129)',
-                    'pointBorderColor' => '#fff',
-                    'pointBorderWidth' => 2
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
                 ]]
             ];
         }
@@ -384,16 +369,10 @@ class DataAnalyticsController extends Controller
                 'datasets' => [[
                     'label' => $filters['municipality'] . ' (' . $filters['year'] . ')',
                     'data' => $monthData,
+                    'backgroundColor' => 'rgba(59, 130, 246, 0.85)',
                     'borderColor' => 'rgb(59, 130, 246)',
-                    'backgroundColor' => 'rgba(59, 130, 246, 0.15)',
-                    'borderWidth' => 3,
-                    'tension' => 0.4,
-                    'fill' => true,
-                    'pointRadius' => 6,
-                    'pointHoverRadius' => 10,
-                    'pointBackgroundColor' => 'rgb(59, 130, 246)',
-                    'pointBorderColor' => '#fff',
-                    'pointBorderWidth' => 2
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
                 ]]
             ];
         } else {
@@ -412,13 +391,10 @@ class DataAnalyticsController extends Controller
                 $datasets[] = [
                     'label' => $municipality,
                     'data' => $data,
+                    'backgroundColor' => $this->getMunicipalityColor($municipality),
                     'borderColor' => $this->getMunicipalityColor($municipality),
-                    'backgroundColor' => 'transparent',
-                    'borderWidth' => 2,
-                    'tension' => 0.4,
-                    'fill' => false,
-                    'pointRadius' => 4,
-                    'pointHoverRadius' => 7
+                    'borderWidth' => 1,
+                    'borderRadius' => 4,
                 ];
             }
 
