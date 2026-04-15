@@ -312,6 +312,17 @@ class DataAnalyticsController extends Controller
             ];
         }
 
+        // Determine chart mode based on filters
+        if ($filters['crop'] && $filters['municipality'] && $filters['year']) {
+            $chartMode = 'monthly_crop';
+        } elseif ($filters['municipality'] && $filters['year'] && $filters['month'] && !$filters['crop']) {
+            $chartMode = 'crop_breakdown';
+        } elseif ($filters['municipality'] && $filters['year']) {
+            $chartMode = 'monthly';
+        } else {
+            $chartMode = 'yearly'; // municipality ranking
+        }
+
         // Debug: Log chart data structure
         \Log::info('Chart Data Debug:', [
             'chart_mode' => $chartMode,
@@ -346,17 +357,6 @@ class DataAnalyticsController extends Controller
 
         // Calculate metrics
         $metrics = $this->calculateMetrics($query);
-
-        // Determine chart mode based on filters
-        if ($filters['crop'] && $filters['municipality'] && $filters['year']) {
-            $chartMode = 'monthly_crop';
-        } elseif ($filters['municipality'] && $filters['year'] && $filters['month'] && !$filters['crop']) {
-            $chartMode = 'crop_breakdown';
-        } elseif ($filters['municipality'] && $filters['year']) {
-            $chartMode = 'monthly';
-        } else {
-            $chartMode = 'yearly'; // municipality ranking
-        }
 
         // Calculate trend percentage based on chart data and filters
         $trendPercentage = $this->calculateTrendFromChartData($chartData, $chartMode, $filters);
