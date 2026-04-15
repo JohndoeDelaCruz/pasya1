@@ -1040,11 +1040,6 @@
 
                     globalChartData = chartData;
                 }
-                    });
-                    
-                    // Store chart data globally
-                    globalChartData = chartData;
-                }
             }
         }
         
