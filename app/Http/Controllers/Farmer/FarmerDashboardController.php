@@ -90,6 +90,25 @@ class FarmerDashboardController extends Controller
     }
 
     /**
+     * Show the weather monitoring page for farmers
+     */
+    public function weather()
+    {
+        $farmer = Auth::guard('farmer')->user();
+        $farmerMunicipality = $farmer->municipality
+            ? ucwords(strtolower($farmer->municipality))
+            : null;
+
+        $municipalities = \App\Models\Municipality::active()
+            ->orderBy('name')
+            ->pluck('name')
+            ->map(fn($name) => ucwords(strtolower($name)))
+            ->values();
+
+        return view('farmers.weather', compact('municipalities', 'farmerMunicipality'));
+    }
+
+    /**
      * Show the help and support page
      */
     public function help()

@@ -97,6 +97,15 @@
                         </a>
                     </div>
 
+                    <div class="px-4 mb-6">
+                        <a href="{{ route('admin.weather') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.weather') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z"/>
+                            </svg>
+                            <span class="font-medium">Weather Monitoring</span>
+                        </a>
+                    </div>
+
                     <!-- Management Section -->
                     <div class="px-4 mb-6">
                         <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Management</h4>
