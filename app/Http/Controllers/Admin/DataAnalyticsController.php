@@ -146,132 +146,48 @@ class DataAnalyticsController extends Controller
                 ]]
             ];
         }
-        // If filtering by month (with or without year), show municipalities as separate lines for each crop
+        // If filtering by month only, show municipality ranking for that month
         elseif ($filters['month'] && !$filters['municipality'] && !$filters['crop']) {
-            // Get all municipalities for this month/year
-            $municipalitiesInPeriod = (clone $query)
-                ->select('municipality')
-                ->distinct()
-                ->orderBy('municipality')
-                ->pluck('municipality');
-
-            // Get top 10 crops for this period to use as X-axis labels
-            $topCrops = (clone $query)
-                ->select('crop', DB::raw('SUM(production) as total_production'))
-                ->groupBy('crop')
+            $municipalityRanking = (clone $query)
+                ->select('municipality', DB::raw('SUM(production) as total_production'))
+                ->groupBy('municipality')
                 ->orderByDesc('total_production')
-                ->limit(10)
-                ->pluck('crop');
-
-            // Get data grouped by municipality and crop
-            $dataByCropAndMunicipality = (clone $query)
-                ->whereIn('crop', $topCrops)
-                ->select(
-                    'municipality',
-                    'crop',
-                    DB::raw('SUM(production) as total_production')
-                )
-                ->groupBy('municipality', 'crop')
                 ->get();
 
-            // Prepare crop labels (X-axis)
-            $cropLabels = $topCrops->map(function($crop) {
-                return ucwords(strtolower($crop));
-            })->toArray();
-
-            // Create datasets - one line per municipality
-            $datasets = [];
-            foreach ($municipalitiesInPeriod as $index => $municipality) {
-                $data = [];
-                
-                // For each crop, get this municipality's production
-                foreach ($topCrops as $crop) {
-                    $municipalityData = $dataByCropAndMunicipality->where('municipality', $municipality)
-                        ->where('crop', $crop)
-                        ->first();
-                    $data[] = $municipalityData ? round($municipalityData->total_production, 2) : 0;
-                }
-
-                $datasets[] = [
-                    'label' => ucwords(strtolower($municipality)),
-                    'data' => $data,
-                    'backgroundColor' => $this->getMunicipalityColor($municipality),
-                    'borderColor' => $this->getMunicipalityColor($municipality),
-                    'borderWidth' => 1,
-                    'borderRadius' => 4,
-                ];
-            }
-
             $chartData = [
-                'labels' => $cropLabels,
-                'datasets' => $datasets
+                'labels' => $municipalityRanking->map(fn($m) => ucwords(strtolower($m->municipality)))->toArray(),
+                'datasets' => [[
+                    'label' => 'Production',
+                    'data' => $municipalityRanking->map(fn($m) => round($m->total_production, 2))->toArray(),
+                    'backgroundColor' => $municipalityRanking->map(fn($m) => $this->getMunicipalityColor($m->municipality))->toArray(),
+                    'borderColor' => $municipalityRanking->map(fn($m) => $this->getMunicipalityColor($m->municipality))->toArray(),
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
+                ]]
             ];
         }
-        // If filtering by year only (no municipality), show monthly data for each municipality
+        // If filtering by year only (no municipality), show municipality ranking for that year
         elseif ($filters['year'] && !$filters['municipality']) {
-            // Create a fresh query without the month filter to show all 12 months
-            $yearQuery = Crop::query()
-                ->where('year', $filters['year']);
-            
-            // Apply crop filter if present
-            if ($filters['crop']) {
-                $yearQuery->where('crop', $filters['crop']);
-            }
-            
-            // Apply farm_type filter if present
-            if ($filters['farm_type']) {
-                $yearQuery->where('farm_type', $filters['farm_type']);
-            }
-            
-            // Get all municipalities for this year
-            $municipalitiesInYear = (clone $yearQuery)
-                ->select('municipality')
-                ->distinct()
-                ->orderBy('municipality')
-                ->pluck('municipality');
+            $yearQuery = Crop::query()->where('year', $filters['year']);
+            if ($filters['crop']) { $yearQuery->where('crop', $filters['crop']); }
+            if ($filters['farm_type']) { $yearQuery->where('farm_type', $filters['farm_type']); }
 
-            // Get monthly data grouped by municipality
-            $monthlyByMunicipality = (clone $yearQuery)
-                ->select(
-                    'municipality',
-                    'month',
-                    DB::raw('SUM(production) as total_production')
-                )
-                ->groupBy('municipality', 'month')
-                ->orderByRaw(self::MONTH_ORDER_SQL)
+            $municipalityRanking = $yearQuery
+                ->select('municipality', DB::raw('SUM(production) as total_production'))
+                ->groupBy('municipality')
+                ->orderByDesc('total_production')
                 ->get();
 
-            $monthNames = ['JAN' => 'Jan', 'FEB' => 'Feb', 'MAR' => 'Mar', 'APR' => 'Apr', 
-                           'MAY' => 'May', 'JUN' => 'Jun', 'JUL' => 'Jul', 'AUG' => 'Aug',
-                           'SEP' => 'Sep', 'OCT' => 'Oct', 'NOV' => 'Nov', 'DEC' => 'Dec'];
-            
-            // Create month labels
-            $monthLabels = array_values($monthNames);
-
-            $datasets = [];
-            foreach ($municipalitiesInYear as $index => $municipality) {
-                $municipalityData = $monthlyByMunicipality->where('municipality', $municipality);
-                $data = [];
-                
-                // Fill in data for each month
-                foreach (array_keys($monthNames) as $monthCode) {
-                    $monthRecord = $municipalityData->where('month', $monthCode)->first();
-                    $data[] = $monthRecord ? round($monthRecord->total_production, 2) : 0;
-                }
-
-                $datasets[] = [
-                    'label' => $municipality,
-                    'data' => $data,
-                    'backgroundColor' => $this->getMunicipalityColor($municipality),
-                    'borderColor' => $this->getMunicipalityColor($municipality),
-                    'borderWidth' => 1,
-                    'borderRadius' => 4,
-                ];
-            }
-
             $chartData = [
-                'labels' => $monthLabels,
-                'datasets' => $datasets
+                'labels' => $municipalityRanking->map(fn($m) => ucwords(strtolower($m->municipality)))->toArray(),
+                'datasets' => [[
+                    'label' => 'Production ' . $filters['year'],
+                    'data' => $municipalityRanking->map(fn($m) => round($m->total_production, 2))->toArray(),
+                    'backgroundColor' => $municipalityRanking->map(fn($m) => $this->getMunicipalityColor($m->municipality))->toArray(),
+                    'borderColor' => $municipalityRanking->map(fn($m) => $this->getMunicipalityColor($m->municipality))->toArray(),
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
+                ]]
             ];
         }
         // If filtering by crop + municipality + year, show monthly data for that specific crop
@@ -376,75 +292,29 @@ class DataAnalyticsController extends Controller
                 ]]
             ];
         } else {
-            // Regular year-over-year trend chart
-            $datasets = [];
+            // Default: Municipality ranking for latest year
+            $latestYear = $years->isNotEmpty() ? $years->last() : date('Y');
 
-            foreach ($municipalities as $index => $municipality) {
-                $municipalityData = $trendData->where('municipality', $municipality);
-                $data = [];
-                
-                foreach ($years as $year) {
-                    $yearData = $municipalityData->where('year', $year)->first();
-                    $data[] = $yearData ? round($yearData->total_production, 2) : 0;
-                }
-
-                $datasets[] = [
-                    'label' => $municipality,
-                    'data' => $data,
-                    'backgroundColor' => $this->getMunicipalityColor($municipality),
-                    'borderColor' => $this->getMunicipalityColor($municipality),
-                    'borderWidth' => 1,
-                    'borderRadius' => 4,
-                ];
-            }
+            $latestYearData = $trendData->where('year', $latestYear)
+                ->sortByDesc('total_production')
+                ->values();
 
             $chartData = [
-                'labels' => $years->toArray(),
-                'datasets' => $datasets
+                'labels' => $latestYearData->map(fn($m) => ucwords(strtolower($m->municipality)))->toArray(),
+                'datasets' => [[
+                    'label' => 'Production ' . $latestYear,
+                    'data' => $latestYearData->map(fn($m) => round($m->total_production, 2))->toArray(),
+                    'backgroundColor' => $latestYearData->map(fn($m) => $this->getMunicipalityColor($m->municipality))->toArray(),
+                    'borderColor' => $latestYearData->map(fn($m) => $this->getMunicipalityColor($m->municipality))->toArray(),
+                    'borderWidth' => 1,
+                    'borderRadius' => 6,
+                ]]
             ];
         }
-
-        // Build YoY horizontal-bar payload keyed by year for chart mode switching in the view.
-        $yoyBarDataByYear = [];
-        $trendLookup = $trendData->keyBy(function ($item) {
-            return strtoupper($item->municipality) . '_' . $item->year;
-        });
-
-        foreach ($years as $year) {
-            $rows = [];
-
-            foreach ($municipalities as $municipality) {
-                $lookupKey = strtoupper($municipality) . '_' . $year;
-                $production = $trendLookup->has($lookupKey)
-                    ? round($trendLookup[$lookupKey]->total_production, 2)
-                    : 0;
-
-                $rows[] = [
-                    'municipality' => $municipality,
-                    'production' => $production,
-                    'color' => $this->getMunicipalityColor($municipality),
-                ];
-            }
-
-            usort($rows, function ($a, $b) {
-                return $b['production'] <=> $a['production'];
-            });
-
-            $yearKey = (string) $year;
-            $yoyBarDataByYear[$yearKey] = [
-                'labels' => array_column($rows, 'municipality'),
-                'values' => array_column($rows, 'production'),
-                'colors' => array_column($rows, 'color'),
-            ];
-        }
-
-        $yoyBarYears = $years->map(function ($year) {
-            return (string) $year;
-        })->values()->toArray();
 
         // Debug: Log chart data structure
         \Log::info('Chart Data Debug:', [
-            'chart_mode' => $filters['municipality'] && $filters['year'] ? 'monthly' : 'yearly',
+            'chart_mode' => $chartMode,
             'labels_count' => count($chartData['labels']),
             'datasets_count' => count($chartData['datasets']),
             'has_data' => !empty($chartData['datasets'])
@@ -479,18 +349,13 @@ class DataAnalyticsController extends Controller
 
         // Determine chart mode based on filters
         if ($filters['crop'] && $filters['municipality'] && $filters['year']) {
-            // If crop is selected with municipality and year, show monthly breakdown for that crop
             $chartMode = 'monthly_crop';
         } elseif ($filters['municipality'] && $filters['year'] && $filters['month'] && !$filters['crop']) {
             $chartMode = 'crop_breakdown';
-        } elseif ($filters['month'] && !$filters['municipality'] && !$filters['crop']) {
-            $chartMode = 'municipalities'; // Show municipalities for month/year
-        } elseif ($filters['year'] && !$filters['municipality']) {
-            $chartMode = 'monthly_year';
         } elseif ($filters['municipality'] && $filters['year']) {
             $chartMode = 'monthly';
         } else {
-            $chartMode = 'yearly';
+            $chartMode = 'yearly'; // municipality ranking
         }
 
         // Calculate trend percentage based on chart data and filters
@@ -538,8 +403,6 @@ class DataAnalyticsController extends Controller
             'chartMode' => $chartMode,
             'chartData' => $chartData,
             'trendChartData' => $chartData,
-            'yoyBarDataByYear' => $yoyBarDataByYear,
-            'yoyBarYears' => $yoyBarYears,
             'monthlyData' => $monthlyChartData,
             'monthlyDemand' => $monthlyDemand,
             'metrics' => $metrics,
@@ -647,26 +510,6 @@ class DataAnalyticsController extends Controller
             return 0;
         }
         
-        // For municipalities mode (multiple lines), compare top municipality vs average
-        if ($chartMode === 'municipalities') {
-            $datasets = $chartData['datasets'];
-            if (count($datasets) >= 2) {
-                // Calculate total production for each municipality
-                $municipalityTotals = [];
-                foreach ($datasets as $dataset) {
-                    $municipalityTotals[] = array_sum($dataset['data']);
-                }
-                
-                rsort($municipalityTotals);
-                
-                // Compare top municipality with second
-                if (isset($municipalityTotals[1]) && $municipalityTotals[1] > 0) {
-                    return round((($municipalityTotals[0] - $municipalityTotals[1]) / $municipalityTotals[1]) * 100, 1);
-                }
-            }
-            return 0;
-        }
-
         // For monthly mode, compare last available month with previous month
         if ($chartMode === 'monthly' || $chartMode === 'monthly_crop') {
             $datasets = $chartData['datasets'];
@@ -687,85 +530,15 @@ class DataAnalyticsController extends Controller
             return 0;
         }
 
-        // For monthly_year mode (year-only filter with multiple municipalities), aggregate all municipalities
-        if ($chartMode === 'monthly_year') {
-            $datasets = $chartData['datasets'];
-            
-            // Sum all municipalities' data for each month
-            $monthlyTotals = [];
-            foreach ($datasets as $dataset) {
-                if (isset($dataset['data'])) {
-                    foreach ($dataset['data'] as $index => $value) {
-                        if (!isset($monthlyTotals[$index])) {
-                            $monthlyTotals[$index] = 0;
-                        }
-                        $monthlyTotals[$index] += $value;
-                    }
-                }
-            }
-            
-            // Compare last two months with data
-            $nonZeroData = array_filter($monthlyTotals, function($val) { return $val > 0; });
-            
-            if (count($nonZeroData) >= 2) {
-                $values = array_values($nonZeroData);
-                $lastValue = end($values);
-                $previousValue = prev($values);
-                
-                if ($previousValue > 0) {
-                    return round((($lastValue - $previousValue) / $previousValue) * 100, 1);
-                }
-            }
-            return 0;
-        }
-
-        // For yearly mode, compare last two years
+        // For yearly mode (municipality ranking), compare top vs second municipality
         if ($chartMode === 'yearly') {
-            $labels = $chartData['labels'];
             $datasets = $chartData['datasets'];
-            
-            if (count($labels) >= 2 && !empty($datasets)) {
-                // If filtering by specific municipality or crop with single dataset, compare just that
-                if ((isset($filters['municipality']) || isset($filters['crop'])) && count($datasets) === 1) {
-                    $data = $datasets[0]['data'];
-                    if (count($data) >= 2) {
-                        // Get non-zero values
-                        $nonZeroData = array_filter($data, function($val) { return $val > 0; });
-                        if (count($nonZeroData) >= 2) {
-                            $values = array_values($nonZeroData);
-                            $lastValue = end($values);
-                            $previousValue = prev($values);
-                            
-                            if ($previousValue > 0) {
-                                return round((($lastValue - $previousValue) / $previousValue) * 100, 1);
-                            }
-                        }
-                    }
-                } else {
-                    // Sum all municipalities' production for last two years based on year labels
-                    $yearCount = count($labels);
-                    $lastYearIndex = $yearCount - 1;
-                    $previousYearIndex = $yearCount - 2;
-                    
-                    $lastYearTotal = 0;
-                    $previousYearTotal = 0;
-                    
-                    foreach ($datasets as $dataset) {
-                        if (isset($dataset['data'])) {
-                            $data = $dataset['data'];
-                            // Use the actual year indices instead of filtering non-zero
-                            if (isset($data[$lastYearIndex])) {
-                                $lastYearTotal += $data[$lastYearIndex];
-                            }
-                            if (isset($data[$previousYearIndex])) {
-                                $previousYearTotal += $data[$previousYearIndex];
-                            }
-                        }
-                    }
-                    
-                    if ($previousYearTotal > 0) {
-                        return round((($lastYearTotal - $previousYearTotal) / $previousYearTotal) * 100, 1);
-                    }
+            if (isset($datasets[0]['data']) && count($datasets[0]['data']) >= 2) {
+                $data = $datasets[0]['data'];
+                $sorted = $data;
+                rsort($sorted);
+                if ($sorted[1] > 0) {
+                    return round((($sorted[0] - $sorted[1]) / $sorted[1]) * 100, 1);
                 }
             }
         }
