@@ -140,14 +140,20 @@
                 </div>
                 
                 <!-- Legend -->
-                <div class="flex items-center gap-6">
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-slate-500"></div>
-                        <span class="text-sm text-gray-600">Historical Data</span>
+                <div class="flex items-center gap-5">
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
+                        <svg width="28" height="12" class="flex-shrink-0">
+                            <line x1="0" y1="6" x2="28" y2="6" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3"/>
+                            <circle cx="14" cy="6" r="3.5" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/>
+                        </svg>
+                        <span class="text-sm font-medium text-blue-700">Historical Data</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span class="text-sm text-gray-600">Predicted Data</span>
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                        <svg width="28" height="12" class="flex-shrink-0">
+                            <line x1="0" y1="6" x2="28" y2="6" stroke="#16a34a" stroke-width="3"/>
+                            <circle cx="14" cy="6" r="4" fill="#16a34a" stroke="#fff" stroke-width="1.5"/>
+                        </svg>
+                        <span class="text-sm font-medium text-green-700">Predicted Data</span>
                     </div>
                 </div>
             </div>
@@ -197,11 +203,11 @@
                 </div>
                 <div class="grid grid-cols-1 gap-3 text-sm">
                     <div class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-slate-500"></span>
-                        <span><strong class="text-slate-700">Historical</strong> from crop records (same filter and period)</span>
+                        <svg width="20" height="10" class="flex-shrink-0"><line x1="0" y1="5" x2="20" y2="5" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4,2"/><circle cx="10" cy="5" r="2.5" fill="#3b82f6"/></svg>
+                        <span><strong class="text-blue-700">Historical</strong> from crop records (same filter and period)</span>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                        <svg width="20" height="10" class="flex-shrink-0"><line x1="0" y1="5" x2="20" y2="5" stroke="#16a34a" stroke-width="2.5"/><circle cx="10" cy="5" r="3" fill="#16a34a"/></svg>
                         <span><strong class="text-green-700">Predicted</strong> from ML API or fallback (depends on source)</span>
                     </div>
                 </div>
@@ -478,33 +484,45 @@
                                 {
                                     label: 'Historical Production (mt)',
                                     data: historical,
-                                    borderColor: 'rgb(71, 85, 105)',
-                                    backgroundColor: 'rgba(71, 85, 105, 0.08)',
-                                    borderWidth: 2,
+                                    borderColor: 'rgb(59, 130, 246)',
+                                    backgroundColor: 'rgba(59, 130, 246, 0.06)',
+                                    borderWidth: 2.5,
                                     borderDash: [6, 4],
                                     tension: 0.35,
                                     fill: false,
-                                    pointRadius: 3,
-                                    pointHoverRadius: 6,
+                                    pointRadius: 4,
+                                    pointHoverRadius: 7,
                                     spanGaps: false,
-                                    pointBackgroundColor: 'rgb(71, 85, 105)',
+                                    pointStyle: 'rectRot',
+                                    pointBackgroundColor: 'rgb(59, 130, 246)',
                                     pointBorderColor: '#fff',
-                                    pointBorderWidth: 1.5
+                                    pointBorderWidth: 2,
+                                    order: 1
                                 },
                                 {
                                     label: 'Predicted Production (mt)',
                                     data: predicted,
-                                    borderColor: 'rgb(34, 197, 94)',
-                                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+                                    borderColor: 'rgb(22, 163, 106)',
+                                    backgroundColor: function(context) {
+                                        const chart = context.chart;
+                                        const {ctx: c, chartArea} = chart;
+                                        if (!chartArea) return 'rgba(22, 163, 106, 0.15)';
+                                        const gradient = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                                        gradient.addColorStop(0, 'rgba(22, 163, 106, 0.25)');
+                                        gradient.addColorStop(1, 'rgba(22, 163, 106, 0.02)');
+                                        return gradient;
+                                    },
                                     borderWidth: 3,
                                     tension: 0.4,
                                     fill: true,
                                     pointRadius: 5,
-                                    pointHoverRadius: 8,
-                                    spanGaps: false, // Don't connect across gaps to show missing data
-                                    pointBackgroundColor: 'rgb(34, 197, 94)',
+                                    pointHoverRadius: 9,
+                                    spanGaps: false,
+                                    pointStyle: 'circle',
+                                    pointBackgroundColor: 'rgb(22, 163, 106)',
                                     pointBorderColor: '#fff',
-                                    pointBorderWidth: 2
+                                    pointBorderWidth: 2.5,
+                                    order: 0
                                 }
                             ]
                         },
@@ -517,34 +535,49 @@
                             },
                             plugins: {
                                 legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
-                                        usePointStyle: true,
-                                        padding: 15
-                                    }
+                                    display: false
                                 },
                                 tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    padding: 12,
+                                    backgroundColor: 'rgba(15, 23, 42, 0.92)',
+                                    padding: 14,
+                                    cornerRadius: 8,
                                     titleFont: {
-                                        size: 14
+                                        size: 13,
+                                        weight: 'bold'
                                     },
                                     bodyFont: {
                                         size: 13
                                     },
+                                    bodySpacing: 6,
+                                    usePointStyle: true,
                                     callbacks: {
+                                        title: function(items) {
+                                            return items[0].label;
+                                        },
                                         label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label += ': ';
+                                            const val = context.parsed.y;
+                                            if (val === null || val === undefined) return null;
+                                            const prefix = context.datasetIndex === 0 ? '◆ Historical' : '● Predicted';
+                                            return prefix + ': ' + val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' mt';
+                                        },
+                                        afterBody: function(items) {
+                                            const hist = items.find(i => i.datasetIndex === 0);
+                                            const pred = items.find(i => i.datasetIndex === 1);
+                                            if (hist && pred && hist.parsed.y != null && pred.parsed.y != null) {
+                                                const diff = pred.parsed.y - hist.parsed.y;
+                                                const pct = hist.parsed.y !== 0 ? ((diff / hist.parsed.y) * 100).toFixed(1) : 'N/A';
+                                                const arrow = diff >= 0 ? '▲' : '▼';
+                                                return ['', arrow + ' Difference: ' + diff.toFixed(2) + ' mt (' + pct + '%)'];
                                             }
-                                            if (context.parsed.y !== null) {
-                                                label += context.parsed.y.toFixed(2) + ' mt';
-                                            } else {
-                                                label += 'N/A';
-                                            }
-                                            return label;
+                                            return [];
+                                        },
+                                        labelColor: function(context) {
+                                            return {
+                                                borderColor: context.datasetIndex === 0 ? 'rgb(59, 130, 246)' : 'rgb(22, 163, 106)',
+                                                backgroundColor: context.datasetIndex === 0 ? 'rgb(59, 130, 246)' : 'rgb(22, 163, 106)',
+                                                borderWidth: 2,
+                                                borderRadius: context.datasetIndex === 0 ? 0 : 4
+                                            };
                                         }
                                     }
                                 }
