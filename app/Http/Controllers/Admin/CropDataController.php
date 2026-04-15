@@ -233,7 +233,7 @@ class CropDataController extends Controller
         // Calculate productivity if not provided
         if (!isset($validated['productivity']) || $validated['productivity'] == 0) {
             if ($validated['area_harvested'] > 0) {
-                $validated['productivity'] = $validated['production'] / $validated['area_harvested'];
+                $validated['productivity'] = round($validated['production'] / $validated['area_harvested'], 2);
             } else {
                 $validated['productivity'] = 0;
             }

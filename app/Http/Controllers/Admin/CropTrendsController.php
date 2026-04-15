@@ -67,8 +67,9 @@ class CropTrendsController extends Controller
         ]);
         
         foreach ($months as $month) {
-            // Historical data (average production from previous years)
-            // Filter by same crop, municipality, and farm type for consistency
+            // Historical data: average yearly production from previous years
+            // First SUM production per year, then AVG those yearly totals
+            // This correctly handles multiple records in the same year/month
             $historicalQuery = Crop::where('year', '<', $currentYear)
                 ->where('month', $month);
             
@@ -82,8 +83,13 @@ class CropTrendsController extends Controller
                 $historicalQuery->where('farm_type', $topFarmType->farm_type);
             }
             
-            // Get average production in MT (production is already stored in MT)
-            $historical = $historicalQuery->avg('production');
+            // SUM per year first, then average across years
+            $yearlySums = (clone $historicalQuery)
+                ->select('year', DB::raw('SUM(production) as yearly_production'))
+                ->groupBy('year')
+                ->pluck('yearly_production');
+            
+            $historical = $yearlySums->count() > 0 ? $yearlySums->avg() : null;
             
             // Log historical data for verification
             Log::info('Historical Production Calculation', [
@@ -92,8 +98,8 @@ class CropTrendsController extends Controller
                 'municipality' => $topMunicipality->municipality ?? 'N/A',
                 'farm_type' => $topFarmType->farm_type ?? 'N/A',
                 'historical_production_mt' => $historical,
-                'record_count' => $historicalQuery->count(),
-                'years_included' => $historicalQuery->pluck('year')->unique()->sort()->values()->toArray()
+                'years_count' => $yearlySums->count(),
+                'yearly_sums' => $yearlySums->toArray()
             ]);
             
             // Ensure we have a valid number, default to 0 if null or invalid
@@ -177,7 +183,7 @@ class CropTrendsController extends Controller
                         'source' => 'ML'
                     ]);
                 } else {
-                    // Fallback: use historical average for same crop/municipality/farm_type
+                    // Fallback: SUM per year then AVG across years for correct aggregation
                     $avgProductionQuery = Crop::where('year', '<', $currentYear)
                         ->where('month', $month);
                     
@@ -191,23 +197,21 @@ class CropTrendsController extends Controller
                         $avgProductionQuery->where('farm_type', $topFarmType->farm_type);
                     }
                     
-                    $avgProduction = $avgProductionQuery->avg('production');
-                    $fallbackValue = $avgProduction ? round($avgProduction, 2) : 0;
+                    $yearlySums = (clone $avgProductionQuery)
+                        ->select('year', DB::raw('SUM(production) as yearly_production'))
+                        ->groupBy('year')
+                        ->pluck('yearly_production');
+                    $fallbackValue = $yearlySums->count() > 0 ? round($yearlySums->avg(), 2) : 0;
                     $demandData[] = $fallbackValue;
                     
                     Log::info('Demand Fallback for ' . $month, [
                         'production_mt' => $fallbackValue,
                         'source' => 'Historical Average',
-                        'record_count' => $avgProductionQuery->count()
-                    ]);
-                    Log::info('Demand Fallback for ' . $month, [
-                        'production_mt' => $fallbackValue,
-                        'source' => 'Historical Average',
-                        'record_count' => $avgProductionQuery->count()
+                        'years_count' => $yearlySums->count()
                     ]);
                 }
             } else {
-                // Fallback: use historical average for same crop/municipality/farm_type
+                // Fallback: SUM per year then AVG across years for correct aggregation
                 $avgProductionQuery = Crop::where('year', '<', $currentYear)
                     ->where('month', $month);
                 
@@ -221,14 +225,17 @@ class CropTrendsController extends Controller
                     $avgProductionQuery->where('farm_type', $topFarmType->farm_type);
                 }
                 
-                $avgProduction = $avgProductionQuery->avg('production');
-                $fallbackValue = $avgProduction ? round($avgProduction, 2) : 0;
+                $yearlySums = (clone $avgProductionQuery)
+                    ->select('year', DB::raw('SUM(production) as yearly_production'))
+                    ->groupBy('year')
+                    ->pluck('yearly_production');
+                $fallbackValue = $yearlySums->count() > 0 ? round($yearlySums->avg(), 2) : 0;
                 $demandData[] = $fallbackValue;
                 
                 Log::info('Demand No ML Data for ' . $month, [
                     'production_mt' => $fallbackValue,
                     'source' => 'Historical Average (No ML)',
-                    'record_count' => $avgProductionQuery->count()
+                    'years_count' => $yearlySums->count()
                 ]);
             }
             
@@ -293,12 +300,25 @@ class CropTrendsController extends Controller
         // Keep simple array for backward compatibility
         $topCrops = array_column($topCropsWithProduction, 'crop');
         
-        // Monthly production data - use actual historical averages
+        // Monthly production data - use historical averages filtered by the same top crop/municipality/farm_type
         $monthlyProductionData = [];
         foreach ($months as $month) {
-            $avgProduction = Crop::where('month', $month)
-                ->avg('production');
-            $monthlyProductionData[] = round($avgProduction ?? 0, 2);
+            $monthlyQuery = Crop::where('month', $month);
+            if ($topCrop) {
+                $monthlyQuery->where('crop', $topCrop->crop);
+            }
+            if ($topMunicipality) {
+                $monthlyQuery->where('municipality', $topMunicipality->municipality);
+            }
+            if ($topFarmType) {
+                $monthlyQuery->where('farm_type', $topFarmType->farm_type);
+            }
+            // SUM per year, then average across years for correct aggregation
+            $yearlySums = $monthlyQuery
+                ->select('year', DB::raw('SUM(production) as yearly_production'))
+                ->groupBy('year')
+                ->pluck('yearly_production');
+            $monthlyProductionData[] = $yearlySums->count() > 0 ? round($yearlySums->avg(), 2) : 0;
         }
         
         // Check ML API health
