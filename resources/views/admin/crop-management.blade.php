@@ -1,13 +1,13 @@
 <x-admin-layout>
     <x-slot name="title">Crop Management</x-slot>
 
-    <div class="p-6 space-y-6">
+    <div class="p-3 sm:p-6 space-y-4 sm:space-y-6">
         {{-- Header Section --}}
-        <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-lg p-6 text-white">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
             <div class="flex justify-between items-center">
                 <div>
-                    <h1 class="text-3xl font-bold mb-2">Crop & Municipality Management</h1>
-                    <p class="text-green-100">Manage crop types and municipalities for scalable data organization</p>
+                    <h1 class="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">Crop & Municipality Management</h1>
+                    <p class="text-green-100 text-sm sm:text-base">Manage crop types and municipalities for scalable data organization</p>
                     <p class="text-sm text-green-200 mt-1">
                         <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>

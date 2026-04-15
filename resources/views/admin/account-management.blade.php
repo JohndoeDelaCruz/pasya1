@@ -1,19 +1,20 @@
 <x-admin-layout>
     <x-slot name="title">Account Management</x-slot>
 
-    <div class="p-6">
+    <div class="p-3 sm:p-6">
         {{-- Header --}}
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800 mb-2">Farmer Account Management</h1>
-                <p class="text-gray-600">Create and manage farmer accounts</p>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">Farmer Account Management</h1>
+                <p class="text-sm text-gray-600">Create and manage farmer accounts</p>
             </div>
             <a href="{{ route('admin.farmers.create') }}" 
-               class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+               class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center self-start sm:self-auto">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                Create Farmer Account
+                <span class="hidden sm:inline">Create Farmer Account</span>
+                <span class="sm:hidden">New Farmer</span>
             </a>
         </div>
 

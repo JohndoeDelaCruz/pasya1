@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="PASYA - Agricultural management system for farmers in Benguet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
@@ -174,7 +174,7 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50"
+                                 class="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white rounded-xl shadow-lg border border-gray-200 z-50"
                                  style="display: none;">
                                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                                     <h3 class="font-semibold text-gray-800">Notifications</h3>

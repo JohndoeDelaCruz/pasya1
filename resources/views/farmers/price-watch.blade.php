@@ -2,9 +2,9 @@
     <x-slot name="title">Price Watch</x-slot>
 
     <div class="h-full overflow-auto bg-gray-100" x-data="priceWatch()">
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
             <!-- Header -->
-            <div class="bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-8 py-6 rounded-2xl mb-6 shadow-lg">
+            <div class="bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-4 py-4 sm:px-8 sm:py-6 rounded-2xl mb-4 sm:mb-6 shadow-lg">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
                         <h1 class="text-2xl font-bold mb-1">Daily Price Watch</h1>

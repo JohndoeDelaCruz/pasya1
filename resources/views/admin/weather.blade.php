@@ -16,10 +16,10 @@
 
     <div class="space-y-6" x-data="weatherDashboard()" x-init="init()">
         <!-- Page Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">Weather Monitoring</h1>
-                <p class="text-sm text-gray-500 mt-1">Real-time weather conditions across Benguet municipalities</p>
+                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Weather Monitoring</h1>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">Real-time weather conditions across Benguet municipalities</p>
             </div>
             <div class="flex items-center gap-3">
                 <button @click="refreshAll()" :disabled="loadingAll"
@@ -60,30 +60,30 @@
             </div>
 
             <!-- Compact inline weather stats -->
-            <div class="flex flex-wrap items-center divide-x divide-gray-100 bg-gray-50/60">
-                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-px bg-gray-100">
+                <div class="bg-white px-3 sm:px-4 py-3 text-center">
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Humidity</p>
-                    <p class="text-base font-bold text-blue-600 mt-0.5" x-text="selectedWeather?.humidity_percent != null ? selectedWeather.humidity_percent + '%' : '--'"></p>
+                    <p class="text-sm sm:text-base font-bold text-blue-600 mt-0.5" x-text="selectedWeather?.humidity_percent != null ? selectedWeather.humidity_percent + '%' : '--'"></p>
                 </div>
-                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                <div class="bg-white px-3 sm:px-4 py-3 text-center">
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Rain</p>
-                    <p class="text-base font-bold text-sky-600 mt-0.5" x-text="selectedWeather?.precipitation_probability_percent != null ? selectedWeather.precipitation_probability_percent + '%' : '--'"></p>
+                    <p class="text-sm sm:text-base font-bold text-sky-600 mt-0.5" x-text="selectedWeather?.precipitation_probability_percent != null ? selectedWeather.precipitation_probability_percent + '%' : '--'"></p>
                 </div>
-                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                <div class="bg-white px-3 sm:px-4 py-3 text-center">
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Wind</p>
-                    <p class="text-base font-bold text-teal-600 mt-0.5" x-text="selectedWeather?.wind?.speed?.display || '--'"></p>
+                    <p class="text-sm sm:text-base font-bold text-teal-600 mt-0.5" x-text="selectedWeather?.wind?.speed?.display || '--'"></p>
                 </div>
-                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                <div class="bg-white px-3 sm:px-4 py-3 text-center">
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">UV</p>
-                    <p class="text-base font-bold text-amber-600 mt-0.5" x-text="selectedWeather?.uv_index != null ? selectedWeather.uv_index : '--'"></p>
+                    <p class="text-sm sm:text-base font-bold text-amber-600 mt-0.5" x-text="selectedWeather?.uv_index != null ? selectedWeather.uv_index : '--'"></p>
                 </div>
-                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                <div class="bg-white px-3 sm:px-4 py-3 text-center">
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Clouds</p>
-                    <p class="text-base font-bold text-gray-600 mt-0.5" x-text="selectedWeather?.cloud_cover_percent != null ? selectedWeather.cloud_cover_percent + '%' : '--'"></p>
+                    <p class="text-sm sm:text-base font-bold text-gray-600 mt-0.5" x-text="selectedWeather?.cloud_cover_percent != null ? selectedWeather.cloud_cover_percent + '%' : '--'"></p>
                 </div>
-                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                <div class="bg-white px-3 sm:px-4 py-3 text-center">
                     <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Thunder</p>
-                    <p class="text-base font-bold text-purple-600 mt-0.5" x-text="selectedWeather?.thunderstorm_probability_percent != null ? selectedWeather.thunderstorm_probability_percent + '%' : '--'"></p>
+                    <p class="text-sm sm:text-base font-bold text-purple-600 mt-0.5" x-text="selectedWeather?.thunderstorm_probability_percent != null ? selectedWeather.thunderstorm_probability_percent + '%' : '--'"></p>
                 </div>
             </div>
 

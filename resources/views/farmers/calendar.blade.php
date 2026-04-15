@@ -2,9 +2,9 @@
     <x-slot name="title">Calendar</x-slot>
 
     <div class="h-full overflow-auto bg-gray-100" x-data="calendarApp()">
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
             <!-- Top Bar with Filter and Add Plan Button -->
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <!-- Event Type Filter - Left -->
                 <div class="flex items-center bg-green-200 rounded-full p-1 shadow-sm">
                     <button @click="eventFilter = 'all'"
@@ -58,38 +58,38 @@
 
                 <!-- Add Crop Plan Button - Right -->
                 <button @click="showCropPlanModal = true"
-                    class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-xl shadow-sm transition-all">
+                    class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-2 sm:px-4 rounded-xl shadow-sm transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span>Plan Crop</span>
+                    <span class="hidden sm:inline">Plan Crop</span>
                 </button>
             </div>
 
             <!-- Calendar Container -->
             <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <!-- Month Header -->
-                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <div class="flex items-center space-x-4">
+                <div class="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+                    <div class="flex items-center space-x-2 sm:space-x-4">
                         <button @click="navigatePrev()"
                             class="p-1 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <h2 class="text-2xl font-bold text-gray-800" x-text="headerDisplay"></h2>
+                        <h2 class="text-base sm:text-2xl font-bold text-gray-800" x-text="headerDisplay"></h2>
                         <button @click="navigateNext()"
                             class="p-1 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-600">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                     </div>
 
-                    <!-- Right Toolbar - View Mode -->
-                    <div class="flex items-center space-x-2">
+                    <!-- Right Toolbar - View Mode (hidden on mobile, force month view) -->
+                    <div class="hidden sm:flex items-center space-x-2">
                         <button class="p-2 hover:bg-gray-100 rounded-lg transition text-gray-400" title="Filter">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -178,11 +178,12 @@
 
                 <!-- Week View -->
                 <template x-if="viewMode === 'week'">
-                    <div class="p-4">
+                    <div class="p-2 sm:p-4 overflow-x-auto">
+                        <div class="min-w-[600px]">
                         <!-- Day Headers -->
                         <div class="grid grid-cols-7 mb-2">
                             <template x-for="(day, index) in weekDays" :key="'header-' + index">
-                                <div class="text-center text-sm font-semibold text-gray-400 py-2"
+                                <div class="text-center text-xs sm:text-sm font-semibold text-gray-400 py-2"
                                     x-text="day.dayName.substring(0, 3)"></div>
                             </template>
                         </div>
@@ -196,7 +197,7 @@
                                          'bg-yellow-50 border-yellow-400 border-2': day.isToday,
                                          'border': !day.isToday
                                      }"
-                                    class="min-h-[350px] p-3 rounded-xl transition-all relative cursor-pointer hover:shadow-md flex flex-col">
+                                    class="min-h-[200px] sm:min-h-[350px] p-2 sm:p-3 rounded-xl transition-all relative cursor-pointer hover:shadow-md flex flex-col">
 
                                     <!-- Day Number -->
                                     <div class="text-sm font-bold mb-2"
@@ -220,16 +221,18 @@
                                 </div>
                             </template>
                         </div>
+                        </div>
                     </div>
                 </template>
 
                 <!-- Month View (Calendar Grid) -->
                 <template x-if="viewMode === 'month'">
-                    <div class="p-4">
+                    <div class="p-2 sm:p-4 overflow-x-auto">
+                        <div class="min-w-[480px]">
                         <!-- Day Headers -->
                         <div class="grid grid-cols-7 mb-2">
                             <template x-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day">
-                                <div class="text-center text-sm font-semibold text-gray-400 py-2" x-text="day"></div>
+                                <div class="text-center text-xs sm:text-sm font-semibold text-gray-400 py-1 sm:py-2" x-text="day"></div>
                             </template>
                         </div>
 
@@ -242,7 +245,7 @@
                                                  'bg-transparent': day.isEmpty,
                                                  'bg-green-50 border-green-200 border cursor-pointer hover:shadow-md': !day.isEmpty && !day.isToday,
                                                  'bg-yellow-50 border-yellow-400 border-2 cursor-pointer hover:shadow-md': day.isToday
-                                             }" class="min-h-[100px] p-2 rounded-xl transition-all relative">
+                                             }" class="min-h-[70px] sm:min-h-[100px] p-1.5 sm:p-2 rounded-xl transition-all relative">
 
                                             <template x-if="!day.isEmpty">
                                                 <div>
@@ -254,7 +257,7 @@
                                                     <template x-if="day.events.length > 0 && getCropImage(day.events[0].crop_name)">
                                                         <div class="flex justify-center mb-1">
                                                             <img :src="getCropImage(day.events[0].crop_name)" :alt="day.events[0].crop_name"
-                                                                class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm">
+                                                                class="w-7 h-7 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-white shadow-sm">
                                                         </div>
                                                     </template>
 
@@ -283,6 +286,7 @@
                                     </template>
                                 </div>
                             </template>
+                        </div>
                         </div>
                     </div>
                 </template>

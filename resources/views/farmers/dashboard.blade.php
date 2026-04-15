@@ -3,7 +3,7 @@
 
     <div class="min-h-full bg-gradient-to-br from-gray-50 to-green-50/30" x-data="{ ...dashboardModals(), ...dashboardWeather() }" x-init="initWeather()">
         <!-- Welcome Header -->
-        <div class="relative overflow-hidden bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-8 py-8 mb-6 rounded-2xl mx-6 mt-6 shadow-lg">
+        <div class="relative overflow-hidden bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-4 py-6 sm:px-8 sm:py-8 mb-4 sm:mb-6 rounded-2xl mx-3 sm:mx-6 mt-3 sm:mt-6 shadow-lg">
             <!-- Background Pattern -->
             <div class="absolute inset-0 opacity-10">
                 <svg class="absolute right-0 top-0 h-full" viewBox="0 0 200 200" fill="currentColor">
@@ -19,13 +19,13 @@
                         $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
                     @endphp
                     <p class="text-green-100 text-sm font-medium mb-1">{{ $greeting }} 👋</p>
-                    <h1 class="text-3xl font-bold mb-2">{{ Auth::guard('farmer')->user()->full_name }}</h1>
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <h1 class="text-xl sm:text-3xl font-bold mb-2">{{ Auth::guard('farmer')->user()->full_name }}</h1>
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+                        <div class="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
+                            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="text-sm font-medium">{{ Auth::guard('farmer')->user()->municipality ?? 'Buguias' }}, Benguet</span>
+                            <span class="text-xs sm:text-sm font-medium">{{ Auth::guard('farmer')->user()->municipality ?? 'Buguias' }}, Benguet</span>
                         </div>
                         <div class="hidden sm:flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -36,18 +36,18 @@
                     </div>
                 </div>
                 <div class="text-left md:text-right">
-                    <div class="inline-flex flex-col items-start md:items-end bg-white/10 backdrop-blur-sm rounded-xl px-4 py-3">
+                    <div class="inline-flex flex-col items-start md:items-end bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 sm:px-4 sm:py-3">
                         <span class="text-green-100 text-xs uppercase tracking-wider">Today</span>
-                        <span class="text-2xl font-bold">{{ now()->format('l') }}</span>
-                        <span class="text-green-100 text-sm">{{ now()->format('F d, Y') }}</span>
+                        <span class="text-lg sm:text-2xl font-bold">{{ now()->format('l') }}</span>
+                        <span class="text-green-100 text-xs sm:text-sm">{{ now()->format('F d, Y') }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="px-6 pb-6">
+        <div class="px-3 sm:px-6 pb-4 sm:pb-6">
             <!-- Quick Stats Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">

@@ -2,7 +2,7 @@
     <x-slot name="title">Harvest History & Crop List</x-slot>
 
     <div class="h-full overflow-auto bg-gray-100" x-data="harvestHistory()">
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
             <!-- Harvest History Section -->
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Harvest History</h2>
@@ -10,7 +10,7 @@
                 <!-- Harvest History Table -->
                 <div class="bg-green-100 rounded-2xl p-4 border-2 border-green-400">
                     <div class="overflow-x-auto">
-                        <table class="w-full">
+                        <table class="w-full min-w-[600px]">
                             <thead>
                                 <tr class="border-b border-green-300">
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">ID</th>

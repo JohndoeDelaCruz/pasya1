@@ -31,7 +31,7 @@
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div class="max-w-3xl">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-green-700">Admin Dashboard</p>
-                <h1 class="mt-1 text-3xl font-bold text-gray-900 lg:text-4xl">Data & Analytics</h1>
+                <h1 class="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">Data & Analytics</h1>
                 <p class="mt-2 text-sm text-gray-600 lg:text-base">
                     Monitor crop production performance, track municipality trends, and review AI forecasts from one workspace.
                 </p>

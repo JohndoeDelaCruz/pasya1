@@ -2,27 +2,27 @@
     <x-slot name="title">Help and Support - FAQ</x-slot>
 
     <div class="min-h-full bg-gray-50" x-data="helpPage()">
-        <div class="p-6">
+        <div class="p-3 sm:p-6">
             <!-- Header -->
-            <div class="mb-6">
-                <h1 class="text-xl font-semibold text-gray-800">How can we help?</h1>
+            <div class="mb-4 sm:mb-6">
+                <h1 class="text-lg sm:text-xl font-semibold text-gray-800">How can we help?</h1>
             </div>
 
             <!-- Tab Navigation -->
-            <div class="flex space-x-4 mb-8">
+            <div class="flex flex-wrap gap-2 sm:gap-4 mb-6 sm:mb-8">
                 <button @click="activeTab = 'topics'" 
                         :class="activeTab === 'topics' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="flex-1 px-6 py-3 rounded-full font-medium transition-colors">
+                        class="flex-1 min-w-[100px] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
                     Popular Topics
                 </button>
                 <button @click="activeTab = 'chat'" 
                         :class="activeTab === 'chat' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="flex-1 px-6 py-3 rounded-full font-medium transition-colors">
+                        class="flex-1 min-w-[100px] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
                     Chat Support
                 </button>
                 <button @click="activeTab = 'tickets'" 
                         :class="activeTab === 'tickets' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="flex-1 px-6 py-3 rounded-full font-medium transition-colors">
+                        class="flex-1 min-w-[100px] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
                     Tickets
                 </button>
             </div>
@@ -178,7 +178,7 @@
             </div>
 
             <!-- Chat Support Tab -->
-            <div x-show="activeTab === 'chat'" class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl" style="height: 500px;">
+            <div x-show="activeTab === 'chat'" class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl" style="height: min(500px, 70vh);">
                 <div class="flex flex-col h-full">
                     <!-- Chat Messages Area -->
                     <div class="flex-1 p-4 overflow-y-auto" id="chatMessages">
@@ -312,7 +312,7 @@
         </div>
 
         <!-- Rate Us Button -->
-        <div class="fixed bottom-6 right-6">
+        <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
             <button @click="showRatingModal = true" class="flex flex-col items-center text-gray-600 hover:text-green-600 transition">
                 <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center shadow-lg mb-1">
                     <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
