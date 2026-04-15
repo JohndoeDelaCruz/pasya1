@@ -4,9 +4,11 @@
     @push('styles')
     <style>
         [x-cloak] { display: none !important; }
-        .weather-card { transition: all 0.3s ease; }
-        .weather-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
-        .weather-icon { animation: fadeIn 0.5s ease; }
+        .weather-card { transition: all 0.25s ease; }
+        .weather-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .weather-stat { backdrop-filter: blur(8px); }
+        .detail-grid-enter { animation: slideUp 0.35s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes pulse-slow { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
     </style>
@@ -31,93 +33,76 @@
         </div>
 
         <!-- Selected Municipality Detail Card -->
-        <div x-show="selectedWeather" x-cloak x-transition class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <!-- Header gradient -->
-            <div class="bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-5 text-white">
+        <div x-show="selectedWeather" x-cloak x-transition class="detail-grid-enter bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+            <!-- Compact header with temp + stats in one row -->
+            <div class="bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-5 py-4 text-white">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-xl font-bold" x-text="selectedMunicipality"></h2>
-                        <p class="text-sky-100 text-sm mt-1">
-                            <span x-text="selectedWeather?.description || 'Loading...'"></span>
-                            <span class="mx-2">&bull;</span>
-                            <span x-text="selectedWeather?.is_daytime ? 'Daytime' : 'Nighttime'"></span>
-                        </p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                            <span class="text-xl" x-text="selectedWeather?.is_daytime ? '☀️' : '🌙'"></span>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold leading-tight" x-text="selectedMunicipality"></h2>
+                            <p class="text-sky-100 text-xs mt-0.5">
+                                <span x-text="selectedWeather?.description || 'Loading...'"></span>
+                                <span class="mx-1 opacity-50">&bull;</span>
+                                <span x-text="selectedWeather?.is_daytime ? 'Daytime' : 'Nighttime'"></span>
+                            </p>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="text-4xl font-bold" x-text="selectedWeather?.temperature?.display || '--'"></div>
-                        <p class="text-sky-100 text-sm">Feels like <span x-text="selectedWeather?.feels_like?.display || '--'"></span></p>
+                    <div class="text-right flex items-baseline gap-1">
+                        <span class="text-3xl font-extrabold tracking-tight" x-text="selectedWeather?.temperature?.display || '--'"></span>
+                        <div class="text-xs text-sky-200 ml-1">
+                            Feels <span x-text="selectedWeather?.feels_like?.display || '--'"></span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Weather Details Grid -->
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 p-6">
-                <!-- Humidity -->
-                <div class="bg-blue-50 rounded-lg p-4 text-center">
-                    <svg class="w-7 h-7 mx-auto text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3c-4 5-7 8-7 11a7 7 0 1014 0c0-3-3-6-7-11z"/>
-                    </svg>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Humidity</p>
-                    <p class="text-lg font-bold text-blue-700" x-text="selectedWeather?.humidity_percent != null ? selectedWeather.humidity_percent + '%' : '--'"></p>
+            <!-- Compact inline weather stats -->
+            <div class="flex flex-wrap items-center divide-x divide-gray-100 bg-gray-50/60">
+                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Humidity</p>
+                    <p class="text-base font-bold text-blue-600 mt-0.5" x-text="selectedWeather?.humidity_percent != null ? selectedWeather.humidity_percent + '%' : '--'"></p>
                 </div>
-                <!-- Rain Chance -->
-                <div class="bg-sky-50 rounded-lg p-4 text-center">
-                    <svg class="w-7 h-7 mx-auto text-sky-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
-                    </svg>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Rain Chance</p>
-                    <p class="text-lg font-bold text-sky-700" x-text="selectedWeather?.precipitation_probability_percent != null ? selectedWeather.precipitation_probability_percent + '%' : '--'"></p>
+                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Rain</p>
+                    <p class="text-base font-bold text-sky-600 mt-0.5" x-text="selectedWeather?.precipitation_probability_percent != null ? selectedWeather.precipitation_probability_percent + '%' : '--'"></p>
                 </div>
-                <!-- Wind -->
-                <div class="bg-teal-50 rounded-lg p-4 text-center">
-                    <svg class="w-7 h-7 mx-auto text-teal-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5a2 2 0 012 2H3m14 4a2 2 0 01-2 2H3m16 4a2 2 0 00-2-2H3"/>
-                    </svg>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Wind</p>
-                    <p class="text-lg font-bold text-teal-700" x-text="selectedWeather?.wind?.speed?.display || '--'"></p>
-                    <p class="text-xs text-gray-500" x-text="selectedWeather?.wind?.direction ? selectedWeather.wind.direction.replace(/_/g, ' ') : ''"></p>
+                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Wind</p>
+                    <p class="text-base font-bold text-teal-600 mt-0.5" x-text="selectedWeather?.wind?.speed?.display || '--'"></p>
                 </div>
-                <!-- UV Index -->
-                <div class="bg-amber-50 rounded-lg p-4 text-center">
-                    <svg class="w-7 h-7 mx-auto text-amber-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">UV Index</p>
-                    <p class="text-lg font-bold text-amber-700" x-text="selectedWeather?.uv_index != null ? selectedWeather.uv_index : '--'"></p>
+                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">UV</p>
+                    <p class="text-base font-bold text-amber-600 mt-0.5" x-text="selectedWeather?.uv_index != null ? selectedWeather.uv_index : '--'"></p>
                 </div>
-                <!-- Cloud Cover -->
-                <div class="bg-gray-50 rounded-lg p-4 text-center">
-                    <svg class="w-7 h-7 mx-auto text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
-                    </svg>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Cloud Cover</p>
-                    <p class="text-lg font-bold text-gray-700" x-text="selectedWeather?.cloud_cover_percent != null ? selectedWeather.cloud_cover_percent + '%' : '--'"></p>
+                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Clouds</p>
+                    <p class="text-base font-bold text-gray-600 mt-0.5" x-text="selectedWeather?.cloud_cover_percent != null ? selectedWeather.cloud_cover_percent + '%' : '--'"></p>
                 </div>
-                <!-- Thunderstorm -->
-                <div class="bg-purple-50 rounded-lg p-4 text-center">
-                    <svg class="w-7 h-7 mx-auto text-purple-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    <p class="text-xs text-gray-500 uppercase tracking-wide">Thunderstorm</p>
-                    <p class="text-lg font-bold text-purple-700" x-text="selectedWeather?.thunderstorm_probability_percent != null ? selectedWeather.thunderstorm_probability_percent + '%' : '--'"></p>
+                <div class="flex-1 min-w-[100px] px-4 py-3 text-center">
+                    <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Thunder</p>
+                    <p class="text-base font-bold text-purple-600 mt-0.5" x-text="selectedWeather?.thunderstorm_probability_percent != null ? selectedWeather.thunderstorm_probability_percent + '%' : '--'"></p>
                 </div>
             </div>
 
-            <div class="px-6 pb-4 flex items-center justify-between text-xs text-gray-400">
-                <span x-text="selectedWeather?.observed_at ? 'Updated ' + new Date(selectedWeather.observed_at).toLocaleString() : ''"></span>
-                <button @click="selectedWeather = null; selectedMunicipality = null" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <!-- Timestamp + close -->
+            <div class="px-5 py-2 flex items-center justify-between border-t border-gray-100">
+                <span class="text-[11px] text-gray-400" x-text="selectedWeather?.observed_at ? 'Updated ' + new Date(selectedWeather.observed_at).toLocaleString() : ''"></span>
+                <button @click="selectedWeather = null; selectedMunicipality = null" class="text-xs text-gray-400 hover:text-gray-600 transition flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     Close
                 </button>
             </div>
         </div>
 
         <!-- Municipality Weather Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             <template x-for="m in municipalities" :key="m">
                 <div @click="selectMunicipality(m)"
-                     class="weather-card bg-white rounded-xl shadow-md p-5 cursor-pointer border-2 transition-all"
-                     :class="selectedMunicipality === m ? 'border-sky-500 ring-2 ring-sky-200' : 'border-transparent hover:border-sky-300'">
+                     class="weather-card bg-white rounded-xl shadow-sm p-4 cursor-pointer border-2 transition-all"
+                     :class="selectedMunicipality === m ? 'border-sky-500 ring-2 ring-sky-100 bg-sky-50/30' : 'border-gray-100 hover:border-sky-300 hover:shadow-md'">>
                     
                     <!-- Loading State -->
                     <template x-if="!weatherData[m] && loadingMunicipalities[m]">
@@ -140,28 +125,28 @@
                     <!-- Data State -->
                     <template x-if="weatherData[m] && !weatherErrors[m]">
                         <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="font-semibold text-gray-800 text-sm" x-text="m"></h3>
-                                <span class="text-xs px-2 py-0.5 rounded-full"
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-bold text-gray-800 text-sm" x-text="m"></h3>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
                                       :class="weatherData[m].is_daytime ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'"
                                       x-text="weatherData[m].is_daytime ? '☀ Day' : '🌙 Night'"></span>
                             </div>
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-end justify-between">
                                 <div>
-                                    <p class="text-2xl font-bold text-gray-900" x-text="weatherData[m].temperature?.display || '--'"></p>
-                                    <p class="text-xs text-gray-500 mt-1" x-text="weatherData[m].description || 'N/A'"></p>
+                                    <p class="text-2xl font-extrabold text-gray-900 leading-none" x-text="weatherData[m].temperature?.display || '--'"></p>
+                                    <p class="text-[11px] text-gray-500 mt-1.5 font-medium" x-text="weatherData[m].description || 'N/A'"></p>
                                 </div>
-                                <div class="text-right space-y-1">
-                                    <p class="text-xs text-gray-500">
-                                        <span class="inline-block w-3">💧</span>
+                                <div class="text-right space-y-0.5">
+                                    <p class="text-[11px] text-gray-500 font-medium">
+                                        <span class="text-blue-500">💧</span>
                                         <span x-text="weatherData[m].humidity_percent != null ? weatherData[m].humidity_percent + '%' : '--'"></span>
                                     </p>
-                                    <p class="text-xs text-gray-500">
-                                        <span class="inline-block w-3">🌧</span>
+                                    <p class="text-[11px] text-gray-500 font-medium">
+                                        <span class="text-sky-500">🌧</span>
                                         <span x-text="weatherData[m].precipitation_probability_percent != null ? weatherData[m].precipitation_probability_percent + '%' : '--'"></span>
                                     </p>
-                                    <p class="text-xs text-gray-500">
-                                        <span class="inline-block w-3">💨</span>
+                                    <p class="text-[11px] text-gray-500 font-medium">
+                                        <span class="text-teal-500">💨</span>
                                         <span x-text="weatherData[m].wind?.speed?.display || '--'"></span>
                                     </p>
                                 </div>
@@ -184,18 +169,20 @@
         </div>
 
         <!-- Agricultural Advisory -->
-        <div x-show="Object.keys(weatherData).length > 0" x-cloak x-transition class="bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
-                </svg>
+        <div x-show="Object.keys(weatherData).length > 0" x-cloak x-transition class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h3 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <span class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-4.5 h-4.5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
+                    </svg>
+                </span>
                 Agricultural Weather Advisory
             </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <template x-for="advisory in getAdvisories()" :key="advisory.title">
-                    <div class="rounded-lg p-4 border" :class="advisory.colorClass">
+                    <div class="rounded-xl p-4 border" :class="advisory.colorClass">
                         <h4 class="font-semibold text-sm mb-1" x-text="advisory.title"></h4>
-                        <p class="text-xs" x-text="advisory.message"></p>
+                        <p class="text-xs leading-relaxed" x-text="advisory.message"></p>
                     </div>
                 </template>
             </div>
