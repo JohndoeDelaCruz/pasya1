@@ -120,9 +120,13 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/crop-management', [CropManagementController::class, 'index'])->name('crop-management.index');
     Route::post('/crop-types', [CropManagementController::class, 'storeCropType'])->name('crop-types.store');
     Route::put('/crop-types/{cropType}', [CropManagementController::class, 'updateCropType'])->name('crop-types.update');
+    Route::post('/crop-types/{cropType}/archive', [CropManagementController::class, 'archiveCropType'])->name('crop-types.archive');
+    Route::post('/crop-types/{cropType}/restore', [CropManagementController::class, 'restoreCropType'])->name('crop-types.restore');
     Route::delete('/crop-types/{cropType}', [CropManagementController::class, 'destroyCropType'])->name('crop-types.destroy');
     Route::post('/municipalities', [CropManagementController::class, 'storeMunicipality'])->name('municipalities.store');
     Route::put('/municipalities/{municipality}', [CropManagementController::class, 'updateMunicipality'])->name('municipalities.update');
+    Route::post('/municipalities/{municipality}/archive', [CropManagementController::class, 'archiveMunicipality'])->name('municipalities.archive');
+    Route::post('/municipalities/{municipality}/restore', [CropManagementController::class, 'restoreMunicipality'])->name('municipalities.restore');
     Route::delete('/municipalities/{municipality}', [CropManagementController::class, 'destroyMunicipality'])->name('municipalities.destroy');
     
     // Crop Name Mappings Routes (ML API Integration)

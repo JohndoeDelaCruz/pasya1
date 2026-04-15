@@ -25,7 +25,7 @@
 
         {{-- Success/Error Messages --}}
         @if(session('success'))
-            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg shadow-md animate-pulse">
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg shadow-md">
                 <div class="flex items-center">
                     <svg class="w-6 h-6 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -35,18 +35,34 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-md">
+                <div class="flex items-center">
+                    <svg class="w-6 h-6 text-red-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <p class="text-sm font-medium text-red-800">{{ session('error') }}</p>
+                </div>
+            </div>
+        @endif
+
         {{-- Stats Dashboard --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {{-- Crop Types Stats --}}
             <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-green-500">
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Crop Types</p>
-                        <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['total_crop_types'] }}</p>
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Crop Types</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['active_crop_types'] }}</p>
                         <p class="text-xs text-gray-500 mt-2">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                                 {{ $stats['active_crop_types'] }} Active
                             </span>
+                            @if($stats['archived_crop_types'] > 0)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 ml-1">
+                                {{ $stats['archived_crop_types'] }} Archived
+                            </span>
+                            @endif
                         </p>
                     </div>
                     <div class="bg-green-100 rounded-full p-4">
@@ -61,12 +77,17 @@
             <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-blue-500">
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Municipalities</p>
-                        <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['total_municipalities'] }}</p>
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Municipalities</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['active_municipalities'] }}</p>
                         <p class="text-xs text-gray-500 mt-2">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
                                 {{ $stats['active_municipalities'] }} Active
                             </span>
+                            @if($stats['archived_municipalities'] > 0)
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 ml-1">
+                                {{ $stats['archived_municipalities'] }} Archived
+                            </span>
+                            @endif
                         </p>
                     </div>
                     <div class="bg-blue-100 rounded-full p-4">
@@ -77,21 +98,41 @@
                 </div>
             </div>
 
-            {{-- Data Usage Stats --}}
+            {{-- Imported Crops --}}
             <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-purple-500">
                 <div class="flex items-center justify-between">
                     <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">From Imported Data</p>
-                        <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['crops_using_types'] }}</p>
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Imported Crops</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['unique_imported_crops'] }}</p>
                         <p class="text-xs text-gray-500 mt-2">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                Unique Crops
+                                Unique from records
                             </span>
                         </p>
                     </div>
                     <div class="bg-purple-100 rounded-full p-4">
                         <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Imported Municipalities --}}
+            <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-amber-500">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Imported Areas</p>
+                        <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['unique_imported_municipalities'] }}</p>
+                        <p class="text-xs text-gray-500 mt-2">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                Unique from records
+                            </span>
+                        </p>
+                    </div>
+                    <div class="bg-amber-100 rounded-full p-4">
+                        <svg class="w-8 h-8 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/>
                         </svg>
                     </div>
                 </div>
@@ -128,15 +169,22 @@
                 {{-- Search Bar --}}
                 <div class="px-6 py-4 bg-gray-50 border-b">
                     <form method="GET" action="{{ route('admin.crop-management.index') }}">
-                        <div class="relative">
-                            <input type="text" 
-                                   name="crop_search" 
-                                   value="{{ request('crop_search') }}"
-                                   placeholder="Search crop types..."
-                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
+                        <div class="flex items-center gap-3">
+                            <div class="relative flex-1">
+                                <input type="text" 
+                                       name="crop_search" 
+                                       value="{{ request('crop_search') }}"
+                                       placeholder="Search crop types..."
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <select name="crop_status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <option value="">All</option>
+                                <option value="active" {{ request('crop_status') === 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="archived" {{ request('crop_status') === 'archived' ? 'selected' : '' }}>Archived</option>
+                            </select>
                         </div>
                     </form>
                 </div>
@@ -154,7 +202,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($cropTypes as $cropType)
-                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <tr class="{{ $cropType->is_active ? 'hover:bg-gray-50' : 'bg-gray-50/50 opacity-75' }} transition-colors duration-150">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center">
                                             @if($cropType->image)
@@ -192,32 +240,56 @@
                                                 Active
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 shadow-sm">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 shadow-sm">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                                                 </svg>
-                                                Inactive
+                                                Archived
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm font-medium">
-                                        <button onclick='openEditCropTypeModal(@json($cropType))' 
-                                                class="text-blue-600 hover:text-blue-900 mr-4 transition-colors duration-150">
-                                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </button>
-                                        <form action="{{ route('admin.crop-types.destroy', $cropType) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    onclick="return confirm('Are you sure you want to delete this crop type?')"
-                                                    class="text-red-600 hover:text-red-900 transition-colors duration-150">
-                                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button onclick='openEditCropTypeModal(@json($cropType))' 
+                                                    class="text-blue-600 hover:text-blue-900 transition-colors duration-150" title="Edit">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
                                             </button>
-                                        </form>
+                                            @if($cropType->is_active)
+                                                <form action="{{ route('admin.crop-types.archive', $cropType) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Archive this crop type? It will be hidden but not deleted.')"
+                                                            class="text-amber-600 hover:text-amber-800 transition-colors duration-150" title="Archive">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.crop-types.restore', $cropType) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            class="text-green-600 hover:text-green-800 transition-colors duration-150" title="Restore">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <form action="{{ route('admin.crop-types.destroy', $cropType) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        onclick="return confirm('Permanently delete this crop type? This cannot be undone.')"
+                                                        class="text-red-600 hover:text-red-900 transition-colors duration-150" title="Delete permanently">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -270,15 +342,22 @@
                 {{-- Search Bar --}}
                 <div class="px-6 py-4 bg-gray-50 border-b">
                     <form method="GET" action="{{ route('admin.crop-management.index') }}">
-                        <div class="relative">
-                            <input type="text" 
-                                   name="municipality_search" 
-                                   value="{{ request('municipality_search') }}"
-                                   placeholder="Search municipalities..."
-                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
+                        <div class="flex items-center gap-3">
+                            <div class="relative flex-1">
+                                <input type="text" 
+                                       name="municipality_search" 
+                                       value="{{ request('municipality_search') }}"
+                                       placeholder="Search municipalities..."
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <select name="municipality_status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All</option>
+                                <option value="active" {{ request('municipality_status') === 'active' ? 'selected' : '' }}>Active</option>
+                                <option value="archived" {{ request('municipality_status') === 'archived' ? 'selected' : '' }}>Archived</option>
+                            </select>
                         </div>
                     </form>
                 </div>
@@ -296,7 +375,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($municipalities as $municipality)
-                                <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <tr class="{{ $municipality->is_active ? 'hover:bg-gray-50' : 'bg-gray-50/50 opacity-75' }} transition-colors duration-150">
                                     <td class="px-6 py-4">
                                         <div class="flex items-center">
                                             <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -326,32 +405,56 @@
                                                 Active
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 shadow-sm">
-                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 shadow-sm">
+                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                                                 </svg>
-                                                Inactive
+                                                Archived
                                             </span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm font-medium">
-                                        <button onclick='openEditMunicipalityModal(@json($municipality))' 
-                                                class="text-blue-600 hover:text-blue-900 mr-4 transition-colors duration-150">
-                                            <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </button>
-                                        <form action="{{ route('admin.municipalities.destroy', $municipality) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    onclick="return confirm('Are you sure you want to delete this municipality?')"
-                                                    class="text-red-600 hover:text-red-900 transition-colors duration-150">
-                                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button onclick='openEditMunicipalityModal(@json($municipality))' 
+                                                    class="text-blue-600 hover:text-blue-900 transition-colors duration-150" title="Edit">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                                 </svg>
                                             </button>
-                                        </form>
+                                            @if($municipality->is_active)
+                                                <form action="{{ route('admin.municipalities.archive', $municipality) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            onclick="return confirm('Archive this municipality? It will be hidden but not deleted.')"
+                                                            class="text-amber-600 hover:text-amber-800 transition-colors duration-150" title="Archive">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.municipalities.restore', $municipality) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" 
+                                                            class="text-green-600 hover:text-green-800 transition-colors duration-150" title="Restore">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            <form action="{{ route('admin.municipalities.destroy', $municipality) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        onclick="return confirm('Permanently delete this municipality? This cannot be undone.')"
+                                                        class="text-red-600 hover:text-red-900 transition-colors duration-150" title="Delete permanently">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

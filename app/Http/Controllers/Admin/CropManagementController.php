@@ -28,33 +28,47 @@ class CropManagementController extends Controller
         // Search functionality for crop types
         $cropTypeQuery = CropType::query();
         if ($request->filled('crop_search')) {
-            $cropTypeQuery->where('name', 'like', '%' . $request->crop_search . '%')
-                         ->orWhere('category', 'like', '%' . $request->crop_search . '%');
+            $cropTypeQuery->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->crop_search . '%')
+                  ->orWhere('category', 'like', '%' . $request->crop_search . '%');
+            });
+        }
+        // Filter by status
+        if ($request->filled('crop_status')) {
+            $cropTypeQuery->where('is_active', $request->crop_status === 'active');
         }
         $cropTypes = $cropTypeQuery->orderBy('name')->paginate(15, ['*'], 'crop_page');
         
         // Search functionality for municipalities
         $municipalityQuery = Municipality::query();
         if ($request->filled('municipality_search')) {
-            $municipalityQuery->where('name', 'like', '%' . $request->municipality_search . '%')
-                            ->orWhere('province', 'like', '%' . $request->municipality_search . '%');
+            $municipalityQuery->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->municipality_search . '%')
+                  ->orWhere('province', 'like', '%' . $request->municipality_search . '%');
+            });
+        }
+        if ($request->filled('municipality_status')) {
+            $municipalityQuery->where('is_active', $request->municipality_status === 'active');
         }
         $municipalities = $municipalityQuery->orderBy('name')->paginate(15, ['*'], 'municipality_page');
         
         $stats = [
             'total_crop_types' => CropType::count(),
             'active_crop_types' => CropType::where('is_active', true)->count(),
+            'archived_crop_types' => CropType::where('is_active', false)->count(),
             'total_municipalities' => Municipality::count(),
             'active_municipalities' => Municipality::where('is_active', true)->count(),
-            'crops_using_types' => Crop::distinct('crop')->count(),
-            'crops_using_municipalities' => Crop::distinct('municipality')->count(),
+            'archived_municipalities' => Municipality::where('is_active', false)->count(),
+            'unique_imported_crops' => Crop::distinct('crop')->count('crop'),
+            'unique_imported_municipalities' => Crop::distinct('municipality')->count('municipality'),
         ];
 
         return view('admin.crop-management', compact('cropTypes', 'municipalities', 'stats'));
     }
 
     /**
-     * Sync crop types and municipalities from imported data
+     * Sync crop types and municipalities from imported data.
+     * Only creates new records — never re-creates archived or deleted ones.
      */
     private function syncDataFromImports()
     {
@@ -65,20 +79,15 @@ class CropManagementController extends Controller
             ->pluck('crop');
         
         foreach ($uniqueCrops as $cropName) {
-            // Normalize the crop name (remove extra spaces, trim)
             $normalizedName = trim($cropName);
-
-            if ($normalizedName === '') {
-                continue;
-            }
+            if ($normalizedName === '') continue;
             
-            // Check if a similar crop type already exists (case-insensitive, ignore spaces)
-            $existingCrop = CropType::whereRaw("REPLACE(LOWER(name), ' ', '') = ?", [
+            // Check if any record already exists (active or archived)
+            $exists = CropType::whereRaw("REPLACE(LOWER(name), ' ', '') = ?", [
                 str_replace(' ', '', strtolower($normalizedName))
-            ])->first();
+            ])->exists();
             
-            // Only create if it doesn't exist
-            if (!$existingCrop) {
+            if (!$exists) {
                 CropType::firstOrCreate(
                     ['name' => $normalizedName],
                     [
@@ -97,20 +106,14 @@ class CropManagementController extends Controller
             ->pluck('municipality');
         
         foreach ($uniqueMunicipalities as $municipalityName) {
-            // Normalize the municipality name
             $normalizedName = trim($municipalityName);
-
-            if ($normalizedName === '') {
-                continue;
-            }
+            if ($normalizedName === '') continue;
             
-            // Check if already exists
-            $existingMunicipality = Municipality::whereRaw("REPLACE(LOWER(name), ' ', '') = ?", [
+            $exists = Municipality::whereRaw("REPLACE(LOWER(name), ' ', '') = ?", [
                 str_replace(' ', '', strtolower($normalizedName))
-            ])->first();
+            ])->exists();
             
-            // Only create if it doesn't exist
-            if (!$existingMunicipality) {
+            if (!$exists) {
                 Municipality::firstOrCreate(
                     ['name' => $normalizedName],
                     [
@@ -227,14 +230,37 @@ class CropManagementController extends Controller
     }
 
     /**
-     * Delete a crop type
+     * Archive a crop type (set inactive)
+     */
+    public function archiveCropType(CropType $cropType)
+    {
+        $cropType->update(['is_active' => false]);
+
+        return redirect()->route('admin.crop-management.index')
+            ->with('success', 'Crop type "' . $cropType->name . '" archived successfully!');
+    }
+
+    /**
+     * Restore an archived crop type
+     */
+    public function restoreCropType(CropType $cropType)
+    {
+        $cropType->update(['is_active' => true]);
+
+        return redirect()->route('admin.crop-management.index')
+            ->with('success', 'Crop type "' . $cropType->name . '" restored successfully!');
+    }
+
+    /**
+     * Delete a crop type permanently
      */
     public function destroyCropType(CropType $cropType)
     {
+        $name = $cropType->name;
         $cropType->delete();
 
         return redirect()->route('admin.crop-management.index')
-            ->with('success', 'Crop type deleted successfully!');
+            ->with('success', 'Crop type "' . $name . '" deleted permanently!');
     }
 
     /**
@@ -294,14 +320,37 @@ class CropManagementController extends Controller
     }
 
     /**
-     * Delete a municipality
+     * Archive a municipality (set inactive)
+     */
+    public function archiveMunicipality(Municipality $municipality)
+    {
+        $municipality->update(['is_active' => false]);
+
+        return redirect()->route('admin.crop-management.index')
+            ->with('success', 'Municipality "' . $municipality->name . '" archived successfully!');
+    }
+
+    /**
+     * Restore an archived municipality
+     */
+    public function restoreMunicipality(Municipality $municipality)
+    {
+        $municipality->update(['is_active' => true]);
+
+        return redirect()->route('admin.crop-management.index')
+            ->with('success', 'Municipality "' . $municipality->name . '" restored successfully!');
+    }
+
+    /**
+     * Delete a municipality permanently
      */
     public function destroyMunicipality(Municipality $municipality)
     {
+        $name = $municipality->name;
         $municipality->delete();
 
         return redirect()->route('admin.crop-management.index')
-            ->with('success', 'Municipality deleted successfully!');
+            ->with('success', 'Municipality "' . $name . '" deleted permanently!');
     }
 
     private function storeCropImage($image): string
