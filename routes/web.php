@@ -31,7 +31,7 @@ Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBrid
     }
 
     // Redirect admin users to admin dashboard
-    if (Auth::guard('web')->check() && Auth::user()->email === 'DAadmin@gmail.com') {
+    if (Auth::guard('web')->check() && Auth::user()->email === config('app.admin_email', 'DAadmin@gmail.com')) {
         return redirect()->route('admin.dashboard');
     }
 
@@ -157,7 +157,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::prefix('predictions')->group(function () {
+Route::prefix('predictions')->middleware('auth:web,farmer')->group(function () {
     // Make a single prediction
     Route::post('/', [PredictionController::class, 'predict']);
     
@@ -170,11 +170,6 @@ Route::prefix('predictions')->group(function () {
     // Batch predictions
     Route::post('/batch', [PredictionController::class, 'predictBatch']);
 });
-
-// Test page for predictions (remove in production)
-Route::get('/test-prediction', function () {
-    return view('test-prediction');
-})->name('test-prediction');
 
 
 require __DIR__.'/auth.php';

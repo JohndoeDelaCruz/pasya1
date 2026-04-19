@@ -29,10 +29,12 @@ class RecommendationsController extends Controller
 
         // Apply filters
         if ($filterName) {
-            $subsidyQuery->where('full_name', 'like', '%' . $filterName . '%');
+            $escapedName = str_replace(['%', '_'], ['\\%', '\\_'], $filterName);
+            $subsidyQuery->where('full_name', 'like', '%' . $escapedName . '%');
         }
         if ($filterId) {
-            $subsidyQuery->where('farmer_id', 'like', '%' . $filterId . '%');
+            $escapedId = str_replace(['%', '_'], ['\\%', '\\_'], $filterId);
+            $subsidyQuery->where('farmer_id', 'like', '%' . $escapedId . '%');
         }
         if ($filterCrop) {
             $subsidyQuery->where('crop', $filterCrop);

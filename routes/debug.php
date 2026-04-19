@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\Crop;
 
+// Only register debug routes in local/development environment
+if (!app()->isProduction()) {
+
 Route::get('/debug-chart-data', function () {
     // Get the same query as the controller
     $query = Crop::query();
@@ -64,3 +67,5 @@ Route::get('/debug-chart-data', function () {
         ]
     ]);
 });
+
+} // end production check

@@ -22,7 +22,7 @@ class CropDataController extends Controller
 
         // Search filter
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
             $query->where(function($q) use ($search) {
                 $q->where('municipality', 'like', "%{$search}%")
                   ->orWhere('crop', 'like', "%{$search}%")
@@ -101,7 +101,7 @@ class CropDataController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:51200', // 50MB max for large files
+            'file' => 'required|file|mimes:csv,txt,xlsx,xls|max:20480', // 20MB max
         ]);
 
         try {

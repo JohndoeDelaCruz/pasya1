@@ -20,6 +20,13 @@ class MapDataController extends Controller
      */
     public function getMapData(Request $request)
     {
+        $request->validate([
+            'crop' => 'nullable|string|max:255',
+            'year' => 'nullable|integer|min:1990|max:2100',
+            'view' => 'nullable|string|in:production,productivity,area_planted,area_harvested',
+            'farm_type' => 'nullable|string|max:255',
+        ]);
+
         $crop = $request->input('crop');
         $year = $request->input('year');
         $view = $request->input('view', 'production');
@@ -82,6 +89,11 @@ class MapDataController extends Controller
      */
     public function getMunicipalityDetails(Request $request, $municipality)
     {
+        $request->validate([
+            'crop' => 'nullable|string|max:255',
+            'year' => 'nullable|integer|min:1990|max:2100',
+        ]);
+
         $crop = $request->input('crop');
         $year = $request->input('year');
 

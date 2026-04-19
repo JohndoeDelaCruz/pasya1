@@ -66,6 +66,9 @@ class CropTrendsController extends Controller
             'current_year' => $currentYear
         ]);
         
+        // Cache predictions per month to avoid duplicate API calls
+        $predictionCache = [];
+        
         foreach ($months as $month) {
             // Historical data: average yearly production from previous years
             // First SUM production per year, then AVG those yearly totals
@@ -116,6 +119,9 @@ class CropTrendsController extends Controller
                     'area_harvested' => $avgAreaHarvested
                 ]);
                 
+                // Cache prediction for reuse in demand section
+                $predictionCache[$month] = $prediction;
+                
                 Log::info('Crop Trends Prediction (V2)', [
                     'month' => $month,
                     'prediction' => $prediction
@@ -147,96 +153,25 @@ class CropTrendsController extends Controller
             }
         }
         
-        // Summary of Demand (monthly production)
+        // Summary of Demand (monthly production) - reuse cached predictions
         $demandData = [];
         $recordedData = [];
         
-        Log::info('Starting Summary of Demand calculation', [
-            'crop' => $topCrop->crop ?? 'N/A',
-            'municipality' => $topMunicipality->municipality ?? 'N/A',
-            'farm_type' => $topFarmType->farm_type ?? 'N/A',
-            'avg_area_harvested' => $avgAreaHarvested
-        ]);
-        
         foreach ($months as $month) {
-            // Use ML predictions for demand forecasting
-            if ($topCrop && $topMunicipality && $topFarmType) {
-                $prediction = $this->predictionService->predictProduction([
-                    'municipality' => $topMunicipality->municipality,
-                    'farm_type' => $topFarmType->farm_type,
-                    'month' => $month,
-                    'crop' => $topCrop->crop,
-                    'area_harvested' => $avgAreaHarvested
-                ]);
+            // Reuse cached predictions from the yield section
+            if (isset($predictionCache[$month])) {
+                $prediction = $predictionCache[$month];
                 
                 if (isset($prediction['success']) && $prediction['success'] && isset($prediction['prediction']['production_mt'])) {
-                    // Prediction returns production in MT
                     $predictedProduction = round($prediction['prediction']['production_mt'], 2);
                     $demandData[] = $predictedProduction;
-                    
-                    Log::info('Demand Prediction for ' . $month, [
-                        'production_mt' => $predictedProduction,
-                        'source' => 'ML'
-                    ]);
-                    Log::info('Demand Prediction for ' . $month, [
-                        'production_mt' => $predictedProduction,
-                        'source' => 'ML'
-                    ]);
                 } else {
-                    // Fallback: SUM per year then AVG across years for correct aggregation
-                    $avgProductionQuery = Crop::where('year', '<', $currentYear)
-                        ->where('month', $month);
-                    
-                    if ($topCrop) {
-                        $avgProductionQuery->where('crop', $topCrop->crop);
-                    }
-                    if ($topMunicipality) {
-                        $avgProductionQuery->where('municipality', $topMunicipality->municipality);
-                    }
-                    if ($topFarmType) {
-                        $avgProductionQuery->where('farm_type', $topFarmType->farm_type);
-                    }
-                    
-                    $yearlySums = (clone $avgProductionQuery)
-                        ->select('year', DB::raw('SUM(production) as yearly_production'))
-                        ->groupBy('year')
-                        ->pluck('yearly_production');
-                    $fallbackValue = $yearlySums->count() > 0 ? round($yearlySums->avg(), 2) : 0;
-                    $demandData[] = $fallbackValue;
-                    
-                    Log::info('Demand Fallback for ' . $month, [
-                        'production_mt' => $fallbackValue,
-                        'source' => 'Historical Average',
-                        'years_count' => $yearlySums->count()
-                    ]);
+                    // Fallback: SUM per year then AVG across years
+                    $demandData[] = $this->getHistoricalAverage($currentYear, $month, $topCrop, $topMunicipality, $topFarmType);
                 }
             } else {
-                // Fallback: SUM per year then AVG across years for correct aggregation
-                $avgProductionQuery = Crop::where('year', '<', $currentYear)
-                    ->where('month', $month);
-                
-                if ($topCrop) {
-                    $avgProductionQuery->where('crop', $topCrop->crop);
-                }
-                if ($topMunicipality) {
-                    $avgProductionQuery->where('municipality', $topMunicipality->municipality);
-                }
-                if ($topFarmType) {
-                    $avgProductionQuery->where('farm_type', $topFarmType->farm_type);
-                }
-                
-                $yearlySums = (clone $avgProductionQuery)
-                    ->select('year', DB::raw('SUM(production) as yearly_production'))
-                    ->groupBy('year')
-                    ->pluck('yearly_production');
-                $fallbackValue = $yearlySums->count() > 0 ? round($yearlySums->avg(), 2) : 0;
-                $demandData[] = $fallbackValue;
-                
-                Log::info('Demand No ML Data for ' . $month, [
-                    'production_mt' => $fallbackValue,
-                    'source' => 'Historical Average (No ML)',
-                    'years_count' => $yearlySums->count()
-                ]);
+                // Fallback: SUM per year then AVG across years
+                $demandData[] = $this->getHistoricalAverage($currentYear, $month, $topCrop, $topMunicipality, $topFarmType);
             }
             
             // Recorded/actual data for current year (for same crop/municipality/farm_type)
@@ -373,7 +308,7 @@ class CropTrendsController extends Controller
         $normalizedCrop = strtoupper(trim($request->crop));
         $normalizedMonthFrom = $this->normalizeMonth($request->month_from);
         $normalizedMonthTo = $this->normalizeMonth($request->month_to);
-        $strictMlMode = filter_var((string) env('ML_STRICT_MODE', 'true'), FILTER_VALIDATE_BOOLEAN);
+        $strictMlMode = filter_var((string) config('services.ml_api.strict_mode', true), FILTER_VALIDATE_BOOLEAN);
 
         // Log the request parameters for debugging
         Log::info('Prediction Request', [
@@ -935,5 +870,31 @@ class CropTrendsController extends Controller
         ];
 
         return array_values(array_unique([$normalized, $fullMonthNames[$normalized]]));
+    }
+
+    /**
+     * Get historical average production for a given month.
+     */
+    private function getHistoricalAverage(int $currentYear, string $month, $topCrop, $topMunicipality, $topFarmType): float
+    {
+        $query = Crop::where('year', '<', $currentYear)
+            ->where('month', $month);
+
+        if ($topCrop) {
+            $query->where('crop', $topCrop->crop);
+        }
+        if ($topMunicipality) {
+            $query->where('municipality', $topMunicipality->municipality);
+        }
+        if ($topFarmType) {
+            $query->where('farm_type', $topFarmType->farm_type);
+        }
+
+        $yearlySums = $query
+            ->select('year', DB::raw('SUM(production) as yearly_production'))
+            ->groupBy('year')
+            ->pluck('yearly_production');
+
+        return $yearlySums->count() > 0 ? round($yearlySums->avg(), 2) : 0;
     }
 }

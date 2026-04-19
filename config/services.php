@@ -43,4 +43,12 @@ return [
         'cache_ttl' => (int) env('GOOGLE_WEATHER_CACHE_TTL', 900),
     ],
 
+    'ml_api' => [
+        'url' => env('ML_API_URL', 'http://127.0.0.1:5000'),
+        'timeout' => (int) env('ML_API_TIMEOUT', 30),
+        'cache_enabled' => (bool) env('ML_API_CACHE_ENABLED', true),
+        'cache_ttl' => (int) env('ML_API_CACHE_TTL', 300),
+        'strict_mode' => (bool) env('ML_STRICT_MODE', true),
+    ],
+
 ];

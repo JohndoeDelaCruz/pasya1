@@ -7,6 +7,7 @@ use App\Models\Farmer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Municipality;
 use Illuminate\Validation\Rules\Password;
 
 class FarmerController extends Controller
@@ -20,7 +21,7 @@ class FarmerController extends Controller
 
         // Search filter
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
             $query->where(function($q) use ($search) {
                 $q->where('farmer_id', 'like', "%{$search}%")
                   ->orWhere('first_name', 'like', "%{$search}%")
@@ -55,7 +56,7 @@ class FarmerController extends Controller
      */
     public function create()
     {
-        $municipalities = ['LA TRINIDAD', 'ITOGON', 'SABLAN', 'TUBA', 'TUBLAY', 'ATOK', 'BAKUN', 'BOKOD', 'BUGUIAS', 'KABAYAN', 'KAPANGAN', 'KIBUNGAN', 'MANKAYAN'];
+        $municipalities = Municipality::active()->orderBy('name')->pluck('name')->toArray();
         return view('admin.farmer-create', compact('municipalities'));
     }
 
@@ -100,7 +101,7 @@ class FarmerController extends Controller
      */
     public function edit(Farmer $farmer)
     {
-        $municipalities = ['BENGUET', 'LA TRINIDAD', 'ITOGON', 'SABLAN', 'TUBA', 'TUBLAY', 'BAGUIO CITY', 'ATOK', 'BAKUN', 'BOKOD', 'BUGUIAS', 'KABAYAN', 'KAPANGAN', 'KIBUNGAN', 'MANKAYAN'];
+        $municipalities = Municipality::active()->orderBy('name')->pluck('name')->toArray();
         return view('admin.farmer-edit', compact('farmer', 'municipalities'));
     }
 

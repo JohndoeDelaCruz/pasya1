@@ -28,9 +28,10 @@ class CropManagementController extends Controller
         // Search functionality for crop types
         $cropTypeQuery = CropType::query();
         if ($request->filled('crop_search')) {
-            $cropTypeQuery->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->crop_search . '%')
-                  ->orWhere('category', 'like', '%' . $request->crop_search . '%');
+            $escapedSearch = str_replace(['%', '_'], ['\\%', '\\_'], $request->crop_search);
+            $cropTypeQuery->where(function ($q) use ($escapedSearch) {
+                $q->where('name', 'like', '%' . $escapedSearch . '%')
+                  ->orWhere('category', 'like', '%' . $escapedSearch . '%');
             });
         }
         // Filter by status
@@ -42,9 +43,10 @@ class CropManagementController extends Controller
         // Search functionality for municipalities
         $municipalityQuery = Municipality::query();
         if ($request->filled('municipality_search')) {
-            $municipalityQuery->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->municipality_search . '%')
-                  ->orWhere('province', 'like', '%' . $request->municipality_search . '%');
+            $escapedSearch = str_replace(['%', '_'], ['\\%', '\\_'], $request->municipality_search);
+            $municipalityQuery->where(function ($q) use ($escapedSearch) {
+                $q->where('name', 'like', '%' . $escapedSearch . '%')
+                  ->orWhere('province', 'like', '%' . $escapedSearch . '%');
             });
         }
         if ($request->filled('municipality_status')) {

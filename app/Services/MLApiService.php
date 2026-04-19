@@ -33,10 +33,10 @@ class MLApiService
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(env('ML_API_URL', 'http://127.0.0.1:5000'), '/');
-        $this->timeout = (int) env('ML_API_TIMEOUT', 30);
-        $this->cacheEnabled = (bool) env('ML_API_CACHE_ENABLED', true);
-        $this->cacheTtl = (int) env('ML_API_CACHE_TTL', 300); // 5 minutes default
+        $this->baseUrl = rtrim(config('services.ml_api.url', 'http://127.0.0.1:5000'), '/');
+        $this->timeout = (int) config('services.ml_api.timeout', 30);
+        $this->cacheEnabled = (bool) config('services.ml_api.cache_enabled', true);
+        $this->cacheTtl = (int) config('services.ml_api.cache_ttl', 300);
     }
 
     /**
@@ -171,6 +171,14 @@ class MLApiService
      */
     public function batchPredict(array $predictions): array
     {
+        // Limit batch size to prevent excessive processing
+        if (count($predictions) > 100) {
+            return [
+                'success' => false,
+                'error' => 'Batch size exceeds maximum of 100 predictions'
+            ];
+        }
+
         $attempts = [
             [
                 'endpoint' => '/batch-predict',

@@ -15,8 +15,8 @@ use App\Http\Controllers\Api\WeatherController;
 |
 */
 
-// Map API Routes (Public - no authentication required for map data)
-Route::prefix('map')->name('api.map.')->group(function () {
+// Map API Routes (Public - rate limited)
+Route::prefix('map')->name('api.map.')->middleware('throttle:60,1')->group(function () {
     // Main map data with filters
     Route::get('/data', [MapDataController::class, 'getMapData'])->name('data');
 
@@ -39,6 +39,6 @@ Route::prefix('map')->name('api.map.')->group(function () {
     Route::get('/statistics', [MapDataController::class, 'getStatistics'])->name('statistics');
 });
 
-Route::prefix('weather')->name('api.weather.')->group(function () {
+Route::prefix('weather')->name('api.weather.')->middleware('throttle:30,1')->group(function () {
     Route::get('/current', [WeatherController::class, 'current'])->name('current');
 });

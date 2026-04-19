@@ -56,6 +56,14 @@ class DataAnalyticsController extends Controller
 
     public function index(Request $request)
     {
+        $request->validate([
+            'crop' => 'nullable|string|max:255',
+            'municipality' => 'nullable|string|max:255',
+            'month' => 'nullable|string|max:20',
+            'year' => 'nullable|integer|min:1990|max:2100',
+            'farm_type' => 'nullable|string|max:255',
+        ]);
+
         // Get filters from request
         $filters = [
             'crop' => $request->input('crop'),

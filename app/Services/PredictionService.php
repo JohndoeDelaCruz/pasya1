@@ -51,9 +51,9 @@ class PredictionService
 
     public function __construct()
     {
-        // Set API URL from .env or use default
-        $this->apiUrl = env('ML_API_URL', 'http://127.0.0.1:5000');
-        $this->timeout = env('ML_API_TIMEOUT', 10); // Reduced to 10 seconds
+        // Set API URL from config (env() returns null when config is cached)
+        $this->apiUrl = config('services.ml_api.url', 'http://127.0.0.1:5000');
+        $this->timeout = (int) config('services.ml_api.timeout', 10);
         
         // Initialize ML API Service for database-backed predictions
         $this->mlApi = new MLApiService();

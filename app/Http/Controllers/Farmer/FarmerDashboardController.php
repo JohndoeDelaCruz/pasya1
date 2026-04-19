@@ -149,7 +149,7 @@ class FarmerDashboardController extends Controller
             'last_name' => 'required|string|max:255',
             'suffix' => 'nullable|string|max:50',
             'municipality' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
+            'email' => 'nullable|email|max:255|unique:farmers,email,' . $farmer->id,
             'mobile_number' => 'nullable|string|max:20',
             'cooperative' => 'nullable|string|max:255',
         ]);
@@ -177,7 +177,7 @@ class FarmerDashboardController extends Controller
         }
 
         $farmer->update([
-            'password' => bcrypt($validated['password']),
+            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
         ]);
 
         return redirect()->route('farmers.profile')->with('success', 'Password updated successfully!');
