@@ -160,29 +160,10 @@
                                 </div>
 
                                 <!-- Trend Lines -->
-                                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">
-                                    <template x-for="dataset in visibleTrendDatasets" :key="dataset.label">
-                                        <g>
-                                            <path :d="buildTrendPath(dataset)"
-                                                  :stroke="dataset.color"
-                                                  stroke-width="3"
-                                                  fill="none"
-                                                  stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  class="drop-shadow-sm"></path>
-
-                                            <template x-for="(value, pointIndex) in dataset.data" :key="dataset.label + '-' + pointIndex">
-                                                <circle :cx="getTrendX(pointIndex, dataset.data.length)"
-                                                        :cy="getTrendY(value)"
-                                                        r="5"
-                                                        :fill="dataset.color"
-                                                        class="cursor-pointer transition-transform hover:scale-125"
-                                                        @mouseenter="showTrendPointTooltip($event, dataset.label, trendData.labels[pointIndex], value, dataset.color)"
-                                                        @mouseleave="hideTrendPointTooltip()"></circle>
-                                            </template>
-                                        </g>
-                                    </template>
-                                </svg>
+                                <div class="absolute inset-0"
+                                     x-html="buildTrendSVG()"
+                                     @mouseover="handleTrendHover($event)"
+                                     @mouseleave="hideTrendPointTooltip()"></div>
 
                                 <!-- Tooltip -->
                                 <div x-show="trendTooltip.show"
@@ -430,6 +411,50 @@
                     });
 
                     return points.length ? `M ${points.join(' L ')}` : '';
+                },
+
+                buildTrendSVG() {
+                    const datasets = this.visibleTrendDatasets;
+                    if (!datasets.length) return '';
+                    let inner = '';
+                    datasets.forEach(dataset => {
+                        const pts = (dataset.data || []).map((value, index) => {
+                            const x = this.getTrendX(index, dataset.data.length);
+                            const y = this.getTrendY(value);
+                            return `${x},${y}`;
+                        });
+                        const d = pts.length ? `M ${pts.join(' L ')}` : '';
+                        inner += `<path d="${d}" stroke="${dataset.color}" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+                        (dataset.data || []).forEach((value, pointIndex) => {
+                            const x = this.getTrendX(pointIndex, dataset.data.length);
+                            const y = this.getTrendY(value);
+                            const month = (this.trendData.labels || [])[pointIndex] || '';
+                            inner += `<circle cx="${x}" cy="${y}" r="5" fill="${dataset.color}" style="cursor:pointer" data-label="${dataset.label}" data-month="${month}" data-value="${value}" data-color="${dataset.color}"/>`;
+                        });
+                    });
+                    return `<svg xmlns="http://www.w3.org/2000/svg" class="w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">${inner}</svg>`;
+                },
+
+                handleTrendHover(event) {
+                    const target = event.target;
+                    if (target && target.tagName && target.tagName.toLowerCase() === 'circle') {
+                        const label = target.getAttribute('data-label') || '';
+                        const month = target.getAttribute('data-month') || '';
+                        const value = parseFloat(target.getAttribute('data-value')) || 0;
+                        const color = target.getAttribute('data-color') || '#22c55e';
+                        const panel = target.closest('.trend-chart-panel');
+                        if (!panel) return;
+                        const rect = panel.getBoundingClientRect();
+                        this.trendTooltip = {
+                            show: true,
+                            x: event.clientX - rect.left,
+                            y: event.clientY - rect.top,
+                            label,
+                            month,
+                            value,
+                            color,
+                        };
+                    }
                 },
 
                 showTrendPointTooltip(event, label, month, value, color) {

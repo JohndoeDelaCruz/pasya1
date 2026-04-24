@@ -65,11 +65,12 @@ class DataAnalyticsController extends Controller
         ]);
 
         // Get filters from request
+        $latestDataYear = Crop::max('year') ?? date('Y');
         $filters = [
             'crop' => $request->input('crop'),
             'municipality' => $request->input('municipality'),
             'month' => $request->input('month'),
-            'year' => $request->input('year'),
+            'year' => $request->input('year') ?? $latestDataYear,
             'farm_type' => $request->input('farm_type')
         ];
 
@@ -405,9 +406,9 @@ class DataAnalyticsController extends Controller
             'filterCrop' => $filters['crop'],
             'filterMunicipality' => $filters['municipality'],
             'filterMonth' => $filters['month'],
-            'filterYear' => $filters['year'] ?? date('Y'),
+            'filterYear' => $filters['year'] ?? $latestDataYear,
             'filterFarmType' => $filters['farm_type'],
-            'selectedYear' => $filters['year'] ?? date('Y'),
+            'selectedYear' => $filters['year'] ?? $latestDataYear,
             'chartMode' => $chartMode,
             'chartData' => $chartData,
             'trendChartData' => $chartData,
