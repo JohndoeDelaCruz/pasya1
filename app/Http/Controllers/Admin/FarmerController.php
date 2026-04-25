@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Builder;
 use App\Models\Farmer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,36 +20,32 @@ class FarmerController extends Controller
     {
         $query = Farmer::with('creator');
 
-        // Search filter
-        if ($request->filled('search')) {
-            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
-            $query->where(function($q) use ($search) {
-                $q->where('farmer_id', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('municipality', 'like', "%{$search}%")
-                  ->orWhere('cooperative', 'like', "%{$search}%")
-                  ->orWhere('mobile_number', 'like', "%{$search}%");
-            });
-        }
-
-        // Municipality filter
-        if ($request->filled('municipality')) {
-            $query->where('municipality', $request->municipality);
-        }
+        $this->applyFilters($query, $request);
 
         $farmers = $query->latest()->paginate(20)->withQueryString();
 
         // Get filter options
         $municipalities = Farmer::distinct('municipality')->orderBy('municipality')->pluck('municipality');
 
-        $stats = [
-            'total_farmers' => Farmer::count(),
-            'total_municipalities' => Farmer::distinct('municipality')->count(),
-            'total_cooperatives' => Farmer::whereNotNull('cooperative')->distinct('cooperative')->count(),
-        ];
+        $stats = $this->buildStats();
 
         return view('admin.account-management', compact('farmers', 'municipalities', 'stats'));
+    }
+
+    /**
+     * Display archived farmer accounts.
+     */
+    public function archived(Request $request)
+    {
+        $query = Farmer::onlyTrashed()->with('creator');
+
+        $this->applyFilters($query, $request);
+
+        $archivedFarmers = $query->latest('deleted_at')->paginate(20)->withQueryString();
+        $municipalities = Farmer::onlyTrashed()->distinct('municipality')->orderBy('municipality')->pluck('municipality');
+        $stats = $this->buildStats();
+
+        return view('admin.account-management-archived', compact('archivedFarmers', 'municipalities', 'stats'));
     }
 
     /**
@@ -145,5 +142,47 @@ class FarmerController extends Controller
         $farmer->delete();
 
         return back()->with('success', 'Farmer account archived successfully!');
+    }
+
+    /**
+     * Restore an archived farmer account.
+     */
+    public function restore(int $id)
+    {
+        $farmer = Farmer::onlyTrashed()->findOrFail($id);
+        $farmer->restore();
+
+        return redirect()->route('admin.farmers.archived')
+            ->with('success', 'Farmer account restored successfully!');
+    }
+
+    private function applyFilters(Builder $query, Request $request): void
+    {
+        if ($request->filled('search')) {
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
+            $query->where(function (Builder $subquery) use ($search) {
+                $subquery->where('farmer_id', 'like', "%{$search}%")
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('municipality', 'like', "%{$search}%")
+                    ->orWhere('cooperative', 'like', "%{$search}%")
+                    ->orWhere('mobile_number', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('municipality')) {
+            $query->where('municipality', $request->municipality);
+        }
+    }
+
+    private function buildStats(): array
+    {
+        return [
+            'total_farmers' => Farmer::count(),
+            'total_municipalities' => Farmer::distinct('municipality')->count(),
+            'total_cooperatives' => Farmer::whereNotNull('cooperative')->distinct('cooperative')->count(),
+            'archived_farmers' => Farmer::onlyTrashed()->count(),
+            'archived_municipalities' => Farmer::onlyTrashed()->distinct('municipality')->count(),
+        ];
     }
 }

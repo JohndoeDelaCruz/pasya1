@@ -107,10 +107,12 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     
     // Farmer Account Management Routes
     Route::get('/farmers', [FarmerController::class, 'index'])->name('farmers.index');
+    Route::get('/farmers/archived', [FarmerController::class, 'archived'])->name('farmers.archived');
     Route::get('/farmers/create', [FarmerController::class, 'create'])->name('farmers.create');
     Route::post('/farmers', [FarmerController::class, 'store'])->name('farmers.store');
     Route::get('/farmers/{farmer}/edit', [FarmerController::class, 'edit'])->name('farmers.edit');
     Route::put('/farmers/{farmer}', [FarmerController::class, 'update'])->name('farmers.update');
+    Route::post('/farmers/{id}/restore', [FarmerController::class, 'restore'])->name('farmers.restore');
     Route::delete('/farmers/{farmer}', [FarmerController::class, 'destroy'])->name('farmers.destroy');
     
     // Crop Data Management Routes

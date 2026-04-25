@@ -8,14 +8,26 @@
                 <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">Farmer Account Management</h1>
                 <p class="text-sm text-gray-600">Create and manage farmer accounts</p>
             </div>
-            <a href="{{ route('admin.farmers.create') }}" 
-               class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center self-start sm:self-auto">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                <span class="hidden sm:inline">Create Farmer Account</span>
-                <span class="sm:hidden">New Farmer</span>
-            </a>
+            <div class="flex flex-col sm:flex-row gap-3 self-start sm:self-auto">
+                <a href="{{ route('admin.farmers.archived') }}"
+                   class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center self-start sm:self-auto">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                    </svg>
+                    <span>Archived Accounts</span>
+                    @if($stats['archived_farmers'] > 0)
+                        <span class="ml-2 rounded-full bg-amber-700 px-2 py-0.5 text-xs font-bold text-white">{{ number_format($stats['archived_farmers']) }}</span>
+                    @endif
+                </a>
+                <a href="{{ route('admin.farmers.create') }}" 
+                   class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center self-start sm:self-auto">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span class="hidden sm:inline">Create Farmer Account</span>
+                    <span class="sm:hidden">New Farmer</span>
+                </a>
+            </div>
         </div>
 
         {{-- Success Message --}}

@@ -73,4 +73,44 @@ class FarmerArchiveTest extends TestCase
         $this->assertGuest('web');
         $this->assertGuest('farmer');
     }
+
+    public function test_admin_can_view_and_restore_archived_farmer_accounts(): void
+    {
+        $admin = User::factory()->create();
+        $farmer = Farmer::create([
+            'farmer_id' => 'FMR250003',
+            'first_name' => 'Mario',
+            'middle_name' => null,
+            'last_name' => 'Archive',
+            'suffix' => null,
+            'municipality' => 'BUGUIAS',
+            'cooperative' => 'Test Cooperative',
+            'contact_info' => null,
+            'email' => 'mario.archive@example.com',
+            'mobile_number' => '09123450000',
+            'password' => 'password',
+            'created_by' => $admin->id,
+        ]);
+
+        $farmer->delete();
+
+        $this->actingAs($admin)
+            ->get(route('admin.farmers.archived'))
+            ->assertOk()
+            ->assertSee('Archived Farmer Accounts')
+            ->assertSee('FMR250003')
+            ->assertSee('Mario Archive');
+
+        $response = $this->actingAs($admin)
+            ->from(route('admin.farmers.archived'))
+            ->post(route('admin.farmers.restore', $farmer->id));
+
+        $response->assertRedirect(route('admin.farmers.archived'));
+        $response->assertSessionHas('success', 'Farmer account restored successfully!');
+
+        $restoredFarmer = Farmer::find($farmer->id);
+
+        $this->assertNotNull($restoredFarmer);
+        $this->assertNull($restoredFarmer->deleted_at);
+    }
 }
