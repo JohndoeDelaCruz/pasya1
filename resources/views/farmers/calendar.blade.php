@@ -380,6 +380,12 @@
                                                 <span x-text="selectedEvent.area + ' hectares'"></span>
                                             </div>
                                         </template>
+                                        <template x-if="selectedEvent.planting_material_label">
+                                            <div class="text-xs text-gray-500">
+                                                <span class="font-medium">Seed / Seedling Type:</span>
+                                                <span x-text="selectedEvent.planting_material_label"></span>
+                                            </div>
+                                        </template>
                                     </div>
                                     <template x-if="selectedEvent.crop_plan_id">
                                         <button @click="deleteCropPlan(selectedEvent.crop_plan_id)"
@@ -611,6 +617,22 @@
                                 </div>
                             </div>
 
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Seed / Seedling Type</label>
+                                <div class="flex gap-4">
+                                    <label class="flex items-center">
+                                        <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEED"
+                                            class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                        <span class="ml-2 text-gray-700">Seed</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEEDLING"
+                                            class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                        <span class="ml-2 text-gray-700">Seedling</span>
+                                    </label>
+                                </div>
+                            </div>
+
                             <!-- Notes (Optional) -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
@@ -735,6 +757,7 @@
                         planting_date: todayStr,
                         area_hectares: '',
                         farm_type: 'IRRIGATED',
+                        planting_material_type: 'SEED',
                         notes: ''
                     },
 
@@ -857,6 +880,7 @@
                                 planting_date: this.cropPlanForm.planting_date,
                                 area_hectares: parseFloat(this.cropPlanForm.area_hectares),
                                 farm_type: this.cropPlanForm.farm_type,
+                                planting_material_type: this.cropPlanForm.planting_material_type,
                             });
 
                             const response = await fetch('{{ route("farmers.api.crop-plans.store") }}', {
@@ -871,6 +895,7 @@
                                     planting_date: this.cropPlanForm.planting_date,
                                     area_hectares: parseFloat(this.cropPlanForm.area_hectares),
                                     farm_type: this.cropPlanForm.farm_type,
+                                    planting_material_type: this.cropPlanForm.planting_material_type,
                                     notes: this.cropPlanForm.notes
                                 })
                             });
@@ -898,30 +923,13 @@
                                 if (!this.allEvents[plantingDate]) {
                                     this.allEvents[plantingDate] = [];
                                 }
-                                this.allEvents[plantingDate].push({
-                                    title: 'Plant ' + cropName,
-                                    type: 'plant',
-                                    crop_name: cropName,
-                                    description: 'Plant ' + cropName + ' on ' + data.data.area_hectares + ' hectares. Expected harvest: ' + data.data.edoh_formatted + '. Predicted production: ' + data.data.predicted_production_formatted,
-                                    crop_plan_id: data.data.id,
-                                    area: data.data.area_hectares,
-                                    predicted_production: data.data.predicted_production
-                                });
+                                this.allEvents[plantingDate].push(data.data.planting_event);
 
                                 // Add harvest event (EDOH)
                                 if (!this.allEvents[harvestDate]) {
                                     this.allEvents[harvestDate] = [];
                                 }
-                                this.allEvents[harvestDate].push({
-                                    title: 'Harvest ' + cropName,
-                                    type: 'harvest',
-                                    crop_name: cropName,
-                                    description: 'Expected harvest of ' + cropName + ' from ' + data.data.area_hectares + ' ha. Predicted production: ' + data.data.predicted_production_formatted,
-                                    crop_plan_id: data.data.id,
-                                    area: data.data.area_hectares,
-                                    predicted_production: data.data.predicted_production,
-                                    is_edoh: true
-                                });
+                                this.allEvents[harvestDate].push(data.data.harvest_event);
 
                                 // Add fertilizer events
                                 if (data.data.fertilizer_events) {
@@ -1013,6 +1021,7 @@
                             planting_date: this.today,
                             area_hectares: '',
                             farm_type: 'IRRIGATED',
+                            planting_material_type: 'SEED',
                             notes: ''
                         };
                         this.showPredictionPreview = false;

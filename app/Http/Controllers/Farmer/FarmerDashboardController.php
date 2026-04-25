@@ -323,31 +323,16 @@ class FarmerDashboardController extends Controller
             if (!isset($events[$plantingKey])) {
                 $events[$plantingKey] = [];
             }
-            $events[$plantingKey][] = [
-                'title' => "Plant {$plan->crop_name}",
-                'type' => 'plant',
-                'crop_name' => $plan->crop_name,
-                'description' => "Plant {$plan->crop_name} on {$plan->area_hectares} hectares. Apply basal fertilizer at planting. Expected harvest: {$plan->expected_harvest_date->format('M d, Y')}. Predicted production: {$plan->formatted_production}",
-                'crop_plan_id' => $plan->id,
-                'area' => $plan->area_hectares,
-                'predicted_production' => $plan->predicted_production,
-            ];
+            $events[$plantingKey][] = $plan->toPlantingEvent();
 
             // Add harvest event (EDOH)
             $harvestKey = $plan->expected_harvest_date->format('Y-m-d');
             if (!isset($events[$harvestKey])) {
                 $events[$harvestKey] = [];
             }
-            $events[$harvestKey][] = [
-                'title' => "Harvest {$plan->crop_name}",
-                'type' => 'harvest',
-                'crop_name' => $plan->crop_name,
-                'description' => "Expected harvest of {$plan->crop_name} from {$plan->area_hectares} ha. Predicted production: {$plan->formatted_production}",
-                'crop_plan_id' => $plan->id,
-                'area' => $plan->area_hectares,
-                'predicted_production' => $plan->predicted_production,
+            $events[$harvestKey][] = array_merge($plan->toHarvestEvent(), [
                 'is_edoh' => true,
-            ];
+            ]);
 
             // Add fertilizer events (side-dress applications based on growth stages)
             $fertilizerEvents = $plan->toFertilizerEvents();
@@ -764,6 +749,7 @@ class FarmerDashboardController extends Controller
                 'planting_date' => 'required|date|after_or_equal:today',
                 'area_hectares' => 'required|numeric|min:0.01|max:1000',
                 'farm_type' => 'nullable|string|in:IRRIGATED,RAINFED',
+                'planting_material_type' => 'nullable|string|in:SEED,SEEDLING',
                 'notes' => 'nullable|string|max:500',
             ]);
 
@@ -784,6 +770,7 @@ class FarmerDashboardController extends Controller
             $plantingDate = Carbon::parse($validated['planting_date']);
             $areaHectares = floatval($validated['area_hectares']);
             $farmType = $validated['farm_type'] ?? 'IRRIGATED';
+            $plantingMaterialType = $validated['planting_material_type'] ?? 'SEED';
 
             // Calculate Expected Date of Harvest (EDOH)
             $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate);
@@ -810,6 +797,7 @@ class FarmerDashboardController extends Controller
                 'predicted_production' => $predictedProduction,
                 'municipality' => strtoupper($farmer->municipality ?? 'BUGUIAS'),
                 'farm_type' => $farmType,
+                'planting_material_type' => $plantingMaterialType,
                 'status' => 'planned',
                 'notes' => $validated['notes'] ?? null,
             ]);
@@ -843,6 +831,12 @@ class FarmerDashboardController extends Controller
                     'area_hectares' => $cropPlan->area_hectares,
                     'predicted_production' => $cropPlan->predicted_production,
                     'predicted_production_formatted' => $cropPlan->formatted_production,
+                    'planting_material_type' => $cropPlan->planting_material_type,
+                    'planting_material_label' => $cropPlan->planting_material_label,
+                    'planting_event' => $cropPlan->toPlantingEvent(),
+                    'harvest_event' => array_merge($cropPlan->toHarvestEvent(), [
+                        'is_edoh' => true,
+                    ]),
                     'fertilizer_events' => $fertilizerEvents,
                 ],
             ]);

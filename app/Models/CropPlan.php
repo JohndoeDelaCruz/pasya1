@@ -18,9 +18,11 @@ use Carbon\Carbon;
  * @property float $predicted_production
  * @property string $municipality
  * @property string $farm_type
+ * @property string|null $planting_material_type
  * @property string $status
  * @property string|null $notes
  * @property string $formatted_production
+ * @property string|null $planting_material_label
  * @property int $days_until_harvest
  * @property float $progress_percentage
  */
@@ -38,6 +40,7 @@ class CropPlan extends Model
         'predicted_production',
         'municipality',
         'farm_type',
+        'planting_material_type',
         'status',
         'notes',
     ];
@@ -156,6 +159,28 @@ class CropPlan extends Model
     }
 
     /**
+     * Get formatted planting material label.
+     */
+    public function getPlantingMaterialLabelAttribute(): ?string
+    {
+        return match ($this->planting_material_type) {
+            'SEED' => 'Seed',
+            'SEEDLING' => 'Seedling',
+            default => null,
+        };
+    }
+
+    /**
+     * Get planting material sentence fragment for event descriptions.
+     */
+    public function getPlantingMaterialDescriptionAttribute(): string
+    {
+        return $this->planting_material_label
+            ? " Planting material: {$this->planting_material_label}."
+            : '';
+    }
+
+    /**
      * Convert to calendar event format
      */
     public function toPlantingEvent(): array
@@ -164,10 +189,12 @@ class CropPlan extends Model
             'id' => $this->id,
             'title' => "Plant {$this->crop_name}",
             'type' => 'plant',
-            'description' => "Plant {$this->crop_name} on {$this->area_hectares} hectares. Expected harvest: {$this->expected_harvest_date->format('M d, Y')}",
+            'description' => "Plant {$this->crop_name} on {$this->area_hectares} hectares.{$this->planting_material_description} Apply basal fertilizer at planting. Expected harvest: {$this->expected_harvest_date->format('M d, Y')}. Predicted production: {$this->formatted_production}",
             'crop_plan_id' => $this->id,
             'area' => $this->area_hectares,
             'predicted_production' => $this->predicted_production,
+            'planting_material_type' => $this->planting_material_type,
+            'planting_material_label' => $this->planting_material_label,
         ];
     }
 
@@ -180,10 +207,12 @@ class CropPlan extends Model
             'id' => $this->id,
             'title' => "Harvest {$this->crop_name}",
             'type' => 'harvest',
-            'description' => "Expected harvest of {$this->crop_name} from {$this->area_hectares} ha. Predicted production: {$this->formatted_production}",
+            'description' => "Expected harvest of {$this->crop_name} from {$this->area_hectares} ha.{$this->planting_material_description} Predicted production: {$this->formatted_production}",
             'crop_plan_id' => $this->id,
             'area' => $this->area_hectares,
             'predicted_production' => $this->predicted_production,
+            'planting_material_type' => $this->planting_material_type,
+            'planting_material_label' => $this->planting_material_label,
         ];
     }
 
