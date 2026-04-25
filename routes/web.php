@@ -96,6 +96,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/dashboard', [DataAnalyticsController::class, 'index'])->name('dashboard');
     Route::get('/export-summary', [DataAnalyticsController::class, 'exportSummary'])->name('export-summary');
     Route::get('/planting-report', [DataAnalyticsController::class, 'plantingReport'])->name('planting-report');
+    Route::get('/planting-report/export/csv', [DataAnalyticsController::class, 'exportPlantingReportCsv'])->name('planting-report.export.csv');
+    Route::get('/planting-report/export/pdf', [DataAnalyticsController::class, 'exportPlantingReportPdf'])->name('planting-report.export.pdf');
     
     Route::get('/crop-trends', [CropTrendsController::class, 'index'])->name('crop-trends');
     Route::post('/crop-trends/predict', [CropTrendsController::class, 'predict'])->name('crop-trends.predict');

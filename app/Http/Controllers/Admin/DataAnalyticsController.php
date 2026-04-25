@@ -9,12 +9,15 @@ use App\Models\CropPlan;
 use App\Models\CropType;
 use App\Models\Municipality;
 use App\Services\PredictionService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class DataAnalyticsController extends Controller
 {
+    private const PLANTING_REPORT_PDF_MAX_ROWS = 300;
+
     protected $predictionService;
 
     /**
@@ -701,13 +704,135 @@ class DataAnalyticsController extends Controller
 
     public function plantingReport(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $this->validatePlantingReportFilters($request);
+        $plantingRecordsQuery = $this->getPlantingReportQuery($validated);
+        $summary = $this->getPlantingReportSummary($plantingRecordsQuery);
+        $plantingRecords = $plantingRecordsQuery->paginate(15)->withQueryString();
+        $municipalities = $this->getPlantingReportMunicipalities();
+        $statuses = $this->getPlantingReportStatuses();
+
+        return view('admin.planting-report', [
+            'plantingRecords' => $plantingRecords,
+            'summary' => $summary,
+            'municipalities' => $municipalities,
+            'statuses' => $statuses,
+            'filters' => $validated,
+        ]);
+    }
+
+    public function exportPlantingReportCsv(Request $request)
+    {
+        $validated = $this->validatePlantingReportFilters($request);
+        $plantingRecordsQuery = $this->getPlantingReportQuery($validated);
+
+        if ((clone $plantingRecordsQuery)->count() === 0) {
+            return redirect()
+                ->route('admin.planting-report', $this->getFilledPlantingReportFilters($validated))
+                ->with('error', 'No planting records match the current filters.');
+        }
+
+        return response()->streamDownload(function () use ($plantingRecordsQuery) {
+            $handle = fopen('php://output', 'w');
+
+            if ($handle === false) {
+                return;
+            }
+
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'Farmer Name',
+                'Farmer ID',
+                'Municipality',
+                'Cooperative',
+                'Archived Farmer',
+                'Mobile Number',
+                'Email',
+                'Crop Name',
+                'Notes',
+                'Planting Date',
+                'Expected Harvest Date',
+                'Area (ha)',
+                'Predicted Production (MT)',
+                'Farm Type',
+                'Planting Material',
+                'Status',
+                'Recorded At',
+            ]);
+
+            $plantingRecordsQuery->chunk(200, function ($records) use ($handle) {
+                foreach ($records as $record) {
+                    $farmer = $record->farmer;
+
+                    fputcsv($handle, [
+                        $farmer?->full_name ?? 'Farmer record unavailable',
+                        $farmer?->farmer_id ?? 'N/A',
+                        $record->municipality ?? $farmer?->municipality ?? 'N/A',
+                        $farmer?->cooperative_display ?? 'N/A',
+                        $farmer?->trashed() ? 'Yes' : 'No',
+                        $farmer?->mobile_number ?? 'No mobile number',
+                        $farmer?->email ?? 'No email address',
+                        $record->crop_name,
+                        $record->notes ?? '',
+                        optional($record->planting_date)->format('Y-m-d'),
+                        optional($record->expected_harvest_date)->format('Y-m-d'),
+                        number_format((float) $record->area_hectares, 2, '.', ''),
+                        number_format((float) $record->predicted_production, 2, '.', ''),
+                        ucfirst(strtolower((string) $record->farm_type)),
+                        $record->planting_material_label ?? 'Not set',
+                        $record->status,
+                        optional($record->created_at)->format('Y-m-d H:i:s'),
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $this->getPlantingReportExportFilename('csv'), [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function exportPlantingReportPdf(Request $request)
+    {
+        $validated = $this->validatePlantingReportFilters($request);
+        $plantingRecordsQuery = $this->getPlantingReportQuery($validated);
+        $totalRecords = (clone $plantingRecordsQuery)->count();
+
+        if ($totalRecords === 0) {
+            return redirect()
+                ->route('admin.planting-report', $this->getFilledPlantingReportFilters($validated))
+                ->with('error', 'No planting records match the current filters.');
+        }
+
+        if ($totalRecords > self::PLANTING_REPORT_PDF_MAX_ROWS) {
+            return redirect()
+                ->route('admin.planting-report', $this->getFilledPlantingReportFilters($validated))
+                ->with('error', 'PDF export is limited to ' . self::PLANTING_REPORT_PDF_MAX_ROWS . ' records. Narrow the filters or use CSV export instead.');
+        }
+
+        $pdf = app('dompdf.wrapper');
+        $pdf->loadView('admin.planting-report-pdf', [
+            'plantingRecords' => $plantingRecordsQuery->get(),
+            'summary' => $this->getPlantingReportSummary($this->getPlantingReportQuery($validated)),
+            'filters' => $validated,
+            'generatedAt' => now(),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download($this->getPlantingReportExportFilename('pdf'));
+    }
+
+    private function validatePlantingReportFilters(Request $request): array
+    {
+        return $request->validate([
             'search' => 'nullable|string|max:255',
-            'status' => 'nullable|in:planned,planted,growing,harvested,cancelled',
+            'status' => 'nullable|in:' . implode(',', $this->getPlantingReportStatuses()),
             'municipality' => 'nullable|string|max:255',
         ]);
+    }
 
-        $plantingRecordsQuery = CropPlan::query()
+    private function getPlantingReportQuery(array $filters): Builder
+    {
+        return CropPlan::query()
             ->with([
                 'farmer' => fn ($query) => $query->withTrashed()->select([
                     'id',
@@ -723,7 +848,7 @@ class DataAnalyticsController extends Controller
                     'deleted_at',
                 ]),
             ])
-            ->when($validated['search'] ?? null, function ($query, $search) {
+            ->when($filters['search'] ?? null, function ($query, $search) {
                 $searchTerm = '%' . trim($search) . '%';
 
                 $query->where(function ($nestedQuery) use ($searchTerm) {
@@ -742,41 +867,48 @@ class DataAnalyticsController extends Controller
                         });
                 });
             })
-            ->when($validated['status'] ?? null, function ($query, $status) {
+            ->when($filters['status'] ?? null, function ($query, $status) {
                 $query->where('status', $status);
             })
-            ->when($validated['municipality'] ?? null, function ($query, $municipality) {
+            ->when($filters['municipality'] ?? null, function ($query, $municipality) {
                 $query->where('municipality', $municipality);
             })
             ->latest('planting_date')
             ->latest('created_at');
+    }
 
-        $summaryQuery = clone $plantingRecordsQuery;
-
-        $summary = [
-            'total_records' => $summaryQuery->count(),
+    private function getPlantingReportSummary(Builder $plantingRecordsQuery): array
+    {
+        return [
+            'total_records' => (clone $plantingRecordsQuery)->count(),
             'total_area' => (float) (clone $plantingRecordsQuery)->sum('area_hectares'),
             'total_predicted_production' => (float) (clone $plantingRecordsQuery)->sum('predicted_production'),
             'planned_records' => (clone $plantingRecordsQuery)->where('status', 'planned')->count(),
         ];
+    }
 
-        $plantingRecords = $plantingRecordsQuery->paginate(15)->withQueryString();
-
-        $municipalities = CropPlan::query()
+    private function getPlantingReportMunicipalities()
+    {
+        return CropPlan::query()
             ->whereNotNull('municipality')
             ->distinct()
             ->orderBy('municipality')
             ->pluck('municipality');
+    }
 
-        $statuses = ['planned', 'planted', 'growing', 'harvested', 'cancelled'];
+    private function getPlantingReportStatuses(): array
+    {
+        return ['planned', 'planted', 'growing', 'harvested', 'cancelled'];
+    }
 
-        return view('admin.planting-report', [
-            'plantingRecords' => $plantingRecords,
-            'summary' => $summary,
-            'municipalities' => $municipalities,
-            'statuses' => $statuses,
-            'filters' => $validated,
-        ]);
+    private function getFilledPlantingReportFilters(array $filters): array
+    {
+        return array_filter($filters, static fn ($value) => filled($value));
+    }
+
+    private function getPlantingReportExportFilename(string $extension): string
+    {
+        return 'planting-report-' . now()->format('Ymd_His') . '.' . $extension;
     }
 }
 

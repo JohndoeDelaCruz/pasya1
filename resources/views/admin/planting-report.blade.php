@@ -1,8 +1,19 @@
 <x-admin-layout>
     <x-slot name="title">Planting Report</x-slot>
 
+    @php
+        $hasRecords = $plantingRecords->total() > 0;
+        $exportFilters = collect($filters)->filter(fn ($value) => filled($value))->all();
+    @endphp
+
     <div class="min-h-full bg-gray-50">
         <div class="p-3 sm:p-6">
+            @if(session('error'))
+                <div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
                     <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Records</p>
@@ -81,6 +92,24 @@
                         <a href="{{ route('admin.planting-report') }}" class="inline-flex items-center justify-center rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
                             Reset
                         </a>
+
+                        <div class="ml-auto flex flex-wrap items-center gap-3">
+                            @if ($hasRecords)
+                                <a href="{{ route('admin.planting-report.export.csv', $exportFilters) }}" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">
+                                    Export CSV
+                                </a>
+                                <a href="{{ route('admin.planting-report.export.pdf', $exportFilters) }}" class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                                    Export PDF
+                                </a>
+                            @else
+                                <span class="inline-flex cursor-not-allowed items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400">
+                                    Export CSV
+                                </span>
+                                <span class="inline-flex cursor-not-allowed items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400">
+                                    Export PDF
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </form>
             </div>
