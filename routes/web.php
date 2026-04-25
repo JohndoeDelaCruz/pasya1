@@ -66,6 +66,7 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     Route::get('/calendar', [FarmerDashboardController::class, 'calendar'])->name('calendar');
     Route::get('/price-watch', [FarmerDashboardController::class, 'priceWatch'])->name('price-watch');
     Route::get('/harvest-history', [FarmerDashboardController::class, 'harvestHistory'])->name('harvest-history');
+    Route::get('/planting-report', [FarmerDashboardController::class, 'plantingReport'])->name('planting-report');
     Route::get('/help', [FarmerDashboardController::class, 'help'])->name('help');
     
     // Profile routes

@@ -110,6 +110,12 @@
                             </svg>
                             <span class="font-medium">Harvest History & Crop List</span>
                         </a>
+                        <a href="{{ route('farmers.planting-report') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('farmers.planting-report') ? 'bg-green-600' : '' }} text-white hover:bg-green-600 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9.414A2 2 0 0013.414 8L9 3.586A2 2 0 007.586 3H4zm5 1.414L12.586 8H10a1 1 0 01-1-1V4.414zM6 10a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium">Planting Report</span>
+                        </a>
                     </div>
                 </nav>
 
@@ -268,6 +274,12 @@
                                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
                                         </svg>
                                         <span>Harvest History</span>
+                                    </a>
+                                    <a href="{{ route('farmers.planting-report') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9.414A2 2 0 0013.414 8L9 3.586A2 2 0 007.586 3H4zm5 1.414L12.586 8H10a1 1 0 01-1-1V4.414zM6 10a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <span>Planting Report</span>
                                     </a>
                                     <a href="{{ route('farmers.profile') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                         <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
