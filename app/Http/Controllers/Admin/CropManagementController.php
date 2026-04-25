@@ -69,6 +69,41 @@ class CropManagementController extends Controller
     }
 
     /**
+     * Display the archived crop management page
+     */
+    public function archived(Request $request)
+    {
+        $cropTypeQuery = CropType::where('is_active', false);
+        if ($request->filled('crop_search')) {
+            $escapedSearch = str_replace(['%', '_'], ['\\%', '\\_'], $request->crop_search);
+            $cropTypeQuery->where(function ($q) use ($escapedSearch) {
+                $q->where('name', 'like', '%' . $escapedSearch . '%')
+                  ->orWhere('category', 'like', '%' . $escapedSearch . '%');
+            });
+        }
+        $archivedCropTypes = $cropTypeQuery->orderBy('name')->paginate(15, ['*'], 'crop_page');
+
+        $municipalityQuery = Municipality::where('is_active', false);
+        if ($request->filled('municipality_search')) {
+            $escapedSearch = str_replace(['%', '_'], ['\\%', '\\_'], $request->municipality_search);
+            $municipalityQuery->where(function ($q) use ($escapedSearch) {
+                $q->where('name', 'like', '%' . $escapedSearch . '%')
+                  ->orWhere('province', 'like', '%' . $escapedSearch . '%');
+            });
+        }
+        $archivedMunicipalities = $municipalityQuery->orderBy('name')->paginate(15, ['*'], 'municipality_page');
+
+        $stats = [
+            'archived_crop_types'     => CropType::where('is_active', false)->count(),
+            'active_crop_types'       => CropType::where('is_active', true)->count(),
+            'archived_municipalities' => Municipality::where('is_active', false)->count(),
+            'active_municipalities'   => Municipality::where('is_active', true)->count(),
+        ];
+
+        return view('admin.crop-management-archived', compact('archivedCropTypes', 'archivedMunicipalities', 'stats'));
+    }
+
+    /**
      * Sync crop types and municipalities from imported data.
      * Only creates new records — never re-creates archived or deleted ones.
      */

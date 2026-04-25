@@ -15,10 +15,32 @@
                         Data is automatically synced from imported crop records
                     </p>
                 </div>
-                <div class="hidden md:block">
+                <div class="flex items-center gap-3">
+                    @if($stats['archived_crop_types'] + $stats['archived_municipalities'] > 0)
+                    <a href="{{ route('admin.crop-management.archived') }}"
+                       class="bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-md flex items-center text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        </svg>
+                        View Archived
+                        <span class="ml-2 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                            {{ $stats['archived_crop_types'] + $stats['archived_municipalities'] }}
+                        </span>
+                    </a>
+                    @else
+                    <a href="{{ route('admin.crop-management.archived') }}"
+                       class="bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-md flex items-center text-sm">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                        </svg>
+                        View Archived
+                    </a>
+                    @endif
+                    <div class="hidden md:block">
                     <svg class="w-24 h-24 opacity-20" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-.5a1.5 1.5 0 000 3h.5a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 00-1-1h-.5a1.5 1.5 0 010-3H4a1 1 0 001-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z"/>
                     </svg>
+                </div>
                 </div>
             </div>
         </div>

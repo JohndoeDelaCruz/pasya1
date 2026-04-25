@@ -130,6 +130,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     
     // Crop Management Routes (Crop Types & Municipalities)
     Route::get('/crop-management', [CropManagementController::class, 'index'])->name('crop-management.index');
+    Route::get('/crop-management/archived', [CropManagementController::class, 'archived'])->name('crop-management.archived');
     Route::post('/crop-types', [CropManagementController::class, 'storeCropType'])->name('crop-types.store');
     Route::put('/crop-types/{cropType}', [CropManagementController::class, 'updateCropType'])->name('crop-types.update');
     Route::post('/crop-types/{cropType}/archive', [CropManagementController::class, 'archiveCropType'])->name('crop-types.archive');
