@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Announcement;
 use App\Models\Crop;
+use App\Models\CropPlan;
 use App\Models\CropType;
 use App\Models\Municipality;
 use App\Services\PredictionService;
@@ -698,9 +699,84 @@ class DataAnalyticsController extends Controller
         return response()->json(['message' => 'Export functionality coming soon']);
     }
 
-    public function plantingReport()
+    public function plantingReport(Request $request)
     {
-        return view('admin.planting-report');
+        $validated = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'status' => 'nullable|in:planned,planted,growing,harvested,cancelled',
+            'municipality' => 'nullable|string|max:255',
+        ]);
+
+        $plantingRecordsQuery = CropPlan::query()
+            ->with([
+                'farmer' => fn ($query) => $query->withTrashed()->select([
+                    'id',
+                    'farmer_id',
+                    'first_name',
+                    'middle_name',
+                    'last_name',
+                    'suffix',
+                    'municipality',
+                    'cooperative',
+                    'mobile_number',
+                    'email',
+                    'deleted_at',
+                ]),
+            ])
+            ->when($validated['search'] ?? null, function ($query, $search) {
+                $searchTerm = '%' . trim($search) . '%';
+
+                $query->where(function ($nestedQuery) use ($searchTerm) {
+                    $nestedQuery->where('crop_name', 'like', $searchTerm)
+                        ->orWhere('municipality', 'like', $searchTerm)
+                        ->orWhere('status', 'like', $searchTerm)
+                        ->orWhereHas('farmer', function ($farmerQuery) use ($searchTerm) {
+                            $farmerQuery->withTrashed()
+                                ->where('farmer_id', 'like', $searchTerm)
+                                ->orWhere('first_name', 'like', $searchTerm)
+                                ->orWhere('middle_name', 'like', $searchTerm)
+                                ->orWhere('last_name', 'like', $searchTerm)
+                                ->orWhere('cooperative', 'like', $searchTerm)
+                                ->orWhere('mobile_number', 'like', $searchTerm)
+                                ->orWhere('email', 'like', $searchTerm);
+                        });
+                });
+            })
+            ->when($validated['status'] ?? null, function ($query, $status) {
+                $query->where('status', $status);
+            })
+            ->when($validated['municipality'] ?? null, function ($query, $municipality) {
+                $query->where('municipality', $municipality);
+            })
+            ->latest('planting_date')
+            ->latest('created_at');
+
+        $summaryQuery = clone $plantingRecordsQuery;
+
+        $summary = [
+            'total_records' => $summaryQuery->count(),
+            'total_area' => (float) (clone $plantingRecordsQuery)->sum('area_hectares'),
+            'total_predicted_production' => (float) (clone $plantingRecordsQuery)->sum('predicted_production'),
+            'planned_records' => (clone $plantingRecordsQuery)->where('status', 'planned')->count(),
+        ];
+
+        $plantingRecords = $plantingRecordsQuery->paginate(15)->withQueryString();
+
+        $municipalities = CropPlan::query()
+            ->whereNotNull('municipality')
+            ->distinct()
+            ->orderBy('municipality')
+            ->pluck('municipality');
+
+        $statuses = ['planned', 'planted', 'growing', 'harvested', 'cancelled'];
+
+        return view('admin.planting-report', [
+            'plantingRecords' => $plantingRecords,
+            'summary' => $summary,
+            'municipalities' => $municipalities,
+            'statuses' => $statuses,
+            'filters' => $validated,
+        ]);
     }
 }
 
