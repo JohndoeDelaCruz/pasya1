@@ -366,6 +366,13 @@
                 });
         }
 
+        const mapLegendBuckets = [
+            { label: 'Low', color: '#ef4444' },
+            { label: 'Medium', color: '#f59e0b' },
+            { label: 'High', color: '#84cc16' },
+            { label: 'Very High', color: '#15803d' }
+        ];
+
         // Get style for municipality based on value
         function getStyle(feature, data) {
             const municipalityName = feature.properties.name;
@@ -376,12 +383,12 @@
             let fillColor = '#d3d3d3'; // Default gray for no data
 
             if (municipalityData && data.metadata) {
-                const value = municipalityData.value;
-                const { min, max } = data.metadata;
-                
-                // Calculate color based on value (green gradient)
-                const ratio = (value - min) / (max - min);
-                fillColor = getColor(ratio);
+                const value = Number(municipalityData.value) || 0;
+                const min = Number(data.metadata.min) || 0;
+                const max = Number(data.metadata.max) || 0;
+
+                const ratio = max > min ? (value - min) / (max - min) : (value > 0 ? 1 : 0);
+                fillColor = getColor(Math.max(0, Math.min(1, ratio)));
             }
 
             return {
@@ -395,21 +402,10 @@
 
         // Get color for value ratio (0-1)
         function getColor(ratio) {
-            // Red (lowest) to Green (highest) gradient
-            const colors = [
-                '#991b1b', // Very dark red (lowest)
-                '#dc2626', // Dark red
-                '#ef4444', // Red
-                '#f97316', // Orange
-                '#f59e0b', // Amber
-                '#eab308', // Yellow
-                '#84cc16', // Lime green
-                '#22c55e', // Green
-                '#15803d'  // Dark green (highest)
-            ];
-
-            const index = Math.floor(ratio * (colors.length - 1));
-            return colors[index];
+            if (ratio >= 0.75) return mapLegendBuckets[3].color;
+            if (ratio >= 0.50) return mapLegendBuckets[2].color;
+            if (ratio >= 0.25) return mapLegendBuckets[1].color;
+            return mapLegendBuckets[0].color;
         }
 
         // Update legend
@@ -421,57 +417,27 @@
                 return;
             }
 
-            const { min, max } = data.metadata;
+            const min = Number(data.metadata.min) || 0;
+            const max = Number(data.metadata.max) || 0;
             const viewType = document.getElementById('view-filter').value;
             const unit = getUnit(viewType);
+            const legendItems = [...mapLegendBuckets].reverse().map(bucket => `
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: ${bucket.color};"></div>
+                            <span class="text-xs text-gray-600">${bucket.label}</span>
+                        </div>
+            `).join('');
 
             legendContent.innerHTML = `
                 <div class="space-y-2">
-                    <!-- Color gradient -->
                     <div class="flex flex-col gap-1.5">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #15803d;"></div>
-                            <span class="text-xs font-semibold text-gray-700">Highest</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #22c55e;"></div>
-                            <span class="text-xs text-gray-600">Very High</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #84cc16;"></div>
-                            <span class="text-xs text-gray-600">High</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #eab308;"></div>
-                            <span class="text-xs text-gray-600">Medium-High</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #f59e0b;"></div>
-                            <span class="text-xs text-gray-600">Medium</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #f97316;"></div>
-                            <span class="text-xs text-gray-600">Medium-Low</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #ef4444;"></div>
-                            <span class="text-xs text-gray-600">Low</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border border-gray-300" style="background-color: #dc2626;"></div>
-                            <span class="text-xs text-gray-600">Very Low</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-6 rounded border-2 border-gray-400" style="background-color: #991b1b;"></div>
-                            <span class="text-xs font-semibold text-gray-700">Lowest</span>
-                        </div>
+${legendItems}
                     </div>
 
-                    <!-- Range values -->
                     <div class="pt-2 border-t border-gray-200">
                         <div class="text-xs text-gray-600">
                             <div><span class="font-medium">Max:</span> <span class="font-bold" style="color: #15803d;">${Number(max).toLocaleString()} ${unit}</span></div>
-                            <div><span class="font-medium">Min:</span> <span class="font-bold" style="color: #991b1b;">${Number(min).toLocaleString()} ${unit}</span></div>
+                            <div><span class="font-medium">Min:</span> <span class="font-bold" style="color: #ef4444;">${Number(min).toLocaleString()} ${unit}</span></div>
                         </div>
                     </div>
                 </div>
