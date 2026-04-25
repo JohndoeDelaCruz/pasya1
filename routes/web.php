@@ -15,6 +15,7 @@ use App\Http\Controllers\Farmer\FarmerDashboardController;
 use App\Http\Controllers\Farmer\FarmerMapController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\ValidationException;
 use App\Http\Controllers\PredictionController;
 use App\Services\FarmerAccountBridgeService;
 
@@ -37,7 +38,16 @@ Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBrid
 
     if (Auth::guard('web')->check()) {
         $user = Auth::guard('web')->user();
-        $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);
+
+        try {
+            $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);
+        } catch (ValidationException $exception) {
+            Auth::guard('web')->logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+
+            throw $exception;
+        }
 
         Auth::guard('web')->logout();
         Auth::guard('farmer')->login($farmer);

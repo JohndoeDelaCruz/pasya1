@@ -138,12 +138,12 @@ class FarmerController extends Controller
     }
 
     /**
-     * Remove the specified farmer from database
+     * Archive the specified farmer account.
      */
     public function destroy(Farmer $farmer)
     {
         $farmer->delete();
 
-        return back()->with('success', 'Farmer account deleted successfully!');
+        return back()->with('success', 'Farmer account archived successfully!');
     }
 }

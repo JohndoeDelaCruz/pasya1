@@ -5,14 +5,23 @@ namespace App\Services;
 use App\Models\Farmer;
 use App\Models\User;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class FarmerAccountBridgeService
 {
     public function findOrCreateForUser(User $user): Farmer
     {
-        $existingFarmer = Farmer::where('email', $user->email)->first();
+        $existingFarmer = Farmer::withTrashed()
+            ->where('email', $user->email)
+            ->first();
 
         if ($existingFarmer) {
+            if ($existingFarmer->trashed()) {
+                throw ValidationException::withMessages([
+                    'email' => 'This farmer account has been archived. Please contact an administrator.',
+                ]);
+            }
+
             return $existingFarmer;
         }
 
@@ -70,14 +79,14 @@ class FarmerAccountBridgeService
             $suffix = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             $candidate = $initials . $year . $suffix;
 
-            if (! Farmer::where('farmer_id', $candidate)->exists()) {
+            if (! Farmer::withTrashed()->where('farmer_id', $candidate)->exists()) {
                 return $candidate;
             }
         }
 
         do {
             $candidate = 'FMR' . strtoupper(Str::random(8));
-        } while (Farmer::where('farmer_id', $candidate)->exists());
+        } while (Farmer::withTrashed()->where('farmer_id', $candidate)->exists());
 
         return $candidate;
     }

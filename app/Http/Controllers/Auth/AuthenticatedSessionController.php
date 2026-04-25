@@ -8,6 +8,7 @@ use App\Services\FarmerAccountBridgeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -37,7 +38,16 @@ class AuthenticatedSessionController extends Controller
         // Check if logged in as regular web user
         if (Auth::guard('web')->check()) {
             $user = Auth::guard('web')->user();
-            $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);
+
+            try {
+                $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);
+            } catch (ValidationException $exception) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                throw $exception;
+            }
 
             Auth::guard('web')->logout();
             Auth::guard('farmer')->login($farmer, $request->boolean('remember'));

@@ -157,12 +157,12 @@
                                         </a>
                                         <form action="{{ route('admin.farmers.destroy', $farmer) }}" 
                                               method="POST" 
-                                              onsubmit="return confirm('Are you sure you want to delete this farmer account?');"
+                                              onsubmit="return confirm('Archive this farmer account? The account will be hidden and the farmer will no longer be able to sign in.');"
                                               class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-800 font-medium">
-                                                Delete
+                                            <button type="submit" class="text-amber-600 hover:text-amber-800 font-medium">
+                                                Archive
                                             </button>
                                         </form>
                                     </div>
