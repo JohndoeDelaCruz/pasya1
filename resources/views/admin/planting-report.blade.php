@@ -1,4 +1,4 @@
-<x-farmer-layout>
+<x-admin-layout>
     <x-slot name="title">Planting Report</x-slot>
 
     <div class="min-h-full bg-gray-50">
@@ -16,9 +16,9 @@
                         </svg>
                     </div>
                     <h2 class="text-lg font-semibold text-gray-800 mb-2">Blank Page Created</h2>
-                    <p class="text-sm text-gray-500">Planting Report has been added to the farmer side and is ready for the actual report content.</p>
+                    <p class="text-sm text-gray-500">Planting Report now lives on the admin side and is ready for the actual report content.</p>
                 </div>
             </div>
         </div>
     </div>
-</x-farmer-layout>
+</x-admin-layout>

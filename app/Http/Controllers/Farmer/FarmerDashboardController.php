@@ -264,14 +264,6 @@ class FarmerDashboardController extends Controller
     }
 
     /**
-     * Show the planting report page.
-     */
-    public function plantingReport()
-    {
-        return view('farmers.planting-report');
-    }
-
-    /**
      * Format days to harvest as growth cycle string
      */
     private function formatGrowthCycle(int $days): string

@@ -66,7 +66,6 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     Route::get('/calendar', [FarmerDashboardController::class, 'calendar'])->name('calendar');
     Route::get('/price-watch', [FarmerDashboardController::class, 'priceWatch'])->name('price-watch');
     Route::get('/harvest-history', [FarmerDashboardController::class, 'harvestHistory'])->name('harvest-history');
-    Route::get('/planting-report', [FarmerDashboardController::class, 'plantingReport'])->name('planting-report');
     Route::get('/help', [FarmerDashboardController::class, 'help'])->name('help');
     
     // Profile routes
@@ -96,6 +95,7 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DataAnalyticsController::class, 'index'])->name('dashboard');
     Route::get('/export-summary', [DataAnalyticsController::class, 'exportSummary'])->name('export-summary');
+    Route::get('/planting-report', [DataAnalyticsController::class, 'plantingReport'])->name('planting-report');
     
     Route::get('/crop-trends', [CropTrendsController::class, 'index'])->name('crop-trends');
     Route::post('/crop-trends/predict', [CropTrendsController::class, 'predict'])->name('crop-trends.predict');

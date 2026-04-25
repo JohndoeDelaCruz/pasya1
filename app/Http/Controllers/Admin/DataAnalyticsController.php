@@ -697,5 +697,10 @@ class DataAnalyticsController extends Controller
     {
         return response()->json(['message' => 'Export functionality coming soon']);
     }
+
+    public function plantingReport()
+    {
+        return view('admin.planting-report');
+    }
 }
 

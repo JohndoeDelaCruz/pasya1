@@ -106,6 +106,15 @@
                         </a>
                     </div>
 
+                    <div class="px-4 mb-6">
+                        <a href="{{ route('admin.planting-report') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.planting-report') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9.414A2 2 0 0013.414 8L9 3.586A2 2 0 007.586 3H4zm5 1.414L12.586 8H10a1 1 0 01-1-1V4.414zM6 10a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium">Planting Report</span>
+                        </a>
+                    </div>
+
                     <!-- Management Section -->
                     <div class="px-4 mb-6">
                         <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Management</h4>
