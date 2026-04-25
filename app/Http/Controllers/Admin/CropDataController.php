@@ -260,12 +260,66 @@ class CropDataController extends Controller
     }
 
     /**
+     * Display archived (soft-deleted) crop records
+     */
+    public function archived(Request $request)
+    {
+        $query = Crop::onlyTrashed();
+
+        if ($request->filled('search')) {
+            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('municipality', 'like', "%{$search}%")
+                  ->orWhere('crop', 'like', "%{$search}%")
+                  ->orWhere('farm_type', 'like', "%{$search}%")
+                  ->orWhere('year', 'like', "%{$search}%")
+                  ->orWhere('month', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('municipality')) {
+            $query->where('municipality', $request->municipality);
+        }
+
+        if ($request->filled('crop')) {
+            $query->where('crop', $request->crop);
+        }
+
+        $crops = $query->latest('deleted_at')->paginate(50)->withQueryString();
+
+        $stats = [
+            'archived_records'       => Crop::onlyTrashed()->count(),
+            'active_records'         => Crop::count(),
+            'archived_municipalities' => Crop::onlyTrashed()->distinct('municipality')->count('municipality'),
+            'archived_crops'         => Crop::onlyTrashed()->distinct('crop')->count('crop'),
+        ];
+
+        $filters = [
+            'municipalities' => Crop::onlyTrashed()->distinct('municipality')->orderBy('municipality')->pluck('municipality'),
+            'crops'          => Crop::onlyTrashed()->distinct('crop')->orderBy('crop')->pluck('crop'),
+        ];
+
+        return view('admin.crop-data-archived', compact('crops', 'stats', 'filters'));
+    }
+
+    /**
      * Archive (soft delete) a crop record
      */
     public function destroy(Crop $crop)
     {
         $crop->delete();
         return back()->with('success', 'Crop record archived successfully!');
+    }
+
+    /**
+     * Permanently delete an archived crop record
+     */
+    public function forceDelete($id)
+    {
+        $crop = Crop::onlyTrashed()->findOrFail($id);
+        $crop->forceDelete();
+
+        return back()->with('success', 'Crop record permanently deleted.');
     }
 
     /**
