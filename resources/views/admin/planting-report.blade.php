@@ -3,29 +3,28 @@
 
     <div class="min-h-full bg-gray-50">
         <div class="p-3 sm:p-6">
-            <div class="mb-6">
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Planting Report</h1>
-                <p class="text-sm text-gray-600">Farmer crop plans added from the calendar are listed here with the corresponding farmer details.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <p class="text-sm font-medium text-gray-500">Total Records</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ number_format($summary['total_records']) }}</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Records</p>
+                    <p class="mt-1 text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_records']) }}</p>
                 </div>
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <p class="text-sm font-medium text-gray-500">Planned Records</p>
-                    <p class="mt-2 text-3xl font-bold text-emerald-600">{{ number_format($summary['planned_records']) }}</p>
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Planned Records</p>
+                    <p class="mt-1 text-2xl font-bold leading-none text-emerald-600">{{ number_format($summary['planned_records']) }}</p>
                 </div>
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <p class="text-sm font-medium text-gray-500">Total Area</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ number_format($summary['total_area'], 2) }}</p>
-                    <p class="mt-1 text-xs text-gray-500">Hectares</p>
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Area</p>
+                    <div class="mt-1 flex items-end gap-2">
+                        <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_area'], 2) }}</p>
+                        <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">ha</p>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <p class="text-sm font-medium text-gray-500">Predicted Production</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ number_format($summary['total_predicted_production'], 2) }}</p>
-                    <p class="mt-1 text-xs text-gray-500">Metric tons</p>
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Predicted Production</p>
+                    <div class="mt-1 flex items-end gap-2">
+                        <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_predicted_production'], 2) }}</p>
+                        <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">MT</p>
+                    </div>
                 </div>
             </div>
 
