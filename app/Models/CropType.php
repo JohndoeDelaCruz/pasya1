@@ -44,6 +44,8 @@ class CropType extends Model
         'days_to_harvest_value',
         'average_yield_value',
         'seedling_days_value',
+        'supports_seedling_material',
+        'available_planting_material_types',
     ];
 
     /**
@@ -189,6 +191,33 @@ class CropType extends Model
         $cropKey = self::normalizeCropKey($this->name ?? '');
 
         return self::DEFAULT_SEEDLING_STAGE_DAYS[$cropKey] ?? 0;
+    }
+
+    public function getSupportsSeedlingMaterialAttribute(): bool
+    {
+        return $this->seedling_days_value > 0;
+    }
+
+    public function getAvailablePlantingMaterialTypesAttribute(): array
+    {
+        return $this->supports_seedling_material
+            ? ['SEED', 'SEEDLING']
+            : ['SEED'];
+    }
+
+    public function supportsPlantingMaterialType(?string $plantingMaterialType = null): bool
+    {
+        $materialType = strtoupper((string) $plantingMaterialType);
+
+        if ($materialType === '' || $materialType === 'SEED') {
+            return true;
+        }
+
+        if ($materialType === 'SEEDLING') {
+            return $this->supports_seedling_material;
+        }
+
+        return false;
     }
 
     /**

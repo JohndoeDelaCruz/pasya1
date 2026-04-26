@@ -772,6 +772,16 @@ class FarmerDashboardController extends Controller
             $farmType = $validated['farm_type'] ?? 'IRRIGATED';
             $plantingMaterialType = $validated['planting_material_type'] ?? 'SEED';
 
+            if (!$cropType->supportsPlantingMaterialType($plantingMaterialType)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seedling is not available for the selected crop.',
+                    'errors' => [
+                        'planting_material_type' => ['Seedling is not available for the selected crop.'],
+                    ],
+                ], 422);
+            }
+
             // Calculate Expected Date of Harvest (EDOH)
             $daysToHarvest = $cropType->getDaysToHarvestForMaterial($plantingMaterialType);
             $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate, $plantingMaterialType);
@@ -879,6 +889,16 @@ class FarmerDashboardController extends Controller
             $areaHectares = floatval($validated['area_hectares']);
             $farmType = $validated['farm_type'] ?? 'IRRIGATED';
             $plantingMaterialType = $validated['planting_material_type'] ?? 'SEED';
+
+            if (!$cropType->supportsPlantingMaterialType($plantingMaterialType)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Seedling is not available for the selected crop.',
+                    'errors' => [
+                        'planting_material_type' => ['Seedling is not available for the selected crop.'],
+                    ],
+                ], 422);
+            }
 
             // Calculate EDOH
             $daysToHarvest = $cropType->getDaysToHarvestForMaterial($plantingMaterialType);

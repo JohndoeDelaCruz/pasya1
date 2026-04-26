@@ -625,12 +625,16 @@
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Seed</span>
                                     </label>
-                                    <label class="flex items-center">
+                                    <label class="flex items-center" :class="{ 'opacity-50 cursor-not-allowed': !selectedCropSupportsSeedling }">
                                         <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEEDLING" @change="calculatePreview"
-                                            class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
+                                            :disabled="!selectedCropSupportsSeedling"
+                                            class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500 disabled:cursor-not-allowed">
                                         <span class="ml-2 text-gray-700">Seedling</span>
                                     </label>
                                 </div>
+                                <p x-show="cropPlanForm.crop_type_id && !selectedCropSupportsSeedling" class="mt-1 text-xs text-amber-700">
+                                    Seedling is not available for the selected crop.
+                                </p>
                             </div>
 
                             <!-- Notes (Optional) -->
@@ -790,11 +794,28 @@
                             this.showPredictionPreview;
                     },
 
+                    get selectedCropType() {
+                        return this.cropTypesData.find(c => c.id == this.cropPlanForm.crop_type_id) || null;
+                    },
+
+                    get selectedCropSupportsSeedling() {
+                        return !!(this.selectedCropType && this.selectedCropType.supports_seedling_material);
+                    },
+
+                    normalizePlantingMaterialType() {
+                        if (!this.selectedCropSupportsSeedling && this.cropPlanForm.planting_material_type === 'SEEDLING') {
+                            this.cropPlanForm.planting_material_type = 'SEED';
+                        }
+                    },
+
                     onCropTypeChange() {
+                        this.normalizePlantingMaterialType();
                         this.calculatePreview();
                     },
 
                     async calculatePreview() {
+                        this.normalizePlantingMaterialType();
+
                         // Validate inputs
                         if (!this.cropPlanForm.crop_type_id ||
                             !this.cropPlanForm.planting_date ||
@@ -840,8 +861,10 @@
                     },
 
                     calculateLocalPreview() {
+                        this.normalizePlantingMaterialType();
+
                         // Get crop type info
-                        const selectedCrop = this.cropTypesData.find(c => c.id == this.cropPlanForm.crop_type_id);
+                        const selectedCrop = this.selectedCropType;
                         if (!selectedCrop) return;
 
                         const baseDaysToHarvest = selectedCrop.days_to_harvest ?? selectedCrop.days_to_harvest_value ?? 75;
@@ -878,6 +901,8 @@
                     },
 
                     async submitCropPlan() {
+                        this.normalizePlantingMaterialType();
+
                         if (!this.canSubmitCropPlan || this.isSubmitting) return;
 
                         this.isSubmitting = true;
