@@ -556,11 +556,6 @@
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
                 </div>
 
-                <div class="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-                    <p class="text-sm font-medium text-blue-900">Fallback Values (Optional)</p>
-                    <p class="mt-1 text-xs text-blue-700">These values are optional. Leave them blank to use the system defaults. They are not sent to the ML model and do not change the ML calculation.</p>
-                </div>
-
                 <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="crop_days_to_harvest" class="block text-sm font-medium text-gray-700 mb-1">Days to Harvest (Optional)</label>
@@ -661,11 +656,6 @@
                     <label for="edit_crop_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea id="edit_crop_description" name="description" rows="3"
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
-                </div>
-
-                <div class="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
-                    <p class="text-sm font-medium text-blue-900">Fallback Values (Optional)</p>
-                    <p class="mt-1 text-xs text-blue-700">These values are optional. Leave them blank to use the system defaults. They are not sent to the ML model and do not change the ML calculation.</p>
                 </div>
 
                 <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
