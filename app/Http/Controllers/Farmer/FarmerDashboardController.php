@@ -746,7 +746,7 @@ class FarmerDashboardController extends Controller
         try {
             $validated = $request->validate([
                 'crop_type_id' => 'required|exists:crop_types,id',
-                'planting_date' => 'required|date|after_or_equal:today',
+                'planting_date' => 'required|date',
                 'area_hectares' => 'required|numeric|min:0.01|max:1000',
                 'farm_type' => 'nullable|string|in:IRRIGATED,RAINFED',
                 'planting_material_type' => 'nullable|string|in:SEED,SEEDLING',
