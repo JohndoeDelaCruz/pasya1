@@ -576,7 +576,7 @@
                                     @foreach($cropTypes ?? [] as $crop)
                                         <option value="{{ $crop->id }}" data-days="{{ $crop->days_to_harvest_value }}"
                                             data-yield="{{ $crop->average_yield_value }}">
-                                            {{ $crop->name_display }} ({{ $crop->days_to_harvest_value }} days)
+                                            {{ $crop->name_display }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -605,12 +605,12 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Farm Type</label>
                                 <div class="flex gap-4">
                                     <label class="flex items-center">
-                                        <input type="radio" x-model="cropPlanForm.farm_type" value="IRRIGATED"
+                                        <input type="radio" x-model="cropPlanForm.farm_type" value="IRRIGATED" @change="calculatePreview"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Irrigated</span>
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="radio" x-model="cropPlanForm.farm_type" value="RAINFED"
+                                        <input type="radio" x-model="cropPlanForm.farm_type" value="RAINFED" @change="calculatePreview"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Rainfed</span>
                                     </label>
@@ -621,12 +621,12 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Seed / Seedling Type</label>
                                 <div class="flex gap-4">
                                     <label class="flex items-center">
-                                        <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEED"
+                                        <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEED" @change="calculatePreview"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Seed</span>
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEEDLING"
+                                        <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEEDLING" @change="calculatePreview"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Seedling</span>
                                     </label>
@@ -658,8 +658,6 @@
                                     <p class="text-xs text-gray-500 mb-1">Expected Date of Harvest (EDOH)</p>
                                     <p class="text-lg font-bold text-green-700"
                                         x-text="predictionPreview.edoh_formatted || '-'"></p>
-                                    <p class="text-xs text-gray-400"
-                                        x-text="'~' + (predictionPreview.days_to_harvest || 0) + ' days'"></p>
                                 </div>
                                 <!-- Predicted Production -->
                                 <div class="bg-white rounded-lg p-3 shadow-sm">
@@ -669,6 +667,11 @@
                                     <p class="text-xs text-gray-400"
                                         x-text="predictionPreview.area_hectares + ' hectares'"></p>
                                 </div>
+                            </div>
+                            <div class="mt-3 bg-white rounded-lg p-3 shadow-sm">
+                                <p class="text-xs text-gray-500 mb-1">Days to Harvest</p>
+                                <p class="text-base font-semibold text-gray-800"
+                                    x-text="(predictionPreview.days_to_harvest || 0) + ' days'"></p>
                             </div>
                             <p x-show="predictionPreview.average_yield_per_hectare"
                                 class="text-xs text-gray-500 mt-2 text-center">
@@ -816,7 +819,8 @@
                                     crop_type_id: this.cropPlanForm.crop_type_id,
                                     planting_date: this.cropPlanForm.planting_date,
                                     area_hectares: parseFloat(this.cropPlanForm.area_hectares),
-                                    farm_type: this.cropPlanForm.farm_type
+                                    farm_type: this.cropPlanForm.farm_type,
+                                    planting_material_type: this.cropPlanForm.planting_material_type
                                 })
                             });
 
@@ -840,8 +844,8 @@
                         const selectedCrop = this.cropTypesData.find(c => c.id == this.cropPlanForm.crop_type_id);
                         if (!selectedCrop) return;
 
-                        const daysToHarvest = selectedCrop.days_to_harvest_value || 75;
-                        const avgYield = selectedCrop.average_yield_value || 12;
+                        const daysToHarvest = selectedCrop.days_to_harvest ?? selectedCrop.days_to_harvest_value ?? 75;
+                        const avgYield = selectedCrop.average_yield_per_hectare ?? selectedCrop.average_yield_value ?? 12;
                         const area = parseFloat(this.cropPlanForm.area_hectares) || 0;
 
                         // Calculate EDOH
