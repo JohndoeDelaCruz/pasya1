@@ -232,7 +232,6 @@
                                         <div class="flex-1 min-w-0">
                                             <p class="font-semibold text-gray-900 truncate">{{ Auth::user()->name ?? 'admin' }}</p>
                                             <p class="text-sm text-gray-600 truncate">ID {{ Auth::user()->id ?? '1234567890' }}</p>
-                                            <p class="text-sm font-medium text-gray-900">OPAG</p>
                                         </div>
                                     </div>
                                 </div>
