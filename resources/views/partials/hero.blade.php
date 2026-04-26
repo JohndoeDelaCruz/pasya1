@@ -44,7 +44,7 @@
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(0,0,0,0.30)_0%,rgba(0,0,0,0)_100%)]"></div>
         </div>
 
-        <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center flex flex-col items-center justify-center w-full pt-16">
+        <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center flex flex-col items-center justify-center w-full pt-0 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16">
             <div class="hero-panel mx-auto max-w-5xl px-5 sm:px-10 lg:px-12 flex flex-col items-center reveal-up is-visible" data-reveal-distance="lg">
                 <img class="h-32 sm:h-44 max-w-sm mx-auto mb-6 drop-shadow-xl hover:scale-105 transition-transform duration-500 ease-in-out reveal-up is-visible" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" style="--reveal-delay: 80ms" data-reveal-distance="sm"/>
                 <h1 class="hero-title mb-4 text-4xl font-extrabold tracking-tight leading-tight md:text-5xl lg:text-7xl text-white font-['Outfit'] drop-shadow-lg reveal-up is-visible" style="--reveal-delay: 160ms">
@@ -55,18 +55,18 @@
                 </p>
                 <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center reveal-up is-visible" style="--reveal-delay: 340ms" data-reveal-distance="sm">
                     @if ($isAuthenticated)
-                        <a href="{{ $dashboardRoute }}" class="bg-white text-gray-800 hover:bg-gray-50 focus:ring-4 focus:ring-green-300 font-medium rounded-full text-lg px-8 py-3.5 text-center shadow-lg transition-all">
+                        <a href="{{ $dashboardRoute }}" class="hero-cta hero-cta-primary">
                             Go to Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="bg-white text-gray-900 hover:bg-gray-50 focus:ring-4 focus:ring-green-300 font-medium rounded-2xl text-lg px-10 py-3.5 text-center shadow border border-gray-100 transition-all">
+                        <a href="{{ route('login') }}" class="hero-cta hero-cta-secondary">
                             Log In
                         </a>
-                        <a href="{{ route('register') }}" class="bg-[#119c63] text-white hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-2xl text-lg px-10 py-3.5 text-center shadow transition-all">
+                        <a href="{{ route('register') }}" class="hero-cta hero-cta-primary">
                             Register
                         </a>
                     @endif
-                    <a href="#blog" class="bg-white text-gray-900 hover:bg-gray-50 focus:ring-4 focus:ring-green-300 font-medium rounded-2xl text-lg px-10 py-3.5 text-center shadow border border-gray-100 inline-flex justify-center items-center transition-all">
+                    <a href="#blog" class="hero-cta hero-cta-secondary">
                         Learn how it works &rarr;
                     </a>
                 </div>
