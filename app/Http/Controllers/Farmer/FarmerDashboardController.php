@@ -773,7 +773,8 @@ class FarmerDashboardController extends Controller
             $plantingMaterialType = $validated['planting_material_type'] ?? 'SEED';
 
             // Calculate Expected Date of Harvest (EDOH)
-            $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate);
+            $daysToHarvest = $cropType->getDaysToHarvestForMaterial($plantingMaterialType);
+            $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate, $plantingMaterialType);
             Log::info('storeCropPlan: Harvest date calculated', ['harvest_date' => $expectedHarvestDate->format('Y-m-d')]);
 
             // Get predicted production using ML API or fallback to simple calculation
@@ -805,7 +806,7 @@ class FarmerDashboardController extends Controller
 
             // Create notification for the farmer with growth period info
             try {
-                FarmerNotification::createCropPlanNotification($farmer, $cropPlan, $cropType->days_to_harvest_value);
+                FarmerNotification::createCropPlanNotification($farmer, $cropPlan, $daysToHarvest);
                 Log::info('storeCropPlan: Notification created');
             } catch (\Exception $notifEx) {
                 Log::warning('storeCropPlan: Notification creation failed, but crop plan saved', [
@@ -827,7 +828,7 @@ class FarmerDashboardController extends Controller
                     'planting_date' => $cropPlan->planting_date->format('Y-m-d'),
                     'expected_harvest_date' => $cropPlan->expected_harvest_date->format('Y-m-d'),
                     'edoh_formatted' => $cropPlan->expected_harvest_date->format('M d, Y'),
-                    'days_to_harvest' => $cropType->days_to_harvest_value,
+                    'days_to_harvest' => $daysToHarvest,
                     'area_hectares' => $cropPlan->area_hectares,
                     'predicted_production' => $cropPlan->predicted_production,
                     'predicted_production_formatted' => $cropPlan->formatted_production,
@@ -869,6 +870,7 @@ class FarmerDashboardController extends Controller
             'planting_date' => 'required|date',
             'area_hectares' => 'required|numeric|min:0.01',
             'farm_type' => 'nullable|string|in:IRRIGATED,RAINFED',
+            'planting_material_type' => 'nullable|string|in:SEED,SEEDLING',
         ]);
 
         try {
@@ -876,10 +878,11 @@ class FarmerDashboardController extends Controller
             $plantingDate = Carbon::parse($validated['planting_date']);
             $areaHectares = floatval($validated['area_hectares']);
             $farmType = $validated['farm_type'] ?? 'IRRIGATED';
+            $plantingMaterialType = $validated['planting_material_type'] ?? 'SEED';
 
             // Calculate EDOH
-            $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate);
-            $daysToHarvest = $cropType->days_to_harvest_value;
+            $daysToHarvest = $cropType->getDaysToHarvestForMaterial($plantingMaterialType);
+            $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate, $plantingMaterialType);
 
             // Get prediction
             $predictedProduction = $this->getPredictedProduction(
@@ -899,10 +902,12 @@ class FarmerDashboardController extends Controller
                     'expected_harvest_date' => $expectedHarvestDate->format('Y-m-d'),
                     'edoh_formatted' => $expectedHarvestDate->format('M d, Y'),
                     'days_to_harvest' => $daysToHarvest,
+                    'planting_material_type' => $plantingMaterialType,
                     'area_hectares' => $areaHectares,
                     'predicted_production' => round($predictedProduction, 2),
                     'predicted_production_formatted' => number_format($predictedProduction, 2) . ' MT',
                     'average_yield_per_hectare' => $cropType->average_yield_value,
+                    'seedling_days' => $cropType->seedling_days_value,
                 ],
             ]);
 

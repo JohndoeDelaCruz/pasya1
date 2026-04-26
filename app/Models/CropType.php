@@ -40,6 +40,12 @@ class CropType extends Model
         'average_yield_per_hectare' => 'decimal:2',
     ];
 
+    protected $appends = [
+        'days_to_harvest_value',
+        'average_yield_value',
+        'seedling_days_value',
+    ];
+
     /**
      * Default days to harvest for common crops in Benguet
      * Used when database value is not set
@@ -93,6 +99,28 @@ class CropType extends Model
         'SAYOTE' => 35.0,
         'STRAWBERRY' => 15.0,
         'DEFAULT' => 12.0,
+    ];
+
+    /**
+     * Typical nursery/transplant age in days for crops commonly started as seedlings.
+     *
+     * These values are used only to distinguish seed vs seedling planning. For crops
+     * typically started from transplants, the stored maturity days are treated as
+     * transplant-to-harvest. Selecting SEED adds the nursery period; selecting
+     * SEEDLING uses the base maturity directly.
+     */
+    public const DEFAULT_SEEDLING_STAGE_DAYS = [
+        'BROCCOLI' => 35,
+        'CABBAGE' => 35,
+        'CHINESECABBAGE' => 28,
+        'CAULIFLOWER' => 35,
+        'LETTUCE' => 24,
+        'CELERY' => 63,
+        'TOMATOES' => 39,
+        'TOMATO' => 39,
+        'BELLPEPPER' => 56,
+        'SWEETPEPPER' => 56,
+        'ONION' => 35,
     ];
 
     /**
@@ -154,15 +182,39 @@ class CropType extends Model
     }
 
     /**
+     * Get the typical seedling-stage duration before transplanting.
+     */
+    public function getSeedlingDaysValueAttribute(): int
+    {
+        $cropKey = self::normalizeCropKey($this->name ?? '');
+
+        return self::DEFAULT_SEEDLING_STAGE_DAYS[$cropKey] ?? 0;
+    }
+
+    /**
+     * Get harvest days adjusted for the selected planting material type.
+     */
+    public function getDaysToHarvestForMaterial(?string $plantingMaterialType = null): int
+    {
+        $daysToHarvest = $this->days_to_harvest_value;
+
+        if (strtoupper((string) $plantingMaterialType) === 'SEED') {
+            return $daysToHarvest + $this->seedling_days_value;
+        }
+
+        return $daysToHarvest;
+    }
+
+    /**
      * Calculate expected harvest date from planting date
      */
-    public function calculateHarvestDate(\DateTime|string $plantingDate): \Carbon\Carbon
+    public function calculateHarvestDate(\DateTime|string $plantingDate, ?string $plantingMaterialType = null): \Carbon\Carbon
     {
         $date = $plantingDate instanceof \DateTime
             ? \Carbon\Carbon::instance($plantingDate)
             : \Carbon\Carbon::parse($plantingDate);
 
-        return $date->copy()->addDays($this->days_to_harvest_value);
+        return $date->copy()->addDays($this->getDaysToHarvestForMaterial($plantingMaterialType));
     }
 
     /**
@@ -205,5 +257,12 @@ class CropType extends Model
 
         // Fall back to defaults
         return self::DEFAULT_YIELD_PER_HECTARE[$cropName] ?? self::DEFAULT_YIELD_PER_HECTARE['DEFAULT'];
+    }
+
+    private static function normalizeCropKey(string $cropName): string
+    {
+        $normalized = preg_replace('/[^A-Z]/', '', strtoupper(trim($cropName)));
+
+        return $normalized !== '' ? $normalized : 'DEFAULT';
     }
 }

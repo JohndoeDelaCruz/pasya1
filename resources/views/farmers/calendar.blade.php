@@ -844,7 +844,11 @@
                         const selectedCrop = this.cropTypesData.find(c => c.id == this.cropPlanForm.crop_type_id);
                         if (!selectedCrop) return;
 
-                        const daysToHarvest = selectedCrop.days_to_harvest ?? selectedCrop.days_to_harvest_value ?? 75;
+                        const baseDaysToHarvest = selectedCrop.days_to_harvest ?? selectedCrop.days_to_harvest_value ?? 75;
+                        const seedlingDays = selectedCrop.seedling_days_value ?? 0;
+                        const daysToHarvest = this.cropPlanForm.planting_material_type === 'SEED'
+                            ? baseDaysToHarvest + seedlingDays
+                            : baseDaysToHarvest;
                         const avgYield = selectedCrop.average_yield_per_hectare ?? selectedCrop.average_yield_value ?? 12;
                         const area = parseFloat(this.cropPlanForm.area_hectares) || 0;
 
