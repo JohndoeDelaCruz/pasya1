@@ -14,11 +14,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $image
  * @property int $days_to_harvest
  * @property float $average_yield_per_hectare
+ * @property int|null $seedling_days
+ * @property bool|null $supports_seed_material
+ * @property bool|null $supports_seedling_material
  * @property bool $is_active
  * @property string $name_display
  * @property string $category_display
  * @property int $days_to_harvest_value
  * @property float $average_yield_value
+ * @property int $seedling_days_value
+ * @property array $available_planting_material_types
+ * @property string $default_planting_material_type
  */
 class CropType extends Model
 {
@@ -31,6 +37,9 @@ class CropType extends Model
         'image',
         'days_to_harvest',
         'average_yield_per_hectare',
+        'seedling_days',
+        'supports_seed_material',
+        'supports_seedling_material',
         'is_active',
     ];
 
@@ -38,14 +47,19 @@ class CropType extends Model
         'is_active' => 'boolean',
         'days_to_harvest' => 'integer',
         'average_yield_per_hectare' => 'decimal:2',
+        'seedling_days' => 'integer',
+        'supports_seed_material' => 'boolean',
+        'supports_seedling_material' => 'boolean',
     ];
 
     protected $appends = [
         'days_to_harvest_value',
         'average_yield_value',
         'seedling_days_value',
+        'supports_seed_material',
         'supports_seedling_material',
         'available_planting_material_types',
+        'default_planting_material_type',
     ];
 
     /**
@@ -188,36 +202,66 @@ class CropType extends Model
      */
     public function getSeedlingDaysValueAttribute(): int
     {
+        if ($this->seedling_days !== null) {
+            return (int) $this->seedling_days;
+        }
+
         $cropKey = self::normalizeCropKey($this->name ?? '');
 
         return self::DEFAULT_SEEDLING_STAGE_DAYS[$cropKey] ?? 0;
     }
 
+    public function getSupportsSeedMaterialAttribute(): bool
+    {
+        $rawValue = $this->getNullableRawBooleanAttribute('supports_seed_material');
+
+        return $rawValue ?? true;
+    }
+
     public function getSupportsSeedlingMaterialAttribute(): bool
     {
+        $rawValue = $this->getNullableRawBooleanAttribute('supports_seedling_material');
+
+        if ($rawValue !== null) {
+            return $rawValue;
+        }
+
         return $this->seedling_days_value > 0;
     }
 
     public function getAvailablePlantingMaterialTypesAttribute(): array
     {
-        return $this->supports_seedling_material
-            ? ['SEED', 'SEEDLING']
-            : ['SEED'];
+        $availableTypes = [];
+
+        if ($this->supports_seed_material) {
+            $availableTypes[] = 'SEED';
+        }
+
+        if ($this->supports_seedling_material) {
+            $availableTypes[] = 'SEEDLING';
+        }
+
+        return $availableTypes;
+    }
+
+    public function getDefaultPlantingMaterialTypeAttribute(): string
+    {
+        if ($this->supports_seed_material) {
+            return 'SEED';
+        }
+
+        if ($this->supports_seedling_material) {
+            return 'SEEDLING';
+        }
+
+        return 'SEED';
     }
 
     public function supportsPlantingMaterialType(?string $plantingMaterialType = null): bool
     {
-        $materialType = strtoupper((string) $plantingMaterialType);
+        $materialType = strtoupper((string) ($plantingMaterialType ?: $this->default_planting_material_type));
 
-        if ($materialType === '' || $materialType === 'SEED') {
-            return true;
-        }
-
-        if ($materialType === 'SEEDLING') {
-            return $this->supports_seedling_material;
-        }
-
-        return false;
+        return in_array($materialType, $this->available_planting_material_types, true);
     }
 
     /**
@@ -226,8 +270,9 @@ class CropType extends Model
     public function getDaysToHarvestForMaterial(?string $plantingMaterialType = null): int
     {
         $daysToHarvest = $this->days_to_harvest_value;
+        $materialType = strtoupper((string) ($plantingMaterialType ?: $this->default_planting_material_type));
 
-        if (strtoupper((string) $plantingMaterialType) === 'SEED') {
+        if ($materialType === 'SEED' && $this->supports_seedling_material) {
             return $daysToHarvest + $this->seedling_days_value;
         }
 
@@ -293,5 +338,22 @@ class CropType extends Model
         $normalized = preg_replace('/[^A-Z]/', '', strtoupper(trim($cropName)));
 
         return $normalized !== '' ? $normalized : 'DEFAULT';
+    }
+
+    private function getNullableRawBooleanAttribute(string $key): ?bool
+    {
+        if (!array_key_exists($key, $this->attributes) || $this->attributes[$key] === null) {
+            return null;
+        }
+
+        $rawValue = $this->attributes[$key];
+
+        if (is_bool($rawValue)) {
+            return $rawValue;
+        }
+
+        $filteredValue = filter_var($rawValue, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+        return $filteredValue ?? ((int) $rawValue === 1);
     }
 }

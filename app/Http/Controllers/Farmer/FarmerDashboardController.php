@@ -770,14 +770,14 @@ class FarmerDashboardController extends Controller
             $plantingDate = Carbon::parse($validated['planting_date']);
             $areaHectares = floatval($validated['area_hectares']);
             $farmType = $validated['farm_type'] ?? 'IRRIGATED';
-            $plantingMaterialType = $validated['planting_material_type'] ?? 'SEED';
+            $plantingMaterialType = strtoupper((string) ($validated['planting_material_type'] ?? $cropType->default_planting_material_type));
 
             if (!$cropType->supportsPlantingMaterialType($plantingMaterialType)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Seedling is not available for the selected crop.',
+                    'message' => 'The selected planting material is not available for this crop.',
                     'errors' => [
-                        'planting_material_type' => ['Seedling is not available for the selected crop.'],
+                        'planting_material_type' => ['The selected planting material is not available for this crop.'],
                     ],
                 ], 422);
             }
@@ -888,14 +888,14 @@ class FarmerDashboardController extends Controller
             $plantingDate = Carbon::parse($validated['planting_date']);
             $areaHectares = floatval($validated['area_hectares']);
             $farmType = $validated['farm_type'] ?? 'IRRIGATED';
-            $plantingMaterialType = $validated['planting_material_type'] ?? 'SEED';
+            $plantingMaterialType = strtoupper((string) ($validated['planting_material_type'] ?? $cropType->default_planting_material_type));
 
             if (!$cropType->supportsPlantingMaterialType($plantingMaterialType)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Seedling is not available for the selected crop.',
+                    'message' => 'The selected planting material is not available for this crop.',
                     'errors' => [
-                        'planting_material_type' => ['Seedling is not available for the selected crop.'],
+                        'planting_material_type' => ['The selected planting material is not available for this crop.'],
                     ],
                 ], 422);
             }

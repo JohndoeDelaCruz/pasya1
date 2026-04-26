@@ -619,8 +619,9 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Seed / Seedling Type</label>
                                 <div class="flex gap-4">
-                                    <label class="flex items-center">
+                                    <label class="flex items-center" :class="{ 'opacity-50 cursor-not-allowed': !selectedCropSupportsSeed }">
                                         <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEED" @change="calculatePreview"
+                                            :disabled="!selectedCropSupportsSeed"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Seed</span>
                                     </label>
@@ -631,8 +632,7 @@
                                         <span class="ml-2 text-gray-700">Seedling</span>
                                     </label>
                                 </div>
-                                <p x-show="cropPlanForm.crop_type_id && !selectedCropSupportsSeedling" class="mt-1 text-xs text-amber-700">
-                                    Seedling is not available for the selected crop.
+                                <p x-show="selectedCropAvailabilityMessage" class="mt-1 text-xs text-amber-700" x-text="selectedCropAvailabilityMessage">
                                 </p>
                             </div>
 
@@ -801,9 +801,42 @@
                         return !!(this.selectedCropType && this.selectedCropType.supports_seedling_material);
                     },
 
+                    get selectedCropSupportsSeed() {
+                        if (!this.selectedCropType) {
+                            return true;
+                        }
+
+                        return this.selectedCropType.supports_seed_material !== false;
+                    },
+
+                    get selectedCropAvailabilityMessage() {
+                        if (!this.selectedCropType) {
+                            return '';
+                        }
+
+                        if (!this.selectedCropSupportsSeed && this.selectedCropSupportsSeedling) {
+                            return 'Only Seedling is available for the selected crop.';
+                        }
+
+                        if (this.selectedCropSupportsSeed && !this.selectedCropSupportsSeedling) {
+                            return 'Only Seed is available for the selected crop.';
+                        }
+
+                        return '';
+                    },
+
                     normalizePlantingMaterialType() {
-                        if (!this.selectedCropSupportsSeedling && this.cropPlanForm.planting_material_type === 'SEEDLING') {
-                            this.cropPlanForm.planting_material_type = 'SEED';
+                        if (!this.selectedCropType) {
+                            return;
+                        }
+
+                        const availableTypes = Array.isArray(this.selectedCropType.available_planting_material_types)
+                            ? this.selectedCropType.available_planting_material_types
+                            : [];
+                        const defaultType = this.selectedCropType.default_planting_material_type || 'SEED';
+
+                        if (!availableTypes.includes(this.cropPlanForm.planting_material_type)) {
+                            this.cropPlanForm.planting_material_type = availableTypes[0] || defaultType;
                         }
                     },
 
@@ -868,8 +901,9 @@
 
                         const baseDaysToHarvest = selectedCrop.days_to_harvest ?? selectedCrop.days_to_harvest_value ?? 75;
                         const seedlingDays = selectedCrop.seedling_days_value ?? 0;
+                        const supportsSeedling = selectedCrop.supports_seedling_material ?? seedlingDays > 0;
                         const daysToHarvest = this.cropPlanForm.planting_material_type === 'SEED'
-                            ? baseDaysToHarvest + seedlingDays
+                            ? baseDaysToHarvest + (supportsSeedling ? seedlingDays : 0)
                             : baseDaysToHarvest;
                         const avgYield = selectedCrop.average_yield_per_hectare ?? selectedCrop.average_yield_value ?? 12;
                         const area = parseFloat(this.cropPlanForm.area_hectares) || 0;

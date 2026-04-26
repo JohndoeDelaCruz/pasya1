@@ -241,6 +241,24 @@
                                                 @if($cropType->description && $cropType->description !== 'Auto-imported from crop data')
                                                     <p class="text-xs text-gray-500">{{ Str::limit($cropType->description, 30) }}</p>
                                                 @endif
+                                                <div class="mt-2 flex flex-wrap gap-1.5">
+                                                    @foreach($cropType->available_planting_material_types as $materialType)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                            {{ $materialType === 'SEED' ? 'Seed' : 'Seedling' }}
+                                                        </span>
+                                                    @endforeach
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                                        {{ $cropType->days_to_harvest_value }} days
+                                                    </span>
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                                                        {{ number_format($cropType->average_yield_value, 2) }} MT/ha
+                                                    </span>
+                                                    @if($cropType->supports_seedling_material)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                                            {{ $cropType->seedling_days_value }} seedling days
+                                                        </span>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </td>
@@ -507,7 +525,7 @@
 
     {{-- Add Crop Type Modal --}}
     <div id="addCropTypeModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-lg bg-white">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">Add Crop Type</h3>
                 <button onclick="closeAddCropTypeModal()" class="text-gray-400 hover:text-gray-600">
@@ -536,6 +554,44 @@
                     <label for="crop_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea id="crop_description" name="description" rows="3"
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+
+                <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="crop_days_to_harvest" class="block text-sm font-medium text-gray-700 mb-1">Days to Harvest</label>
+                        <input type="number" id="crop_days_to_harvest" name="days_to_harvest" min="1" max="3650"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                               placeholder="e.g. 90">
+                    </div>
+                    <div>
+                        <label for="crop_average_yield" class="block text-sm font-medium text-gray-700 mb-1">Average Yield (MT/ha)</label>
+                        <input type="number" id="crop_average_yield" name="average_yield_per_hectare" min="0" max="10000" step="0.01"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                               placeholder="e.g. 12.50">
+                    </div>
+                </div>
+
+                <div class="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <p class="text-sm font-medium text-gray-800 mb-3">Planting Material Options</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="crop_supports_seed" name="supports_seed_material" value="1" checked
+                                   class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                            <span class="ml-2 text-sm text-gray-700">Enable Seed</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="crop_supports_seedling" name="supports_seedling_material" value="1" onchange="toggleSeedlingDaysInput('add')"
+                                   class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                            <span class="ml-2 text-sm text-gray-700">Enable Seedling</span>
+                        </label>
+                    </div>
+                    <div class="mt-3">
+                        <label for="crop_seedling_days" class="block text-sm font-medium text-gray-700 mb-1">Seedling Stage Days</label>
+                        <input type="number" id="crop_seedling_days" name="seedling_days" min="1" max="365" disabled
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                               placeholder="Required when Seedling is enabled">
+                        <p class="text-xs text-gray-500 mt-1">Used to adjust harvest timing when the crop is planted from seed instead of seedling.</p>
+                    </div>
                 </div>
                 
                 <div class="mb-4">
@@ -569,7 +625,7 @@
 
     {{-- Edit Crop Type Modal --}}
     <div id="editCropTypeModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-lg shadow-lg rounded-lg bg-white">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">Edit Crop Type</h3>
                 <button onclick="closeEditCropTypeModal()" class="text-gray-400 hover:text-gray-600">
@@ -598,6 +654,44 @@
                     <label for="edit_crop_description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea id="edit_crop_description" name="description" rows="3"
                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"></textarea>
+                </div>
+
+                <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="edit_crop_days_to_harvest" class="block text-sm font-medium text-gray-700 mb-1">Days to Harvest</label>
+                        <input type="number" id="edit_crop_days_to_harvest" name="days_to_harvest" min="1" max="3650"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                               placeholder="e.g. 90">
+                    </div>
+                    <div>
+                        <label for="edit_crop_average_yield" class="block text-sm font-medium text-gray-700 mb-1">Average Yield (MT/ha)</label>
+                        <input type="number" id="edit_crop_average_yield" name="average_yield_per_hectare" min="0" max="10000" step="0.01"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                               placeholder="e.g. 12.50">
+                    </div>
+                </div>
+
+                <div class="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <p class="text-sm font-medium text-gray-800 mb-3">Planting Material Options</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_crop_supports_seed" name="supports_seed_material" value="1"
+                                   class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                            <span class="ml-2 text-sm text-gray-700">Enable Seed</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_crop_supports_seedling" name="supports_seedling_material" value="1" onchange="toggleSeedlingDaysInput('edit')"
+                                   class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                            <span class="ml-2 text-sm text-gray-700">Enable Seedling</span>
+                        </label>
+                    </div>
+                    <div class="mt-3">
+                        <label for="edit_crop_seedling_days" class="block text-sm font-medium text-gray-700 mb-1">Seedling Stage Days</label>
+                        <input type="number" id="edit_crop_seedling_days" name="seedling_days" min="1" max="365"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
+                               placeholder="Required when Seedling is enabled">
+                        <p class="text-xs text-gray-500 mt-1">Used to adjust harvest timing when the crop is planted from seed instead of seedling.</p>
+                    </div>
                 </div>
                 
                 <div class="mb-4">
@@ -752,8 +846,26 @@
     </div>
 
     <script>
+        function toggleSeedlingDaysInput(mode) {
+            const checkboxId = mode === 'edit' ? 'edit_crop_supports_seedling' : 'crop_supports_seedling';
+            const inputId = mode === 'edit' ? 'edit_crop_seedling_days' : 'crop_seedling_days';
+            const seedlingCheckbox = document.getElementById(checkboxId);
+            const seedlingDaysInput = document.getElementById(inputId);
+
+            if (!seedlingCheckbox || !seedlingDaysInput) {
+                return;
+            }
+
+            seedlingDaysInput.disabled = !seedlingCheckbox.checked;
+
+            if (!seedlingCheckbox.checked) {
+                seedlingDaysInput.value = '';
+            }
+        }
+
         // Crop Type Modal Functions
         function openAddCropTypeModal() {
+            toggleSeedlingDaysInput('add');
             document.getElementById('addCropTypeModal').classList.remove('hidden');
         }
 
@@ -767,8 +879,14 @@
             document.getElementById('edit_crop_name').value = cropType.name;
             document.getElementById('edit_crop_category').value = cropType.category || '';
             document.getElementById('edit_crop_description').value = cropType.description || '';
+            document.getElementById('edit_crop_days_to_harvest').value = cropType.days_to_harvest ?? cropType.days_to_harvest_value ?? '';
+            document.getElementById('edit_crop_average_yield').value = cropType.average_yield_per_hectare ?? cropType.average_yield_value ?? '';
+            document.getElementById('edit_crop_supports_seed').checked = cropType.supports_seed_material ?? true;
+            document.getElementById('edit_crop_supports_seedling').checked = cropType.supports_seedling_material ?? false;
+            document.getElementById('edit_crop_seedling_days').value = cropType.seedling_days ?? cropType.seedling_days_value ?? '';
             document.getElementById('edit_crop_is_active').checked = cropType.is_active;
             document.getElementById('edit_remove_image').checked = false;
+            toggleSeedlingDaysInput('edit');
             
             // Handle image display
             const imageContainer = document.getElementById('edit_current_image_container');
