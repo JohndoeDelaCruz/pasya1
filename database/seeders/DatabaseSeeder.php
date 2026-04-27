@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         // Call the seeders
         $this->call([
             AdminUserSeeder::class,
+            MunicipalitySeeder::class,
             // CropTypeSeeder removed - crop types are managed by admin
             CropPlanSeeder::class, // Demo data for harvest history presentation
         ]);

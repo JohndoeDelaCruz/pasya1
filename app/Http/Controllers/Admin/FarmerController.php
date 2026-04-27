@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Farmer;
+use App\Models\Crop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -53,7 +54,7 @@ class FarmerController extends Controller
      */
     public function create()
     {
-        $municipalities = Municipality::active()->orderBy('name')->pluck('name')->toArray();
+        $municipalities = $this->getMunicipalityOptions();
         return view('admin.farmer-create', compact('municipalities'));
     }
 
@@ -98,7 +99,7 @@ class FarmerController extends Controller
      */
     public function edit(Farmer $farmer)
     {
-        $municipalities = Municipality::active()->orderBy('name')->pluck('name')->toArray();
+        $municipalities = $this->getMunicipalityOptions();
         return view('admin.farmer-edit', compact('farmer', 'municipalities'));
     }
 
@@ -184,5 +185,32 @@ class FarmerController extends Controller
             'archived_farmers' => Farmer::onlyTrashed()->count(),
             'archived_municipalities' => Farmer::onlyTrashed()->distinct('municipality')->count(),
         ];
+    }
+
+    private function getMunicipalityOptions(): array
+    {
+        $municipalities = Municipality::active()
+            ->orderBy('name')
+            ->pluck('name')
+            ->filter()
+            ->values();
+
+        if ($municipalities->isNotEmpty()) {
+            return $municipalities->all();
+        }
+
+        $importedMunicipalities = Crop::query()
+            ->whereNotNull('municipality')
+            ->distinct()
+            ->orderBy('municipality')
+            ->pluck('municipality')
+            ->filter()
+            ->values();
+
+        if ($importedMunicipalities->isNotEmpty()) {
+            return $importedMunicipalities->all();
+        }
+
+        return Municipality::BENGUET_MUNICIPALITIES;
     }
 }

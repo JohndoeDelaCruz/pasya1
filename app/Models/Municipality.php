@@ -9,6 +9,22 @@ class Municipality extends Model
 {
     use HasFactory;
 
+    public const BENGUET_MUNICIPALITIES = [
+        'ATOK',
+        'BAKUN',
+        'BOKOD',
+        'BUGUIAS',
+        'ITOGON',
+        'KABAYAN',
+        'KAPANGAN',
+        'KIBUNGAN',
+        'LA TRINIDAD',
+        'MANKAYAN',
+        'SABLAN',
+        'TUBA',
+        'TUBLAY',
+    ];
+
     protected $fillable = [
         'name',
         'province',
