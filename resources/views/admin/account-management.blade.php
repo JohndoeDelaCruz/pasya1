@@ -137,6 +137,21 @@
                     </select>
                 </div>
 
+                {{-- FCA Filter --}}
+                <div class="min-w-[220px]">
+                    <label for="cooperative" class="block text-sm font-medium text-gray-700 mb-1">FCA</label>
+                    <select id="cooperative"
+                            name="cooperative"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">All FCAs</option>
+                        @foreach($cooperatives as $cooperative)
+                            <option value="{{ $cooperative }}" {{ request('cooperative') == $cooperative ? 'selected' : '' }}>
+                                {{ $cooperative }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                 {{-- Filter Button --}}
                 <div>
                     <button type="submit" 
@@ -148,8 +163,19 @@
                     </button>
                 </div>
 
+                {{-- No IDs Button --}}
+                <div>
+                    <a href="{{ route('admin.farmers.index', ['no_ids' => 1]) }}"
+                       class="{{ request()->boolean('no_ids') ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-50 hover:bg-red-100 text-red-700' }} font-semibold py-2 px-5 rounded-lg transition flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636L5.636 18.364M12 9v4m0 4h.01M12 3a9 9 0 110 18 9 9 0 010-18z"/>
+                        </svg>
+                        No IDs
+                    </a>
+                </div>
+
                 {{-- Clear Button --}}
-                @if(request()->hasAny(['search', 'municipality']))
+                @if(request()->hasAny(['search', 'municipality', 'cooperative', 'no_ids']))
                     <div>
                         <a href="{{ route('admin.farmers.index') }}" 
                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition flex items-center">

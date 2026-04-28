@@ -34,9 +34,14 @@ class FarmerController extends Controller
             ->distinct('municipality')
             ->orderBy('municipality')
             ->pluck('municipality');
+        $cooperatives = Farmer::whereNotNull('cooperative')
+            ->where('cooperative', '<>', '')
+            ->distinct('cooperative')
+            ->orderBy('cooperative')
+            ->pluck('cooperative');
         $stats = $this->buildStats();
 
-        return view('admin.account-management', compact('farmers', 'municipalities', 'stats'));
+        return view('admin.account-management', compact('farmers', 'municipalities', 'cooperatives', 'stats'));
     }
 
     /**
@@ -122,7 +127,7 @@ class FarmerController extends Controller
         }
 
         return redirect()->route('admin.farmers.index')
-            ->with('success', "Import complete: {$summary['created']} created, {$summary['updated']} updated, {$summary['restored']} restored. {$summary['skipped_missing_rsbsa']} skipped without RSBSA/FISHR, {$summary['skipped_missing_name']} skipped without names.");
+            ->with('success', "Import complete: {$summary['created']} created, {$summary['updated']} updated, {$summary['restored']} restored. {$summary['imported_missing_rsbsa']} imported without IDs, {$summary['skipped_missing_name']} skipped without names.");
     }
 
     /**
@@ -212,6 +217,17 @@ class FarmerController extends Controller
 
         if ($request->filled('municipality')) {
             $query->where('municipality', $request->municipality);
+        }
+
+        if ($request->filled('cooperative')) {
+            $query->where('cooperative', $request->cooperative);
+        }
+
+        if ($request->boolean('no_ids')) {
+            $query->where(function (Builder $subquery) {
+                $subquery->whereNull('farmer_id')
+                    ->orWhere('farmer_id', '');
+            });
         }
     }
 
