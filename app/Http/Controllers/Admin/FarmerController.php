@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Municipality;
+use App\Services\StrawberryFarmerImportService;
 use Illuminate\Validation\Rules\Password;
 
 class FarmerController extends Controller
@@ -27,10 +28,11 @@ class FarmerController extends Controller
 
         // Get filter options
         $municipalities = Farmer::distinct('municipality')->orderBy('municipality')->pluck('municipality');
+        $municipalityOptions = $this->getMunicipalityOptions();
 
         $stats = $this->buildStats();
 
-        return view('admin.account-management', compact('farmers', 'municipalities', 'stats'));
+        return view('admin.account-management', compact('farmers', 'municipalities', 'municipalityOptions', 'stats'));
     }
 
     /**
@@ -84,6 +86,27 @@ class FarmerController extends Controller
 
         return redirect()->route('admin.farmers.index')
             ->with('success', 'Farmer account created successfully!');
+    }
+
+    /**
+     * Import strawberry farmers from an uploaded workbook.
+     */
+    public function importStrawberry(Request $request, StrawberryFarmerImportService $importer)
+    {
+        $validated = $request->validate([
+            'farmers_file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
+            'municipality' => ['required', 'string', 'max:100'],
+        ]);
+
+        $summary = $importer->import(
+            $validated['farmers_file'],
+            $validated['municipality'],
+            StrawberryFarmerImportService::DEFAULT_COOPERATIVE,
+            Auth::id()
+        );
+
+        return redirect()->route('admin.farmers.index')
+            ->with('success', "Import complete: {$summary['created']} created, {$summary['updated']} updated, {$summary['restored']} restored. {$summary['skipped_missing_rsbsa']} skipped without RSBSA/FISHR.");
     }
 
     /**

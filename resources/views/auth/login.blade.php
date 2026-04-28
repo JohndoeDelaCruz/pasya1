@@ -22,13 +22,13 @@
 
                         <!-- Farmer ID / Email / Username -->
                         <div>
-                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2">Farmer ID / Email / Username</label>
+                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2">RSBSA/FISHR No. / Email / Username</label>
                             <input 
                                 id="email" 
                                 type="text" 
                                 name="email" 
                                 value="{{ old('email') }}"
-                                placeholder="Enter your Farmer ID, email, or username"
+                                placeholder="Enter your RSBSA/FISHR number"
                                 required 
                                 autofocus 
                                 autocomplete="username"
@@ -39,13 +39,12 @@
 
                         <!-- Password -->
                         <div>
-                            <label for="password" class="block text-yellow-400 text-sm font-medium mb-2">Password</label>
+                            <label for="password" class="block text-yellow-400 text-sm font-medium mb-2">Password <span class="text-green-100 text-xs">(admin only)</span></label>
                             <input 
                                 id="password" 
                                 type="password" 
                                 name="password" 
-                                placeholder="ex. juandelacruz20251"
-                                required 
+                                placeholder="Farmers can leave this blank"
                                 autocomplete="current-password"
                                 class="w-full px-4 py-3 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
                             />

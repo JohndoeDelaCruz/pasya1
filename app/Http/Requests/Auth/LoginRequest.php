@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\Farmer;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +29,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => ['required', 'string'],
-            'password' => ['required', 'string'],
+            'password' => ['nullable', 'string'],
         ];
     }
 
@@ -39,21 +40,36 @@ class LoginRequest extends FormRequest
      */
     public function authenticate(): void
     {
-        $this->ensureIsNotRateLimited();
-
         // Ensure all guards are logged out before attempting new login
         Auth::guard('web')->logout();
         Auth::guard('farmer')->logout();
 
-        $loginInput = $this->input('email');
+        $loginInput = trim((string) $this->input('email'));
         $remember = $this->boolean('remember');
+
+        $farmer = Farmer::where('farmer_id', $loginInput)->first();
+
+        if ($farmer) {
+            Auth::guard('farmer')->login($farmer, $remember);
+            return;
+        }
+
+        $password = (string) $this->input('password', '');
+
+        if ($password === '') {
+            throw ValidationException::withMessages([
+                'email' => trans('auth.failed'),
+            ]);
+        }
+
+        $this->ensureIsNotRateLimited();
         
         // Try to authenticate as admin user first (email or username)
         $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         
         $credentials = [
             $fieldType => $loginInput,
-            'password' => $this->input('password')
+            'password' => $password,
         ];
 
         if (Auth::attempt($credentials, $remember)) {
@@ -62,13 +78,13 @@ class LoginRequest extends FormRequest
         }
 
         // If web auth fails, try to authenticate as farmer by farmer ID.
-        if (Auth::guard('farmer')->attempt(['farmer_id' => $loginInput, 'password' => $this->input('password')], $remember)) {
+        if (Auth::guard('farmer')->attempt(['farmer_id' => $loginInput, 'password' => $password], $remember)) {
             RateLimiter::clear($this->throttleKey());
             return;
         }
 
         // If an email was provided, also allow farmer login by email.
-        if ($fieldType === 'email' && Auth::guard('farmer')->attempt(['email' => $loginInput, 'password' => $this->input('password')], $remember)) {
+        if ($fieldType === 'email' && Auth::guard('farmer')->attempt(['email' => $loginInput, 'password' => $password], $remember)) {
             RateLimiter::clear($this->throttleKey());
             return;
         }

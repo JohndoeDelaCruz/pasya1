@@ -37,6 +37,18 @@
             </div>
         @endif
 
+        @if($errors->has('farmers_file') || $errors->has('municipality'))
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg">
+                <p class="text-sm font-medium text-red-800">Please check the import file and municipality.</p>
+                @error('farmers_file')
+                    <p class="text-sm text-red-700 mt-1">{{ $message }}</p>
+                @enderror
+                @error('municipality')
+                    <p class="text-sm text-red-700 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+        @endif
+
         {{-- Stats Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-white rounded-lg shadow p-4">
@@ -80,6 +92,46 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        {{-- Strawberry Farmer Import --}}
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <form method="POST" action="{{ route('admin.farmers.import-strawberry') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-[1fr_220px_auto] gap-3 items-end">
+                @csrf
+
+                <div>
+                    <label for="farmers_file" class="block text-sm font-medium text-gray-700 mb-1">Import Strawberry Farmers Excel</label>
+                    <input type="file"
+                           id="farmers_file"
+                           name="farmers_file"
+                           accept=".xlsx,.xls"
+                           required
+                           class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-green-50 file:text-green-700 file:font-semibold hover:file:bg-green-100">
+                    <p class="mt-1 text-xs text-gray-500">Imports only BSU-ATBI strawberry farmers and uses exact RSBSA/FISHR numbers from the workbook.</p>
+                </div>
+
+                <div>
+                    <label for="import_municipality" class="block text-sm font-medium text-gray-700 mb-1">Municipality</label>
+                    <select id="import_municipality"
+                            name="municipality"
+                            required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        @foreach($municipalityOptions as $municipality)
+                            <option value="{{ $municipality }}" {{ old('municipality', 'La Trinidad') === $municipality ? 'selected' : '' }}>
+                                {{ $municipality }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-5 rounded-lg transition flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l4 4m-4-4L8 8"/>
+                    </svg>
+                    Import
+                </button>
+            </form>
         </div>
 
         {{-- Filters --}}
