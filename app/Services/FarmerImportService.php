@@ -29,7 +29,6 @@ class FarmerImportService
         $importedMissingRsbsa = 0;
         $skippedMissingName = 0;
         $importRows = [];
-        $rowsWithoutIds = [];
 
         foreach ($rows as $row) {
             $firstColumn = $this->normalize($row['A'] ?? '');
@@ -67,25 +66,14 @@ class FarmerImportService
             }
 
             if ($rsbsaNumber === '') {
-                $rowsWithoutIds[$this->missingIdKey($cooperative, $excelName)] = [
-                    'farmer_id' => null,
-                    'first_name' => $excelName,
-                    'middle_name' => null,
-                    'last_name' => '',
-                    'suffix' => null,
-                    'municipality' => $municipality,
-                    'cooperative' => $cooperative,
-                    'contact_info' => null,
-                    'email' => null,
-                    'mobile_number' => '',
-                    'created_by' => $createdBy,
-                ];
                 $importedMissingRsbsa++;
-                continue;
             }
 
-            $importRows[$rsbsaNumber] = [
-                'farmer_id' => $rsbsaNumber,
+            $importKey = $this->importKey($cooperative, $rowNumber, $rsbsaNumber, $excelName);
+
+            $importRows[$importKey] = [
+                'farmer_id' => $rsbsaNumber === '' ? null : $rsbsaNumber,
+                'import_key' => $importKey,
                 'first_name' => $excelName,
                 'middle_name' => null,
                 'last_name' => '',
@@ -99,7 +87,7 @@ class FarmerImportService
             ];
         }
 
-        $summary = $this->saveRows(array_values($importRows), array_values($rowsWithoutIds));
+        $summary = $this->saveRows(array_values($importRows));
 
         return [
             'created' => $summary['created'],
@@ -118,9 +106,9 @@ class FarmerImportService
         return trim($text);
     }
 
-    private function saveRows(array $rows, array $rowsWithoutIds): array
+    private function saveRows(array $rows): array
     {
-        if ($rows === [] && $rowsWithoutIds === []) {
+        if ($rows === []) {
             return [
                 'created' => 0,
                 'updated' => 0,
@@ -133,108 +121,83 @@ class FarmerImportService
         $restored = 0;
         $now = now();
         $placeholderPassword = Hash::make(Str::random(40));
+        $usedExistingIds = [];
+        $insertRows = [];
 
-        if ($rows !== []) {
-            $farmerIds = array_column($rows, 'farmer_id');
-            $existingFarmers = Farmer::withTrashed()
+        $importKeys = array_column($rows, 'import_key');
+        $existingByImportKey = Farmer::withTrashed()
+            ->whereIn('import_key', $importKeys)
+            ->get(['id', 'import_key', 'deleted_at'])
+            ->keyBy('import_key');
+
+        $farmerIds = array_values(array_filter(array_column($rows, 'farmer_id')));
+        $legacyByFarmer = $farmerIds === []
+            ? collect()
+            : Farmer::withTrashed()
                 ->whereIn('farmer_id', $farmerIds)
-                ->get(['farmer_id', 'deleted_at'])
-                ->keyBy('farmer_id');
+                ->get(['id', 'farmer_id', 'first_name', 'cooperative', 'deleted_at'])
+                ->groupBy(fn (Farmer $farmer) => $this->legacyKey($farmer->farmer_id, $farmer->cooperative ?? '', $farmer->first_name));
 
-            foreach ($rows as &$row) {
-                $existingFarmer = $existingFarmers->get($row['farmer_id']);
+        $legacyWithoutIds = Farmer::withTrashed()
+            ->where(function ($query) {
+                $query->whereNull('farmer_id')
+                    ->orWhere('farmer_id', '')
+                    ->orWhere('farmer_id', 'like', 'NO-RSBSA-%');
+            })
+            ->get(['id', 'farmer_id', 'first_name', 'cooperative', 'deleted_at'])
+            ->groupBy(fn (Farmer $farmer) => $this->missingIdKey($farmer->cooperative ?? '', $farmer->first_name));
 
-                if ($existingFarmer) {
-                    $updated++;
+        foreach ($rows as $row) {
+            $existingFarmer = $existingByImportKey->get($row['import_key']);
+            $legacyKey = $row['farmer_id']
+                ? $this->legacyKey($row['farmer_id'], $row['cooperative'] ?? '', $row['first_name'])
+                : $this->missingIdKey($row['cooperative'] ?? '', $row['first_name']);
 
-                    if ($existingFarmer->deleted_at !== null) {
-                        $restored++;
-                    }
-                } else {
-                    $created++;
+            if (! $existingFarmer) {
+                $legacyMatches = $row['farmer_id']
+                    ? ($legacyByFarmer->get($legacyKey) ?? collect())
+                    : ($legacyWithoutIds->get($legacyKey) ?? collect());
+
+                $existingFarmer = $legacyMatches->first(fn (Farmer $farmer) => ! isset($usedExistingIds[$farmer->id]));
+            }
+
+            if ($existingFarmer) {
+                $usedExistingIds[$existingFarmer->id] = true;
+                $updated++;
+
+                if ($existingFarmer->deleted_at !== null) {
+                    $restored++;
                 }
 
-                $row['password'] = $placeholderPassword;
-                $row['deleted_at'] = null;
-                $row['created_at'] = $now;
-                $row['updated_at'] = $now;
-            }
-            unset($row);
+                Farmer::withTrashed()
+                    ->whereKey($existingFarmer->id)
+                    ->update([
+                        'farmer_id' => $row['farmer_id'],
+                        'import_key' => $row['import_key'],
+                        'first_name' => $row['first_name'],
+                        'middle_name' => $row['middle_name'],
+                        'last_name' => $row['last_name'],
+                        'suffix' => $row['suffix'],
+                        'municipality' => $row['municipality'],
+                        'cooperative' => $row['cooperative'],
+                        'deleted_at' => null,
+                        'updated_at' => $now,
+                    ]);
 
-            foreach (array_chunk($rows, 250) as $chunk) {
-                Farmer::upsert(
-                    $chunk,
-                    ['farmer_id'],
-                    [
-                        'first_name',
-                        'middle_name',
-                        'last_name',
-                        'suffix',
-                        'municipality',
-                        'cooperative',
-                        'deleted_at',
-                        'updated_at',
-                    ]
-                );
+                continue;
             }
+
+            $created++;
+            $insertRows[] = array_merge($row, [
+                'password' => $placeholderPassword,
+                'deleted_at' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
         }
 
-        if ($rowsWithoutIds !== []) {
-            $existingNoIdFarmers = Farmer::withTrashed()
-                ->where(function ($query) {
-                    $query->whereNull('farmer_id')
-                        ->orWhere('farmer_id', '')
-                        ->orWhere('farmer_id', 'like', 'NO-RSBSA-%');
-                })
-                ->get(['id', 'farmer_id', 'first_name', 'cooperative', 'deleted_at'])
-                ->keyBy(fn (Farmer $farmer) => $this->missingIdKey($farmer->cooperative ?? '', $farmer->first_name));
-
-            $insertRows = [];
-
-            foreach ($rowsWithoutIds as $row) {
-                $existingFarmer = $existingNoIdFarmers->get($this->missingIdKey($row['cooperative'] ?? '', $row['first_name']));
-
-                if ($existingFarmer) {
-                    $updated++;
-
-                    if ($existingFarmer->deleted_at !== null) {
-                        Farmer::withTrashed()
-                            ->whereKey($existingFarmer->id)
-                            ->update([
-                                'farmer_id' => null,
-                                'municipality' => $row['municipality'],
-                                'cooperative' => $row['cooperative'],
-                                'deleted_at' => null,
-                                'updated_at' => $now,
-                            ]);
-                        $restored++;
-                    } elseif (($existingFarmer->farmer_id ?? null) !== null) {
-                        Farmer::withTrashed()
-                            ->whereKey($existingFarmer->id)
-                            ->update([
-                                'farmer_id' => null,
-                                'municipality' => $row['municipality'],
-                                'cooperative' => $row['cooperative'],
-                                'updated_at' => $now,
-                            ]);
-                    }
-
-                    continue;
-                }
-
-                $created++;
-
-                $insertRows[] = array_merge($row, [
-                    'password' => $placeholderPassword,
-                    'deleted_at' => null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]);
-            }
-
-            foreach (array_chunk($insertRows, 250) as $chunk) {
-                Farmer::insert($chunk);
-            }
+        foreach (array_chunk($insertRows, 250) as $chunk) {
+            Farmer::insert($chunk);
         }
 
         return [
@@ -288,6 +251,21 @@ class FarmerImportService
     private function missingIdKey(string $cooperative, string $name): string
     {
         return Str::lower($this->normalize($cooperative)).'|'.Str::lower($this->normalize($name));
+    }
+
+    private function legacyKey(string $farmerId, string $cooperative, string $name): string
+    {
+        return Str::lower($this->normalize($farmerId)).'|'.$this->missingIdKey($cooperative, $name);
+    }
+
+    private function importKey(string $cooperative, string $rowNumber, string $farmerId, string $name): string
+    {
+        return hash('sha256', implode('|', [
+            Str::lower($this->normalize($cooperative)),
+            $this->normalize($rowNumber),
+            Str::lower($this->normalize($farmerId)),
+            Str::lower($this->normalize($name)),
+        ]));
     }
 
     private function extractCooperativeName(string $sectionLabel): string

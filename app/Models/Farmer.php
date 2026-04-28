@@ -15,6 +15,7 @@ class Farmer extends Authenticatable
 
     protected $fillable = [
         'farmer_id',
+        'import_key',
         'first_name',
         'middle_name',
         'last_name',
