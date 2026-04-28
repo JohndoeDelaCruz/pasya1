@@ -113,7 +113,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/farmers/archived', [FarmerController::class, 'archived'])->name('farmers.archived');
     Route::get('/farmers/create', [FarmerController::class, 'create'])->name('farmers.create');
     Route::post('/farmers', [FarmerController::class, 'store'])->name('farmers.store');
-    Route::post('/farmers/import-strawberry', [FarmerController::class, 'importStrawberry'])->name('farmers.import-strawberry');
+    Route::post('/farmers/import', [FarmerController::class, 'import'])->name('farmers.import');
     Route::get('/farmers/{farmer}/edit', [FarmerController::class, 'edit'])->name('farmers.edit');
     Route::put('/farmers/{farmer}', [FarmerController::class, 'update'])->name('farmers.update');
     Route::post('/farmers/{id}/restore', [FarmerController::class, 'restore'])->name('farmers.restore');

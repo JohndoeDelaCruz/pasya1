@@ -94,20 +94,19 @@
             </div>
         </div>
 
-        {{-- Strawberry Farmer Import --}}
+        {{-- Farmer Import --}}
         <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <form method="POST" action="{{ route('admin.farmers.import-strawberry') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-[1fr_220px_auto] gap-3 items-end">
+            <form method="POST" action="{{ route('admin.farmers.import') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-[1fr_220px_auto] gap-3 items-end">
                 @csrf
 
                 <div>
-                    <label for="farmers_file" class="block text-sm font-medium text-gray-700 mb-1">Import Strawberry Farmers Excel</label>
+                    <label for="farmers_file" class="block text-sm font-medium text-gray-700 mb-1">Import Farmers</label>
                     <input type="file"
                            id="farmers_file"
                            name="farmers_file"
                            accept=".xlsx,.xls"
                            required
                            class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-green-50 file:text-green-700 file:font-semibold hover:file:bg-green-100">
-                    <p class="mt-1 text-xs text-gray-500">Imports only BSU-ATBI strawberry farmers and uses exact RSBSA/FISHR numbers from the workbook.</p>
                 </div>
 
                 <div>

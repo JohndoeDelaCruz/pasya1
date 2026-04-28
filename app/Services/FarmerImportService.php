@@ -8,29 +8,23 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
-class StrawberryFarmerImportService
+class FarmerImportService
 {
-    public const DEFAULT_COOPERATIVE = 'BSU-Agribased Technology Business Incubator Cooperative (BSU-ATBI ACC)';
-
     public function import(
         string|UploadedFile $file,
         string $municipality = 'La Trinidad',
-        string $targetCooperative = self::DEFAULT_COOPERATIVE,
-        ?int $createdBy = null,
-        bool $importAll = false
+        ?int $createdBy = null
     ): array {
         $path = $file instanceof UploadedFile ? $file->getRealPath() : $file;
         $sheet = IOFactory::load($path)->getSheet(0);
         $rows = $sheet->toArray(null, true, true, true);
 
-        $targetCooperative = $this->normalize($targetCooperative);
         $municipality = $this->normalize($municipality);
         $currentCooperative = null;
         $created = 0;
         $updated = 0;
         $restored = 0;
         $skippedMissingRsbsa = 0;
-        $skippedOutsideCooperative = 0;
         $skippedMissingName = 0;
 
         foreach ($rows as $row) {
@@ -42,11 +36,6 @@ class StrawberryFarmerImportService
             }
 
             if (! ctype_digit($firstColumn) || ! $currentCooperative) {
-                continue;
-            }
-
-            if (! $importAll && $this->normalize($currentCooperative) !== $targetCooperative) {
-                $skippedOutsideCooperative++;
                 continue;
             }
 
@@ -102,8 +91,6 @@ class StrawberryFarmerImportService
             'restored' => $restored,
             'skipped_missing_rsbsa' => $skippedMissingRsbsa,
             'skipped_missing_name' => $skippedMissingName,
-            'skipped_outside_cooperative' => $skippedOutsideCooperative,
-            'cooperative' => $importAll ? 'All cooperatives' : $targetCooperative,
         ];
     }
 

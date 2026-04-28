@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Municipality;
-use App\Services\StrawberryFarmerImportService;
+use App\Services\FarmerImportService;
 use Illuminate\Validation\Rules\Password;
 
 class FarmerController extends Controller
@@ -89,9 +89,9 @@ class FarmerController extends Controller
     }
 
     /**
-     * Import strawberry farmers from an uploaded workbook.
+     * Import farmers from an uploaded workbook.
      */
-    public function importStrawberry(Request $request, StrawberryFarmerImportService $importer)
+    public function import(Request $request, FarmerImportService $importer)
     {
         $validated = $request->validate([
             'farmers_file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
@@ -101,12 +101,11 @@ class FarmerController extends Controller
         $summary = $importer->import(
             $validated['farmers_file'],
             $validated['municipality'],
-            StrawberryFarmerImportService::DEFAULT_COOPERATIVE,
             Auth::id()
         );
 
         return redirect()->route('admin.farmers.index')
-            ->with('success', "Import complete: {$summary['created']} created, {$summary['updated']} updated, {$summary['restored']} restored. {$summary['skipped_missing_rsbsa']} skipped without RSBSA/FISHR.");
+            ->with('success', "Import complete: {$summary['created']} created, {$summary['updated']} updated, {$summary['restored']} restored. {$summary['skipped_missing_rsbsa']} skipped without RSBSA/FISHR, {$summary['skipped_missing_name']} skipped without names.");
     }
 
     /**
