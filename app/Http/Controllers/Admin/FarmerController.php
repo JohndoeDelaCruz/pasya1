@@ -9,9 +9,11 @@ use App\Models\Crop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\Municipality;
 use App\Services\FarmerImportService;
 use Illuminate\Validation\Rules\Password;
+use Throwable;
 
 class FarmerController extends Controller
 {
@@ -104,10 +106,20 @@ class FarmerController extends Controller
             'farmers_file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
         ]);
 
-        $summary = $importer->import(
-            $validated['farmers_file'],
-            createdBy: Auth::id()
-        );
+        try {
+            $summary = $importer->import(
+                $validated['farmers_file'],
+                createdBy: Auth::id()
+            );
+        } catch (Throwable $exception) {
+            Log::error('Farmer import failed.', [
+                'message' => $exception->getMessage(),
+                'admin_id' => Auth::id(),
+            ]);
+
+            return redirect()->route('admin.farmers.index')
+                ->withErrors(['farmers_file' => 'Import failed. Please check that the Excel file has No., Name, and RSBSA/FISHR columns, then try again.']);
+        }
 
         return redirect()->route('admin.farmers.index')
             ->with('success', "Import complete: {$summary['created']} created, {$summary['updated']} updated, {$summary['restored']} restored. {$summary['skipped_missing_rsbsa']} skipped without RSBSA/FISHR, {$summary['skipped_missing_name']} skipped without names.");
@@ -207,10 +219,17 @@ class FarmerController extends Controller
     {
         return [
             'total_farmers' => Farmer::count(),
-            'total_municipalities' => Farmer::distinct('municipality')->count(),
+            'total_municipalities' => Farmer::whereNotNull('municipality')
+                ->where('municipality', '<>', '')
+                ->distinct('municipality')
+                ->count('municipality'),
             'total_cooperatives' => Farmer::whereNotNull('cooperative')->distinct('cooperative')->count(),
             'archived_farmers' => Farmer::onlyTrashed()->count(),
-            'archived_municipalities' => Farmer::onlyTrashed()->distinct('municipality')->count(),
+            'archived_municipalities' => Farmer::onlyTrashed()
+                ->whereNotNull('municipality')
+                ->where('municipality', '<>', '')
+                ->distinct('municipality')
+                ->count('municipality'),
         ];
     }
 

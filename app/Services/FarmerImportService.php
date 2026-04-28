@@ -23,22 +23,14 @@ class FarmerImportService
             'name' => 'B',
             'rsbsa' => 'D',
             'municipality' => null,
+            'cooperative' => null,
         ];
         $currentCooperative = null;
-        $created = 0;
-        $updated = 0;
-        $restored = 0;
         $skippedMissingRsbsa = 0;
         $skippedMissingName = 0;
+        $importRows = [];
 
         foreach ($rows as $row) {
-            $detectedColumns = $this->detectColumns($row);
-
-            if ($detectedColumns !== []) {
-                $columns = array_merge($columns, $detectedColumns);
-                continue;
-            }
-
             $firstColumn = $this->normalize($row['A'] ?? '');
 
             if (Str::startsWith($firstColumn, 'FCA')) {
@@ -46,17 +38,27 @@ class FarmerImportService
                 continue;
             }
 
+            $detectedColumns = $this->detectColumns($row);
+
+            if ($detectedColumns !== []) {
+                $columns = array_merge($columns, $detectedColumns);
+                continue;
+            }
+
             $rowNumber = $this->normalize($row[$columns['number']] ?? '');
 
-            if (! ctype_digit($rowNumber) || ! $currentCooperative) {
+            if (! ctype_digit($rowNumber)) {
                 continue;
             }
 
             $excelName = $this->normalize($row[$columns['name']] ?? '');
             $rsbsaNumber = $this->normalize($row[$columns['rsbsa']] ?? '');
             $municipality = $columns['municipality']
-                ? $this->nullableText($row[$columns['municipality']] ?? null)
-                : null;
+                ? $this->normalize($row[$columns['municipality']] ?? '')
+                : '';
+            $cooperative = $columns['cooperative']
+                ? $this->normalize($row[$columns['cooperative']] ?? '')
+                : ($currentCooperative ?? '');
 
             if ($rsbsaNumber === '') {
                 $skippedMissingRsbsa++;
@@ -68,43 +70,27 @@ class FarmerImportService
                 continue;
             }
 
-            $farmer = Farmer::withTrashed()->firstOrNew(['farmer_id' => $rsbsaNumber]);
-            $exists = $farmer->exists;
-            $wasTrashed = $exists && $farmer->trashed();
-
-            $farmer->fill([
+            $importRows[$rsbsaNumber] = [
+                'farmer_id' => $rsbsaNumber,
                 'first_name' => $excelName,
                 'middle_name' => null,
                 'last_name' => '',
                 'suffix' => null,
                 'municipality' => $municipality,
-                'cooperative' => $currentCooperative,
-            ]);
-
-            if (! $exists) {
-                $farmer->fill([
-                    'contact_info' => null,
-                    'email' => null,
-                    'mobile_number' => '',
-                    'password' => Hash::make(Str::random(40)),
-                    'created_by' => $createdBy,
-                ]);
-            }
-
-            if ($wasTrashed) {
-                $farmer->restore();
-                $restored++;
-            }
-
-            $farmer->save();
-
-            $exists ? $updated++ : $created++;
+                'cooperative' => $cooperative,
+                'contact_info' => null,
+                'email' => null,
+                'mobile_number' => '',
+                'created_by' => $createdBy,
+            ];
         }
 
+        $summary = $this->saveRows(array_values($importRows));
+
         return [
-            'created' => $created,
-            'updated' => $updated,
-            'restored' => $restored,
+            'created' => $summary['created'],
+            'updated' => $summary['updated'],
+            'restored' => $summary['restored'],
             'skipped_missing_rsbsa' => $skippedMissingRsbsa,
             'skipped_missing_name' => $skippedMissingName,
         ];
@@ -118,11 +104,70 @@ class FarmerImportService
         return trim($text);
     }
 
-    private function nullableText(mixed $value): ?string
+    private function saveRows(array $rows): array
     {
-        $text = $this->normalize($value);
+        if ($rows === []) {
+            return [
+                'created' => 0,
+                'updated' => 0,
+                'restored' => 0,
+            ];
+        }
 
-        return $text === '' ? null : $text;
+        $farmerIds = array_column($rows, 'farmer_id');
+        $existingFarmers = Farmer::withTrashed()
+            ->whereIn('farmer_id', $farmerIds)
+            ->get(['farmer_id', 'deleted_at'])
+            ->keyBy('farmer_id');
+
+        $created = 0;
+        $updated = 0;
+        $restored = 0;
+        $now = now();
+        $placeholderPassword = Hash::make(Str::random(40));
+
+        foreach ($rows as &$row) {
+            $existingFarmer = $existingFarmers->get($row['farmer_id']);
+
+            if ($existingFarmer) {
+                $updated++;
+
+                if ($existingFarmer->deleted_at !== null) {
+                    $restored++;
+                }
+            } else {
+                $created++;
+            }
+
+            $row['password'] = $placeholderPassword;
+            $row['deleted_at'] = null;
+            $row['created_at'] = $now;
+            $row['updated_at'] = $now;
+        }
+        unset($row);
+
+        foreach (array_chunk($rows, 250) as $chunk) {
+            Farmer::upsert(
+                $chunk,
+                ['farmer_id'],
+                [
+                    'first_name',
+                    'middle_name',
+                    'last_name',
+                    'suffix',
+                    'municipality',
+                    'cooperative',
+                    'deleted_at',
+                    'updated_at',
+                ]
+            );
+        }
+
+        return [
+            'created' => $created,
+            'updated' => $updated,
+            'restored' => $restored,
+        ];
     }
 
     private function detectColumns(array $row): array
@@ -153,10 +198,15 @@ class FarmerImportService
 
             if (Str::contains($header, 'municipality')) {
                 $columns['municipality'] = $column;
+                continue;
+            }
+
+            if (Str::contains($header, ['cooperative', 'fca', 'association'])) {
+                $columns['cooperative'] = $column;
             }
         }
 
-        return isset($columns['name']) || isset($columns['rsbsa']) || isset($columns['municipality'])
+        return isset($columns['name']) || isset($columns['rsbsa']) || isset($columns['municipality']) || isset($columns['cooperative'])
             ? $columns
             : [];
     }
