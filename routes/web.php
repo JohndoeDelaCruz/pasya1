@@ -26,6 +26,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/app-download', function () {
+    return view('app-download');
+})->name('app.download');
+
 Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBridgeService) {
     if (Auth::guard('farmer')->check()) {
         return redirect()->route('farmers.dashboard');

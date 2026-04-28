@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
     @php
-        $appDownloadUrl = config('app.mobile_app_download_url') ?: url('/');
+        $appDownloadUrl = route('app.download');
         $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?' . http_build_query([
             'size' => '152x152',
             'margin' => 8,
