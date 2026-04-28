@@ -27,13 +27,14 @@ use Illuminate\Support\Facades\Log;
 class MLApiService
 {
     private string $baseUrl;
+    private string $baseUrlSource;
     private int $timeout;
     private bool $cacheEnabled;
     private int $cacheTtl;
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(config('services.ml_api.url', 'http://127.0.0.1:5000'), '/');
+        [$this->baseUrl, $this->baseUrlSource] = $this->resolveBaseUrl();
         $this->timeout = (int) config('services.ml_api.timeout', 30);
         $this->cacheEnabled = (bool) config('services.ml_api.cache_enabled', true);
         $this->cacheTtl = (int) config('services.ml_api.cache_ttl', 300);
@@ -133,6 +134,10 @@ class MLApiService
     public function predict(array $data): array
     {
         // Don't cache predictions - they should be real-time
+        if ($this->baseUrl === '') {
+            return $this->missingBaseUrlResponse('predict');
+        }
+
         try {
             $response = Http::timeout($this->timeout)
                 ->post("{$this->baseUrl}/predict", $data);
@@ -142,6 +147,8 @@ class MLApiService
             }
 
             Log::warning('ML API prediction failed', [
+                'base_url' => $this->baseUrl,
+                'base_url_source' => $this->baseUrlSource,
                 'status' => $response->status(),
                 'body' => $response->body()
             ]);
@@ -152,6 +159,8 @@ class MLApiService
             ];
         } catch (\Exception $e) {
             Log::error('ML API prediction error', [
+                'base_url' => $this->baseUrl,
+                'base_url_source' => $this->baseUrlSource,
                 'message' => $e->getMessage(),
                 'data' => $data
             ]);
@@ -177,6 +186,10 @@ class MLApiService
                 'success' => false,
                 'error' => 'Batch size exceeds maximum of 100 predictions'
             ];
+        }
+
+        if ($this->baseUrl === '') {
+            return $this->missingBaseUrlResponse('batchPredict');
         }
 
         $attempts = [
@@ -211,6 +224,8 @@ class MLApiService
                 $lastError = 'Batch prediction failed: ' . $response->status();
 
                 Log::warning('ML API batch prediction attempt failed', [
+                    'base_url' => $this->baseUrl,
+                    'base_url_source' => $this->baseUrlSource,
                     'endpoint' => $attempt['endpoint'],
                     'attempt' => $attempt['description'],
                     'status' => $response->status(),
@@ -225,6 +240,8 @@ class MLApiService
             ];
         } catch (\Exception $e) {
             Log::error('ML API batch prediction error', [
+                'base_url' => $this->baseUrl,
+                'base_url_source' => $this->baseUrlSource,
                 'message' => $e->getMessage(),
                 'count' => count($predictions)
             ]);
@@ -300,6 +317,10 @@ class MLApiService
      */
     public function checkHealth(): array
     {
+        if ($this->baseUrl === '') {
+            return $this->missingBaseUrlResponse('checkHealth');
+        }
+
         try {
             $healthResponse = Http::timeout(5)->get("{$this->baseUrl}/health");
 
@@ -328,6 +349,12 @@ class MLApiService
                 'data' => $rootResponse->successful() ? $rootResponse->json() : null,
             ];
         } catch (\Exception $e) {
+            Log::error('ML API health check error', [
+                'base_url' => $this->baseUrl,
+                'base_url_source' => $this->baseUrlSource,
+                'message' => $e->getMessage(),
+            ]);
+
             return [
                 'success' => false,
                 'error' => $e->getMessage()
@@ -340,6 +367,10 @@ class MLApiService
      */
     private function get(string $endpoint): array
     {
+        if ($this->baseUrl === '') {
+            return $this->missingBaseUrlResponse('get');
+        }
+
         try {
             $response = Http::timeout($this->timeout)
                 ->get("{$this->baseUrl}{$endpoint}");
@@ -349,6 +380,8 @@ class MLApiService
             }
 
             Log::warning('ML API GET failed', [
+                'base_url' => $this->baseUrl,
+                'base_url_source' => $this->baseUrlSource,
                 'endpoint' => $endpoint,
                 'status' => $response->status()
             ]);
@@ -359,6 +392,8 @@ class MLApiService
             ];
         } catch (\Exception $e) {
             Log::error('ML API GET error', [
+                'base_url' => $this->baseUrl,
+                'base_url_source' => $this->baseUrlSource,
                 'endpoint' => $endpoint,
                 'message' => $e->getMessage()
             ]);
@@ -402,5 +437,81 @@ class MLApiService
         foreach ($cacheKeys as $key) {
             Cache::forget($key);
         }
+    }
+
+    private function resolveBaseUrl(): array
+    {
+        $configuredUrl = rtrim((string) config('services.ml_api.url', 'http://127.0.0.1:5000'), '/');
+        $runtimeUrl = $this->getRuntimeMlApiUrl();
+        $isNonLocalEnvironment = !app()->environment(['local', 'development', 'testing']);
+
+        if ($isNonLocalEnvironment && $this->isLoopbackUrl($configuredUrl)) {
+            if ($runtimeUrl !== '' && !$this->isLoopbackUrl($runtimeUrl)) {
+                $resolvedUrl = rtrim($runtimeUrl, '/');
+
+                Log::warning('ML API config points to loopback in a non-local environment; using runtime ML_API_URL instead', [
+                    'configured_url' => $configuredUrl,
+                    'runtime_url' => $resolvedUrl,
+                    'app_env' => app()->environment(),
+                ]);
+
+                return [$resolvedUrl, 'runtime_env'];
+            }
+
+            Log::error('ML API URL points to loopback in a non-local environment', [
+                'configured_url' => $configuredUrl,
+                'app_env' => app()->environment(),
+                'hint' => 'Set ML_API_URL to the deployed ML service URL and clear cached config.',
+            ]);
+        }
+
+        if ($configuredUrl !== '') {
+            return [$configuredUrl, 'config'];
+        }
+
+        if ($runtimeUrl !== '') {
+            return [rtrim($runtimeUrl, '/'), 'runtime_env'];
+        }
+
+        return ['', 'missing'];
+    }
+
+    private function getRuntimeMlApiUrl(): string
+    {
+        $candidates = [
+            getenv('ML_API_URL'),
+            $_ENV['ML_API_URL'] ?? null,
+            $_SERVER['ML_API_URL'] ?? null,
+        ];
+
+        foreach ($candidates as $candidate) {
+            $candidate = trim((string) $candidate);
+
+            if ($candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return '';
+    }
+
+    private function isLoopbackUrl(string $url): bool
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        return in_array($host, ['127.0.0.1', 'localhost', '::1'], true);
+    }
+
+    private function missingBaseUrlResponse(string $operation): array
+    {
+        Log::error('ML API URL is not configured', [
+            'operation' => $operation,
+            'app_env' => app()->environment(),
+        ]);
+
+        return [
+            'success' => false,
+            'error' => 'ML API URL is not configured. Set ML_API_URL and clear cached config.',
+        ];
     }
 }
