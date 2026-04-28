@@ -19,6 +19,23 @@
                         <span class="ml-2 rounded-full bg-amber-700 px-2 py-0.5 text-xs font-bold text-white">{{ number_format($stats['archived_farmers']) }}</span>
                     @endif
                 </a>
+                <form method="POST" action="{{ route('admin.farmers.import') }}" enctype="multipart/form-data" class="self-start sm:self-auto">
+                    @csrf
+                    <input type="file"
+                           id="farmers_file"
+                           name="farmers_file"
+                           accept=".xlsx,.xls"
+                           required
+                           class="sr-only"
+                           onchange="this.form.submit()">
+                    <label for="farmers_file"
+                           class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center cursor-pointer">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l4 4m-4-4L8 8"/>
+                        </svg>
+                        <span>Import Farmers</span>
+                    </label>
+                </form>
                 <a href="{{ route('admin.farmers.create') }}" 
                    class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center self-start sm:self-auto">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,31 +106,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        {{-- Farmer Import --}}
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <form method="POST" action="{{ route('admin.farmers.import') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-end">
-                @csrf
-
-                <div>
-                    <label for="farmers_file" class="block text-sm font-medium text-gray-700 mb-1">Import Farmers</label>
-                    <input type="file"
-                           id="farmers_file"
-                           name="farmers_file"
-                           accept=".xlsx,.xls"
-                           required
-                           class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-green-50 file:text-green-700 file:font-semibold hover:file:bg-green-100">
-                </div>
-
-                <button type="submit"
-                        class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-5 rounded-lg transition flex items-center justify-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l4 4m-4-4L8 8"/>
-                    </svg>
-                    Import
-                </button>
-            </form>
         </div>
 
         {{-- Filters --}}
