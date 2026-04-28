@@ -9,6 +9,7 @@ use App\Models\CropProduction;
 use App\Models\CropPlan;
 use App\Models\Crop;
 use App\Models\FarmerNotification;
+use App\Services\MLApiService;
 use App\Services\PredictionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,10 @@ use Carbon\Carbon;
 
 class FarmerDashboardController extends Controller
 {
-    public function __construct(protected PredictionService $predictionService)
+    public function __construct(
+        protected PredictionService $predictionService,
+        protected MLApiService $mlApiService
+    )
     {
     }
 
@@ -1102,17 +1106,18 @@ class FarmerDashboardController extends Controller
         float $areaHectares
     ): array {
         $fallbackYield = CropType::getAverageYield($cropName);
+        $basePayload = [
+            'municipality' => strtoupper(trim($municipality)),
+            'farm_type' => strtoupper(trim($farmType)),
+            'month' => strtoupper($plantingDate->format('M')),
+            'crop' => strtoupper(trim($cropName)),
+            'area_harvested' => $areaHectares,
+            'year' => $plantingDate->year,
+        ];
 
         try {
             // Try ML API V2 prediction
-            $result = $this->predictionService->predictProduction([
-                'municipality' => strtoupper($municipality),
-                'farm_type' => strtoupper($farmType),
-                'month' => strtoupper($plantingDate->format('M')),
-                'crop' => strtoupper($cropName),
-                'area_harvested' => $areaHectares,
-                'year' => $plantingDate->year,
-            ]);
+            $result = $this->predictionService->predictProduction($basePayload);
 
             // V2 API returns prediction.production_mt (total production in MT)
             if (isset($result['success']) && $result['success'] && isset($result['prediction']['production_mt'])) {
@@ -1146,6 +1151,58 @@ class FarmerDashboardController extends Controller
         } catch (\Exception $e) {
             Log::warning('ML prediction failed, using fallback', [
                 'crop' => $cropName,
+                'error' => $e->getMessage(),
+            ]);
+
+            $mlError = $e->getMessage();
+        }
+
+        try {
+            $directMlResult = $this->mlApiService->predict([
+                'municipality' => $basePayload['municipality'],
+                'farm_type' => $basePayload['farm_type'],
+                'month' => $basePayload['month'],
+                'crop' => $this->predictionService->patternBasedNormalization($basePayload['crop']),
+                'area_planted' => $areaHectares,
+                'area_harvested' => $areaHectares,
+                'year' => $basePayload['year'],
+            ]);
+
+            if (($directMlResult['success'] ?? false) === true && isset($directMlResult['prediction']['production_mt'])) {
+                $predictedProduction = round((float) $directMlResult['prediction']['production_mt'], 2);
+                $predictedProductivity = data_get($directMlResult, 'prediction.productivity_mt_ha');
+                $confidenceScore = data_get($directMlResult, 'prediction.confidence_score');
+
+                Log::info('Farmer crop plan preview recovered via direct ML API retry', [
+                    'crop' => $cropName,
+                    'municipality' => $municipality,
+                    'farm_type' => $farmType,
+                    'month' => $basePayload['month'],
+                    'year' => $basePayload['year'],
+                    'previous_error' => $mlError ?? null,
+                ]);
+
+                return [
+                    'predicted_production' => $predictedProduction,
+                    'productivity_mt_ha' => is_numeric($predictedProductivity)
+                        ? round((float) $predictedProductivity, 2)
+                        : ($areaHectares > 0 ? round($predictedProduction / $areaHectares, 2) : null),
+                    'productivity_label' => 'Predicted productivity',
+                    'prediction_source' => 'ml',
+                    'prediction_source_label' => 'Live ML API',
+                    'confidence_score' => is_numeric($confidenceScore) ? round((float) $confidenceScore, 2) : null,
+                    'ml_error' => null,
+                ];
+            }
+
+            $mlError = $directMlResult['error'] ?? $mlError ?? 'Direct ML API retry did not return a production value.';
+        } catch (\Exception $e) {
+            Log::warning('Direct ML API retry failed for crop plan preview', [
+                'crop' => $cropName,
+                'municipality' => $municipality,
+                'farm_type' => $farmType,
+                'month' => $basePayload['month'],
+                'year' => $basePayload['year'],
                 'error' => $e->getMessage(),
             ]);
 
