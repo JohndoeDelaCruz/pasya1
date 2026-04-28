@@ -319,11 +319,77 @@ class PredictionService
                     'area_harvested' => $areaValue,
                 ];
             }, $batchData);
-            
-            // Use MLApiService batch predict (single HTTP request)
-            $result = $this->mlApi->batchPredict($processedData);
-            
-            return $result;
+
+            $chunkSize = 100;
+
+            if (count($processedData) <= $chunkSize) {
+                return $this->mlApi->batchPredict($processedData);
+            }
+
+            $combinedPredictions = [];
+            $allChunksSuccessful = true;
+
+            foreach (array_chunk($processedData, $chunkSize) as $chunkIndex => $chunk) {
+                $chunkResult = $this->mlApi->batchPredict($chunk);
+
+                if (($chunkResult['success'] ?? false) !== true) {
+                    $allChunksSuccessful = false;
+                    $chunkError = $chunkResult['error'] ?? 'Batch prediction failed';
+
+                    Log::warning('Batch prediction chunk failed', [
+                        'chunk_index' => $chunkIndex,
+                        'chunk_size' => count($chunk),
+                        'error' => $chunkError,
+                    ]);
+
+                    $combinedPredictions = array_merge(
+                        $combinedPredictions,
+                        array_fill(0, count($chunk), [
+                            'success' => false,
+                            'error' => $chunkError,
+                        ])
+                    );
+
+                    continue;
+                }
+
+                $chunkPredictions = [];
+                foreach (['predictions', 'results', 'data', 'items'] as $key) {
+                    if (isset($chunkResult[$key]) && is_array($chunkResult[$key])) {
+                        $chunkPredictions = $chunkResult[$key];
+                        break;
+                    }
+                }
+
+                if ($chunkPredictions === [] && isset($chunkResult['prediction']) && is_array($chunkResult['prediction'])) {
+                    $chunkPredictions = [$chunkResult];
+                }
+
+                if ($chunkPredictions === [] && array_keys($chunkResult) === range(0, count($chunkResult) - 1)) {
+                    $chunkPredictions = $chunkResult;
+                }
+
+                if ($chunkPredictions === []) {
+                    $allChunksSuccessful = false;
+
+                    Log::warning('Batch prediction chunk returned no prediction items', [
+                        'chunk_index' => $chunkIndex,
+                        'chunk_size' => count($chunk),
+                    ]);
+
+                    $chunkPredictions = array_fill(0, count($chunk), [
+                        'success' => false,
+                        'error' => 'Missing batch prediction results',
+                    ]);
+                }
+
+                $combinedPredictions = array_merge($combinedPredictions, $chunkPredictions);
+            }
+
+            return [
+                'success' => $allChunksSuccessful,
+                'predictions' => $combinedPredictions,
+            ];
             
         } catch (\Exception $e) {
             Log::error('Batch prediction failed', ['error' => $e->getMessage()]);

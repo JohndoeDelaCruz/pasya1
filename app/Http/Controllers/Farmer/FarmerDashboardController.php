@@ -17,6 +17,10 @@ use Carbon\Carbon;
 
 class FarmerDashboardController extends Controller
 {
+    public function __construct(protected PredictionService $predictionService)
+    {
+    }
+
     /**
      * Show the farmer dashboard
      */
@@ -787,15 +791,21 @@ class FarmerDashboardController extends Controller
             $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate, $plantingMaterialType);
             Log::info('storeCropPlan: Harvest date calculated', ['harvest_date' => $expectedHarvestDate->format('Y-m-d')]);
 
-            // Get predicted production using ML API or fallback to simple calculation
-            $predictedProduction = $this->getPredictedProduction(
+            $prediction = $this->getProductionPredictionData(
                 $cropType->name,
                 $farmer->municipality ?? 'BUGUIAS',
                 $farmType,
                 $plantingDate,
                 $areaHectares
             );
-            Log::info('storeCropPlan: Production predicted', ['predicted' => $predictedProduction]);
+            $predictedProduction = $prediction['predicted_production'];
+
+            Log::info('storeCropPlan: Production predicted', [
+                'predicted' => $predictedProduction,
+                'source' => $prediction['prediction_source'],
+                'productivity_mt_ha' => $prediction['productivity_mt_ha'],
+                'confidence_score' => $prediction['confidence_score'],
+            ]);
 
             // Create the crop plan
             $cropPlan = CropPlan::create([
@@ -842,6 +852,10 @@ class FarmerDashboardController extends Controller
                     'area_hectares' => $cropPlan->area_hectares,
                     'predicted_production' => $cropPlan->predicted_production,
                     'predicted_production_formatted' => $cropPlan->formatted_production,
+                    'prediction_source' => $prediction['prediction_source'],
+                    'prediction_source_label' => $prediction['prediction_source_label'],
+                    'productivity_mt_ha' => $prediction['productivity_mt_ha'],
+                    'confidence_score' => $prediction['confidence_score'],
                     'planting_material_type' => $cropPlan->planting_material_type,
                     'planting_material_label' => $cropPlan->planting_material_label,
                     'planting_event' => $cropPlan->toPlantingEvent(),
@@ -904,8 +918,7 @@ class FarmerDashboardController extends Controller
             $daysToHarvest = $cropType->getDaysToHarvestForMaterial($plantingMaterialType);
             $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate, $plantingMaterialType);
 
-            // Get prediction
-            $predictedProduction = $this->getPredictedProduction(
+            $prediction = $this->getProductionPredictionData(
                 $cropType->name,
                 $farmer->municipality ?? 'BUGUIAS',
                 $farmType,
@@ -924,9 +937,21 @@ class FarmerDashboardController extends Controller
                     'days_to_harvest' => $daysToHarvest,
                     'planting_material_type' => $plantingMaterialType,
                     'area_hectares' => $areaHectares,
-                    'predicted_production' => round($predictedProduction, 2),
-                    'predicted_production_formatted' => number_format($predictedProduction, 2) . ' MT',
-                    'average_yield_per_hectare' => $cropType->average_yield_value,
+                    'predicted_production' => $prediction['predicted_production'],
+                    'predicted_production_formatted' => number_format($prediction['predicted_production'], 2) . ' MT',
+                    'productivity_mt_ha' => $prediction['productivity_mt_ha'],
+                    'productivity_mt_ha_formatted' => $prediction['productivity_mt_ha'] !== null
+                        ? number_format($prediction['productivity_mt_ha'], 2) . ' MT/ha'
+                        : null,
+                    'average_yield_per_hectare' => $prediction['productivity_mt_ha'] ?? $cropType->average_yield_value,
+                    'productivity_label' => $prediction['productivity_label'],
+                    'prediction_source' => $prediction['prediction_source'],
+                    'prediction_source_label' => $prediction['prediction_source_label'],
+                    'confidence_score' => $prediction['confidence_score'],
+                    'confidence_score_formatted' => $prediction['confidence_score'] !== null
+                        ? number_format($prediction['confidence_score'], 2) . '%'
+                        : null,
+                    'ml_error' => $prediction['ml_error'],
                     'seedling_days' => $cropType->seedling_days_value,
                 ],
             ]);
@@ -1069,17 +1094,18 @@ class FarmerDashboardController extends Controller
      * - prediction.productivity_mt_ha: Predicted yield per hectare
      * - prediction.production_mt: Total production (productivity × area)
      */
-    private function getPredictedProduction(
+    private function getProductionPredictionData(
         string $cropName,
         string $municipality,
         string $farmType,
         Carbon $plantingDate,
         float $areaHectares
-    ): float {
+    ): array {
+        $fallbackYield = CropType::getAverageYield($cropName);
+
         try {
             // Try ML API V2 prediction
-            $predictionService = new PredictionService();
-            $result = $predictionService->predictProduction([
+            $result = $this->predictionService->predictProduction([
                 'municipality' => strtoupper($municipality),
                 'farm_type' => strtoupper($farmType),
                 'month' => strtoupper($plantingDate->format('M')),
@@ -1090,18 +1116,52 @@ class FarmerDashboardController extends Controller
 
             // V2 API returns prediction.production_mt (total production in MT)
             if (isset($result['success']) && $result['success'] && isset($result['prediction']['production_mt'])) {
-                return floatval($result['prediction']['production_mt']);
+                $predictedProduction = round((float) $result['prediction']['production_mt'], 2);
+                $predictedProductivity = data_get($result, 'prediction.productivity_mt_ha');
+                $confidenceScore = data_get($result, 'prediction.confidence_score');
+
+                return [
+                    'predicted_production' => $predictedProduction,
+                    'productivity_mt_ha' => is_numeric($predictedProductivity)
+                        ? round((float) $predictedProductivity, 2)
+                        : ($areaHectares > 0 ? round($predictedProduction / $areaHectares, 2) : null),
+                    'productivity_label' => 'Predicted productivity',
+                    'prediction_source' => 'ml',
+                    'prediction_source_label' => 'Live ML API',
+                    'confidence_score' => is_numeric($confidenceScore) ? round((float) $confidenceScore, 2) : null,
+                    'ml_error' => null,
+                ];
             }
+
+            $mlError = $result['error'] ?? 'ML prediction did not return a production value.';
+
+            Log::warning('ML prediction unavailable for crop plan preview, using fallback', [
+                'crop' => $cropName,
+                'municipality' => $municipality,
+                'farm_type' => $farmType,
+                'month' => strtoupper($plantingDate->format('M')),
+                'year' => $plantingDate->year,
+                'error' => $mlError,
+            ]);
         } catch (\Exception $e) {
             Log::warning('ML prediction failed, using fallback', [
                 'crop' => $cropName,
                 'error' => $e->getMessage(),
             ]);
+
+            $mlError = $e->getMessage();
         }
 
         // Fallback to simple calculation based on average yield
-        $averageYield = CropType::getAverageYield($cropName);
-        return round($areaHectares * $averageYield, 2);
+        return [
+            'predicted_production' => round($areaHectares * $fallbackYield, 2),
+            'productivity_mt_ha' => round($fallbackYield, 2),
+            'productivity_label' => 'Average yield fallback',
+            'prediction_source' => 'fallback',
+            'prediction_source_label' => 'Fallback estimate',
+            'confidence_score' => null,
+            'ml_error' => $mlError ?? null,
+        ];
     }
 
     /**

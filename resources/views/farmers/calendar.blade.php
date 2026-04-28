@@ -647,14 +647,22 @@
                         <!-- Prediction Preview Card -->
                         <div x-show="showPredictionPreview" x-transition
                             class="mt-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
-                            <h4 class="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Prediction Preview
-                            </h4>
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <h4 class="text-sm font-semibold text-green-800 flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Prediction Preview
+                                </h4>
+                                <span x-show="predictionPreview.prediction_source_label"
+                                    class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                                    :class="predictionPreview.prediction_source === 'ml'
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-amber-100 text-amber-700'"
+                                    x-text="predictionPreview.prediction_source_label"></span>
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <!-- EDOH -->
                                 <div class="bg-white rounded-lg p-3 shadow-sm">
@@ -676,10 +684,14 @@
                                 <p class="text-base font-semibold text-gray-800"
                                     x-text="(predictionPreview.days_to_harvest || 0) + ' days'"></p>
                             </div>
-                            <p x-show="predictionPreview.average_yield_per_hectare"
+                            <p x-show="predictionPreview.productivity_mt_ha !== null && predictionPreview.productivity_mt_ha !== undefined"
                                 class="text-xs text-gray-500 mt-2 text-center">
-                                Average yield: <span x-text="predictionPreview.average_yield_per_hectare"></span>
-                                mt/hectare
+                                <span x-text="predictionPreview.productivity_label || 'Predicted productivity'"></span>:
+                                <span x-text="predictionPreview.productivity_mt_ha_formatted || (predictionPreview.productivity_mt_ha + ' MT/ha')"></span>
+                            </p>
+                            <p x-show="predictionPreview.confidence_score_formatted && predictionPreview.prediction_source === 'ml'"
+                                class="text-xs text-gray-500 mt-1 text-center">
+                                ML confidence: <span x-text="predictionPreview.confidence_score_formatted"></span>
                             </p>
                         </div>
 
@@ -777,6 +789,13 @@
                         days_to_harvest: 0,
                         predicted_production_formatted: '',
                         area_hectares: 0,
+                        productivity_mt_ha: null,
+                        productivity_mt_ha_formatted: '',
+                        productivity_label: '',
+                        prediction_source: '',
+                        prediction_source_label: '',
+                        confidence_score: null,
+                        confidence_score_formatted: '',
                         average_yield_per_hectare: 0
                     },
 
@@ -879,10 +898,12 @@
 
                             const data = await response.json();
 
-                            if (data.success) {
-                                this.predictionPreview = data.data;
-                                this.showPredictionPreview = true;
+                            if (!response.ok || !data.success) {
+                                throw new Error(data.message || 'Failed to calculate preview');
                             }
+
+                            this.predictionPreview = data.data;
+                            this.showPredictionPreview = true;
                         } catch (error) {
                             console.error('Error calculating preview:', error);
                             // Fallback to local calculation if API fails
@@ -925,8 +946,15 @@
                         this.predictionPreview = {
                             edoh_formatted: edohFormatted,
                             days_to_harvest: daysToHarvest,
-                            predicted_production_formatted: predictedProduction + ' mt',
+                            predicted_production_formatted: predictedProduction + ' MT',
                             area_hectares: area,
+                            productivity_mt_ha: avgYield,
+                            productivity_mt_ha_formatted: avgYield.toFixed(2) + ' MT/ha',
+                            productivity_label: 'Average yield fallback',
+                            prediction_source: 'local_fallback',
+                            prediction_source_label: 'Local fallback',
+                            confidence_score: null,
+                            confidence_score_formatted: '',
                             average_yield_per_hectare: avgYield
                         };
 
