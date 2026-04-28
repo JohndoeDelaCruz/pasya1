@@ -7,6 +7,15 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    @php
+        $appDownloadUrl = config('app.mobile_app_download_url') ?: url('/');
+        $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?' . http_build_query([
+            'size' => '152x152',
+            'margin' => 8,
+            'data' => $appDownloadUrl,
+        ]);
+    @endphp
+
     <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-2">
             <!-- Left Panel - Login Form (Green Background) -->
@@ -70,6 +79,18 @@
                             </button>
                         </div>
                     </form>
+
+                    <div class="mt-8 flex flex-col sm:flex-row items-center gap-4 rounded-lg border border-green-500 bg-green-800/30 p-4 text-center sm:text-left">
+                        <a href="{{ $appDownloadUrl }}" target="_blank" rel="noopener" aria-label="Download the PASYA mobile app" class="shrink-0 rounded-lg bg-white p-2 shadow-md">
+                            <img
+                                src="{{ $qrCodeUrl }}"
+                                alt="QR code to download the PASYA mobile app"
+                                class="h-24 w-24 object-contain"
+                                loading="lazy"
+                            />
+                        </a>
+                        <p class="text-sm font-semibold text-yellow-400">Scan to download the app</p>
+                    </div>
                 </div>
             </div>
 

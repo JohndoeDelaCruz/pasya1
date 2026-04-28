@@ -65,6 +65,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'mobile_app_download_url' => env('PASYA_MOBILE_APP_DOWNLOAD_URL'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
