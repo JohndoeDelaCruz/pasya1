@@ -12,14 +12,18 @@ class FarmerImportService
 {
     public function import(
         string|UploadedFile $file,
-        string $municipality = 'La Trinidad',
         ?int $createdBy = null
     ): array {
         $path = $file instanceof UploadedFile ? $file->getRealPath() : $file;
         $sheet = IOFactory::load($path)->getSheet(0);
         $rows = $sheet->toArray(null, true, true, true);
 
-        $municipality = $this->normalize($municipality);
+        $columns = [
+            'number' => 'A',
+            'name' => 'B',
+            'rsbsa' => 'D',
+            'municipality' => null,
+        ];
         $currentCooperative = null;
         $created = 0;
         $updated = 0;
@@ -28,6 +32,13 @@ class FarmerImportService
         $skippedMissingName = 0;
 
         foreach ($rows as $row) {
+            $detectedColumns = $this->detectColumns($row);
+
+            if ($detectedColumns !== []) {
+                $columns = array_merge($columns, $detectedColumns);
+                continue;
+            }
+
             $firstColumn = $this->normalize($row['A'] ?? '');
 
             if (Str::startsWith($firstColumn, 'FCA')) {
@@ -35,12 +46,17 @@ class FarmerImportService
                 continue;
             }
 
-            if (! ctype_digit($firstColumn) || ! $currentCooperative) {
+            $rowNumber = $this->normalize($row[$columns['number']] ?? '');
+
+            if (! ctype_digit($rowNumber) || ! $currentCooperative) {
                 continue;
             }
 
-            $excelName = $this->normalize($row['B'] ?? '');
-            $rsbsaNumber = $this->normalize($row['D'] ?? '');
+            $excelName = $this->normalize($row[$columns['name']] ?? '');
+            $rsbsaNumber = $this->normalize($row[$columns['rsbsa']] ?? '');
+            $municipality = $columns['municipality']
+                ? $this->nullableText($row[$columns['municipality']] ?? null)
+                : null;
 
             if ($rsbsaNumber === '') {
                 $skippedMissingRsbsa++;
@@ -100,6 +116,49 @@ class FarmerImportService
         $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
 
         return trim($text);
+    }
+
+    private function nullableText(mixed $value): ?string
+    {
+        $text = $this->normalize($value);
+
+        return $text === '' ? null : $text;
+    }
+
+    private function detectColumns(array $row): array
+    {
+        $columns = [];
+
+        foreach ($row as $column => $value) {
+            $header = Str::lower($this->normalize($value));
+
+            if ($header === '') {
+                continue;
+            }
+
+            if (in_array($header, ['no', 'no.', 'number'], true)) {
+                $columns['number'] = $column;
+                continue;
+            }
+
+            if (Str::contains($header, ['name', 'cluster member'])) {
+                $columns['name'] = $column;
+                continue;
+            }
+
+            if (Str::contains($header, ['rsbsa', 'fishr', 'farmer id'])) {
+                $columns['rsbsa'] = $column;
+                continue;
+            }
+
+            if (Str::contains($header, 'municipality')) {
+                $columns['municipality'] = $column;
+            }
+        }
+
+        return isset($columns['name']) || isset($columns['rsbsa']) || isset($columns['municipality'])
+            ? $columns
+            : [];
     }
 
     private function extractCooperativeName(string $sectionLabel): string

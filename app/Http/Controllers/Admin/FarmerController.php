@@ -27,12 +27,14 @@ class FarmerController extends Controller
         $farmers = $query->latest()->paginate(20)->withQueryString();
 
         // Get filter options
-        $municipalities = Farmer::distinct('municipality')->orderBy('municipality')->pluck('municipality');
-        $municipalityOptions = $this->getMunicipalityOptions();
-
+        $municipalities = Farmer::whereNotNull('municipality')
+            ->where('municipality', '<>', '')
+            ->distinct('municipality')
+            ->orderBy('municipality')
+            ->pluck('municipality');
         $stats = $this->buildStats();
 
-        return view('admin.account-management', compact('farmers', 'municipalities', 'municipalityOptions', 'stats'));
+        return view('admin.account-management', compact('farmers', 'municipalities', 'stats'));
     }
 
     /**
@@ -45,7 +47,12 @@ class FarmerController extends Controller
         $this->applyFilters($query, $request);
 
         $archivedFarmers = $query->latest('deleted_at')->paginate(20)->withQueryString();
-        $municipalities = Farmer::onlyTrashed()->distinct('municipality')->orderBy('municipality')->pluck('municipality');
+        $municipalities = Farmer::onlyTrashed()
+            ->whereNotNull('municipality')
+            ->where('municipality', '<>', '')
+            ->distinct('municipality')
+            ->orderBy('municipality')
+            ->pluck('municipality');
         $stats = $this->buildStats();
 
         return view('admin.account-management-archived', compact('archivedFarmers', 'municipalities', 'stats'));
@@ -95,13 +102,11 @@ class FarmerController extends Controller
     {
         $validated = $request->validate([
             'farmers_file' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
-            'municipality' => ['required', 'string', 'max:100'],
         ]);
 
         $summary = $importer->import(
             $validated['farmers_file'],
-            $validated['municipality'],
-            Auth::id()
+            createdBy: Auth::id()
         );
 
         return redirect()->route('admin.farmers.index')

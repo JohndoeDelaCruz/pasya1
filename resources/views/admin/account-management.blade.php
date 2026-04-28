@@ -37,13 +37,10 @@
             </div>
         @endif
 
-        @if($errors->has('farmers_file') || $errors->has('municipality'))
+        @if($errors->has('farmers_file'))
             <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg">
-                <p class="text-sm font-medium text-red-800">Please check the import file and municipality.</p>
+                <p class="text-sm font-medium text-red-800">Please check the import file.</p>
                 @error('farmers_file')
-                    <p class="text-sm text-red-700 mt-1">{{ $message }}</p>
-                @enderror
-                @error('municipality')
                     <p class="text-sm text-red-700 mt-1">{{ $message }}</p>
                 @enderror
             </div>
@@ -96,7 +93,7 @@
 
         {{-- Farmer Import --}}
         <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <form method="POST" action="{{ route('admin.farmers.import') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-[1fr_220px_auto] gap-3 items-end">
+            <form method="POST" action="{{ route('admin.farmers.import') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3 items-end">
                 @csrf
 
                 <div>
@@ -107,20 +104,6 @@
                            accept=".xlsx,.xls"
                            required
                            class="block w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-green-50 file:text-green-700 file:font-semibold hover:file:bg-green-100">
-                </div>
-
-                <div>
-                    <label for="import_municipality" class="block text-sm font-medium text-gray-700 mb-1">Municipality</label>
-                    <select id="import_municipality"
-                            name="municipality"
-                            required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        @foreach($municipalityOptions as $municipality)
-                            <option value="{{ $municipality }}" {{ old('municipality', 'La Trinidad') === $municipality ? 'selected' : '' }}>
-                                {{ $municipality }}
-                            </option>
-                        @endforeach
-                    </select>
                 </div>
 
                 <button type="submit"
