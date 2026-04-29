@@ -1,14 +1,14 @@
 <footer class="bg-gradient-to-br from-[#101828] to-[#0D542B]">
     <div class="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
-        <div class="md:flex md:justify-between">
-            <div class="mb-6 md:mb-0">
-                <a href="{{ url('/') }}" class="flex items-center">
-                    <img src="{{ asset('images/PASYA.png') }}" class="h-16 me-3" alt="PASYA Logo" />
-                    <img src="{{ asset('images/titleh.png') }}" class="h-16 me-3" alt="PASYA" />
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+            <div class="min-w-0">
+                <a href="{{ url('/') }}" class="flex max-w-full flex-wrap items-center gap-3">
+                    <img src="{{ asset('images/PASYA.png') }}" class="h-14 w-14 shrink-0 sm:h-16 sm:w-16" alt="PASYA Logo" />
+                    <img src="{{ asset('images/titleh.png') }}" class="h-10 max-w-[12rem] object-contain sm:h-12 sm:max-w-[16rem]" alt="PASYA" />
                 </a>
-                <p class="mt-4 text-gray-200">PASYA currently supports decision-making for over <br>10,000 hectares of Benguet's agricultural land.</p>
+                <p class="mt-4 max-w-md text-gray-200">PASYA currently supports decision-making for over <br class="hidden sm:block">10,000 hectares of Benguet's agricultural land.</p>
             </div>
-            <div class="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
+            <div class="grid min-w-0 grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-10 lg:justify-items-start">
                 <div>
                     <ul class="text-gray-200 font-medium">
                         <li class="mb-4">
@@ -39,7 +39,7 @@
                             <a href="#" class="hover:underline">Privacy Policy</a>
                         </li>
                         <li>
-                            <a href="#" class="hover:underline">Terms &amp; Conditions</a>
+                            <a href="#" class="hover:underline whitespace-nowrap">Terms &amp; Conditions</a>
                         </li>
                     </ul>
                 </div>
