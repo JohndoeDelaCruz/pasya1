@@ -123,7 +123,7 @@
             {{-- About Section --}}
             <div id="about" class="mt-12 mb-8 reveal-up" data-reveal-distance="lg">
                 <div class="mx-auto max-w-4xl text-center">
-                    <img class="mx-auto mb-6 h-24 w-24 rounded-full border border-green-100 bg-green-50 object-contain p-3 shadow-sm reveal-up" src="{{ asset('images/doa_icon.png') }}" alt="Department of Agriculture" style="--reveal-delay: 0ms" data-reveal-distance="sm"/>
+                    <img class="mx-auto mb-6 h-40 w-40 rounded-full bg-green-50 object-contain p-3 shadow-sm reveal-up" src="{{ asset('images/doa_icon.png') }}" alt="Department of Agriculture" style="--reveal-delay: 0ms" data-reveal-distance="sm"/>
                     <p class="mb-8 text-base leading-8 text-gray-600 reveal-up md:text-lg" style="--reveal-delay: 90ms" data-reveal-distance="sm">The Department of Agriculture is the principal government agency responsible for the promotion of the agricultural development and growth.
                     It provides the policy framework, helps direct public investments, and in partnership with the local government units (LGUs),
                     provides the support services necessary to make agriculture and agri-based enterprises profitable and help spread the benefits of development to the poor, particularly those in the rural areas.
