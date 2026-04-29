@@ -83,17 +83,17 @@
     <section class="bg-gradient-to-b from-green-50 via-white to-white py-12 px-4">
         <div class="mx-auto grid max-w-screen-xl gap-6 text-center md:grid-cols-3">
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 0ms">
-                <img class="mx-auto mb-6 h-24 w-24 object-contain" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
+                <img class="mx-auto mb-6 h-32 w-32 object-contain md:h-36 md:w-36" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">10,000+</h2>
                 <p class="text-lg font-medium text-gray-600">Hectares monitored</p>
             </div>
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 100ms">
-                <img class="mx-auto mb-6 h-24 w-24 object-contain" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
+                <img class="mx-auto mb-6 h-32 w-32 object-contain md:h-36 md:w-36" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">+20%</h2>
                 <p class="text-lg font-medium text-gray-600">Yields</p>
             </div>
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 200ms">
-                <img class="mx-auto mb-6 h-24 w-24 object-contain" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
+                <img class="mx-auto mb-6 h-32 w-32 object-contain md:h-36 md:w-36" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">15%</h2>
                 <p class="text-lg font-medium text-gray-600">Reduced Food Waste</p>
             </div>
