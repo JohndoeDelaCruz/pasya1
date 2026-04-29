@@ -1,8 +1,8 @@
-<section id="work_with_us" class="relative overflow-hidden bg-cover bg-center bg-no-repeat reveal-up" data-reveal-distance="lg" style="background-image: url('{{ asset('images/farmers_harvesting.png') }}');">
+<section id="work_with_us" class="relative overflow-hidden bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/farmers_harvesting.png') }}');">
     <div class="absolute inset-0 bg-green-950/80"></div>
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_65%_50%_at_50%_20%,rgba(34,197,94,0.24)_0%,rgba(0,0,0,0)_70%)]"></div>
 
-    <div class="relative z-10 mx-auto max-w-screen-xl px-4 py-14 text-center lg:py-20">
+    <div class="relative z-10 mx-auto max-w-screen-xl px-4 py-16 text-center sm:py-20 lg:py-24">
         <p class="mb-5 text-lg font-extrabold text-green-100 lg:text-2xl sm:px-32 lg:px-60 reveal-up" style="--reveal-delay: 0ms" data-reveal-distance="sm">Ready to Cultivate the Future of Farming in Benguet?</p>
         <h1 class="mb-8 text-3xl font-extrabold tracking-tight leading-tight text-white md:text-4xl lg:text-5xl reveal-up" style="--reveal-delay: 90ms">Join hundreds of farmers and <br>experts already using PASYA to <br>make smarter decisions</h1>
         <form class="w-full max-w-xl mx-auto reveal-up" method="POST" action="#" style="--reveal-delay: 180ms" data-reveal-distance="sm">
@@ -21,20 +21,20 @@
         </form>
 
         {{-- Feature Cards with Glassmorphism --}}
-        <div class="mx-auto max-w-screen-xl px-0 pt-10">
+        <div class="mx-auto max-w-screen-xl px-0 pt-10 pb-4 sm:pb-0">
             <div class="grid gap-6 text-center md:grid-cols-3">
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 0ms">
-                    <img class="mx-auto mb-5 h-45 w-45 object-contain" src="{{ asset('images/leaf2.png') }}" alt="Real-Time Insights Icon"/>
+                    <img class="mx-auto mb-5 h-[11.25rem] w-[11.25rem] max-w-full object-contain" src="{{ asset('images/leaf2.png') }}" alt="Real-Time Insights Icon"/>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Real-Time Insights</h2>
                     <p class="text-base leading-7 text-green-50">Get instant updates on crop <br>conditions and market trends</p>
                 </div>
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 100ms">
-                    <img class="mx-auto mb-5 h-45 w-45 object-contain" src="{{ asset('images/graphs.png') }}" alt="Advanced Analytics Icon"/>
+                    <img class="mx-auto mb-5 h-[11.25rem] w-[11.25rem] max-w-full object-contain" src="{{ asset('images/graphs.png') }}" alt="Advanced Analytics Icon"/>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Advanced Analytics</h2>
                     <p class="text-base leading-7 text-green-50">Make data-driven decisions <br>with our powerful tools</p>
                 </div>
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 200ms">
-                    <img class="mx-auto mb-5 h-45 w-45 object-contain" src="{{ asset('images/handshake.png') }}" alt="Expert Support Icon"/>
+                    <img class="mx-auto mb-5 h-[11.25rem] w-[11.25rem] max-w-full object-contain" src="{{ asset('images/handshake.png') }}" alt="Expert Support Icon"/>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Expert Support</h2>
                     <p class="text-base leading-7 text-green-50">Access our team of <br>agricultural specialists 24/7</p>
                 </div>
