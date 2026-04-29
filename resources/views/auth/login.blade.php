@@ -31,7 +31,7 @@
 
                         <!-- Farmer ID / Email / Username -->
                         <div>
-                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2">RSBSA/FISHR No. / Email / Username</label>
+                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2">RSBSA/FISHR No. / Email</label>
                             <input 
                                 id="email" 
                                 type="text" 
