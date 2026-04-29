@@ -1,5 +1,36 @@
-const CACHE_NAME = 'pasya-farmer-v3';
+const CACHE_NAME = 'pasya-farmer-v4';
 const OFFLINE_URL = '/offline.html';
+
+const NETWORK_ONLY_PATH_PREFIXES = [
+    '/api',
+    '/farmer/api',
+    '/predictions',
+    '/admin',
+    '/dashboard',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/confirm-password',
+    '/verify-email',
+    '/email',
+    '/logout',
+    '/password',
+    '/profile',
+    '/farmer/profile'
+];
+
+const matchesPathPrefix = (pathname, prefix) => {
+    return pathname === prefix || pathname.startsWith(`${prefix}/`);
+};
+
+const isNetworkOnlyPath = (pathname) => {
+    return NETWORK_ONLY_PATH_PREFIXES.some((prefix) => matchesPathPrefix(pathname, prefix));
+};
+
+const shouldCacheResponse = (response) => {
+    return response && response.status === 200 && !response.redirected;
+};
 
 // Assets to cache immediately on install
 const PRECACHE_ASSETS = [
@@ -46,7 +77,7 @@ self.addEventListener('fetch', (event) => {
     const requestUrl = new URL(event.request.url);
 
     // Skip cross-origin requests
-    if (!requestUrl.origin.startsWith(self.location.origin)) {
+    if (requestUrl.origin !== self.location.origin) {
         return;
     }
 
@@ -55,14 +86,8 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Skip API requests - always fetch from network
-    if (requestUrl.pathname.startsWith('/api/')) {
-        return;
-    }
-
-    // Keep admin/auth pages network-only to avoid stale cached UIs after deploys.
-    const networkOnlyPrefixes = ['/admin', '/login', '/register', '/logout', '/password', '/profile'];
-    if (networkOnlyPrefixes.some((prefix) => requestUrl.pathname.startsWith(prefix))) {
+    // Keep dynamic data, auth, and account routes network-only.
+    if (isNetworkOnlyPath(requestUrl.pathname)) {
         return;
     }
 
@@ -71,7 +96,7 @@ self.addEventListener('fetch', (event) => {
         event.respondWith(
             fetch(event.request)
                 .then((response) => {
-                    if (response && response.status === 200) {
+                    if (shouldCacheResponse(response)) {
                         const responseClone = response.clone();
                         event.waitUntil(
                             caches.open(CACHE_NAME).then((cache) => {
@@ -97,7 +122,7 @@ self.addEventListener('fetch', (event) => {
                     event.waitUntil(
                         fetch(event.request)
                             .then((response) => {
-                                if (response && response.status === 200) {
+                                if (shouldCacheResponse(response)) {
                                     const responseClone = response.clone();
                                     caches.open(CACHE_NAME)
                                         .then((cache) => {
@@ -114,7 +139,7 @@ self.addEventListener('fetch', (event) => {
                 return fetch(event.request)
                     .then((response) => {
                         // Cache successful responses
-                        if (response && response.status === 200) {
+                        if (shouldCacheResponse(response)) {
                             const responseClone = response.clone();
                             caches.open(CACHE_NAME)
                                 .then((cache) => {
