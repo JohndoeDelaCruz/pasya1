@@ -79,40 +79,45 @@
         </div>
     </section>
 
-        {{-- Stats Cards --}}
-        <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-4">
-            <div class="grid md:grid-cols-3 gap-8 text-center">
-                <div class="bg-gradient-to-br from-green-300 via-green-200 to-green-300 rounded-lg p-8 md:p-12 reveal-up" style="--reveal-delay: 0ms">
-                    <img class="mx-auto mb-4" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
-                    <h2 class="text-gray-900 text-3xl font-extrabold mb-2">10,000+</h2>
-                    <p class="text-gray-700 text-2xl">Hectares monitored</p>
+    {{-- Stats Cards --}}
+    <section class="bg-gradient-to-b from-green-50 via-white to-white py-12 px-4">
+        <div class="mx-auto grid max-w-screen-xl gap-6 text-center md:grid-cols-3">
+            <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 0ms">
+                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+                    <img class="h-9 w-9" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
                 </div>
-                <div class="bg-gradient-to-br from-green-300 via-green-200 to-green-300 rounded-lg p-8 md:p-12 reveal-up" style="--reveal-delay: 100ms">
-                    <img class="mx-auto mb-4" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
-                    <h2 class="text-gray-900 text-3xl font-extrabold mb-2">+20%</h2>
-                    <p class="text-gray-700 text-2xl">Yields</p>
+                <h2 class="mb-2 text-3xl font-extrabold text-green-700">10,000+</h2>
+                <p class="text-lg font-medium text-gray-600">Hectares monitored</p>
+            </div>
+            <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 100ms">
+                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+                    <img class="h-9 w-9" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
                 </div>
-                <div class="bg-gradient-to-br from-green-300 via-green-200 to-green-300 rounded-lg p-8 md:p-12 reveal-up" style="--reveal-delay: 200ms">
-                    <img class="mx-auto mb-4" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
-                    <h2 class="text-gray-900 text-3xl font-extrabold mb-2">15%</h2>
-                    <p class="text-gray-700 text-2xl">Reduced Food Waste</p>
+                <h2 class="mb-2 text-3xl font-extrabold text-green-700">+20%</h2>
+                <p class="text-lg font-medium text-gray-600">Yields</p>
+            </div>
+            <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 200ms">
+                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
+                    <img class="h-9 w-9" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
                 </div>
+                <h2 class="mb-2 text-3xl font-extrabold text-green-700">15%</h2>
+                <p class="text-lg font-medium text-gray-600">Reduced Food Waste</p>
             </div>
         </div>
     </section>
 
     {{-- Blog / Data-Driven Section --}}
     <section class="bg-white">
-        <div id="blog" class="py-8 px-4 mx-auto max-w-screen-xl lg:py-4">
+        <div id="blog" class="py-12 px-4 mx-auto max-w-screen-xl lg:py-16">
             <div>
-                <a href="#" class="flex flex-col items-center bg-white rounded-lg shadow-sm md:flex-row md:max-screen-xl hover:bg-gray-100 mt-4 reveal-up" data-reveal-distance="lg">
-                    <img class="object-cover w-full rounded-lg h-128 md:h-full md:w-128 mb-4 md:mb-0" src="{{ asset('images/strawberry_farm.jpg') }}" alt="Benguet Strawberry Farm"/>
-                    <div class="flex flex-col justify-between md:p-4 leading-normal">
-                        <h5 class="mb-2 text-green-500 text-2xl font-bold tracking-tight reveal-up" style="--reveal-delay: 40ms" data-reveal-distance="sm">Data-Driven Precision</h5>
-                        <p class="mb-6 text-gray-600 reveal-up" style="--reveal-delay: 120ms" data-reveal-distance="sm">Our models are trained on 10+ years of regional data, achieving over 90% accuracy in trend forecasting for key highland vegetables.</p>
-                        <p class="mb-6 text-gray-600 reveal-up" style="--reveal-delay: 200ms" data-reveal-distance="sm">Using advanced machine learning algorithms and multi-year production records, PASYA empowers farmers to make informed decisions about planting, harvesting, and resource allocation.</p>
+                <a href="#" class="reveal-up group grid overflow-hidden rounded-3xl border border-green-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl md:grid-cols-[0.95fr_1.05fr]" data-reveal-distance="lg">
+                    <img class="h-64 w-full object-cover md:h-full" src="{{ asset('images/strawberry_farm.jpg') }}" alt="Benguet Strawberry Farm"/>
+                    <div class="flex flex-col justify-center p-6 leading-normal md:p-10">
+                        <h5 class="mb-4 text-3xl font-extrabold tracking-tight text-green-700 reveal-up" style="--reveal-delay: 40ms" data-reveal-distance="sm">Data-Driven Precision</h5>
+                        <p class="mb-5 text-base leading-7 text-gray-600 reveal-up" style="--reveal-delay: 120ms" data-reveal-distance="sm">Our models are trained on 10+ years of regional data, achieving over 90% accuracy in trend forecasting for key highland vegetables.</p>
+                        <p class="mb-7 text-base leading-7 text-gray-600 reveal-up" style="--reveal-delay: 200ms" data-reveal-distance="sm">Using advanced machine learning algorithms and multi-year production records, PASYA empowers farmers to make informed decisions about planting, harvesting, and resource allocation.</p>
                         <div class="reveal-up" style="--reveal-delay: 280ms" data-reveal-distance="sm">
-                            <span class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-green-500 hover:bg-green-600 focus:ring-4 focus:ring-green-300 cursor-pointer">
+                            <span class="hero-cta hero-cta-primary cursor-pointer">
                                 Learn more
                                 <svg class="w-4 h-4 ms-1.5 rtl:rotate-180 -me-0.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 12H5m14 0-4 4m4-4-4-4"/></svg>
                             </span>
@@ -122,20 +127,22 @@
             </div>
 
             {{-- About Section --}}
-            <div id="about" class="bg-gray-50 border border-gray-200 rounded-lg p-4 md:p-12 mt-8 mb-8 reveal-up" data-reveal-distance="lg">
-                <img class="mx-auto object-cover w-full rounded-lg h-48 md:h-full md:w-36 mb-4 md:mb-8 reveal-up" src="{{ asset('images/doa_icon.png') }}" alt="Department of Agriculture" style="--reveal-delay: 0ms" data-reveal-distance="sm"/>
-                <p class="text-lg font-normal text-gray-500 mb-4 text-center reveal-up" style="--reveal-delay: 90ms" data-reveal-distance="sm">The Department of Agriculture is the principal government agency responsible for the promotion of the agricultural development and growth. 
-                    It provides the policy framework, helps direct public investments, and in partnership with the local government units (LGUs), 
+            <div id="about" class="mt-12 mb-8 reveal-up" data-reveal-distance="lg">
+                <div class="mx-auto max-w-4xl text-center">
+                    <img class="mx-auto mb-6 h-24 w-24 rounded-full border border-green-100 bg-green-50 object-contain p-3 shadow-sm reveal-up" src="{{ asset('images/doa_icon.png') }}" alt="Department of Agriculture" style="--reveal-delay: 0ms" data-reveal-distance="sm"/>
+                    <p class="mb-8 text-base leading-8 text-gray-600 reveal-up md:text-lg" style="--reveal-delay: 90ms" data-reveal-distance="sm">The Department of Agriculture is the principal government agency responsible for the promotion of the agricultural development and growth.
+                    It provides the policy framework, helps direct public investments, and in partnership with the local government units (LGUs),
                     provides the support services necessary to make agriculture and agri-based enterprises profitable and help spread the benefits of development to the poor, particularly those in the rural areas.
-                </p>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-8 md:p-12 reveal-up" style="--reveal-delay: 140ms">
-                        <h2 class="text-green-500 text-3xl font-extrabold mb-2">Our Mission</h2>
-                        <p class="text-lg font-normal text-gray-500 mb-4">We are committed to provide our BEST SERVICES for empowering the farming communities.</p>
+                    </p>
+                </div>
+                <div class="grid gap-6 md:grid-cols-2">
+                    <div class="rounded-2xl border border-green-100 bg-green-50/60 p-6 shadow-sm reveal-up md:p-8" style="--reveal-delay: 140ms">
+                        <h2 class="mb-3 text-3xl font-extrabold text-green-700">Our Mission</h2>
+                        <p class="text-base leading-7 text-gray-600 md:text-lg">We are committed to provide our BEST SERVICES for empowering the farming communities.</p>
                     </div>
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-8 md:p-12 reveal-up" style="--reveal-delay: 240ms">
-                        <h2 class="text-green-500 text-3xl font-extrabold mb-2">Our Vision</h2>
-                        <p class="text-lg font-normal text-gray-500 mb-4">Demand and technology-driven agriculture and fisheries sector for a food-secure, progressive and sustainable Cordillera.</p>
+                    <div class="rounded-2xl border border-green-100 bg-green-50/60 p-6 shadow-sm reveal-up md:p-8" style="--reveal-delay: 240ms">
+                        <h2 class="mb-3 text-3xl font-extrabold text-green-700">Our Vision</h2>
+                        <p class="text-base leading-7 text-gray-600 md:text-lg">Demand and technology-driven agriculture and fisheries sector for a food-secure, progressive and sustainable Cordillera.</p>
                     </div>
                 </div>
             </div>
