@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class AdminUserSeeder extends Seeder
 {
@@ -13,14 +14,22 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
+        $adminEmail = trim((string) config('app.admin_email'));
+        $adminUsername = trim((string) config('app.admin_username'));
+        $adminPassword = (string) config('app.admin_password');
+
+        if ($adminEmail === '' || $adminUsername === '' || $adminPassword === '') {
+            throw new RuntimeException('ADMIN_EMAIL, ADMIN_USERNAME, and ADMIN_PASSWORD must be set before seeding the admin user.');
+        }
+
         $adminUser = User::updateOrCreate([
-            'email' => 'DAadmin@gmail.com',
+            'email' => $adminEmail,
         ], [
-            'name' => 'DA Admin',
-            'username' => 'DAadmin',
-            'email' => 'DAadmin@gmail.com',
+            'name' => config('app.admin_name', 'PASYA Admin'),
+            'username' => $adminUsername,
+            'email' => $adminEmail,
             'email_verified_at' => now(),
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make($adminPassword),
         ]);
 
         if ($adminUser->wasRecentlyCreated) {
@@ -29,8 +38,8 @@ class AdminUserSeeder extends Seeder
             $this->command->info('Admin user already existed and was updated.');
         }
 
-        $this->command->info('Username: DAadmin');
-        $this->command->info('Email: DAadmin@gmail.com');
-        $this->command->info('Password: admin123');
+        $this->command->info('Username: '.$adminUsername);
+        $this->command->info('Email: '.$adminEmail);
+        $this->command->info('Password: configured via ADMIN_PASSWORD');
     }
 }

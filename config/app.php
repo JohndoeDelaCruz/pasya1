@@ -24,7 +24,13 @@ return [
     |
     */
 
-    'admin_email' => env('ADMIN_EMAIL', 'DAadmin@gmail.com'),
+    'admin_email' => env('ADMIN_EMAIL'),
+
+    'admin_name' => env('ADMIN_NAME', 'PASYA Admin'),
+
+    'admin_username' => env('ADMIN_USERNAME'),
+
+    'admin_password' => env('ADMIN_PASSWORD'),
 
     /*
     |--------------------------------------------------------------------------

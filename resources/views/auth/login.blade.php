@@ -14,46 +14,78 @@
             'margin' => 8,
             'data' => $appDownloadUrl,
         ]);
+        $initialLoginMode = old('login_mode') === 'admin' ? 'admin' : 'farmer';
     @endphp
 
     <div class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-2">
             <!-- Left Panel - Login Form (Green Background) -->
             <div class="bg-green-700 p-8 md:p-12 lg:p-16 flex items-center justify-center">
-                <div class="w-full max-w-md">
+                <div
+                    class="w-full max-w-md"
+                    x-data="{ loginMode: @js($initialLoginMode), get adminMode() { return this.loginMode === 'admin' } }"
+                >
                     <h1 class="text-4xl md:text-5xl font-bold text-yellow-400 text-center mb-8">Log In</h1>
 
                     <!-- Session Status -->
                     <x-auth-session-status class="mb-4 text-yellow-300" :status="session('status')" />
 
+                    <div class="mb-6 grid grid-cols-2 gap-1 rounded-lg border border-green-500 bg-green-800/30 p-1" role="tablist" aria-label="Login type">
+                        <button
+                            type="button"
+                            @click="loginMode = 'farmer'; if ($refs.password) $refs.password.value = ''"
+                            :class="adminMode ? 'text-yellow-400 hover:bg-green-600' : 'bg-yellow-400 text-black shadow-md'"
+                            class="rounded-md px-4 py-2 text-sm font-bold transition-colors"
+                            role="tab"
+                            :aria-selected="(!adminMode).toString()"
+                        >
+                            Farmer
+                        </button>
+                        <button
+                            type="button"
+                            @click="loginMode = 'admin'"
+                            :class="adminMode ? 'bg-yellow-400 text-black shadow-md' : 'text-yellow-400 hover:bg-green-600'"
+                            class="rounded-md px-4 py-2 text-sm font-bold transition-colors"
+                            role="tab"
+                            :aria-selected="adminMode.toString()"
+                        >
+                            Admin Login
+                        </button>
+                    </div>
+
                     <form method="POST" action="{{ route('login', absolute: false) }}" class="space-y-6">
                         @csrf
+                        <input type="hidden" name="login_mode" value="{{ $initialLoginMode }}" :value="loginMode">
 
                         <!-- Farmer ID / Email / Username -->
                         <div>
-                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2">RSBSA/FISHR No. / Email</label>
+                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-2" x-text="adminMode ? 'Admin Email / Username' : 'RSBSA/FISHR No.'">RSBSA/FISHR No.</label>
                             <input 
                                 id="email" 
                                 type="text" 
                                 name="email" 
                                 value="{{ old('email') }}"
-                                placeholder="Enter your RSBSA/FISHR number"
+                                :placeholder="adminMode ? 'Enter your admin email or username' : 'Enter your RSBSA/FISHR number'"
                                 required 
                                 autofocus 
                                 autocomplete="username"
                                 class="w-full px-4 py-3 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
                             />
+                            <p class="mt-2 text-xs text-green-100" x-text="adminMode ? 'Use your admin account credentials to continue.' : 'Farmers can sign in with their RSBSA/FISHR number.'">Farmers can sign in with their RSBSA/FISHR number.</p>
                             <x-input-error :messages="$errors->get('email')" class="mt-2 text-yellow-300" />
                         </div>
 
                         <!-- Password -->
-                        <div>
-                            <label for="password" class="block text-yellow-400 text-sm font-medium mb-2">Password <span class="text-green-100 text-xs">(admin only)</span></label>
+                        <div x-show="adminMode" style="{{ $initialLoginMode === 'admin' ? '' : 'display: none;' }}">
+                            <label for="password" class="block text-yellow-400 text-sm font-medium mb-2">Admin Password</label>
                             <input 
                                 id="password" 
                                 type="password" 
                                 name="password" 
-                                placeholder="Farmers can leave this blank"
+                                x-ref="password"
+                                @disabled($initialLoginMode !== 'admin')
+                                :disabled="!adminMode"
+                                placeholder="Enter your admin password"
                                 autocomplete="current-password"
                                 class="w-full px-4 py-3 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
                             />
@@ -62,7 +94,7 @@
 
                         <!-- Forgot Password Link -->
                         @if (Route::has('password.request'))
-                            <div class="text-left">
+                            <div class="text-left" x-show="adminMode" style="{{ $initialLoginMode === 'admin' ? '' : 'display: none;' }}">
                                 <a href="{{ route('password.request') }}" class="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline transition-colors">
                                     Forget your password
                                 </a>

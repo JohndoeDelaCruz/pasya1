@@ -36,7 +36,7 @@ Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBrid
     }
 
     // Redirect admin users to admin dashboard
-    if (Auth::guard('web')->check() && Auth::user()->email === config('app.admin_email', 'DAadmin@gmail.com')) {
+    if (Auth::guard('web')->check() && Auth::user()->email === config('app.admin_email')) {
         return redirect()->route('admin.dashboard');
     }
 
@@ -96,7 +96,7 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
 });
 
 // Admin Routes
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DataAnalyticsController::class, 'index'])->name('dashboard');
     Route::get('/export-summary', [DataAnalyticsController::class, 'exportSummary'])->name('export-summary');
     Route::get('/planting-report', [DataAnalyticsController::class, 'plantingReport'])->name('planting-report');

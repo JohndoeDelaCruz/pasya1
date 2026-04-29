@@ -31,7 +31,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         // Redirect admin users to admin dashboard (check web guard first)
-        if (Auth::guard('web')->check() && Auth::user()->email === 'DAadmin@gmail.com') {
+        if (Auth::guard('web')->check() && Auth::user()->email === config('app.admin_email')) {
             return redirect()->intended(route('admin.dashboard', absolute: false));
         }
 
