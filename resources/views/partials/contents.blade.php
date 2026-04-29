@@ -24,22 +24,22 @@
         <div class="mx-auto max-w-screen-xl px-0 pt-10">
             <div class="grid gap-6 text-center md:grid-cols-3">
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 0ms">
-                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/90">
-                        <img class="h-10 w-10 object-contain" src="{{ asset('images/leaf2.png') }}" alt="Real-Time Insights Icon"/>
+                    <div class="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-white/90">
+                        <img class="h-16 w-16 object-contain" src="{{ asset('images/leaf2.png') }}" alt="Real-Time Insights Icon"/>
                     </div>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Real-Time Insights</h2>
                     <p class="text-base leading-7 text-green-50">Get instant updates on crop <br>conditions and market trends</p>
                 </div>
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 100ms">
-                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/90">
-                        <img class="h-10 w-10 object-contain" src="{{ asset('images/graphs.png') }}" alt="Advanced Analytics Icon"/>
+                    <div class="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-white/90">
+                        <img class="h-16 w-16 object-contain" src="{{ asset('images/graphs.png') }}" alt="Advanced Analytics Icon"/>
                     </div>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Advanced Analytics</h2>
                     <p class="text-base leading-7 text-green-50">Make data-driven decisions <br>with our powerful tools</p>
                 </div>
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 200ms">
-                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/90">
-                        <img class="h-10 w-10 object-contain" src="{{ asset('images/handshake.png') }}" alt="Expert Support Icon"/>
+                    <div class="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-white/90">
+                        <img class="h-16 w-16 object-contain" src="{{ asset('images/handshake.png') }}" alt="Expert Support Icon"/>
                     </div>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Expert Support</h2>
                     <p class="text-base leading-7 text-green-50">Access our team of <br>agricultural specialists 24/7</p>

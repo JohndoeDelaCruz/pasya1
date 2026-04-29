@@ -83,22 +83,22 @@
     <section class="bg-gradient-to-b from-green-50 via-white to-white py-12 px-4">
         <div class="mx-auto grid max-w-screen-xl gap-6 text-center md:grid-cols-3">
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 0ms">
-                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-                    <img class="h-9 w-9" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
+                <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-50">
+                    <img class="h-16 w-16" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
                 </div>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">10,000+</h2>
                 <p class="text-lg font-medium text-gray-600">Hectares monitored</p>
             </div>
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 100ms">
-                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-                    <img class="h-9 w-9" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
+                <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-50">
+                    <img class="h-16 w-16" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
                 </div>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">+20%</h2>
                 <p class="text-lg font-medium text-gray-600">Yields</p>
             </div>
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 200ms">
-                <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-50">
-                    <img class="h-9 w-9" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
+                <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-50">
+                    <img class="h-16 w-16" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
                 </div>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">15%</h2>
                 <p class="text-lg font-medium text-gray-600">Reduced Food Waste</p>
