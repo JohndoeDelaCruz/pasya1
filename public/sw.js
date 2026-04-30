@@ -1,9 +1,9 @@
-const CACHE_NAME = 'pasya-farmer-v4';
+const CACHE_NAME = 'pasya-farmer-v5';
 const OFFLINE_URL = '/offline.html';
 
 const NETWORK_ONLY_PATH_PREFIXES = [
     '/api',
-    '/farmer/api',
+    '/farmer',
     '/predictions',
     '/admin',
     '/dashboard',
