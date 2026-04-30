@@ -37,6 +37,12 @@
     @php
         $isAuthenticated = auth()->guard('web')->check() || auth()->guard('farmer')->check();
         $dashboardRoute = auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard');
+        $appDownloadUrl = route('app.download');
+        $appDownloadQrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?' . http_build_query([
+            'size' => '176x176',
+            'margin' => 8,
+            'data' => $appDownloadUrl,
+        ]);
     @endphp
     <section id="home" class="relative w-full min-h-[100dvh] flex items-center justify-center overflow-hidden font-['Inter']">
         <div id="hero-scenery" class="absolute inset-0 w-full h-full">
@@ -58,15 +64,21 @@
                         <a href="{{ $dashboardRoute }}" class="hero-cta hero-cta-primary">
                             Go to Dashboard
                         </a>
+                        <a href="{{ $appDownloadUrl }}" class="hero-cta hero-cta-secondary">
+                            Download App
+                        </a>
                     @else
+                        <a href="{{ $appDownloadUrl }}" class="hero-cta hero-cta-primary">
+                            Download App
+                        </a>
                         <a href="{{ route('login') }}" class="hero-cta hero-cta-secondary">
                             Log In
                         </a>
-                        <a href="{{ route('register') }}" class="hero-cta hero-cta-primary">
+                        <a href="{{ route('register') }}" class="hero-cta hero-cta-secondary">
                             Register
                         </a>
                     @endif
-                    <a href="#blog" class="hero-cta hero-cta-secondary">
+                    <a href="#blog" class="hero-cta hero-cta-secondary hidden sm:inline-flex">
                         Learn how it works &rarr;
                     </a>
                 </div>
@@ -75,6 +87,70 @@
                         Already part of PASYA? Sign in. New here? Create your account to get started.
                     </p>
                 @endunless
+            </div>
+        </div>
+    </section>
+
+    {{-- Mobile App Download Section --}}
+    <section id="download-app" class="bg-gradient-to-br from-green-950 via-green-900 to-emerald-800 px-4 py-12 text-white sm:px-6 lg:px-8 lg:py-16">
+        <div class="mx-auto grid max-w-screen-xl gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)] lg:items-center">
+            <div class="reveal-up" data-reveal-distance="lg">
+                <p class="mb-3 inline-flex rounded-full border border-green-300/40 bg-white/10 px-4 py-1.5 text-sm font-semibold text-green-100 backdrop-blur">
+                    PASYA Mobile
+                </p>
+                <h2 class="max-w-3xl text-3xl font-extrabold leading-tight text-white md:text-4xl lg:text-5xl">
+                    Install PASYA on your phone before you sign in.
+                </h2>
+                <p class="mt-5 max-w-2xl text-base leading-7 text-green-50 md:text-lg">
+                    Start the app download flow straight from the homepage, then use PASYA from the installed app or continue in the browser.
+                </p>
+
+                <div class="mt-7 flex flex-col gap-3 sm:flex-row">
+                    <a href="{{ $appDownloadUrl }}" class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-base font-bold text-green-800 shadow-lg hover:bg-green-50 focus:outline-none focus:ring-4 focus:ring-green-300">
+                        <svg class="mr-2 h-5 w-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"/>
+                        </svg>
+                        Download PASYA App
+                    </a>
+                </div>
+
+                <div class="mt-8 grid gap-3 sm:grid-cols-3">
+                    <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+                        <p class="text-sm font-bold text-white">Quick access</p>
+                        <p class="mt-1 text-sm leading-6 text-green-50">Open farmer tools from your home screen.</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+                        <p class="text-sm font-bold text-white">Device-ready</p>
+                        <p class="mt-1 text-sm leading-6 text-green-50">Uses the available native or browser install flow.</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+                        <p class="text-sm font-bold text-white">No login detour</p>
+                        <p class="mt-1 text-sm leading-6 text-green-50">Reach the app download page from the public homepage.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reveal-up lg:justify-self-end" style="--reveal-delay: 120ms" data-reveal-distance="sm">
+                <div class="rounded-2xl border border-green-100 bg-white p-5 text-center text-gray-900 shadow-xl">
+                    <img
+                        src="{{ asset('images/PASYA.png') }}"
+                        alt="PASYA"
+                        class="mx-auto h-16 w-16 object-contain"
+                    />
+                    <h3 class="mt-3 text-xl font-extrabold text-green-800">Get the mobile app</h3>
+                    <p class="mt-2 text-sm leading-6 text-gray-600">Scan this code on another device or open the download page directly.</p>
+                    <a href="{{ $appDownloadUrl }}" class="mx-auto mt-5 block w-fit rounded-xl border border-green-100 bg-white p-2 shadow-sm" aria-label="Open the PASYA app download page">
+                        <img
+                            src="{{ $appDownloadQrCodeUrl }}"
+                            alt="QR code to download the PASYA mobile app"
+                            class="h-40 w-40 object-contain"
+                            loading="lazy"
+                        />
+                    </a>
+                    <a href="{{ $appDownloadUrl }}" class="mt-5 inline-flex text-sm font-bold text-green-700 underline hover:text-green-900">
+                        Open app download
+                    </a>
+                </div>
             </div>
         </div>
     </section>

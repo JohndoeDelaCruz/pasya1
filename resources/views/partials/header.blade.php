@@ -39,6 +39,9 @@
                         <a href="{{ url('/#home') }}" data-nav-scroll class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">Home</a>
                     </li>
                     <li>
+                        <a href="{{ route('app.download') }}" class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">Get App</a>
+                    </li>
+                    <li>
                         <a href="{{ url('/#about') }}" data-nav-scroll class="nav-pill-link block w-full md:w-auto py-1.5 px-3 text-sm rounded-full">About us</a>
                     </li>
                     <li>
