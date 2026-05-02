@@ -30,6 +30,24 @@ Route::get('/app-download', function () {
     return view('app-download');
 })->name('app.download');
 
+Route::get('/app', function () {
+    if (Auth::guard('farmer')->check()) {
+        return redirect()->route('farmers.dashboard');
+    }
+
+    if (Auth::guard('web')->check()) {
+        $user = Auth::guard('web')->user();
+
+        if (hash_equals((string) config('app.admin_email'), (string) $user->email)) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        return redirect()->route('dashboard');
+    }
+
+    return redirect('/');
+})->name('app.launch');
+
 Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBridgeService) {
     if (Auth::guard('farmer')->check()) {
         return redirect()->route('farmers.dashboard');

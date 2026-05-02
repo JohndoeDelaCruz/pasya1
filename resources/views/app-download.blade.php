@@ -1,6 +1,7 @@
 @php
     $nativeDownloadUrl = config('app.mobile_app_download_url');
     $webVersionUrl = route('login');
+    $appLaunchUrl = route('app.launch');
 @endphp
 
 <!DOCTYPE html>
@@ -75,7 +76,7 @@
             if (isStandalone) {
                 installButton.textContent = 'Open PASYA';
                 installButton.addEventListener('click', () => {
-                    window.location.href = @json($webVersionUrl);
+                    window.location.href = @json($appLaunchUrl);
                 });
             } else {
                 manualInstall.textContent = manualText;

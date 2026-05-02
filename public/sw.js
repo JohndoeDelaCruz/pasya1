@@ -1,7 +1,9 @@
-const CACHE_NAME = 'pasya-farmer-v5';
+const CACHE_NAME = 'pasya-farmer-v6';
 const OFFLINE_URL = '/offline.html';
+const APP_LAUNCH_URL = '/app';
 
 const NETWORK_ONLY_PATH_PREFIXES = [
+    APP_LAUNCH_URL,
     '/api',
     '/farmer',
     '/predictions',
@@ -168,7 +170,7 @@ self.addEventListener('push', (event) => {
             badge: '/images/icons/icon-72x72.png',
             vibrate: [100, 50, 100],
             data: {
-                url: data.url || '/farmer/dashboard'
+                url: data.url || APP_LAUNCH_URL
             }
         };
         event.waitUntil(
