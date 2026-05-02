@@ -3,12 +3,12 @@
 
     <div class="p-6">
         {{-- Header --}}
-        <div class="flex justify-between items-center mb-6">
+        <div class="crop-data-page-header flex justify-between items-center mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800 mb-2">Crop Data Management</h1>
                 <p class="text-gray-600">View and manage imported crop data</p>
             </div>
-            <div class="flex gap-3 flex-wrap">
+            <div class="crop-data-actions flex gap-3 flex-wrap">
                 @php $archivedCount = \App\Models\Crop::onlyTrashed()->count(); @endphp
                 @if($archivedCount > 0)
                 <a href="{{ route('admin.crop-data.archived') }}"

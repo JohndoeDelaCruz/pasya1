@@ -645,6 +645,60 @@ textarea {
     padding: 0.3rem 0.7rem;
 }
 
+/* Crop Data Management action buttons */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .crop-data-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .crop-data-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(13rem, 1fr));
+        width: min(100%, 32rem);
+    }
+
+    .crop-data-actions > * {
+        justify-content: center;
+        width: 100%;
+        white-space: nowrap;
+    }
+
+    .crop-data-actions > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: calc((100% - 0.75rem) / 2);
+    }
+}
+
+@media (min-width: 1280px) and (max-width: 1535px) {
+    .crop-data-page-header {
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .crop-data-actions {
+        display: grid;
+        flex: none;
+        grid-template-columns: repeat(2, minmax(13rem, 1fr));
+        margin-left: auto;
+        width: 32rem;
+    }
+
+    .crop-data-actions > * {
+        justify-content: center;
+        width: 100%;
+        white-space: nowrap;
+    }
+
+    .crop-data-actions > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        justify-self: center;
+        width: calc((100% - 0.75rem) / 2);
+    }
+}
+
 .dashboard-reduced-motion .animate-bounce,
 .dashboard-reduced-motion .animate-pulse-slow,
 .dashboard-reduced-motion .animate-float {
