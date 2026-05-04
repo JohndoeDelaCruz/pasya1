@@ -214,6 +214,28 @@
         const weatherApiBase = '{{ url("/api/weather") }}';
         const dataPath = '{{ asset("data") }}';
 
+        function refreshMapViewport(fitToProvince = false) {
+            window.requestAnimationFrame(() => {
+                if (!map) {
+                    return;
+                }
+
+                map.invalidateSize();
+
+                if (!fitToProvince || !geojsonLayer) {
+                    return;
+                }
+
+                const bounds = geojsonLayer.getBounds();
+                if (bounds.isValid()) {
+                    map.fitBounds(bounds, {
+                        padding: [24, 24],
+                        maxZoom: 11,
+                    });
+                }
+            });
+        }
+
         // Initialize map
         function initMap() {
             console.log('Initializing map...');
@@ -224,6 +246,9 @@
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
             }).addTo(map);
+
+            window.addEventListener('resize', () => refreshMapViewport());
+            refreshMapViewport();
 
             console.log('Map initialized, loading filters...');
             // Load filters
@@ -351,6 +376,7 @@
 
                     // Update legend
                     updateLegend(data);
+                    refreshMapViewport(true);
                 })
                 .catch(error => {
                     console.error('Error loading GeoJSON:', error);
