@@ -1,11 +1,11 @@
 <x-farmer-layout>
     <x-slot name="title">Interactive Crop Production Map</x-slot>
 
-    <div class="py-4 lg:py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-full mx-auto lg:px-4">
+    <div class="px-3 py-4 sm:px-6 lg:px-8 lg:py-12">
+        <div class="mx-auto w-full max-w-full lg:px-4">
             <div class="flex flex-col gap-4 lg:gap-6">
             <!-- Control Panel -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg order-3 lg:order-1">
+            <div class="order-1 overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-4 lg:p-6">
                     <h3 class="text-base lg:text-lg font-semibold text-gray-800 mb-3 lg:mb-4">Map Controls</h3>
                     
@@ -70,25 +70,27 @@
             </div>
 
             <!-- Map Container -->
-            <div class="bg-white shadow-md sm:rounded-xl border-2 border-gray-200 order-1 lg:order-2">
-                <div class="p-3 lg:p-6 relative overflow-hidden rounded-lg">
-                    <div id="map" style="height: 500px; width: 100%;" class="rounded-lg shadow-inner sm:h-[600px] lg:h-[750px]"></div>
+            <div class="order-2 border-2 border-gray-200 bg-white shadow-md sm:rounded-xl">
+                <div class="relative overflow-hidden rounded-lg p-2 sm:p-3 lg:p-6">
+                    <div id="map" class="h-[55svh] min-h-[320px] w-full rounded-lg shadow-inner sm:h-[600px] lg:h-[750px]"></div>
 
                     <!-- Legend - Positioned on the left side of map -->
-                    <div id="legend" class="absolute bottom-4 left-4 lg:bottom-8 lg:left-8 bg-white rounded-lg shadow-lg border-2 border-gray-200 z-[1000] max-w-[200px] sm:max-w-[240px] lg:max-w-[280px]">
+                    <div id="legend" class="absolute inset-x-3 bottom-3 z-[1000] rounded-lg border-2 border-gray-200 bg-white/95 shadow-lg backdrop-blur sm:inset-x-auto sm:bottom-4 sm:left-4 sm:max-w-[240px] lg:bottom-8 lg:left-8 lg:max-w-[280px]">
                         <button id="legend-toggle-btn" onclick="toggleLegend()" class="w-full flex items-center justify-between p-3 lg:p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors">
                             <h4 class="font-bold text-gray-800 text-xs lg:text-sm uppercase tracking-wide">Production Legend</h4>
                             <svg id="legend-toggle-icon" class="w-4 h-4 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div id="legend-content" class="px-3 pb-3 lg:px-4 lg:pb-4">
+                        <div id="legend-content" class="max-h-[32vh] overflow-y-auto px-3 pb-3 lg:px-4 lg:pb-4 sm:max-h-none">
                             <span class="text-xs text-gray-600">Select filters to view data</span>
                         </div>
                     </div>
 
                     <!-- Municipality Details Panel - Slides from right -->
-                    <div id="details-panel" class="fixed top-0 right-0 h-full bg-white shadow-2xl z-[2000] transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto w-full sm:w-[400px] lg:w-[450px]">
+                    <button id="details-backdrop" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed inset-0 z-[1900] hidden bg-slate-900/40 backdrop-blur-sm"></button>
+
+                    <div id="details-panel" class="fixed inset-x-0 bottom-0 top-24 z-[2000] translate-y-full overflow-y-auto rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:left-auto sm:right-0 sm:top-0 sm:bottom-0 sm:w-[400px] sm:translate-y-0 sm:translate-x-full sm:rounded-none lg:w-[450px]">
                         <div class="p-4 lg:p-6">
                             <!-- Close Button -->
                             <button onclick="closeDetailsPanel()" class="absolute top-3 right-3 lg:top-4 lg:right-4 text-gray-500 hover:text-gray-700">
@@ -166,7 +168,7 @@
             </div>
 
             <!-- Statistics Panel -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg order-2 lg:order-3">
+            <div class="order-3 overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-4 lg:p-6">
                     <h3 class="text-base lg:text-lg font-semibold text-gray-800 mb-3 lg:mb-4">Summary Statistics</h3>
                     <div id="stats-content" class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
@@ -208,6 +210,29 @@
         let geojsonLayer;
         let currentData = {};
         let filterOptions = {};
+
+        function isSmallScreen() {
+            return window.matchMedia('(max-width: 639px)').matches;
+        }
+
+        function setLegendCollapsed(collapsed) {
+            const legendContent = document.getElementById('legend-content');
+            const icon = document.getElementById('legend-toggle-icon');
+
+            legendContent.style.display = collapsed ? 'none' : '';
+            icon.classList.toggle('rotate-180', collapsed);
+        }
+
+        function syncResponsiveMapUi() {
+            refreshMapViewport();
+
+            if (isSmallScreen()) {
+                setLegendCollapsed(true);
+                return;
+            }
+
+            setLegendCollapsed(false);
+        }
         
         // Base URLs using Laravel's url() helper
         const apiBase = '{{ url("/api/map") }}';
@@ -247,8 +272,8 @@
                 maxZoom: 19
             }).addTo(map);
 
-            window.addEventListener('resize', () => refreshMapViewport());
-            refreshMapViewport();
+            window.addEventListener('resize', syncResponsiveMapUi);
+            syncResponsiveMapUi();
 
             console.log('Map initialized, loading filters...');
             // Load filters
@@ -511,12 +536,16 @@ ${legendItems}
         let currentMunicipality = null;
 
         function closeDetailsPanel() {
-            document.getElementById('details-panel').classList.add('translate-x-full');
+            document.getElementById('details-panel').classList.add('translate-y-full', 'sm:translate-x-full');
+            document.getElementById('details-backdrop').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
             currentMunicipality = null;
         }
 
         function openDetailsPanel() {
-            document.getElementById('details-panel').classList.remove('translate-x-full');
+            document.getElementById('details-panel').classList.remove('translate-y-full', 'sm:translate-x-full');
+            document.getElementById('details-backdrop').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
         }
 
         async function loadMunicipalityDetails(municipalityName) {
@@ -866,13 +895,7 @@ ${legendItems}
             const icon = document.getElementById('legend-toggle-icon');
             const isHidden = legendContent.style.display === 'none';
 
-            if (isHidden) {
-                legendContent.style.display = '';
-                icon.classList.remove('rotate-180');
-            } else {
-                legendContent.style.display = 'none';
-                icon.classList.add('rotate-180');
-            }
+            setLegendCollapsed(!isHidden);
         }
 
         // Event listeners
@@ -887,6 +910,11 @@ ${legendItems}
         document.getElementById('year-filter').addEventListener('change', onFilterChange);
         document.getElementById('view-filter').addEventListener('change', onFilterChange);
         document.getElementById('farm-type-filter').addEventListener('change', onFilterChange);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeDetailsPanel();
+            }
+        });
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initMap);
