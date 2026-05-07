@@ -115,13 +115,13 @@
                         <div class="flex flex-col sm:flex-row">
                             <!-- Left: Main Weather -->
                             <div class="bg-gradient-to-br from-sky-500 to-blue-600 text-white px-6 py-5 sm:w-72 flex-shrink-0">
-                                <div class="flex items-start justify-between">
+                                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
                                         <p class="text-sky-200 text-xs font-medium uppercase tracking-wider">Current Weather</p>
                                         <h3 class="text-lg font-bold mt-1">{{ $farmerMunicipality ?? 'Your Location' }}</h3>
                                         <p class="text-sky-200 text-xs mt-0.5" x-text="weatherData?.description || ''"></p>
                                     </div>
-                                    <div class="text-right">
+                                    <div class="text-left sm:text-right">
                                         <div class="text-4xl font-bold leading-none" x-text="weatherData?.temperature?.display || '--'"></div>
                                         <p class="text-sky-200 text-xs mt-1">Feels <span class="text-white font-medium" x-text="weatherData?.feels_like?.display || '--'"></span></p>
                                     </div>
@@ -130,7 +130,7 @@
 
                             <!-- Right: Weather Details Strip -->
                             <div class="flex-1 px-4 py-4 flex items-center">
-                                <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 w-full">
+                                <div class="grid grid-cols-2 gap-3 w-full sm:grid-cols-3 xl:grid-cols-6">
                                     <div class="text-center">
                                         <div class="w-8 h-8 mx-auto bg-blue-50 rounded-lg flex items-center justify-center mb-1">
                                             <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,9 +208,9 @@
                     <!-- Calendar Card -->
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                         <div class="px-6 py-5 border-b border-gray-100">
-                            <div class="flex justify-between items-center">
-                                <h2 class="text-2xl font-bold text-gray-800">{{ now()->format('F Y') }}</h2>
-                                <div class="flex space-x-1">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <h2 class="text-xl font-bold text-gray-800 sm:text-2xl">{{ now()->format('F Y') }}</h2>
+                                <div class="flex self-start space-x-1 sm:self-auto">
                                     <button class="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-gray-700">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -359,17 +359,17 @@
                     <!-- Daily Price Watch -->
                     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div class="bg-gradient-to-r from-green-500 to-emerald-500 px-5 py-3">
-                            <div class="flex items-center justify-between">
+                            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <h3 class="text-lg font-bold text-white">Daily Price Watch</h3>
-                                <span class="text-xs bg-white/20 text-white px-2 py-1 rounded-full">{{ ucwords(strtolower(Auth::guard('farmer')->user()->municipality ?? 'Benguet')) }}</span>
+                                <span class="self-start rounded-full bg-white/20 px-2 py-1 text-xs text-white sm:self-auto">{{ ucwords(strtolower(Auth::guard('farmer')->user()->municipality ?? 'Benguet')) }}</span>
                             </div>
                         </div>
                         <div class="p-5">
                             <div class="space-y-3">
                                 @if(isset($prices) && count($prices) > 0)
                                     @foreach($prices as $price)
-                                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
-                                            <div class="flex items-center space-x-3">
+                                        <div class="flex flex-col gap-3 rounded-xl bg-gray-50 p-3 transition hover:bg-gray-100 sm:flex-row sm:items-center sm:justify-between">
+                                            <div class="flex min-w-0 items-center space-x-3">
                                                 <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center overflow-hidden">
                                                     @if(isset($price['image']))
                                                         <img src="{{ $price['image'] }}" alt="{{ $price['name'] }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -378,11 +378,11 @@
                                                         <span class="text-xl">{{ $price['emoji'] ?? '🌱' }}</span>
                                                     @endif
                                                 </div>
-                                                <span class="font-medium text-gray-700">{{ $price['name'] }}</span>
+                                                <span class="break-words font-medium text-gray-700">{{ $price['name'] }}</span>
                                             </div>
-                                            <div class="text-right">
+                                            <div class="text-left sm:text-right">
                                                 <span class="font-bold text-gray-800">₱{{ number_format($price['price'], 2) }}</span>
-                                                <div class="flex items-center justify-end space-x-1 {{ $price['change'] >= 0 ? 'text-green-500' : 'text-red-500' }} text-xs">
+                                                <div class="flex items-center justify-start space-x-1 {{ $price['change'] >= 0 ? 'text-green-500' : 'text-red-500' }} text-xs sm:justify-end">
                                                     @if($price['change'] >= 0)
                                                         <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                             <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
@@ -439,19 +439,19 @@
                                             {{ $announcement->priority === 'urgent' ? 'border-red-500 bg-gradient-to-r from-red-50 to-white' : 
                                                ($announcement->priority === 'high' ? 'border-orange-500 bg-gradient-to-r from-orange-50 to-white' : 
                                                ($announcement->priority === 'normal' ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-white' : 'border-gray-300 bg-gradient-to-r from-gray-50 to-white')) }}">
-                                            <div class="flex items-start justify-between mb-2">
-                                                <h4 class="font-semibold text-gray-800 text-sm group-hover:text-green-600 transition">{{ $announcement->title }}</h4>
+                                            <div class="mb-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                                <h4 class="break-words text-sm font-semibold text-gray-800 transition group-hover:text-green-600">{{ $announcement->title }}</h4>
                                                 @if($announcement->priority === 'urgent')
-                                                    <span class="flex items-center space-x-1 px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full animate-pulse">
+                                                    <span class="flex shrink-0 items-center space-x-1 self-start rounded-full bg-red-100 px-2 py-0.5 text-xs font-bold text-red-700 animate-pulse">
                                                         <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
                                                         <span>Urgent</span>
                                                     </span>
                                                 @elseif($announcement->priority === 'high')
-                                                    <span class="px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded-full">High</span>
+                                                    <span class="self-start rounded-full bg-orange-100 px-2 py-0.5 text-xs font-bold text-orange-700">High</span>
                                                 @endif
                                             </div>
                                             <p class="text-gray-600 text-sm line-clamp-2 leading-relaxed">{{ $announcement->content }}</p>
-                                            <div class="flex items-center space-x-2 mt-3 text-xs text-gray-400">
+                                            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-400">
                                                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                                                 </svg>
@@ -505,23 +505,23 @@
                     
                     <!-- Modal Header -->
                     <div class="px-6 py-4" :class="getAnnouncementHeaderClass()">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-center space-x-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex min-w-0 items-center space-x-3">
                                 <div class="w-12 h-12 rounded-xl flex items-center justify-center" :class="getAnnouncementIconClass()">
                                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
                                     </svg>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <span x-show="selectedAnnouncement?.priority === 'urgent'" class="inline-flex items-center px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full mb-1">
                                         <span class="w-1.5 h-1.5 bg-red-500 rounded-full mr-1"></span>
                                         Urgent
                                     </span>
                                     <span x-show="selectedAnnouncement?.priority === 'high'" class="inline-flex px-2 py-0.5 text-xs font-bold bg-orange-100 text-orange-700 rounded-full mb-1">High Priority</span>
-                                    <h3 class="text-lg font-bold text-gray-800" x-text="selectedAnnouncement?.title"></h3>
+                                    <h3 class="break-words text-lg font-bold text-gray-800" x-text="selectedAnnouncement?.title"></h3>
                                 </div>
                             </div>
-                            <button @click="closeAnnouncementModal()" class="p-2 hover:bg-gray-200 rounded-lg transition">
+                            <button @click="closeAnnouncementModal()" class="shrink-0 rounded-lg p-2 transition hover:bg-gray-200">
                                 <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>

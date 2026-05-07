@@ -9,20 +9,20 @@
             </div>
 
             <!-- Tab Navigation -->
-            <div class="flex flex-wrap gap-2 sm:gap-4 mb-6 sm:mb-8">
+            <div class="mb-6 grid grid-cols-1 gap-2 sm:mb-8 sm:grid-cols-3 sm:gap-4">
                 <button @click="activeTab = 'topics'" 
                         :class="activeTab === 'topics' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="flex-1 min-w-[100px] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
+                        class="w-full px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
                     Popular Topics
                 </button>
                 <button @click="activeTab = 'chat'" 
                         :class="activeTab === 'chat' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="flex-1 min-w-[100px] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
+                        class="w-full px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
                     Chat Support
                 </button>
                 <button @click="activeTab = 'tickets'" 
                         :class="activeTab === 'tickets' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="flex-1 min-w-[100px] px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
+                        class="w-full px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
                     Tickets
                 </button>
             </div>
@@ -32,7 +32,7 @@
                 <!-- Registration and Account Management -->
                 <div>
                     <h2 class="text-lg font-bold text-gray-800 mb-4">Registration and Account Management</h2>
-                    <div class="space-y-3 ml-4">
+                    <div class="space-y-3 sm:ml-4">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('reg1')">
                             <p class="text-gray-700">• How do I register for an account?</p>
                             <div x-show="openAnswer === 'reg1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
@@ -63,7 +63,7 @@
                 <!-- Technical Support and Troubleshooting -->
                 <div>
                     <h2 class="text-lg font-bold text-gray-800 mb-4">Technical Support and Troubleshooting</h2>
-                    <div class="space-y-3 ml-4">
+                    <div class="space-y-3 sm:ml-4">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('tech1')">
                             <p class="text-gray-700">• Who can I contact for technical support?</p>
                             <div x-show="openAnswer === 'tech1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
@@ -100,7 +100,7 @@
                 <!-- Data and Privacy -->
                 <div>
                     <h2 class="text-lg font-bold text-gray-800 mb-4">Data and Privacy</h2>
-                    <div class="space-y-3 ml-4">
+                    <div class="space-y-3 sm:ml-4">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('data1')">
                             <p class="text-gray-700">• How is my farm data used?</p>
                             <div x-show="openAnswer === 'data1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
@@ -147,7 +147,7 @@
                 <!-- Using PASYA Features -->
                 <div>
                     <h2 class="text-lg font-bold text-gray-800 mb-4">Using PASYA Features</h2>
-                    <div class="space-y-3 ml-4">
+                    <div class="space-y-3 sm:ml-4">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('feat1')">
                             <p class="text-gray-700">• How do I use the Calendar to plan my crops?</p>
                             <div x-show="openAnswer === 'feat1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">

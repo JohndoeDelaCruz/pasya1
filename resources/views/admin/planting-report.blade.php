@@ -14,7 +14,7 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mb-5">
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
                     <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Records</p>
                     <p class="mt-1 text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_records']) }}</p>
@@ -24,6 +24,10 @@
                     <p class="mt-1 text-2xl font-bold leading-none text-emerald-600">{{ number_format($summary['planned_records']) }}</p>
                 </div>
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Damaged Records</p>
+                    <p class="mt-1 text-2xl font-bold leading-none text-amber-600">{{ number_format($summary['damaged_records'] ?? 0) }}</p>
+                </div>
+                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
                     <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Area</p>
                     <div class="mt-1 flex items-end gap-2">
                         <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_area'], 2) }}</p>
@@ -31,7 +35,7 @@
                     </div>
                 </div>
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Predicted Production</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Adjusted Production</p>
                     <div class="mt-1 flex items-end gap-2">
                         <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_predicted_production'], 2) }}</p>
                         <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">MT</p>
@@ -152,10 +156,12 @@
                                 @foreach ($plantingRecords as $record)
                                     @php
                                         $farmer = $record->farmer;
-                                        $statusClasses = match ($record->status) {
+                                        $displayStatus = $record->display_status;
+                                        $statusClasses = match ($displayStatus) {
                                             'planned' => 'bg-amber-100 text-amber-800',
                                             'planted' => 'bg-blue-100 text-blue-800',
                                             'growing' => 'bg-emerald-100 text-emerald-800',
+                                            'damaged' => 'bg-orange-100 text-orange-800',
                                             'harvested' => 'bg-green-100 text-green-800',
                                             'cancelled' => 'bg-red-100 text-red-800',
                                             default => 'bg-gray-100 text-gray-700',
@@ -185,7 +191,11 @@
                                         </td>
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                             <p class="font-medium text-gray-900">{{ number_format((float) $record->area_hectares, 2) }} ha</p>
-                                            <p class="mt-1 text-xs text-gray-500">{{ number_format((float) $record->predicted_production, 2) }} MT predicted</p>
+                                            <p class="mt-1 text-xs text-gray-500">Original: {{ number_format((float) $record->predicted_production, 2) }} MT</p>
+                                            <p class="mt-1 text-xs text-gray-500">Adjusted: {{ number_format((float) $record->adjusted_predicted_production, 2) }} MT</p>
+                                            @if ($record->has_damage_report)
+                                                <p class="mt-1 text-xs text-orange-700">Damage: {{ number_format((float) $record->damaged_area_hectares, 2) }} ha affected, {{ number_format((float) $record->production_loss_mt, 2) }} MT lost</p>
+                                            @endif
                                         </td>
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                             <p>{{ ucfirst(strtolower($record->farm_type)) }}</p>
@@ -193,8 +203,13 @@
                                         </td>
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                             <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase {{ $statusClasses }}">
-                                                {{ $record->status }}
+                                                {{ $displayStatus }}
                                             </span>
+                                            @if ($record->has_damage_report)
+                                                <p class="mt-2 text-xs font-medium text-orange-700">{{ $record->damage_cause_label ?? 'Damage reported' }}</p>
+                                                <p class="mt-1 text-xs text-gray-500">{{ $record->damage_reported_at?->format('M d, Y h:i A') ?? 'Report time unavailable' }}</p>
+                                                <p class="mt-1 text-xs text-gray-500">{{ $record->damage_notes ? \Illuminate\Support\Str::limit($record->damage_notes, 80) : 'No additional notes' }}</p>
+                                            @endif
                                         </td>
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                             <p>{{ $record->created_at->format('M d, Y') }}</p>

@@ -753,7 +753,13 @@ class DataAnalyticsController extends Controller
                 'Planting Date',
                 'Expected Harvest Date',
                 'Area (ha)',
-                'Predicted Production (MT)',
+                'Original Production (MT)',
+                'Adjusted Production (MT)',
+                'Production Loss (MT)',
+                'Damaged Area (ha)',
+                'Damage Cause',
+                'Damage Notes',
+                'Damage Reported At',
                 'Farm Type',
                 'Planting Material',
                 'Status',
@@ -778,9 +784,15 @@ class DataAnalyticsController extends Controller
                         optional($record->expected_harvest_date)->format('Y-m-d'),
                         number_format((float) $record->area_hectares, 2, '.', ''),
                         number_format((float) $record->predicted_production, 2, '.', ''),
+                        number_format((float) $record->adjusted_predicted_production, 2, '.', ''),
+                        number_format((float) $record->production_loss_mt, 2, '.', ''),
+                        number_format((float) ($record->damaged_area_hectares ?? 0), 2, '.', ''),
+                        $record->damage_cause_label ?? '',
+                        $record->damage_notes ?? '',
+                        optional($record->damage_reported_at)->format('Y-m-d H:i:s'),
                         ucfirst(strtolower((string) $record->farm_type)),
                         $record->planting_material_label ?? 'Not set',
-                        $record->status,
+                        $record->display_status,
                         optional($record->created_at)->format('Y-m-d H:i:s'),
                     ]);
                 }
@@ -850,11 +862,14 @@ class DataAnalyticsController extends Controller
             ])
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $searchTerm = '%' . trim($search) . '%';
+                $normalizedSearch = strtolower(trim($search));
 
-                $query->where(function ($nestedQuery) use ($searchTerm) {
+                $query->where(function ($nestedQuery) use ($searchTerm, $normalizedSearch) {
                     $nestedQuery->where('crop_name', 'like', $searchTerm)
                         ->orWhere('municipality', 'like', $searchTerm)
                         ->orWhere('status', 'like', $searchTerm)
+                        ->orWhere('damage_cause', 'like', $searchTerm)
+                        ->orWhere('damage_notes', 'like', $searchTerm)
                         ->orWhereHas('farmer', function ($farmerQuery) use ($searchTerm) {
                             $farmerQuery->withTrashed()
                                 ->where('farmer_id', 'like', $searchTerm)
@@ -865,10 +880,21 @@ class DataAnalyticsController extends Controller
                                 ->orWhere('mobile_number', 'like', $searchTerm)
                                 ->orWhere('email', 'like', $searchTerm);
                         });
+
+                    if (str_contains($normalizedSearch, 'damage')) {
+                        $nestedQuery->orWhereNotNull('damage_reported_at');
+                    }
                 });
             })
             ->when($filters['status'] ?? null, function ($query, $status) {
-                $query->where('status', $status);
+                if ($status === 'damaged') {
+                    $query->whereNotNull('damage_reported_at');
+
+                    return;
+                }
+
+                $query->where('status', $status)
+                    ->whereNull('damage_reported_at');
             })
             ->when($filters['municipality'] ?? null, function ($query, $municipality) {
                 $query->where('municipality', $municipality);
@@ -879,11 +905,14 @@ class DataAnalyticsController extends Controller
 
     private function getPlantingReportSummary(Builder $plantingRecordsQuery): array
     {
+        $records = (clone $plantingRecordsQuery)->get();
+
         return [
-            'total_records' => (clone $plantingRecordsQuery)->count(),
-            'total_area' => (float) (clone $plantingRecordsQuery)->sum('area_hectares'),
-            'total_predicted_production' => (float) (clone $plantingRecordsQuery)->sum('predicted_production'),
-            'planned_records' => (clone $plantingRecordsQuery)->where('status', 'planned')->count(),
+            'total_records' => $records->count(),
+            'total_area' => (float) $records->sum(fn ($record) => (float) $record->area_hectares),
+            'total_predicted_production' => (float) $records->sum(fn ($record) => (float) $record->adjusted_predicted_production),
+            'planned_records' => $records->where('display_status', 'planned')->count(),
+            'damaged_records' => $records->where('display_status', 'damaged')->count(),
         ];
     }
 
@@ -898,7 +927,7 @@ class DataAnalyticsController extends Controller
 
     private function getPlantingReportStatuses(): array
     {
-        return ['planned', 'planted', 'growing', 'harvested', 'cancelled'];
+        return ['planned', 'planted', 'growing', 'damaged', 'harvested', 'cancelled'];
     }
 
     private function getFilledPlantingReportFilters(array $filters): array

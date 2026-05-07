@@ -104,6 +104,7 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     Route::get('/api/crop-plans', [FarmerDashboardController::class, 'getCropPlans'])->name('api.crop-plans');
     Route::post('/api/crop-plans', [FarmerDashboardController::class, 'storeCropPlan'])->name('api.crop-plans.store');
     Route::post('/api/crop-plans/preview', [FarmerDashboardController::class, 'previewCropPlan'])->name('api.crop-plans.preview');
+    Route::post('/api/crop-plans/{cropPlan}/damage-report', [FarmerDashboardController::class, 'reportCropDamage'])->name('api.crop-plans.damage-report');
     Route::patch('/api/crop-plans/{cropPlan}/status', [FarmerDashboardController::class, 'updateCropPlanStatus'])->name('api.crop-plans.status');
     Route::delete('/api/crop-plans/{cropPlan}', [FarmerDashboardController::class, 'deleteCropPlan'])->name('api.crop-plans.destroy');
     

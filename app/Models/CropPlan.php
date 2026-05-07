@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -30,6 +31,17 @@ class CropPlan extends Model
 {
     use HasFactory;
 
+    public const DAMAGE_CAUSE_LABELS = [
+        'typhoon' => 'Typhoon',
+        'flood' => 'Flood',
+        'landslide' => 'Landslide',
+        'drought' => 'Drought',
+        'earthquake' => 'Earthquake',
+        'volcanic_ashfall' => 'Volcanic Ashfall',
+        'storm_surge' => 'Storm Surge',
+        'other' => 'Other Natural Disaster',
+    ];
+
     protected $fillable = [
         'farmer_id',
         'crop_type_id',
@@ -37,11 +49,15 @@ class CropPlan extends Model
         'planting_date',
         'expected_harvest_date',
         'area_hectares',
+        'damaged_area_hectares',
         'predicted_production',
         'municipality',
         'farm_type',
         'planting_material_type',
         'status',
+        'damage_cause',
+        'damage_notes',
+        'damage_reported_at',
         'notes',
     ];
 
@@ -49,7 +65,9 @@ class CropPlan extends Model
         'planting_date' => 'date',
         'expected_harvest_date' => 'date',
         'area_hectares' => 'decimal:2',
+        'damaged_area_hectares' => 'decimal:2',
         'predicted_production' => 'decimal:2',
+        'damage_reported_at' => 'datetime',
     ];
 
     /**
@@ -152,10 +170,77 @@ class CropPlan extends Model
      */
     public function getFormattedProductionAttribute(): string
     {
-        if (!$this->predicted_production) {
+        if ($this->predicted_production === null) {
             return 'N/A';
         }
-        return number_format($this->predicted_production, 2) . ' MT';
+
+        return number_format($this->adjusted_predicted_production, 2) . ' MT';
+    }
+
+    public function getFormattedAdjustedProductionAttribute(): string
+    {
+        return $this->formatted_production;
+    }
+
+    public function getHasDamageReportAttribute(): bool
+    {
+        return $this->damage_reported_at !== null && (float) ($this->damaged_area_hectares ?? 0) > 0;
+    }
+
+    public function getAdjustedAreaHectaresAttribute(): float
+    {
+        $totalArea = (float) $this->area_hectares;
+        $damagedArea = min((float) ($this->damaged_area_hectares ?? 0), $totalArea);
+
+        return max(0.0, round($totalArea - $damagedArea, 2));
+    }
+
+    public function getAdjustedPredictedProductionAttribute(): float
+    {
+        if ($this->predicted_production === null) {
+            return 0.0;
+        }
+
+        $originalProduction = (float) $this->predicted_production;
+
+        if (!$this->has_damage_report) {
+            return round($originalProduction, 2);
+        }
+
+        $totalArea = (float) $this->area_hectares;
+        if ($totalArea <= 0) {
+            return round($originalProduction, 2);
+        }
+
+        return round($originalProduction * ($this->adjusted_area_hectares / $totalArea), 2);
+    }
+
+    public function getProductionLossMtAttribute(): float
+    {
+        if ($this->predicted_production === null) {
+            return 0.0;
+        }
+
+        return max(0.0, round((float) $this->predicted_production - $this->adjusted_predicted_production, 2));
+    }
+
+    public function getDisplayStatusAttribute(): string
+    {
+        if ($this->has_damage_report) {
+            return 'damaged';
+        }
+
+        return $this->status;
+    }
+
+    public function getDamageCauseLabelAttribute(): ?string
+    {
+        if (!$this->damage_cause) {
+            return null;
+        }
+
+        return self::DAMAGE_CAUSE_LABELS[$this->damage_cause]
+            ?? Str::headline(str_replace('_', ' ', $this->damage_cause));
     }
 
     /**
@@ -189,13 +274,8 @@ class CropPlan extends Model
             'id' => $this->id,
             'title' => "Plant {$this->crop_name}",
             'type' => 'plant',
-            'description' => "Plant {$this->crop_name} on {$this->area_hectares} hectares.{$this->planting_material_description} Apply basal fertilizer at planting. Expected harvest: {$this->expected_harvest_date->format('M d, Y')}. Predicted production: {$this->formatted_production}",
-            'crop_plan_id' => $this->id,
-            'area' => $this->area_hectares,
-            'predicted_production' => $this->predicted_production,
-            'planting_material_type' => $this->planting_material_type,
-            'planting_material_label' => $this->planting_material_label,
-        ];
+            'description' => "Plant {$this->crop_name} on {$this->area_hectares} hectares.{$this->planting_material_description} Apply basal fertilizer at planting. Expected harvest: {$this->expected_harvest_date->format('M d, Y')}. Projected harvest: {$this->formatted_production}{$this->damageDescriptionSuffix()}",
+        ] + $this->eventContext();
     }
 
     /**
@@ -207,13 +287,8 @@ class CropPlan extends Model
             'id' => $this->id,
             'title' => "Harvest {$this->crop_name}",
             'type' => 'harvest',
-            'description' => "Expected harvest of {$this->crop_name} from {$this->area_hectares} ha.{$this->planting_material_description} Predicted production: {$this->formatted_production}",
-            'crop_plan_id' => $this->id,
-            'area' => $this->area_hectares,
-            'predicted_production' => $this->predicted_production,
-            'planting_material_type' => $this->planting_material_type,
-            'planting_material_label' => $this->planting_material_label,
-        ];
+            'description' => "Expected harvest of {$this->crop_name} from {$this->area_hectares} ha.{$this->planting_material_description} Projected harvest: {$this->formatted_production}{$this->damageDescriptionSuffix()}",
+        ] + $this->eventContext();
     }
 
     /**
@@ -259,12 +334,58 @@ class CropPlan extends Model
                 'title' => "Fertilize {$this->crop_name} - {$stage['label']}",
                 'type' => 'fertilizer',
                 'crop_name' => $this->crop_name,
-                'description' => "{$stage['desc']} for {$this->crop_name} ({$this->area_hectares} ha).",
-                'crop_plan_id' => $this->id,
-                'area' => $this->area_hectares,
-            ];
+                'description' => "{$stage['desc']} for {$this->crop_name} ({$this->area_hectares} ha).{$this->damageDescriptionSuffix()}",
+            ] + $this->eventContext();
         }
 
         return $events;
+    }
+
+    private function eventContext(): array
+    {
+        return [
+            'crop_plan_id' => $this->id,
+            'crop_name' => $this->crop_name,
+            'area' => (float) $this->area_hectares,
+            'adjusted_area_hectares' => $this->adjusted_area_hectares,
+            'damaged_area_hectares' => (float) ($this->damaged_area_hectares ?? 0),
+            'predicted_production' => $this->adjusted_predicted_production,
+            'original_predicted_production' => (float) ($this->predicted_production ?? 0),
+            'adjusted_predicted_production' => $this->adjusted_predicted_production,
+            'production_loss_mt' => $this->production_loss_mt,
+            'planting_material_type' => $this->planting_material_type,
+            'planting_material_label' => $this->planting_material_label,
+            'display_status' => $this->display_status,
+            'raw_status' => $this->status,
+            'has_damage_report' => $this->has_damage_report,
+            'damage_cause' => $this->damage_cause,
+            'damage_cause_label' => $this->damage_cause_label,
+            'damage_notes' => $this->damage_notes,
+            'damage_reported_at' => $this->damage_reported_at?->toIso8601String(),
+            'damage_reported_at_formatted' => $this->damage_reported_at?->format('M d, Y h:i A'),
+            'can_report_damage' => !in_array($this->status, ['harvested', 'cancelled'], true),
+        ];
+    }
+
+    private function damageDescriptionSuffix(): string
+    {
+        if (!$this->has_damage_report) {
+            return '';
+        }
+
+        $reportedAt = $this->damage_reported_at?->format('M d, Y');
+        $summary = " Damage reported: {$this->damaged_area_hectares} ha affected";
+
+        if ($this->damage_cause_label) {
+            $summary .= " by {$this->damage_cause_label}";
+        }
+
+        if ($reportedAt) {
+            $summary .= " on {$reportedAt}";
+        }
+
+        $summary .= ". Estimated loss: " . number_format($this->production_loss_mt, 2) . ' MT.';
+
+        return $summary;
     }
 }

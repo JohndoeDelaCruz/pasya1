@@ -9,7 +9,113 @@
                 
                 <!-- Harvest History Table -->
                 <div class="bg-green-100 rounded-2xl p-4 border-2 border-green-400">
-                    <div class="overflow-x-auto">
+                    <div class="space-y-3 md:hidden">
+                        <template x-if="harvestHistory.length === 0">
+                            <div class="rounded-xl bg-white/80 px-4 py-8 text-center text-gray-500 shadow-sm">
+                                <div class="flex flex-col items-center">
+                                    <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                                    </svg>
+                                    <p class="font-medium">No crop plans yet</p>
+                                    <p class="text-sm mt-1">Go to <a href="{{ route('farmers.calendar') }}" class="text-green-600 hover:underline">Calendar</a> to plan your first crop!</p>
+                                </div>
+                            </div>
+                        </template>
+                        <template x-for="(record, index) in harvestHistory" :key="'mobile-' + (record.id || index)">
+                            <div class="rounded-xl border border-green-200 bg-white/80 p-4 shadow-sm"
+                                 :class="{
+                                     'border-red-300 bg-red-50': record.maturityStatus === 'overdue',
+                                     'border-amber-300 bg-amber-50': record.maturityStatus === 'ready',
+                                     'border-yellow-300 bg-yellow-50': record.maturityStatus === 'almost_ready'
+                                 }">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-green-700">Record <span x-text="index + 1"></span></p>
+                                        <h3 class="mt-1 break-words text-base font-semibold text-gray-800" x-text="record.cropType"></h3>
+                                    </div>
+                                    <span class="text-right text-sm font-medium"
+                                          :class="{
+                                              'text-gray-600': record.status === 'Completed',
+                                              'text-red-600': record.maturityStatus === 'overdue',
+                                              'text-amber-600': record.maturityStatus === 'ready',
+                                              'text-yellow-600': record.maturityStatus === 'almost_ready',
+                                              'text-green-600': record.maturityStatus === 'growing' || record.maturityStatus === 'approaching'
+                                          }"
+                                          x-text="record.status"></span>
+                                </div>
+
+                                <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <div class="rounded-lg bg-green-50 px-3 py-2">
+                                        <p class="text-xs uppercase tracking-wide text-gray-500">Date Planted</p>
+                                        <p class="mt-1 text-sm font-medium text-gray-800" x-text="record.datePlanted"></p>
+                                    </div>
+                                    <div class="rounded-lg bg-green-50 px-3 py-2">
+                                        <p class="text-xs uppercase tracking-wide text-gray-500">Date Harvested</p>
+                                        <p class="mt-1 text-sm font-medium text-gray-800" x-text="record.dateHarvested || '--'"></p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 text-sm text-gray-600">
+                                    <template x-if="record.status === 'Growing'">
+                                        <span :class="{
+                                            'text-red-500': record.maturityStatus === 'overdue',
+                                            'text-amber-500': record.maturityStatus === 'ready',
+                                            'text-yellow-500': record.maturityStatus === 'almost_ready',
+                                            'text-blue-500': record.maturityStatus === 'approaching',
+                                            'text-gray-500': record.maturityStatus === 'growing'
+                                        }">
+                                            <template x-if="record.maturityStatus === 'overdue'">
+                                                <span>⚠️ Overdue for harvest!</span>
+                                            </template>
+                                            <template x-if="record.maturityStatus === 'ready'">
+                                                <span>🌾 Ready to harvest!</span>
+                                            </template>
+                                            <template x-if="record.maturityStatus === 'almost_ready'">
+                                                <span>📅 <span x-text="record.daysUntilHarvest"></span> days left</span>
+                                            </template>
+                                            <template x-if="record.maturityStatus === 'approaching'">
+                                                <span>🌱 <span x-text="record.daysUntilHarvest"></span> days left</span>
+                                            </template>
+                                            <template x-if="record.maturityStatus === 'growing'">
+                                                <span><span x-text="record.daysUntilHarvest"></span> days left</span>
+                                            </template>
+                                        </span>
+                                    </template>
+                                </div>
+
+                                <div class="mt-4 border-t border-green-200 pt-4">
+                                    <template x-if="record.status === 'Growing' && record.isHarvestReady">
+                                        <button @click="handleAction(record)"
+                                                class="w-full rounded-lg px-3 py-2 text-sm font-medium transition"
+                                                :class="{
+                                                    'bg-red-500 hover:bg-red-600 text-white': record.maturityStatus === 'overdue',
+                                                    'bg-amber-500 hover:bg-amber-600 text-white': record.maturityStatus === 'ready',
+                                                    'bg-yellow-500 hover:bg-yellow-600 text-white': record.maturityStatus === 'almost_ready'
+                                                }">
+                                            🌾 Finish Harvest
+                                        </button>
+                                    </template>
+                                    <template x-if="record.status === 'Growing' && !record.isHarvestReady">
+                                        <div class="flex items-center space-x-2">
+                                            <div class="h-2 flex-1 rounded-full bg-gray-200">
+                                                <div class="h-2 rounded-full bg-green-500"
+                                                     :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                            </div>
+                                            <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="record.status === 'Completed'">
+                                        <button @click="handleAction(record)"
+                                                class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50 hover:text-blue-700">
+                                            🌱 Plant Again
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="hidden overflow-x-auto md:block">
                         <table class="w-full min-w-[600px]">
                             <thead>
                                 <tr class="border-b border-green-300">
@@ -138,17 +244,17 @@
                 
                 <!-- Crop Cards -->
                 <div class="bg-green-100 rounded-2xl p-6 border-2 border-green-400">
-                    <div class="flex space-x-4 overflow-x-auto pb-2">
+                    <div class="grid grid-cols-2 gap-3 sm:flex sm:space-x-4 sm:overflow-x-auto sm:pb-2">
                         <template x-for="crop in cropList" :key="crop.id || crop.name">
                             <div x-on:click="showCropDetails(crop)" 
-                                 class="flex-shrink-0 w-28 cursor-pointer hover:scale-105 transition-transform">
+                                 class="w-full cursor-pointer transition-transform hover:scale-105 sm:w-28 sm:flex-shrink-0">
                                 <div class="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition mb-2 h-24 flex items-center justify-center">
                                     <img :src="crop.image" :alt="crop.name" 
                                          class="w-full h-20 object-cover rounded-lg"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
                                     <span class="text-4xl hidden items-center justify-center" x-text="crop.emoji || '🌱'"></span>
                                 </div>
-                                <p class="text-center text-sm font-medium text-gray-700" x-text="crop.name"></p>
+                                <p class="break-words text-center text-sm font-medium text-gray-700" x-text="crop.name"></p>
                             </div>
                         </template>
                     </div>
@@ -188,9 +294,9 @@
                      @click.stop>
                     
                     <!-- Modal Header -->
-                    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <div class="flex items-start justify-between gap-3 border-b border-gray-200 px-6 py-4">
                         <h3 class="text-lg font-semibold text-gray-800">Crops Details</h3>
-                        <button @click="showDetailsModal = false" class="p-2 hover:bg-gray-100 rounded-lg transition">
+                        <button @click="showDetailsModal = false" class="shrink-0 rounded-lg p-2 transition hover:bg-gray-100">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -200,14 +306,14 @@
                     <!-- Modal Body -->
                     <div class="px-6 py-5 max-h-[calc(100vh-200px)] overflow-y-auto">
                         <!-- Crop Image and Name -->
-                        <div class="flex items-start space-x-4 mb-4 p-4 bg-green-50 rounded-xl">
+                        <div class="mb-4 flex flex-col gap-4 rounded-xl bg-green-50 p-4 sm:flex-row sm:items-start sm:space-x-4">
                             <div class="w-20 h-20 flex items-center justify-center bg-white rounded-lg flex-shrink-0 shadow-sm">
                                 <img :src="selectedCrop?.image" :alt="selectedCrop?.name" 
                                      class="w-full h-full object-cover rounded-lg"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <span class="text-4xl hidden items-center justify-center" x-text="selectedCrop?.emoji || '🌱'"></span>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <h4 class="text-lg font-bold text-gray-800" x-text="selectedCrop?.name"></h4>
                                 <p class="text-sm text-green-600 font-medium" x-text="selectedCrop?.category"></p>
                             </div>

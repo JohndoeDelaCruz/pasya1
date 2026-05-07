@@ -69,8 +69,8 @@
             <!-- Calendar Container -->
             <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <!-- Month Header -->
-                <div class="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
-                    <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="flex flex-col gap-3 border-b border-gray-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+                    <div class="flex w-full min-w-0 items-center justify-between space-x-2 sm:w-auto sm:justify-start sm:space-x-4">
                         <button @click="navigatePrev()"
                             class="p-1 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-600">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@
                                     d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <h2 class="text-base sm:text-2xl font-bold text-gray-800" x-text="headerDisplay"></h2>
+                        <h2 class="truncate text-base font-bold text-gray-800 sm:text-2xl" x-text="headerDisplay"></h2>
                         <button @click="navigateNext()"
                             class="p-1 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-600">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -309,8 +309,8 @@
 
                     <!-- Modal Header -->
                     <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex min-w-0 items-center space-x-3">
                                 <!-- Event icon when viewing single event -->
                                 <template x-if="selectedEvent && !selectedDay">
                                     <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg"
@@ -334,7 +334,7 @@
                                         <span x-text="selectedDay?.date"></span>
                                     </div>
                                 </template>
-                                <div>
+                                <div class="min-w-0">
                                     <h3 class="text-lg font-bold text-gray-800"
                                         x-text="selectedEvent && !selectedDay ? selectedEvent.title : selectedDayFormatted">
                                     </h3>
@@ -345,7 +345,7 @@
                                 </div>
                             </div>
                             <button @click="showEventModal = false; selectedEvent = null;"
-                                class="p-2 hover:bg-gray-200 rounded-lg transition">
+                                class="shrink-0 rounded-lg p-2 transition hover:bg-gray-200">
                                 <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -370,7 +370,7 @@
                                             x-text="selectedEvent.description || 'No description'"></p>
                                         <template x-if="selectedEvent.predicted_production">
                                             <div class="mt-2 text-xs text-gray-500">
-                                                <span class="font-medium">Predicted Production:</span>
+                                                <span class="font-medium" x-text="selectedEvent.has_damage_report ? 'Adjusted Production:' : 'Projected Production:'"></span>
                                                 <span x-text="selectedEvent.predicted_production + ' mt'"></span>
                                             </div>
                                         </template>
@@ -386,6 +386,29 @@
                                                 <span x-text="selectedEvent.planting_material_label"></span>
                                             </div>
                                         </template>
+                                        <template x-if="selectedEvent.display_status">
+                                            <div class="text-xs text-gray-500">
+                                                <span class="font-medium">Status:</span>
+                                                <span class="uppercase" x-text="selectedEvent.display_status"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedEvent.has_damage_report">
+                                            <div class="mt-3 space-y-1 rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs text-orange-900">
+                                                <p class="font-semibold">Damage Report</p>
+                                                <p><span class="font-medium">Cause:</span> <span x-text="selectedEvent.damage_cause_label || 'Damage reported'"></span></p>
+                                                <p><span class="font-medium">Damaged Area:</span> <span x-text="formatHectares(selectedEvent.damaged_area_hectares)"></span></p>
+                                                <p><span class="font-medium">Adjusted Production:</span> <span x-text="formatMetricTons(selectedEvent.adjusted_predicted_production)"></span></p>
+                                                <p><span class="font-medium">Estimated Loss:</span> <span x-text="formatMetricTons(selectedEvent.production_loss_mt)"></span></p>
+                                                <p x-show="selectedEvent.damage_reported_at_formatted"><span class="font-medium">Reported At:</span> <span x-text="selectedEvent.damage_reported_at_formatted"></span></p>
+                                                <p x-show="selectedEvent.damage_notes"><span class="font-medium">Notes:</span> <span x-text="selectedEvent.damage_notes"></span></p>
+                                            </div>
+                                        </template>
+                                        <div class="mt-3 flex flex-wrap gap-2" x-show="selectedEvent.crop_plan_id && selectedEvent.can_report_damage">
+                                            <button @click="openDamageReportModal(selectedEvent)"
+                                                class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
+                                                <span x-text="selectedEvent.has_damage_report ? 'Update Damage Report' : 'Report Damage'"></span>
+                                            </button>
+                                        </div>
                                     </div>
                                     <template x-if="selectedEvent.crop_plan_id">
                                         <button @click="deleteCropPlan(selectedEvent.crop_plan_id)"
@@ -421,6 +444,20 @@
                                             <h4 class="font-semibold text-gray-800" x-text="event.title"></h4>
                                             <p class="text-gray-600 text-sm mt-1"
                                                 x-text="event.description || 'No description'"></p>
+                                            <template x-if="event.has_damage_report">
+                                                <div class="mt-3 space-y-1 rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs text-orange-900">
+                                                    <p class="font-semibold">Damage Report</p>
+                                                    <p><span class="font-medium">Cause:</span> <span x-text="event.damage_cause_label || 'Damage reported'"></span></p>
+                                                    <p><span class="font-medium">Damaged Area:</span> <span x-text="formatHectares(event.damaged_area_hectares)"></span></p>
+                                                    <p><span class="font-medium">Adjusted Production:</span> <span x-text="formatMetricTons(event.adjusted_predicted_production)"></span></p>
+                                                </div>
+                                            </template>
+                                            <div class="mt-3 flex flex-wrap gap-2" x-show="event.crop_plan_id && event.can_report_damage">
+                                                <button @click="openDamageReportModal(event)"
+                                                    class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
+                                                    <span x-text="event.has_damage_report ? 'Update Damage Report' : 'Report Damage'"></span>
+                                                </button>
+                                            </div>
                                         </div>
                                         <template x-if="event.crop_plan_id">
                                             <button @click="deleteCropPlan(event.crop_plan_id)" :disabled="isDeleting"
@@ -485,10 +522,10 @@
 
                     <!-- Modal Header -->
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <div class="flex items-center justify-between">
+                        <div class="flex items-start justify-between gap-3">
                             <h3 class="text-lg font-semibold text-gray-400">Settings Pop-up</h3>
                             <button @click="showSettingsModal = false"
-                                class="p-2 hover:bg-gray-100 rounded-lg transition">
+                                class="shrink-0 rounded-lg p-2 transition hover:bg-gray-100">
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -538,8 +575,8 @@
 
                     <!-- Modal Header -->
                     <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-500 to-green-600">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex min-w-0 items-start space-x-3">
                                 <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
@@ -547,13 +584,13 @@
                                             d="M12 19V6M12 6c-2 0-4-1-5-3M12 6c2 0 4-1 5-3M7 14c-2 1-3 3-3 5M17 14c2 1 3 3 3 5" />
                                     </svg>
                                 </div>
-                                <div>
+                                <div class="min-w-0">
                                     <h3 class="text-lg font-bold text-white">Plan Your Crop</h3>
                                     <p class="text-sm text-green-100">Enter details to see EDOH & predictions</p>
                                 </div>
                             </div>
                             <button @click="showCropPlanModal = false"
-                                class="p-2 hover:bg-white/20 rounded-lg transition text-white">
+                                class="shrink-0 rounded-lg p-2 text-white transition hover:bg-white/20">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M6 18L18 6M6 6l12 12" />
@@ -709,7 +746,7 @@
                     </div>
 
                     <!-- Modal Footer -->
-                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3">
+                    <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row">
                         <button @click="showCropPlanModal = false"
                             class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition font-medium">
                             Cancel
@@ -723,6 +760,97 @@
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
                             <span x-text="isSubmitting ? 'Saving...' : 'Add to Calendar'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Damage Report Modal -->
+        <div x-show="showDamageModal" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;"
+            @keydown.escape.window="closeDamageModal()">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeDamageModal()"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div x-show="showDamageModal" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                    class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl"
+                    @click.stop>
+
+                    <div class="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h3 class="text-lg font-bold text-white">Damage Report</h3>
+                                <p class="text-sm text-orange-50">Update the damaged area so projected harvest is adjusted for admin reporting.</p>
+                            </div>
+                            <button @click="closeDamageModal()"
+                                class="shrink-0 rounded-lg p-2 text-white transition hover:bg-white/20">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 px-6 py-5">
+                        <div class="rounded-xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+                            <p class="font-semibold" x-text="damageReportForm.crop_name || 'Selected crop plan'"></p>
+                            <p class="mt-1 text-xs text-orange-800">Total area: <span x-text="formatHectares(damageReportForm.area_hectares)"></span></p>
+                            <template x-if="damageReportForm.has_damage_report">
+                                <p class="mt-1 text-xs text-orange-800">Existing report: <span x-text="damageReportForm.damage_cause_label || 'Damage reported'"></span> on <span x-text="damageReportForm.damage_reported_at_formatted || 'recorded date unavailable'"></span></p>
+                            </template>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Damaged Area (Hectares)</label>
+                            <input type="number" x-model="damageReportForm.damaged_area_hectares"
+                                step="0.01" min="0.01" :max="damageReportForm.area_hectares || null"
+                                placeholder="e.g., 1.25"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
+                            <p class="mt-1 text-xs text-gray-500">Enter only the affected portion of the planted area.</p>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Cause of Damage</label>
+                            <select x-model="damageReportForm.damage_cause"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
+                                <option value="">Select a cause...</option>
+                                <template x-for="(label, value) in damageCauseOptions" :key="value">
+                                    <option :value="value" x-text="label"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+                            <textarea x-model="damageReportForm.damage_notes" rows="3"
+                                placeholder="Describe what happened or the current field condition..."
+                                class="w-full resize-none rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500"></textarea>
+                        </div>
+
+                        <template x-if="damagePreviewLoss > 0">
+                            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                Estimated production loss: <span class="font-semibold" x-text="formatMetricTons(damagePreviewLoss)"></span>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row">
+                        <button @click="closeDamageModal()"
+                            class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100">
+                            Cancel
+                        </button>
+                        <button @click="submitDamageReport()" :disabled="!canSubmitDamageReport || isSubmittingDamage"
+                            class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-2.5 font-medium text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50">
+                            <svg x-show="isSubmittingDamage" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span x-text="isSubmittingDamage ? 'Saving...' : (damageReportForm.has_damage_report ? 'Update Damage Report' : 'Submit Damage Report')"></span>
                         </button>
                     </div>
                 </div>
@@ -763,6 +891,7 @@
                     showEventModal: false,
                     showSettingsModal: false,
                     showCropPlanModal: false,
+                    showDamageModal: false,
                     showSuccessToast: false,
                     successMessage: '',
                     selectedDay: null,
@@ -783,6 +912,7 @@
                     showPredictionPreview: false,
                     isCalculating: false,
                     isSubmitting: false,
+                    isSubmittingDamage: false,
                     isDeleting: false,
                     predictionPreview: {
                         edoh_formatted: '',
@@ -799,8 +929,23 @@
                         average_yield_per_hectare: 0
                     },
 
+                    damageReportForm: {
+                        crop_plan_id: null,
+                        crop_name: '',
+                        area_hectares: 0,
+                        original_predicted_production: 0,
+                        damaged_area_hectares: '',
+                        damage_cause: '',
+                        damage_cause_label: '',
+                        damage_notes: '',
+                        damage_reported_at_formatted: '',
+                        has_damage_report: false
+                    },
+
                     // Crop types data with harvest days
                     cropTypesData: @json($cropTypes ?? []),
+
+                    damageCauseOptions: @json(\App\Models\CropPlan::DAMAGE_CAUSE_LABELS),
 
                     // Events from database - includes crop plans
                     allEvents: @json($events ?? []),
@@ -810,6 +955,30 @@
                             this.cropPlanForm.planting_date &&
                             this.cropPlanForm.area_hectares > 0 &&
                             this.showPredictionPreview;
+                    },
+
+                    get canSubmitDamageReport() {
+                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_hectares);
+                        const totalArea = parseFloat(this.damageReportForm.area_hectares);
+
+                        return !!this.damageReportForm.crop_plan_id &&
+                            Number.isFinite(damagedArea) &&
+                            damagedArea > 0 &&
+                            Number.isFinite(totalArea) &&
+                            damagedArea <= totalArea &&
+                            !!this.damageReportForm.damage_cause;
+                    },
+
+                    get damagePreviewLoss() {
+                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_hectares);
+                        const totalArea = parseFloat(this.damageReportForm.area_hectares);
+                        const originalProduction = parseFloat(this.damageReportForm.original_predicted_production);
+
+                        if (!Number.isFinite(damagedArea) || !Number.isFinite(totalArea) || !Number.isFinite(originalProduction) || totalArea <= 0) {
+                            return 0;
+                        }
+
+                        return Math.max(0, Math.round((originalProduction * (damagedArea / totalArea)) * 100) / 100);
                     },
 
                     get selectedCropType() {
@@ -862,6 +1031,126 @@
                     onCropTypeChange() {
                         this.normalizePlantingMaterialType();
                         this.calculatePreview();
+                    },
+
+                    formatMetricTons(value) {
+                        const numericValue = Number(value || 0);
+                        return `${numericValue.toFixed(2)} MT`;
+                    },
+
+                    formatHectares(value) {
+                        const numericValue = Number(value || 0);
+                        return `${numericValue.toFixed(2)} ha`;
+                    },
+
+                    showToast(message) {
+                        this.successMessage = message;
+                        this.showSuccessToast = true;
+
+                        setTimeout(() => {
+                            this.showSuccessToast = false;
+                        }, 4000);
+                    },
+
+                    resetDamageReportForm() {
+                        this.damageReportForm = {
+                            crop_plan_id: null,
+                            crop_name: '',
+                            area_hectares: 0,
+                            original_predicted_production: 0,
+                            damaged_area_hectares: '',
+                            damage_cause: '',
+                            damage_cause_label: '',
+                            damage_notes: '',
+                            damage_reported_at_formatted: '',
+                            has_damage_report: false
+                        };
+                    },
+
+                    closeDamageModal() {
+                        this.showDamageModal = false;
+                        this.resetDamageReportForm();
+                    },
+
+                    openDamageReportModal(event) {
+                        if (!event || !event.crop_plan_id || !event.can_report_damage) {
+                            return;
+                        }
+
+                        this.damageReportForm = {
+                            crop_plan_id: event.crop_plan_id,
+                            crop_name: event.crop_name || event.title || 'Crop plan',
+                            area_hectares: parseFloat(event.area || 0),
+                            original_predicted_production: parseFloat(event.original_predicted_production ?? event.predicted_production ?? 0),
+                            damaged_area_hectares: event.has_damage_report ? parseFloat(event.damaged_area_hectares || 0) : '',
+                            damage_cause: event.damage_cause || '',
+                            damage_cause_label: event.damage_cause_label || '',
+                            damage_notes: event.damage_notes || '',
+                            damage_reported_at_formatted: event.damage_reported_at_formatted || '',
+                            has_damage_report: !!event.has_damage_report
+                        };
+
+                        this.selectedEvent = event;
+                        this.showEventModal = false;
+                        this.showDamageModal = true;
+                    },
+
+                    async refreshCropPlanEvents() {
+                        const response = await fetch('{{ route("farmers.api.crop-plans") }}', {
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok || !data.success) {
+                            throw new Error(data.message || 'Failed to refresh crop plans.');
+                        }
+
+                        this.allEvents = data.events || {};
+                    },
+
+                    async submitDamageReport() {
+                        if (!this.canSubmitDamageReport || this.isSubmittingDamage) {
+                            return;
+                        }
+
+                        this.isSubmittingDamage = true;
+
+                        try {
+                            const response = await fetch(`{{ url('/farmer/api/crop-plans') }}/${this.damageReportForm.crop_plan_id}/damage-report`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    damaged_area_hectares: parseFloat(this.damageReportForm.damaged_area_hectares),
+                                    damage_cause: this.damageReportForm.damage_cause,
+                                    damage_notes: this.damageReportForm.damage_notes
+                                })
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok || !data.success) {
+                                const validationErrors = data.errors ? Object.values(data.errors).flat().join('\n') : null;
+                                throw new Error(validationErrors || data.message || 'Failed to submit damage report.');
+                            }
+
+                            await this.refreshCropPlanEvents();
+                            this.closeDamageModal();
+                            this.selectedEvent = null;
+                            this.selectedDay = null;
+                            this.showToast('Damage report submitted successfully.');
+                        } catch (error) {
+                            console.error('Error submitting damage report:', error);
+                            alert('Failed to submit damage report. Error: ' + error.message);
+                        } finally {
+                            this.isSubmittingDamage = false;
+                        }
                     },
 
                     async calculatePreview() {
@@ -1008,45 +1297,13 @@
                             }
 
                             if (data.success) {
-                                // Add events to calendar
-                                const plantingDate = data.data.planting_date;
-                                const harvestDate = data.data.expected_harvest_date;
-                                const cropName = data.data.crop_name;
-
-                                // Add planting event
-                                if (!this.allEvents[plantingDate]) {
-                                    this.allEvents[plantingDate] = [];
-                                }
-                                this.allEvents[plantingDate].push(data.data.planting_event);
-
-                                // Add harvest event (EDOH)
-                                if (!this.allEvents[harvestDate]) {
-                                    this.allEvents[harvestDate] = [];
-                                }
-                                this.allEvents[harvestDate].push(data.data.harvest_event);
-
-                                // Add fertilizer events
-                                if (data.data.fertilizer_events) {
-                                    for (const [dateKey, dayEvents] of Object.entries(data.data.fertilizer_events)) {
-                                        if (!this.allEvents[dateKey]) {
-                                            this.allEvents[dateKey] = [];
-                                        }
-                                        dayEvents.forEach(event => {
-                                            this.allEvents[dateKey].push(event);
-                                        });
-                                    }
-                                }
+                                await this.refreshCropPlanEvents();
 
                                 // Reset form and close modal
                                 this.resetCropPlanForm();
                                 this.showCropPlanModal = false;
 
-                                // Show success message
-                                this.successMessage = 'Crop plan added! EDOH: ' + data.data.edoh_formatted;
-                                this.showSuccessToast = true;
-                                setTimeout(() => {
-                                    this.showSuccessToast = false;
-                                }, 4000);
+                                this.showToast('Crop plan added! EDOH: ' + data.data.edoh_formatted);
                             } else {
                                 console.error('Server returned error:', data);
                                 alert('Failed to save crop plan: ' + (data.message || 'Unknown error') + (data.error ? '\n\nDetails: ' + data.error : ''));
@@ -1079,25 +1336,14 @@
                             const data = await response.json();
 
                             if (data.success) {
-                                // Remove all events associated with this crop plan
-                                for (const [dateKey, events] of Object.entries(this.allEvents)) {
-                                    this.allEvents[dateKey] = events.filter(e => e.crop_plan_id !== cropPlanId);
-                                    if (this.allEvents[dateKey].length === 0) {
-                                        delete this.allEvents[dateKey];
-                                    }
-                                }
+                                await this.refreshCropPlanEvents();
 
                                 // Close modal
                                 this.showEventModal = false;
                                 this.selectedEvent = null;
                                 this.selectedDay = null;
 
-                                // Show success toast
-                                this.successMessage = 'Crop plan deleted successfully!';
-                                this.showSuccessToast = true;
-                                setTimeout(() => {
-                                    this.showSuccessToast = false;
-                                }, 4000);
+                                this.showToast('Crop plan deleted successfully!');
                             } else {
                                 alert('Failed to delete crop plan: ' + (data.message || 'Unknown error'));
                             }

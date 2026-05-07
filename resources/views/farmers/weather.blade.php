@@ -9,15 +9,15 @@
     </style>
     @endpush
 
-    <div class="space-y-6" x-data="farmerWeather()" x-init="init()">
+    <div class="mx-auto max-w-6xl space-y-6 px-3 py-4 sm:px-6 sm:py-6" x-data="farmerWeather()" x-init="init()">
         <!-- Page Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Weather</h1>
                 <p class="text-sm text-gray-500 mt-1">Real-time weather conditions in Benguet</p>
             </div>
             <button @click="refreshCurrent()" :disabled="loadingCurrent"
-                class="flex items-center gap-2 px-3 py-2 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors">
+                class="inline-flex w-full items-center justify-center gap-2 px-3 py-2 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors sm:w-auto">
                 <svg class="w-4 h-4" :class="loadingCurrent && 'animate-spin'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
@@ -29,7 +29,7 @@
         <div x-show="currentWeather" x-cloak x-transition class="bg-white rounded-xl shadow-lg overflow-hidden">
             <!-- Gradient Header -->
             <div class="bg-gradient-to-r from-sky-500 to-blue-600 px-6 py-6 text-white">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <p class="text-sky-200 text-sm font-medium">Current Weather in</p>
                         <h2 class="text-2xl font-bold mt-1" x-text="currentMunicipality"></h2>
@@ -39,7 +39,7 @@
                             <span x-text="currentWeather?.is_daytime ? 'Daytime' : 'Nighttime'"></span>
                         </p>
                     </div>
-                    <div class="text-right">
+                    <div class="text-left sm:text-right">
                         <div class="text-5xl font-bold leading-none" x-text="currentWeather?.temperature?.display || '--'"></div>
                         <p class="text-sky-200 text-sm mt-2">Feels like <span class="font-semibold text-white" x-text="currentWeather?.feels_like?.display || '--'"></span></p>
                     </div>
@@ -47,7 +47,7 @@
             </div>
 
             <!-- Weather Details -->
-            <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 p-5">
+            <div class="grid grid-cols-2 gap-3 p-5 sm:grid-cols-3 xl:grid-cols-6">
                 <div class="bg-blue-50 rounded-lg p-3 text-center">
                     <p class="text-xs text-gray-500">Humidity</p>
                     <p class="text-lg font-bold text-blue-700 mt-1" x-text="currentWeather?.humidity_percent != null ? currentWeather.humidity_percent + '%' : '--'"></p>

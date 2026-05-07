@@ -2,7 +2,7 @@
     <x-slot name="title">My Profile</x-slot>
 
     <div class="min-h-full bg-gray-50" x-data="profilePage()">
-        <div class="p-6 max-w-4xl mx-auto">
+        <div class="p-3 sm:p-6 max-w-4xl mx-auto">
             <!-- Header -->
             <div class="mb-6">
                 <h1 class="text-2xl font-bold text-gray-800">My Profile</h1>
@@ -11,7 +11,7 @@
 
             <!-- Success Message -->
             @if(session('success'))
-                <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+                <div class="mb-6 flex items-start rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-700 sm:items-center">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
@@ -41,12 +41,12 @@
                             </svg>
                         </div>
                         
-                        <h2 class="text-xl font-bold text-gray-800">{{ $farmer->full_name }}</h2>
+                        <h2 class="break-words text-xl font-bold text-gray-800">{{ $farmer->full_name }}</h2>
                         <p class="text-green-600 font-medium">{{ $farmer->farmer_id }}</p>
                         <p class="text-gray-500 text-sm mt-1">{{ $farmer->municipality_name }}, Benguet</p>
                         
                         <div class="mt-6 pt-6 border-t border-gray-100">
-                            <div class="flex items-center justify-center space-x-2 text-gray-600">
+                            <div class="flex flex-wrap items-center justify-center gap-2 text-gray-600">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                                 </svg>
@@ -73,15 +73,15 @@
                     <div class="bg-white rounded-2xl shadow-sm">
                         <!-- Tabs -->
                         <div class="border-b border-gray-200">
-                            <div class="flex">
+                            <div class="flex flex-col sm:flex-row">
                                 <button @click="activeTab = 'info'" 
                                         :class="activeTab === 'info' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                                        class="flex-1 py-4 text-sm font-medium border-b-2 transition">
+                                        class="py-4 text-sm font-medium border-b-2 transition sm:flex-1">
                                     Personal Information
                                 </button>
                                 <button @click="activeTab = 'password'" 
                                         :class="activeTab === 'password' ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
-                                        class="flex-1 py-4 text-sm font-medium border-b-2 transition">
+                                        class="py-4 text-sm font-medium border-b-2 transition sm:flex-1">
                                     Change Password
                                 </button>
                             </div>
@@ -165,7 +165,7 @@
                                 </div>
                                 
                                 <div class="mt-6 flex justify-end">
-                                    <button type="submit" class="px-6 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition">
+                                    <button type="submit" class="w-full rounded-lg bg-green-500 px-6 py-2 font-medium text-white transition hover:bg-green-600 sm:w-auto">
                                         Save Changes
                                     </button>
                                 </div>
@@ -227,7 +227,7 @@
                                 </div>
                                 
                                 <div class="mt-6 flex justify-end">
-                                    <button type="submit" class="px-6 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition">
+                                    <button type="submit" class="w-full rounded-lg bg-green-500 px-6 py-2 font-medium text-white transition hover:bg-green-600 sm:w-auto">
                                         Update Password
                                     </button>
                                 </div>

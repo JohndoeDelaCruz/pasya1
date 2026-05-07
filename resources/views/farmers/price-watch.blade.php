@@ -10,7 +10,7 @@
                         <h1 class="text-2xl font-bold mb-1">Daily Price Watch</h1>
                         <p class="text-green-100 text-sm">La Trinidad Trading Post Prices</p>
                     </div>
-                    <div class="flex items-center space-x-3">
+                    <div class="flex flex-wrap items-center gap-3 self-start md:self-auto">
                         <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
                             <p class="text-xs text-green-100">Last Updated</p>
                             <p class="font-semibold">{{ now()->format('M d, Y g:i A') }}</p>
@@ -220,18 +220,18 @@
             <div class="flex min-h-full items-center justify-center p-4">
                 <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden" @click.stop>
                     <div class="px-6 py-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex min-w-0 items-center space-x-3">
                                 <div class="w-16 h-16 rounded-xl overflow-hidden bg-white/20 flex items-center justify-center">
                                     <img :src="selectedPrice?.image" :alt="selectedPrice?.name" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                     <span class="text-4xl hidden" x-text="selectedPrice?.emoji"></span>
                                 </div>
-                                <div>
-                                    <h3 class="text-xl font-bold" x-text="selectedPrice?.name"></h3>
+                                <div class="min-w-0">
+                                    <h3 class="break-words text-xl font-bold" x-text="selectedPrice?.name"></h3>
                                     <p class="text-green-100 text-sm" x-text="selectedPrice?.category"></p>
                                 </div>
                             </div>
-                            <button @click="showDetailModal = false" class="p-2 hover:bg-white/20 rounded-lg transition">
+                            <button @click="showDetailModal = false" class="shrink-0 rounded-lg p-2 transition hover:bg-white/20">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -255,15 +255,15 @@
                         </div>
                         
                         <div class="space-y-3">
-                            <div class="flex justify-between p-3 bg-gray-50 rounded-xl">
+                            <div class="flex flex-col gap-1 rounded-xl bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                                 <span class="text-gray-600">Weekly Average</span>
                                 <span class="font-semibold text-gray-800">₱<span x-text="((selectedPrice?.price || 0) * 0.95).toFixed(2)"></span></span>
                             </div>
-                            <div class="flex justify-between p-3 bg-gray-50 rounded-xl">
+                            <div class="flex flex-col gap-1 rounded-xl bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                                 <span class="text-gray-600">Monthly Average</span>
                                 <span class="font-semibold text-gray-800">₱<span x-text="((selectedPrice?.price || 0) * 0.92).toFixed(2)"></span></span>
                             </div>
-                            <div class="flex justify-between p-3 bg-gray-50 rounded-xl">
+                            <div class="flex flex-col gap-1 rounded-xl bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                                 <span class="text-gray-600">Last Year Same Period</span>
                                 <span class="font-semibold text-gray-800">₱<span x-text="((selectedPrice?.price || 0) * 0.85).toFixed(2)"></span></span>
                             </div>

@@ -54,7 +54,7 @@
         }
 
         .summary td {
-            width: 25%;
+            width: 20%;
             border: 1px solid #d1d5db;
             padding: 10px;
             vertical-align: top;
@@ -150,11 +150,15 @@
                 <div class="summary-value">{{ number_format($summary['planned_records']) }}</div>
             </td>
             <td>
+                <div class="summary-label">Damaged Records</div>
+                <div class="summary-value">{{ number_format($summary['damaged_records'] ?? 0) }}</div>
+            </td>
+            <td>
                 <div class="summary-label">Total Area</div>
                 <div class="summary-value">{{ number_format($summary['total_area'], 2) }} ha</div>
             </td>
             <td>
-                <div class="summary-label">Predicted Production</div>
+                <div class="summary-label">Adjusted Production</div>
                 <div class="summary-value">{{ number_format($summary['total_predicted_production'], 2) }} MT</div>
             </td>
         </tr>
@@ -181,7 +185,8 @@
                 <th>Planting</th>
                 <th>Harvest</th>
                 <th>Area (ha)</th>
-                <th>Predicted MT</th>
+                <th>Adjusted MT</th>
+                <th>Damage</th>
                 <th>Farm Type</th>
                 <th>Material</th>
                 <th>Status</th>
@@ -213,10 +218,19 @@
                     <td>{{ optional($record->planting_date)->format('M d, Y') }}</td>
                     <td>{{ optional($record->expected_harvest_date)->format('M d, Y') }}</td>
                     <td>{{ number_format((float) $record->area_hectares, 2) }}</td>
-                    <td>{{ number_format((float) $record->predicted_production, 2) }}</td>
+                    <td>{{ number_format((float) $record->adjusted_predicted_production, 2) }}</td>
+                    <td>
+                        @if ($record->has_damage_report)
+                            {{ number_format((float) $record->damaged_area_hectares, 2) }} ha<br>
+                            <span class="muted">{{ $record->damage_cause_label ?? 'Damage reported' }}</span><br>
+                            <span class="muted">Loss: {{ number_format((float) $record->production_loss_mt, 2) }} MT</span>
+                        @else
+                            <span class="muted">No report</span>
+                        @endif
+                    </td>
                     <td>{{ ucfirst(strtolower((string) $record->farm_type)) }}</td>
                     <td>{{ $record->planting_material_label ?? 'Not set' }}</td>
-                    <td>{{ strtoupper($record->status) }}</td>
+                    <td>{{ strtoupper($record->display_status) }}</td>
                 </tr>
             @endforeach
         </tbody>

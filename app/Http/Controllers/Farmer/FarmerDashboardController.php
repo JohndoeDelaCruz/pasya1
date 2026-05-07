@@ -242,8 +242,9 @@ class FarmerDashboardController extends Controller
             ->map(function ($plan) {
                 $daysUntilHarvest = $plan->days_until_harvest;
                 $progressPercentage = $plan->progress_percentage;
-                $isHarvestReady = $daysUntilHarvest <= 7 && $plan->status !== 'harvested'; // Ready when 7 days or less until harvest
+                $isHarvestReady = $daysUntilHarvest <= 7 && $plan->status !== 'harvested' && !$plan->has_damage_report;
                 $isOverdue = $daysUntilHarvest <= 0 && $plan->status !== 'harvested';
+                $displayStatus = $plan->display_status;
 
                 return [
                     'id' => $plan->id,
@@ -253,15 +254,29 @@ class FarmerDashboardController extends Controller
                         ? $plan->expected_harvest_date->format('M d, Y')
                         : '--',
                     'expectedHarvest' => $plan->expected_harvest_date->format('M d, Y'),
-                    'status' => $plan->status === 'harvested' ? 'Completed' : 'Growing',
+                    'status' => match ($displayStatus) {
+                        'harvested' => 'Completed',
+                        'damaged' => 'Damaged',
+                        default => 'Growing',
+                    },
                     'area' => $plan->area_hectares,
-                    'predictedProduction' => $plan->predicted_production,
+                    'predictedProduction' => $plan->adjusted_predicted_production,
+                    'predictedProductionFormatted' => $plan->formatted_adjusted_production,
+                    'originalPredictedProduction' => $plan->predicted_production,
                     'plan_status' => $plan->status,
+                    'display_status' => $displayStatus,
                     'daysUntilHarvest' => $daysUntilHarvest,
                     'progressPercentage' => $progressPercentage,
                     'isHarvestReady' => $isHarvestReady,
                     'isOverdue' => $isOverdue,
                     'maturityStatus' => $this->getMaturityStatus($daysUntilHarvest, $plan->status),
+                    'hasDamageReport' => $plan->has_damage_report,
+                    'damagedAreaHectares' => $plan->damaged_area_hectares,
+                    'adjustedAreaHectares' => $plan->adjusted_area_hectares,
+                    'productionLossMt' => $plan->production_loss_mt,
+                    'damageCauseLabel' => $plan->damage_cause_label,
+                    'damageNotes' => $plan->damage_notes,
+                    'damageReportedAt' => optional($plan->damage_reported_at)->format('M d, Y h:i A'),
                 ];
             });
 
@@ -326,32 +341,7 @@ class FarmerDashboardController extends Controller
 
         /** @var CropPlan $plan */
         foreach ($cropPlans as $plan) {
-            // Add planting event (includes basal fertilizer note)
-            $plantingKey = $plan->planting_date->format('Y-m-d');
-            if (!isset($events[$plantingKey])) {
-                $events[$plantingKey] = [];
-            }
-            $events[$plantingKey][] = $plan->toPlantingEvent();
-
-            // Add harvest event (EDOH)
-            $harvestKey = $plan->expected_harvest_date->format('Y-m-d');
-            if (!isset($events[$harvestKey])) {
-                $events[$harvestKey] = [];
-            }
-            $events[$harvestKey][] = array_merge($plan->toHarvestEvent(), [
-                'is_edoh' => true,
-            ]);
-
-            // Add fertilizer events (side-dress applications based on growth stages)
-            $fertilizerEvents = $plan->toFertilizerEvents();
-            foreach ($fertilizerEvents as $dateKey => $dayEvents) {
-                if (!isset($events[$dateKey])) {
-                    $events[$dateKey] = [];
-                }
-                foreach ($dayEvents as $event) {
-                    $events[$dateKey][] = $event;
-                }
-            }
+            $this->appendCropPlanEvents($events, $plan);
         }
 
         return $events;
@@ -997,6 +987,64 @@ class FarmerDashboardController extends Controller
         ]);
     }
 
+    public function reportCropDamage(Request $request, CropPlan $cropPlan)
+    {
+        $farmer = Auth::guard('farmer')->user();
+
+        if ($cropPlan->farmer_id !== $farmer->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        if (in_array($cropPlan->status, ['harvested', 'cancelled'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Damage reports can only be submitted for active crop plans.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'damaged_area_hectares' => 'required|numeric|min:0.01|max:' . (float) $cropPlan->area_hectares,
+            'damage_cause' => 'required|string|in:' . implode(',', array_keys(CropPlan::DAMAGE_CAUSE_LABELS)),
+            'damage_notes' => 'nullable|string|max:500',
+        ]);
+
+        $cropPlan->update([
+            'damaged_area_hectares' => $validated['damaged_area_hectares'],
+            'damage_cause' => $validated['damage_cause'],
+            'damage_notes' => $validated['damage_notes'] ?? null,
+            'damage_reported_at' => now(),
+        ]);
+
+        $cropPlan->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Damage report submitted successfully.',
+            'data' => [
+                'crop_plan_id' => $cropPlan->id,
+                'display_status' => $cropPlan->display_status,
+                'damage_cause' => $cropPlan->damage_cause,
+                'damage_cause_label' => $cropPlan->damage_cause_label,
+                'damaged_area_hectares' => (float) $cropPlan->damaged_area_hectares,
+                'adjusted_area_hectares' => $cropPlan->adjusted_area_hectares,
+                'adjusted_predicted_production' => $cropPlan->adjusted_predicted_production,
+                'formatted_adjusted_production' => $cropPlan->formatted_adjusted_production,
+                'production_loss_mt' => $cropPlan->production_loss_mt,
+                'damage_notes' => $cropPlan->damage_notes,
+                'damage_reported_at' => optional($cropPlan->damage_reported_at)->toIso8601String(),
+                'damage_reported_at_formatted' => optional($cropPlan->damage_reported_at)->format('M d, Y h:i A'),
+                'planting_event' => $cropPlan->toPlantingEvent(),
+                'harvest_event' => array_merge($cropPlan->toHarvestEvent(), [
+                    'is_edoh' => true,
+                ]),
+                'fertilizer_events' => $cropPlan->toFertilizerEvents(),
+            ],
+        ]);
+    }
+
     /**
      * Delete a crop plan
      */
@@ -1045,19 +1093,7 @@ class FarmerDashboardController extends Controller
         $events = [];
         /** @var CropPlan $plan */
         foreach ($cropPlans as $plan) {
-            // Add planting event
-            $plantingKey = $plan->planting_date->format('Y-m-d');
-            if (!isset($events[$plantingKey])) {
-                $events[$plantingKey] = [];
-            }
-            $events[$plantingKey][] = $plan->toPlantingEvent();
-
-            // Add harvest event
-            $harvestKey = $plan->expected_harvest_date->format('Y-m-d');
-            if (!isset($events[$harvestKey])) {
-                $events[$harvestKey] = [];
-            }
-            $events[$harvestKey][] = $plan->toHarvestEvent();
+            $this->appendCropPlanEvents($events, $plan);
         }
 
         return response()->json([
@@ -1065,6 +1101,33 @@ class FarmerDashboardController extends Controller
             'events' => $events,
             'plans' => $cropPlans,
         ]);
+    }
+
+    private function appendCropPlanEvents(array &$events, CropPlan $plan): void
+    {
+        $plantingKey = $plan->planting_date->format('Y-m-d');
+        if (!isset($events[$plantingKey])) {
+            $events[$plantingKey] = [];
+        }
+        $events[$plantingKey][] = $plan->toPlantingEvent();
+
+        $harvestKey = $plan->expected_harvest_date->format('Y-m-d');
+        if (!isset($events[$harvestKey])) {
+            $events[$harvestKey] = [];
+        }
+        $events[$harvestKey][] = array_merge($plan->toHarvestEvent(), [
+            'is_edoh' => true,
+        ]);
+
+        foreach ($plan->toFertilizerEvents() as $dateKey => $dayEvents) {
+            if (!isset($events[$dateKey])) {
+                $events[$dateKey] = [];
+            }
+
+            foreach ($dayEvents as $event) {
+                $events[$dateKey][] = $event;
+            }
+        }
     }
 
     /**

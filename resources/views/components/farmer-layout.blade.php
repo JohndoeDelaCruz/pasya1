@@ -39,23 +39,23 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-gray-50" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()">
+<body class="bg-gray-50 overflow-x-hidden" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()">
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-green-700 to-green-800 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0"
+        <aside class="fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0"
                :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
             <div class="flex flex-col h-full">
                 <!-- Farmer Profile Section -->
                 <div class="p-6 border-b border-green-600">
-                    <div class="flex items-center space-x-3">
+                    <div class="flex min-w-0 items-center space-x-3">
                         <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
                             <svg class="w-8 h-8 text-green-700" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
                             </svg>
                         </div>
-                        <div>
-                            <h3 class="font-bold text-sm">{{ Auth::guard('farmer')->user()->full_name }}</h3>
-                            <p class="text-xs text-green-200">{{ Auth::guard('farmer')->user()->farmer_id }}</p>
+                        <div class="min-w-0">
+                            <h3 class="truncate font-bold text-sm">{{ Auth::guard('farmer')->user()->full_name }}</h3>
+                            <p class="truncate text-xs text-green-200">{{ Auth::guard('farmer')->user()->farmer_id }}</p>
                         </div>
                     </div>
                 </div>
@@ -139,23 +139,23 @@
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
             <!-- Top Navigation Bar -->
             <header class="bg-white shadow-sm z-10">
-                <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
                     <!-- Logo -->
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 hover:text-gray-900 mr-4">
+                    <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-2 sm:mr-4">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
                         </button>
                         <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="h-10 w-10 sm:h-11 sm:w-11 object-contain flex-shrink-0">
-                        <img src="{{ asset('images/titleh.png') }}" alt="PASYA Title" class="h-12 sm:h-14 w-auto max-w-[150px] sm:max-w-[190px] object-contain">
+                        <img src="{{ asset('images/titleh.png') }}" alt="PASYA Title" class="h-10 sm:h-14 w-auto min-w-0 max-w-[110px] sm:max-w-[190px] object-contain">
                     </div>
 
                     <!-- Right side icons -->
-                    <div class="flex items-center space-x-4">
+                    <div class="flex shrink-0 items-center space-x-2 sm:space-x-4">
                         <!-- Notifications Dropdown -->
                         <div class="relative" x-data="notificationsDropdown()" x-init="fetchNotifications()">
                             <button @click="notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="text-gray-600 hover:text-gray-900 relative">
@@ -309,7 +309,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="flex-1 overflow-y-auto">
+            <main class="flex-1 min-w-0 overflow-y-auto">
                 {{ $slot }}
             </main>
         </div>
