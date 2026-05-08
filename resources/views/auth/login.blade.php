@@ -59,19 +59,19 @@
 
                         <!-- Farmer ID / Email / Username -->
                         <div>
-                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-1 sm:mb-2" x-text="adminMode ? 'Admin Email / Username' : 'RSBSA/FISHR No.'">RSBSA/FISHR No.</label>
+                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-1 sm:mb-2" x-text="adminMode ? 'Admin Email / Username' : 'RSBSA/FISHR No.'">RSBSA</label>
                             <input 
                                 id="email" 
                                 type="text" 
                                 name="email" 
                                 value="{{ old('email') }}"
-                                :placeholder="adminMode ? 'Enter your admin email or username' : 'Enter your RSBSA/FISHR number'"
+                                :placeholder="adminMode ? 'Enter your admin email or username' : 'Enter your RSBSA'"
                                 required 
                                 autofocus 
                                 autocomplete="username"
                                 class="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
                             />
-                            <p class="mt-1 sm:mt-2 text-xs leading-snug text-green-100" x-text="adminMode ? 'Use your admin account credentials to continue.' : 'Farmers can sign in with their RSBSA/FISHR number.'">Farmers can sign in with their RSBSA/FISHR number.</p>
+                            <p class="mt-1 sm:mt-2 text-xs leading-snug text-green-100" x-text="adminMode ? 'Use your admin account credentials to continue.' : 'Farmers can sign in with their RSBSA/FISHR number.'">Farmers can sign in with their RSBSA.</p>
                             <x-input-error :messages="$errors->get('email')" class="mt-2 text-yellow-300" />
                         </div>
 
