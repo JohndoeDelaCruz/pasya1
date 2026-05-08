@@ -856,7 +856,8 @@ class DataAnalyticsController extends Controller
             ])
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $normalizedSearch = strtolower(trim($search));
-                $searchTerms = collect(preg_split('/[\s,]+/', $normalizedSearch, -1, PREG_SPLIT_NO_EMPTY))
+                $searchTerms = collect(preg_split('/[\s,.]+/', $normalizedSearch, -1, PREG_SPLIT_NO_EMPTY))
+                    ->map(fn ($term) => trim($term))
                     ->filter()
                     ->values();
 
@@ -865,24 +866,24 @@ class DataAnalyticsController extends Controller
                         $searchTerm = '%' . $term . '%';
 
                         $searchQuery->where(function ($termQuery) use ($searchTerm) {
-                            $termQuery->where('crop_name', 'like', $searchTerm)
-                                ->orWhere('municipality', 'like', $searchTerm)
-                                ->orWhere('status', 'like', $searchTerm)
-                                ->orWhere('farm_type', 'like', $searchTerm)
-                                ->orWhere('planting_material_type', 'like', $searchTerm)
-                                ->orWhere('damage_cause', 'like', $searchTerm)
-                                ->orWhere('damage_notes', 'like', $searchTerm)
-                                ->orWhere('notes', 'like', $searchTerm)
+                            $termQuery->whereRaw('LOWER(crop_name) LIKE ?', [$searchTerm])
+                                ->orWhereRaw('LOWER(municipality) LIKE ?', [$searchTerm])
+                                ->orWhereRaw('LOWER(status) LIKE ?', [$searchTerm])
+                                ->orWhereRaw('LOWER(farm_type) LIKE ?', [$searchTerm])
+                                ->orWhereRaw('LOWER(planting_material_type) LIKE ?', [$searchTerm])
+                                ->orWhereRaw('LOWER(damage_cause) LIKE ?', [$searchTerm])
+                                ->orWhereRaw('LOWER(damage_notes) LIKE ?', [$searchTerm])
+                                ->orWhereRaw('LOWER(notes) LIKE ?', [$searchTerm])
                                 ->orWhereHas('farmer', function ($farmerQuery) use ($searchTerm) {
                                     $farmerQuery->withTrashed()
                                         ->where(function ($farmerSearchQuery) use ($searchTerm) {
-                                            $farmerSearchQuery->where('farmer_id', 'like', $searchTerm)
-                                                ->orWhere('first_name', 'like', $searchTerm)
-                                                ->orWhere('middle_name', 'like', $searchTerm)
-                                                ->orWhere('last_name', 'like', $searchTerm)
-                                                ->orWhere('suffix', 'like', $searchTerm)
-                                                ->orWhere('municipality', 'like', $searchTerm)
-                                                ->orWhere('cooperative', 'like', $searchTerm);
+                                            $farmerSearchQuery->whereRaw('LOWER(farmer_id) LIKE ?', [$searchTerm])
+                                                ->orWhereRaw('LOWER(first_name) LIKE ?', [$searchTerm])
+                                                ->orWhereRaw('LOWER(middle_name) LIKE ?', [$searchTerm])
+                                                ->orWhereRaw('LOWER(last_name) LIKE ?', [$searchTerm])
+                                                ->orWhereRaw('LOWER(suffix) LIKE ?', [$searchTerm])
+                                                ->orWhereRaw('LOWER(municipality) LIKE ?', [$searchTerm])
+                                                ->orWhereRaw('LOWER(cooperative) LIKE ?', [$searchTerm]);
                                         });
                                 });
                         });
