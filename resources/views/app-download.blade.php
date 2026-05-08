@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Download the PASYA App</title>
+    <title>Download the ASYA App</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
