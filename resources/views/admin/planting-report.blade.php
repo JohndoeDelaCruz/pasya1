@@ -52,7 +52,7 @@
                             id="search"
                             name="search"
                             value="{{ $filters['search'] ?? '' }}"
-                            placeholder="Farmer name, ID, crop, contact, municipality"
+                            placeholder="Farmer name, ID, crop, municipality"
                             class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
                         >
                     </div>
@@ -143,7 +143,6 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Farmer Details</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Contact</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Crop Plan</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Schedule</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Area &amp; Yield</th>
@@ -176,10 +175,6 @@
                                             @if ($farmer?->trashed())
                                                 <span class="mt-2 inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">Archived farmer</span>
                                             @endif
-                                        </td>
-                                        <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
-                                            <p>{{ $farmer?->mobile_number ?? 'No mobile number' }}</p>
-                                            <p class="mt-1 text-xs text-gray-500 break-all">{{ $farmer?->email ?? 'No email address' }}</p>
                                         </td>
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                             <p class="font-semibold text-gray-900">{{ $record->crop_name }}</p>

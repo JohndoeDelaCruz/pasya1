@@ -746,8 +746,6 @@ class DataAnalyticsController extends Controller
                 'Municipality',
                 'Cooperative',
                 'Archived Farmer',
-                'Mobile Number',
-                'Email',
                 'Crop Name',
                 'Notes',
                 'Planting Date',
@@ -776,8 +774,6 @@ class DataAnalyticsController extends Controller
                         $record->municipality ?? $farmer?->municipality ?? 'N/A',
                         $farmer?->cooperative_display ?? 'N/A',
                         $farmer?->trashed() ? 'Yes' : 'No',
-                        $farmer?->mobile_number ?? 'No mobile number',
-                        $farmer?->email ?? 'No email address',
                         $record->crop_name,
                         $record->notes ?? '',
                         optional($record->planting_date)->format('Y-m-d'),
@@ -855,8 +851,6 @@ class DataAnalyticsController extends Controller
                     'suffix',
                     'municipality',
                     'cooperative',
-                    'mobile_number',
-                    'email',
                     'deleted_at',
                 ]),
             ])
@@ -876,9 +870,7 @@ class DataAnalyticsController extends Controller
                                 ->orWhere('first_name', 'like', $searchTerm)
                                 ->orWhere('middle_name', 'like', $searchTerm)
                                 ->orWhere('last_name', 'like', $searchTerm)
-                                ->orWhere('cooperative', 'like', $searchTerm)
-                                ->orWhere('mobile_number', 'like', $searchTerm)
-                                ->orWhere('email', 'like', $searchTerm);
+                                ->orWhere('cooperative', 'like', $searchTerm);
                         });
 
                     if (str_contains($normalizedSearch, 'damage')) {
@@ -940,4 +932,3 @@ class DataAnalyticsController extends Controller
         return 'planting-report-' . now()->format('Ymd_His') . '.' . $extension;
     }
 }
-

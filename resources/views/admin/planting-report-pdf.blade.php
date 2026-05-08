@@ -180,7 +180,6 @@
                 <th>Farmer</th>
                 <th>Farmer ID</th>
                 <th>Municipality</th>
-                <th>Contact</th>
                 <th>Crop</th>
                 <th>Planting</th>
                 <th>Harvest</th>
@@ -207,10 +206,6 @@
                     </td>
                     <td>{{ $farmer?->farmer_id ?? 'N/A' }}</td>
                     <td>{{ ucwords(strtolower($record->municipality ?? $farmer?->municipality ?? 'N/A')) }}</td>
-                    <td>
-                        {{ $farmer?->mobile_number ?? 'No mobile number' }}<br>
-                        <span class="muted">{{ $farmer?->email ?? 'No email address' }}</span>
-                    </td>
                     <td>
                         <strong>{{ $record->crop_name }}</strong><br>
                         <span class="muted">{{ $record->notes ? \Illuminate\Support\Str::limit($record->notes, 60) : 'No notes' }}</span>
