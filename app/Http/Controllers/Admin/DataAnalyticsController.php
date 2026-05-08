@@ -969,7 +969,7 @@ class DataAnalyticsController extends Controller
 
     private function getPlantingReportStatuses(): array
     {
-        return ['planned', 'planted', 'growing', 'damaged', 'harvested', 'cancelled'];
+        return ['planted', 'growing', 'damaged', 'harvested', 'cancelled'];
     }
 
     private function getPlantingReportCropTypes()
