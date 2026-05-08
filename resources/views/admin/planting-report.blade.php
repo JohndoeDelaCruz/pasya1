@@ -47,7 +47,7 @@
                 <form
                     method="GET"
                     action="{{ route('admin.planting-report') }}"
-                    class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
+                    class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-4"
                     data-auto-filter-form
                 >
                     <div class="xl:col-span-2">
@@ -63,6 +63,22 @@
                     </div>
 
                     <div>
+                        <label for="crop_type" class="block text-sm font-medium text-gray-700 mb-1">Crop Type</label>
+                        <select
+                            id="crop_type"
+                            name="crop_type"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
+                        >
+                            <option value="">All crops</option>
+                            @foreach ($cropTypes as $cropType)
+                                <option value="{{ $cropType }}" @selected(($filters['crop_type'] ?? '') === $cropType)>
+                                    {{ ucwords(strtolower($cropType)) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="municipality" class="block text-sm font-medium text-gray-700 mb-1">Municipality</label>
                         <select
                             id="municipality"
@@ -73,6 +89,22 @@
                             @foreach ($municipalities as $municipality)
                                 <option value="{{ $municipality }}" @selected(($filters['municipality'] ?? '') === $municipality)>
                                     {{ ucwords(strtolower($municipality)) }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="farm_setup" class="block text-sm font-medium text-gray-700 mb-1">Farm Setup</label>
+                        <select
+                            id="farm_setup"
+                            name="farm_setup"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
+                        >
+                            <option value="">All farm setups</option>
+                            @foreach ($farmSetups as $farmSetup)
+                                <option value="{{ $farmSetup }}" @selected(($filters['farm_setup'] ?? '') === $farmSetup)>
+                                    {{ ucfirst(strtolower($farmSetup)) }}
                                 </option>
                             @endforeach
                         </select>
@@ -94,7 +126,71 @@
                         </select>
                     </div>
 
-                    <div class="md:col-span-2 xl:col-span-4 flex flex-wrap items-center gap-3">
+                    <div>
+                        <label for="planting_month" class="block text-sm font-medium text-gray-700 mb-1">Planting Month</label>
+                        <select
+                            id="planting_month"
+                            name="planting_month"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
+                        >
+                            <option value="">Any month</option>
+                            @foreach ($months as $month)
+                                <option value="{{ $month['value'] }}" @selected((string) ($filters['planting_month'] ?? '') === (string) $month['value'])>
+                                    {{ $month['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="planting_year" class="block text-sm font-medium text-gray-700 mb-1">Planting Year</label>
+                        <select
+                            id="planting_year"
+                            name="planting_year"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
+                        >
+                            <option value="">Any year</option>
+                            @foreach ($plantingYears as $year)
+                                <option value="{{ $year }}" @selected((string) ($filters['planting_year'] ?? '') === (string) $year)>
+                                    {{ $year }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="harvest_month" class="block text-sm font-medium text-gray-700 mb-1">Harvest Month</label>
+                        <select
+                            id="harvest_month"
+                            name="harvest_month"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
+                        >
+                            <option value="">Any month</option>
+                            @foreach ($months as $month)
+                                <option value="{{ $month['value'] }}" @selected((string) ($filters['harvest_month'] ?? '') === (string) $month['value'])>
+                                    {{ $month['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="harvest_year" class="block text-sm font-medium text-gray-700 mb-1">Harvest Year</label>
+                        <select
+                            id="harvest_year"
+                            name="harvest_year"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
+                        >
+                            <option value="">Any year</option>
+                            @foreach ($harvestYears as $year)
+                                <option value="{{ $year }}" @selected((string) ($filters['harvest_year'] ?? '') === (string) $year)>
+                                    {{ $year }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2 xl:col-span-6 flex flex-wrap items-center gap-3">
                         <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
                             Apply Filters
                         </button>
@@ -238,7 +334,7 @@
             }
 
             const searchInput = form.querySelector('input[name="search"]');
-            const filterControls = form.querySelectorAll('select[name="municipality"], select[name="status"]');
+            const filterControls = form.querySelectorAll('select');
             let submitTimer;
             let abortController;
 

@@ -710,12 +710,22 @@ class DataAnalyticsController extends Controller
         $plantingRecords = $plantingRecordsQuery->paginate(15)->withQueryString();
         $municipalities = $this->getPlantingReportMunicipalities();
         $statuses = $this->getPlantingReportStatuses();
+        $cropTypes = $this->getPlantingReportCropTypes();
+        $farmSetups = $this->getPlantingReportFarmSetups();
+        $plantingYears = $this->getPlantingReportYears('planting_date');
+        $harvestYears = $this->getPlantingReportYears('expected_harvest_date');
+        $months = $this->getPlantingReportMonths();
 
         return view('admin.planting-report', [
             'plantingRecords' => $plantingRecords,
             'summary' => $summary,
             'municipalities' => $municipalities,
             'statuses' => $statuses,
+            'cropTypes' => $cropTypes,
+            'farmSetups' => $farmSetups,
+            'plantingYears' => $plantingYears,
+            'harvestYears' => $harvestYears,
+            'months' => $months,
             'filters' => $validated,
         ]);
     }
@@ -835,6 +845,12 @@ class DataAnalyticsController extends Controller
             'search' => 'nullable|string|max:255',
             'status' => 'nullable|in:' . implode(',', $this->getPlantingReportStatuses()),
             'municipality' => 'nullable|string|max:255',
+            'crop_type' => 'nullable|string|max:255',
+            'planting_month' => 'nullable|integer|between:1,12',
+            'planting_year' => 'nullable|integer|between:1900,2100',
+            'harvest_month' => 'nullable|integer|between:1,12',
+            'harvest_year' => 'nullable|integer|between:1900,2100',
+            'farm_setup' => 'nullable|string|max:255',
         ]);
     }
 
@@ -907,6 +923,24 @@ class DataAnalyticsController extends Controller
             ->when($filters['municipality'] ?? null, function ($query, $municipality) {
                 $query->where('municipality', $municipality);
             })
+            ->when($filters['crop_type'] ?? null, function ($query, $cropType) {
+                $query->where('crop_name', $cropType);
+            })
+            ->when($filters['planting_month'] ?? null, function ($query, $month) {
+                $query->whereMonth('planting_date', (int) $month);
+            })
+            ->when($filters['planting_year'] ?? null, function ($query, $year) {
+                $query->whereYear('planting_date', (int) $year);
+            })
+            ->when($filters['harvest_month'] ?? null, function ($query, $month) {
+                $query->whereMonth('expected_harvest_date', (int) $month);
+            })
+            ->when($filters['harvest_year'] ?? null, function ($query, $year) {
+                $query->whereYear('expected_harvest_date', (int) $year);
+            })
+            ->when($filters['farm_setup'] ?? null, function ($query, $farmSetup) {
+                $query->where('farm_type', $farmSetup);
+            })
             ->latest('planting_date')
             ->latest('created_at');
     }
@@ -936,6 +970,45 @@ class DataAnalyticsController extends Controller
     private function getPlantingReportStatuses(): array
     {
         return ['planned', 'planted', 'growing', 'damaged', 'harvested', 'cancelled'];
+    }
+
+    private function getPlantingReportCropTypes()
+    {
+        return CropPlan::query()
+            ->whereNotNull('crop_name')
+            ->distinct()
+            ->orderBy('crop_name')
+            ->pluck('crop_name');
+    }
+
+    private function getPlantingReportFarmSetups()
+    {
+        return CropPlan::query()
+            ->whereNotNull('farm_type')
+            ->distinct()
+            ->orderBy('farm_type')
+            ->pluck('farm_type');
+    }
+
+    private function getPlantingReportYears(string $column)
+    {
+        return CropPlan::query()
+            ->whereNotNull($column)
+            ->pluck($column)
+            ->map(fn ($date) => \Carbon\Carbon::parse($date)->year)
+            ->unique()
+            ->sortDesc()
+            ->values();
+    }
+
+    private function getPlantingReportMonths(): array
+    {
+        return collect(range(1, 12))
+            ->map(fn ($month) => [
+                'value' => $month,
+                'label' => \Carbon\Carbon::create(null, $month, 1)->format('F'),
+            ])
+            ->all();
     }
 
     private function getFilledPlantingReportFilters(array $filters): array

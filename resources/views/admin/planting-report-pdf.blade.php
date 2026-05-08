@@ -123,6 +123,12 @@
         $activeFilters = collect([
             'Search' => $filters['search'] ?? null,
             'Municipality' => $filters['municipality'] ?? null,
+            'Crop Type' => $filters['crop_type'] ?? null,
+            'Planting Month' => isset($filters['planting_month']) && filled($filters['planting_month']) ? \Carbon\Carbon::create(null, (int) $filters['planting_month'], 1)->format('F') : null,
+            'Planting Year' => $filters['planting_year'] ?? null,
+            'Harvest Month' => isset($filters['harvest_month']) && filled($filters['harvest_month']) ? \Carbon\Carbon::create(null, (int) $filters['harvest_month'], 1)->format('F') : null,
+            'Harvest Year' => $filters['harvest_year'] ?? null,
+            'Farm Setup' => isset($filters['farm_setup']) && filled($filters['farm_setup']) ? ucfirst(strtolower($filters['farm_setup'])) : null,
             'Status' => isset($filters['status']) && filled($filters['status']) ? ucfirst($filters['status']) : null,
         ])->filter(fn ($value) => filled($value));
     @endphp
