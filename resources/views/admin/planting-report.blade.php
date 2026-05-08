@@ -14,7 +14,7 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mb-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mb-5" data-summary-cards>
                 <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
                     <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Records</p>
                     <p class="mt-1 text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_records']) }}</p>
@@ -44,7 +44,12 @@
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
-                <form method="GET" action="{{ route('admin.planting-report') }}" class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                <form
+                    method="GET"
+                    action="{{ route('admin.planting-report') }}"
+                    class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
+                    data-auto-filter-form
+                >
                     <div class="xl:col-span-2">
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
                         <input
@@ -97,7 +102,7 @@
                             Reset
                         </a>
 
-                        <div class="ml-auto flex flex-wrap items-center gap-3">
+                        <div class="ml-auto flex flex-wrap items-center gap-3" data-export-actions>
                             @if ($hasRecords)
                                 <a href="{{ route('admin.planting-report.export.csv', $exportFilters) }}" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">
                                     Export CSV
@@ -118,7 +123,7 @@
                 </form>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" data-report-results>
                 <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
                     <div>
                         <h2 class="text-lg font-semibold text-gray-900">Planting Records</h2>
@@ -223,4 +228,98 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('[data-auto-filter-form]');
+
+            if (!form) {
+                return;
+            }
+
+            const searchInput = form.querySelector('input[name="search"]');
+            const filterControls = form.querySelectorAll('select[name="municipality"], select[name="status"]');
+            let submitTimer;
+            let abortController;
+
+            const getFilterUrl = () => {
+                const formData = new FormData(form);
+                const params = new URLSearchParams();
+
+                formData.forEach((value, key) => {
+                    const normalizedValue = String(value).trim();
+
+                    if (normalizedValue !== '') {
+                        params.set(key, normalizedValue);
+                    }
+                });
+
+                const queryString = params.toString();
+                return queryString ? `${form.action}?${queryString}` : form.action;
+            };
+
+            const replaceSection = (doc, selector) => {
+                const currentSection = document.querySelector(selector);
+                const updatedSection = doc.querySelector(selector);
+
+                if (currentSection && updatedSection) {
+                    currentSection.outerHTML = updatedSection.outerHTML;
+                }
+            };
+
+            const submitFilters = async () => {
+                window.clearTimeout(submitTimer);
+
+                const targetUrl = getFilterUrl();
+
+                if (targetUrl !== window.location.href) {
+                    window.history.replaceState({}, '', targetUrl);
+                }
+
+                abortController?.abort();
+                const activeController = new AbortController();
+                abortController = activeController;
+
+                document.querySelector('[data-report-results]')?.setAttribute('aria-busy', 'true');
+
+                try {
+                    const response = await fetch(targetUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        signal: activeController.signal,
+                    });
+
+                    if (!response.ok) {
+                        window.location.href = targetUrl;
+                        return;
+                    }
+
+                    const html = await response.text();
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    replaceSection(doc, '[data-summary-cards]');
+                    replaceSection(doc, '[data-export-actions]');
+                    replaceSection(doc, '[data-report-results]');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        window.location.href = targetUrl;
+                    }
+                } finally {
+                    if (abortController === activeController) {
+                        document.querySelector('[data-report-results]')?.removeAttribute('aria-busy');
+                    }
+                }
+            };
+
+            searchInput?.addEventListener('input', () => {
+                window.clearTimeout(submitTimer);
+                submitTimer = window.setTimeout(submitFilters, 450);
+            });
+
+            filterControls.forEach((control) => {
+                control.addEventListener('change', submitFilters);
+            });
+        });
+    </script>
 </x-admin-layout>

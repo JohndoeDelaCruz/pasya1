@@ -855,26 +855,41 @@ class DataAnalyticsController extends Controller
                 ]),
             ])
             ->when($filters['search'] ?? null, function ($query, $search) {
-                $searchTerm = '%' . trim($search) . '%';
                 $normalizedSearch = strtolower(trim($search));
+                $searchTerms = collect(preg_split('/[\s,]+/', $normalizedSearch, -1, PREG_SPLIT_NO_EMPTY))
+                    ->filter()
+                    ->values();
 
-                $query->where(function ($nestedQuery) use ($searchTerm, $normalizedSearch) {
-                    $nestedQuery->where('crop_name', 'like', $searchTerm)
-                        ->orWhere('municipality', 'like', $searchTerm)
-                        ->orWhere('status', 'like', $searchTerm)
-                        ->orWhere('damage_cause', 'like', $searchTerm)
-                        ->orWhere('damage_notes', 'like', $searchTerm)
-                        ->orWhereHas('farmer', function ($farmerQuery) use ($searchTerm) {
-                            $farmerQuery->withTrashed()
-                                ->where('farmer_id', 'like', $searchTerm)
-                                ->orWhere('first_name', 'like', $searchTerm)
-                                ->orWhere('middle_name', 'like', $searchTerm)
-                                ->orWhere('last_name', 'like', $searchTerm)
-                                ->orWhere('cooperative', 'like', $searchTerm);
+                $query->where(function ($searchQuery) use ($searchTerms, $normalizedSearch) {
+                    $searchTerms->each(function ($term) use ($searchQuery) {
+                        $searchTerm = '%' . $term . '%';
+
+                        $searchQuery->where(function ($termQuery) use ($searchTerm) {
+                            $termQuery->where('crop_name', 'like', $searchTerm)
+                                ->orWhere('municipality', 'like', $searchTerm)
+                                ->orWhere('status', 'like', $searchTerm)
+                                ->orWhere('farm_type', 'like', $searchTerm)
+                                ->orWhere('planting_material_type', 'like', $searchTerm)
+                                ->orWhere('damage_cause', 'like', $searchTerm)
+                                ->orWhere('damage_notes', 'like', $searchTerm)
+                                ->orWhere('notes', 'like', $searchTerm)
+                                ->orWhereHas('farmer', function ($farmerQuery) use ($searchTerm) {
+                                    $farmerQuery->withTrashed()
+                                        ->where(function ($farmerSearchQuery) use ($searchTerm) {
+                                            $farmerSearchQuery->where('farmer_id', 'like', $searchTerm)
+                                                ->orWhere('first_name', 'like', $searchTerm)
+                                                ->orWhere('middle_name', 'like', $searchTerm)
+                                                ->orWhere('last_name', 'like', $searchTerm)
+                                                ->orWhere('suffix', 'like', $searchTerm)
+                                                ->orWhere('municipality', 'like', $searchTerm)
+                                                ->orWhere('cooperative', 'like', $searchTerm);
+                                        });
+                                });
                         });
+                    });
 
                     if (str_contains($normalizedSearch, 'damage')) {
-                        $nestedQuery->orWhereNotNull('damage_reported_at');
+                        $searchQuery->orWhereNotNull('damage_reported_at');
                     }
                 });
             })
