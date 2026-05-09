@@ -94,6 +94,13 @@
                     <!-- Municipality Details Panel - Slides from right -->
                     <button id="details-backdrop" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed inset-0 z-[1900] hidden bg-slate-900/40 backdrop-blur-sm [touch-action:manipulation]"></button>
 
+                    <button id="details-floating-close" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed right-4 top-[calc(env(safe-area-inset-top)+1rem)] z-[2100] hidden items-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-2xl ring-1 ring-gray-200 [touch-action:manipulation]">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                        <span>Close</span>
+                    </button>
+
                     <div id="details-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="panel-municipality-name" class="fixed inset-y-0 right-0 z-[2000] w-full translate-x-full overflow-y-auto overscroll-contain bg-white shadow-2xl transition-transform duration-300 ease-in-out [-webkit-overflow-scrolling:touch] [touch-action:pan-y] sm:w-[400px] lg:w-[450px]">
                         <div class="p-4 lg:p-6">
                             <!-- Panel Header -->
@@ -500,10 +507,13 @@ ${legendItems}
         function closeDetailsPanel() {
             const panel = document.getElementById('details-panel');
             const backdrop = document.getElementById('details-backdrop');
+            const floatingClose = document.getElementById('details-floating-close');
 
             panel.classList.add('translate-x-full');
             panel.setAttribute('aria-hidden', 'true');
             backdrop.classList.add('hidden');
+            floatingClose.classList.add('hidden');
+            floatingClose.classList.remove('inline-flex');
             document.body.classList.remove('overflow-hidden');
             currentMunicipality = null;
         }
@@ -511,11 +521,14 @@ ${legendItems}
         function openDetailsPanel() {
             const panel = document.getElementById('details-panel');
             const backdrop = document.getElementById('details-backdrop');
+            const floatingClose = document.getElementById('details-floating-close');
 
             panel.scrollTop = 0;
             panel.classList.remove('translate-x-full');
             panel.setAttribute('aria-hidden', 'false');
             backdrop.classList.remove('hidden');
+            floatingClose.classList.remove('hidden');
+            floatingClose.classList.add('inline-flex');
             document.body.classList.add('overflow-hidden');
         }
 
