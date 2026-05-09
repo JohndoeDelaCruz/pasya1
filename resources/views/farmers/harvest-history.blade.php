@@ -84,7 +84,7 @@
                                 </div>
 
                                 <div class="mt-4 border-t border-green-200 pt-4">
-                                    <template x-if="record.status === 'Growing'">
+                                    <template x-if="record.status === 'Growing' || record.status === 'Damaged'">
                                         <div class="space-y-2">
                                             <div class="flex items-center space-x-2">
                                                 <div class="h-2 flex-1 rounded-full bg-gray-200">
@@ -94,7 +94,7 @@
                                                 <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                             </div>
                                             <button @click="handleAction(record)"
-                                                    class="w-full rounded-lg px-3 py-2 text-sm font-medium transition bg-green-500 hover:bg-green-600 text-white"
+                                                    class="w-full rounded-lg px-2 py-1.5 text-xs font-medium transition bg-green-500 hover:bg-green-600 text-white"
                                                     :class="{
                                                         'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
                                                         'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
@@ -106,7 +106,7 @@
                                     </template>
                                     <template x-if="record.status === 'Completed'">
                                         <button @click="handleAction(record)"
-                                                class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50 hover:text-blue-700">
+                                                class="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-50 hover:text-blue-700">
                                             🌱 Plant Again
                                         </button>
                                     </template>
@@ -194,7 +194,7 @@
                                             </div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <template x-if="record.status === 'Growing'">
+                                            <template x-if="record.status === 'Growing' || record.status === 'Damaged'">
                                                 <div class="flex flex-col gap-1.5">
                                                     <div class="flex items-center space-x-2">
                                                         <div class="w-16 bg-gray-200 rounded-full h-2">
@@ -204,7 +204,7 @@
                                                         <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                                     </div>
                                                     <button @click="handleAction(record)"
-                                                            class="px-3 py-1.5 text-sm font-medium rounded-lg transition text-white bg-green-500 hover:bg-green-600"
+                                                            class="px-2 py-1 text-xs font-medium rounded-lg transition text-white bg-green-500 hover:bg-green-600"
                                                             :class="{
                                                                 'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
                                                                 'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
@@ -217,7 +217,7 @@
                                             <!-- Show Plant Again for completed harvests -->
                                             <template x-if="record.status === 'Completed'">
                                                 <button @click="handleAction(record)"
-                                                        class="text-sm font-medium text-blue-600 hover:text-blue-700 transition">
+                                                        class="text-xs font-medium text-blue-600 hover:text-blue-700 transition">
                                                     🌱 Plant Again
                                                 </button>
                                             </template>
@@ -672,7 +672,7 @@
                 },
                 
                 async handleAction(record) {
-                    if (record.status === 'Growing') {
+                    if (record.status === 'Growing' || record.status === 'Damaged') {
                         // Open harvest date modal
                         this.pendingHarvestRecord = record;
                         this.actualHarvestDate = new Date().toISOString().split('T')[0];
