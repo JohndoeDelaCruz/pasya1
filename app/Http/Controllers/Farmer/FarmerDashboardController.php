@@ -976,9 +976,15 @@ class FarmerDashboardController extends Controller
 
         $validated = $request->validate([
             'status' => 'required|in:planned,planted,growing,harvested,cancelled',
+            'actual_harvest_date' => 'nullable|date',
         ]);
 
-        $cropPlan->update(['status' => $validated['status']]);
+        $updateData = ['status' => $validated['status']];
+        if (!empty($validated['actual_harvest_date'])) {
+            $updateData['actual_harvest_date'] = $validated['actual_harvest_date'];
+        }
+
+        $cropPlan->update($updateData);
 
         return response()->json([
             'success' => true,

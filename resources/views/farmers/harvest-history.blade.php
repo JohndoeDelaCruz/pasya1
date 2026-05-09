@@ -84,29 +84,29 @@
                                 </div>
 
                                 <div class="mt-4 border-t border-green-200 pt-4">
-                                    <template x-if="record.status === 'Growing' && record.isHarvestReady">
-                                        <button @click="handleAction(record)"
-                                                class="w-full rounded-lg px-3 py-2 text-sm font-medium transition"
-                                                :class="{
-                                                    'bg-red-500 hover:bg-red-600 text-white': record.maturityStatus === 'overdue',
-                                                    'bg-amber-500 hover:bg-amber-600 text-white': record.maturityStatus === 'ready',
-                                                    'bg-yellow-500 hover:bg-yellow-600 text-white': record.maturityStatus === 'almost_ready'
-                                                }">
-                                            🌾 Finish Harvest
-                                        </button>
-                                    </template>
-                                    <template x-if="record.status === 'Growing' && !record.isHarvestReady">
-                                        <div class="flex items-center space-x-2">
-                                            <div class="h-2 flex-1 rounded-full bg-gray-200">
-                                                <div class="h-2 rounded-full bg-green-500"
-                                                     :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                    <template x-if="record.status === 'Growing' || record.status === 'Damaged'">
+                                        <div class="space-y-2">
+                                            <div class="flex items-center space-x-2">
+                                                <div class="h-2 flex-1 rounded-full bg-gray-200">
+                                                    <div class="h-2 rounded-full bg-green-500"
+                                                         :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                                </div>
+                                                <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                             </div>
-                                            <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
+                                            <button @click="handleAction(record)"
+                                                    class="w-full rounded-lg px-2 py-1.5 text-xs font-medium transition bg-green-500 hover:bg-green-600 text-white"
+                                                    :class="{
+                                                        'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
+                                                        'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
+                                                        'bg-yellow-500 hover:bg-yellow-600': record.maturityStatus === 'almost_ready'
+                                                    }">
+                                                🌾 Finish Harvest
+                                            </button>
                                         </div>
                                     </template>
                                     <template x-if="record.status === 'Completed'">
                                         <button @click="handleAction(record)"
-                                                class="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50 hover:text-blue-700">
+                                                class="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-50 hover:text-blue-700">
                                             🌱 Plant Again
                                         </button>
                                     </template>
@@ -194,32 +194,30 @@
                                             </div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <!-- Show Finish Harvest button only when harvest is approaching (7 days or less) -->
-                                            <template x-if="record.status === 'Growing' && record.isHarvestReady">
-                                                <button @click="handleAction(record)" 
-                                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition"
-                                                        :class="{
-                                                            'bg-red-500 hover:bg-red-600 text-white': record.maturityStatus === 'overdue',
-                                                            'bg-amber-500 hover:bg-amber-600 text-white': record.maturityStatus === 'ready',
-                                                            'bg-yellow-500 hover:bg-yellow-600 text-white': record.maturityStatus === 'almost_ready'
-                                                        }">
-                                                    🌾 Finish Harvest
-                                                </button>
-                                            </template>
-                                            <!-- Show growing status for crops not yet ready -->
-                                            <template x-if="record.status === 'Growing' && !record.isHarvestReady">
-                                                <div class="flex items-center space-x-2">
-                                                    <div class="w-16 bg-gray-200 rounded-full h-2">
-                                                        <div class="bg-green-500 h-2 rounded-full" 
-                                                             :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                            <template x-if="record.status === 'Growing' || record.status === 'Damaged'">
+                                                <div class="flex flex-col gap-1.5">
+                                                    <div class="flex items-center space-x-2">
+                                                        <div class="w-16 bg-gray-200 rounded-full h-2">
+                                                            <div class="bg-green-500 h-2 rounded-full"
+                                                                 :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                                        </div>
+                                                        <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                                     </div>
-                                                    <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
+                                                    <button @click="handleAction(record)"
+                                                            class="px-2 py-1 text-xs font-medium rounded-lg transition text-white bg-green-500 hover:bg-green-600"
+                                                            :class="{
+                                                                'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
+                                                                'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
+                                                                'bg-yellow-500 hover:bg-yellow-600': record.maturityStatus === 'almost_ready'
+                                                            }">
+                                                        🌾 Finish Harvest
+                                                    </button>
                                                 </div>
                                             </template>
                                             <!-- Show Plant Again for completed harvests -->
                                             <template x-if="record.status === 'Completed'">
-                                                <button @click="handleAction(record)" 
-                                                        class="text-sm font-medium text-blue-600 hover:text-blue-700 transition">
+                                                <button @click="handleAction(record)"
+                                                        class="text-xs font-medium text-blue-600 hover:text-blue-700 transition">
                                                     🌱 Plant Again
                                                 </button>
                                             </template>
@@ -377,6 +375,65 @@
                             </a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Harvest Date Modal -->
+        <div x-show="showHarvestModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             style="display: none;"
+             @keydown.escape.window="showHarvestModal = false">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showHarvestModal = false"></div>
+
+            <div x-show="showHarvestModal"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 z-10"
+                 @click.stop>
+
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">🌾 Record Harvest Date</h3>
+                    <button @click="showHarvestModal = false" class="rounded-lg p-1.5 transition hover:bg-gray-100">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <p class="text-sm text-gray-600 mb-4">
+                    Enter the actual date you harvested
+                    <strong x-text="pendingHarvestRecord?.cropType"></strong>.
+                </p>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Actual Harvest Date</label>
+                    <input type="date"
+                           x-model="actualHarvestDate"
+                           :max="new Date().toISOString().split('T')[0]"
+                           class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500">
+                </div>
+
+                <div class="flex gap-3">
+                    <button @click="showHarvestModal = false"
+                            class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button @click="submitHarvest()"
+                            class="flex-1 rounded-xl bg-green-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-600">
+                        Confirm Harvest
+                    </button>
                 </div>
             </div>
         </div>
@@ -582,6 +639,9 @@
             return {
                 showDetailsModal: false,
                 selectedCrop: null,
+                showHarvestModal: false,
+                pendingHarvestRecord: null,
+                actualHarvestDate: '',
                 
                 // Harvest History Data from database (farmer's crop plans)
                 harvestHistory: @json($cropPlans ?? []),
@@ -612,32 +672,53 @@
                 },
                 
                 async handleAction(record) {
-                    if (record.status === 'Growing') {
-                        // Harvest Now action - update status via API
-                        try {
-                            const response = await fetch(`{{ url('farmer/api/crop-plans') }}/${record.id}/status`, {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                    'Accept': 'application/json'
-                                },
-                                body: JSON.stringify({ status: 'harvested' })
-                            });
-                            
-                            const data = await response.json();
-                            if (data.success) {
-                                record.status = 'Completed';
-                                record.dateHarvested = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                                alert('Crop marked as harvested!');
-                            }
-                        } catch (error) {
-                            console.error('Error updating status:', error);
-                            alert('Failed to update. Please try again.');
-                        }
+                    if (record.status === 'Growing' || record.status === 'Damaged') {
+                        // Open harvest date modal
+                        this.pendingHarvestRecord = record;
+                        this.actualHarvestDate = new Date().toISOString().split('T')[0];
+                        this.showHarvestModal = true;
                     } else {
                         // Plant Again action - redirect to calendar to create new plan
                         window.location.href = '{{ route("farmers.calendar") }}';
+                    }
+                },
+
+                async submitHarvest() {
+                    const record = this.pendingHarvestRecord;
+                    if (!record) return;
+
+                    try {
+                        const response = await fetch(`{{ url('farmer/api/crop-plans') }}/${record.id}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                status: 'harvested',
+                                actual_harvest_date: this.actualHarvestDate || null,
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            record.status = 'Completed';
+                            if (this.actualHarvestDate) {
+                                const d = new Date(this.actualHarvestDate + 'T00:00:00');
+                                record.dateHarvested = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            } else {
+                                record.dateHarvested = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            }
+                            this.showHarvestModal = false;
+                            this.pendingHarvestRecord = null;
+                            this.actualHarvestDate = '';
+                        } else {
+                            alert('Failed to update. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Error updating status:', error);
+                        alert('Failed to update. Please try again.');
                     }
                 }
             }
