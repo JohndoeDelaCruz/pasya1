@@ -20,14 +20,14 @@
             'values' => [$plannedRecords, $damagedRecords, $otherRecords],
         ];
         $cropDistribution = collect($summary['crop_distribution'] ?? []);
-        $topCropDistribution = $cropDistribution->take(6)->values();
-        $remainingCropRecords = (int) $cropDistribution->skip(6)->sum('records');
+        $topCropDistribution = $cropDistribution->take(4)->values();
+        $remainingCropRecords = (int) $cropDistribution->skip(4)->sum('records');
         $visibleCropDistribution = $remainingCropRecords > 0
             ? $topCropDistribution->push([
                 'label' => 'Other crops',
                 'records' => $remainingCropRecords,
-                'area' => (float) $cropDistribution->skip(6)->sum('area'),
-                'production' => (float) $cropDistribution->skip(6)->sum('production'),
+                'area' => (float) $cropDistribution->skip(4)->sum('area'),
+                'production' => (float) $cropDistribution->skip(4)->sum('production'),
             ])
             : $topCropDistribution;
         $topCropRecordCount = max(1, (int) $visibleCropDistribution->max('records'));
@@ -46,7 +46,7 @@
             @endif
 
             <div class="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-12" data-summary-cards>
-                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-5">
+                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-4">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Record Status</p>
@@ -107,7 +107,7 @@
                     </div>
                 </section>
 
-                <section class="grid gap-4 md:grid-cols-2 xl:col-span-7">
+                <section class="grid gap-4 md:grid-cols-2 xl:col-span-4 xl:grid-cols-1">
                     <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
                         <div class="flex items-start justify-between gap-3">
                             <div>
@@ -174,7 +174,7 @@
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-12">
+                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-4">
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Crops Planted</p>
@@ -185,8 +185,8 @@
                         </span>
                     </div>
 
-                    <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start">
-                        <div class="h-64 min-h-0">
+                    <div class="mt-4 grid gap-4 sm:grid-cols-[minmax(0,10rem)_1fr] sm:items-center">
+                        <div class="relative mx-auto h-40 w-40">
                             <canvas
                                 id="planting-crop-chart"
                                 data-planting-crop-chart
@@ -194,16 +194,20 @@
                                 aria-label="Crop distribution by planting records"
                                 role="img"
                             ></canvas>
+                            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                                <span class="text-xl font-bold leading-none text-gray-900">{{ number_format($totalRecords) }}</span>
+                                <span class="mt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500">crop records</span>
+                            </div>
                         </div>
 
-                        <div class="space-y-3">
+                        <div class="space-y-2">
                             @forelse ($visibleCropDistribution as $crop)
                                 @php
                                     $cropRecords = (int) ($crop['records'] ?? 0);
                                     $cropArea = (float) ($crop['area'] ?? 0);
                                     $cropProduction = (float) ($crop['production'] ?? 0);
                                 @endphp
-                                <div>
+                                <div class="rounded-xl bg-gray-50 px-3 py-2">
                                     <div class="flex items-center justify-between gap-3">
                                         <p class="min-w-0 truncate text-sm font-semibold text-gray-800">{{ $crop['label'] }}</p>
                                         <p class="shrink-0 text-sm font-bold text-gray-900">{{ number_format($cropRecords) }}</p>
@@ -211,7 +215,7 @@
                                     <div class="mt-1 h-2 overflow-hidden rounded-full bg-gray-100" aria-hidden="true">
                                         <div class="h-full rounded-full bg-emerald-500" style="width: {{ $percentOf($cropRecords, $topCropRecordCount) }}%"></div>
                                     </div>
-                                    <p class="mt-1 text-xs text-gray-500">{{ number_format($cropArea, 2) }} ha, {{ number_format($cropProduction, 2) }} MT adjusted</p>
+                                    <p class="mt-1 truncate text-xs text-gray-500">{{ number_format($cropArea, 2) }} ha, {{ number_format($cropProduction, 2) }} MT</p>
                                 </div>
                             @empty
                                 <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
@@ -617,51 +621,28 @@
                     : [];
                 const hasData = values.some(value => value > 0);
                 const chartLabels = hasData ? labels : ['No crops'];
-                const chartValues = hasData ? values : [0];
+                const chartValues = hasData ? values : [1];
                 const chartColors = hasData
                     ? ['#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6', '#06b6d4', '#fb923c', '#9ca3af']
                     : ['#e5e7eb'];
 
                 plantingCropChart = new Chart(canvas, {
-                    type: 'bar',
+                    type: 'doughnut',
                     data: {
                         labels: chartLabels,
                         datasets: [{
                             label: 'Planting records',
                             data: chartValues,
                             backgroundColor: chartColors.slice(0, chartValues.length),
-                            borderRadius: 999,
-                            borderSkipped: false,
-                            maxBarThickness: 18,
+                            borderColor: '#ffffff',
+                            borderWidth: 3,
+                            hoverOffset: hasData ? 5 : 0,
                         }],
                     },
                     options: {
-                        indexAxis: 'y',
                         responsive: true,
                         maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: '#f3f4f6',
-                                },
-                                ticks: {
-                                    precision: 0,
-                                    color: '#6b7280',
-                                },
-                            },
-                            y: {
-                                grid: {
-                                    display: false,
-                                },
-                                ticks: {
-                                    color: '#374151',
-                                    font: {
-                                        weight: '600',
-                                    },
-                                },
-                            },
-                        },
+                        cutout: '64%',
                         plugins: {
                             legend: {
                                 display: false,
@@ -670,9 +651,11 @@
                                 enabled: hasData,
                                 callbacks: {
                                     label(context) {
+                                        const total = chartValues.reduce((sum, value) => sum + value, 0);
                                         const value = chartValues[context.dataIndex] || 0;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
 
-                                        return `${value.toLocaleString()} record${value === 1 ? '' : 's'}`;
+                                        return `${chartLabels[context.dataIndex]}: ${value.toLocaleString()} record${value === 1 ? '' : 's'} (${percentage}%)`;
                                     },
                                 },
                             },
