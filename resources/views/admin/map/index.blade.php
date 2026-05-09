@@ -92,17 +92,17 @@
                     </div>
 
                     <!-- Municipality Details Panel - Slides from right -->
-                    <button id="details-backdrop" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed inset-0 z-[1900] hidden bg-slate-900/40 backdrop-blur-sm [touch-action:manipulation]"></button>
+                    <button id="details-backdrop" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed inset-0 z-[9990] hidden bg-slate-900/40 backdrop-blur-sm [touch-action:manipulation]"></button>
 
-                    <button id="details-floating-close" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed right-4 top-[calc(env(safe-area-inset-top)+1rem)] z-[2100] hidden items-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-2xl ring-1 ring-gray-200 [touch-action:manipulation]">
+                    <button id="details-floating-close" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed bottom-[calc(env(safe-area-inset-bottom)+1rem)] right-4 z-[10020] hidden items-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-2xl ring-1 ring-gray-200 [touch-action:manipulation] sm:bottom-auto sm:top-4">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                         <span>Close</span>
                     </button>
 
-                    <div id="details-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="panel-municipality-name" class="fixed inset-y-0 right-0 z-[2000] w-full translate-x-full overflow-y-auto overscroll-contain bg-white shadow-2xl transition-transform duration-300 ease-in-out [-webkit-overflow-scrolling:touch] [touch-action:pan-y] sm:w-[400px] lg:w-[450px]">
-                        <div class="p-4 lg:p-6">
+                    <div id="details-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="panel-municipality-name" class="fixed inset-0 z-[10000] w-full translate-x-full overflow-y-auto overscroll-contain bg-white shadow-2xl transition-transform duration-300 ease-in-out [-webkit-overflow-scrolling:touch] [touch-action:pan-y] sm:inset-y-0 sm:left-auto sm:right-0 sm:w-[400px] lg:w-[450px]">
+                        <div class="p-4 pt-[calc(env(safe-area-inset-top)+1rem)] lg:p-6 sm:pt-4">
                             <!-- Panel Header -->
                             <div class="sticky top-0 z-20 -mx-4 -mt-4 mb-4 border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur lg:-mx-6 lg:-mt-6 lg:mb-6 lg:px-6 lg:py-4">
                                 <div class="flex items-start justify-between gap-3">
@@ -504,6 +504,16 @@ ${legendItems}
         let cropContributionChart = null;
         let currentMunicipality = null;
 
+        function mountDetailsPanelLayer() {
+            ['details-backdrop', 'details-floating-close', 'details-panel'].forEach(id => {
+                const element = document.getElementById(id);
+
+                if (element && element.parentElement !== document.body) {
+                    document.body.appendChild(element);
+                }
+            });
+        }
+
         function closeDetailsPanel() {
             const panel = document.getElementById('details-panel');
             const backdrop = document.getElementById('details-backdrop');
@@ -896,6 +906,9 @@ ${legendItems}
         });
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', initMap);
+        document.addEventListener('DOMContentLoaded', () => {
+            mountDetailsPanelLayer();
+            initMap();
+        });
     </script>
 </x-admin-layout>
