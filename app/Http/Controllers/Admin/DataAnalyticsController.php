@@ -952,7 +952,12 @@ class DataAnalyticsController extends Controller
         return [
             'total_records' => $records->count(),
             'total_area' => (float) $records->sum(fn ($record) => (float) $record->area_hectares),
+            'total_damaged_area' => (float) $records->sum(fn ($record) => $record->has_damage_report
+                ? min((float) ($record->damaged_area_hectares ?? 0), (float) $record->area_hectares)
+                : 0),
+            'total_original_production' => (float) $records->sum(fn ($record) => (float) ($record->predicted_production ?? 0)),
             'total_predicted_production' => (float) $records->sum(fn ($record) => (float) $record->adjusted_predicted_production),
+            'total_production_loss' => (float) $records->sum(fn ($record) => (float) $record->production_loss_mt),
             'planned_records' => $records->where('display_status', 'planned')->count(),
             'damaged_records' => $records->where('display_status', 'damaged')->count(),
         ];

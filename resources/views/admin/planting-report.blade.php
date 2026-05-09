@@ -4,6 +4,21 @@
     @php
         $hasRecords = $plantingRecords->total() > 0;
         $exportFilters = collect($filters)->filter(fn ($value) => filled($value))->all();
+        $totalRecords = (int) ($summary['total_records'] ?? 0);
+        $plannedRecords = (int) ($summary['planned_records'] ?? 0);
+        $damagedRecords = (int) ($summary['damaged_records'] ?? 0);
+        $otherRecords = max(0, $totalRecords - $plannedRecords - $damagedRecords);
+        $totalArea = (float) ($summary['total_area'] ?? 0);
+        $damagedArea = min((float) ($summary['total_damaged_area'] ?? 0), $totalArea);
+        $productiveArea = max(0, $totalArea - $damagedArea);
+        $totalOriginalProduction = (float) ($summary['total_original_production'] ?? 0);
+        $totalAdjustedProduction = (float) ($summary['total_predicted_production'] ?? 0);
+        $totalProductionLoss = min((float) ($summary['total_production_loss'] ?? 0), max($totalOriginalProduction, 0));
+        $percentOf = fn ($value, $total) => $total > 0 ? min(100, round(((float) $value / (float) $total) * 100, 1)) : 0;
+        $statusChartData = [
+            'labels' => ['Planned', 'Damaged', 'Other'],
+            'values' => [$plannedRecords, $damagedRecords, $otherRecords],
+        ];
     @endphp
 
     <div class="min-h-full bg-gray-50">
@@ -14,33 +29,134 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3 mb-5" data-summary-cards>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Records</p>
-                    <p class="mt-1 text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_records']) }}</p>
-                </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Planned Records</p>
-                    <p class="mt-1 text-2xl font-bold leading-none text-emerald-600">{{ number_format($summary['planned_records']) }}</p>
-                </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Damaged Records</p>
-                    <p class="mt-1 text-2xl font-bold leading-none text-amber-600">{{ number_format($summary['damaged_records'] ?? 0) }}</p>
-                </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Area</p>
-                    <div class="mt-1 flex items-end gap-2">
-                        <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_area'], 2) }}</p>
-                        <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">ha</p>
+            <div class="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-12" data-summary-cards>
+                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-5">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Record Status</p>
+                            <h2 class="mt-1 text-base font-semibold text-gray-900">Planting report mix</h2>
+                        </div>
+                        <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                            {{ number_format($totalRecords) }} total
+                        </span>
                     </div>
-                </div>
-                <div class="bg-white rounded-xl border border-gray-100 shadow-sm px-4 py-3">
-                    <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Adjusted Production</p>
-                    <div class="mt-1 flex items-end gap-2">
-                        <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($summary['total_predicted_production'], 2) }}</p>
-                        <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">MT</p>
+
+                    <div class="mt-4 grid gap-4 sm:grid-cols-[minmax(0,12rem)_1fr] sm:items-center">
+                        <div class="relative mx-auto h-44 w-44">
+                            <canvas
+                                id="planting-status-chart"
+                                data-planting-status-chart
+                                data-status-summary='@json($statusChartData)'
+                                aria-label="Planting status distribution"
+                                role="img"
+                            ></canvas>
+                            <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-2xl font-bold leading-none text-gray-900">{{ number_format($totalRecords) }}</span>
+                                <span class="mt-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">records</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                                    <span class="text-sm font-medium text-gray-700">Planned</span>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-gray-900">{{ number_format($plannedRecords) }}</p>
+                                    <p class="text-[11px] text-gray-500">{{ $percentOf($plannedRecords, $totalRecords) }}%</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between gap-3 rounded-xl bg-orange-50 px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-orange-400"></span>
+                                    <span class="text-sm font-medium text-gray-700">Damaged</span>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-gray-900">{{ number_format($damagedRecords) }}</p>
+                                    <p class="text-[11px] text-gray-500">{{ $percentOf($damagedRecords, $totalRecords) }}%</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-gray-300"></span>
+                                    <span class="text-sm font-medium text-gray-700">Other</span>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-gray-900">{{ number_format($otherRecords) }}</p>
+                                    <p class="text-[11px] text-gray-500">{{ $percentOf($otherRecords, $totalRecords) }}%</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </section>
+
+                <section class="grid gap-4 md:grid-cols-2 xl:col-span-7">
+                    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Area</p>
+                                <div class="mt-1 flex items-end gap-2">
+                                    <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($totalArea, 2) }}</p>
+                                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">ha</p>
+                                </div>
+                            </div>
+                            <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                                {{ $percentOf($productiveArea, $totalArea) }}% productive
+                            </span>
+                        </div>
+
+                        <div class="mt-5">
+                            <div class="flex h-3 overflow-hidden rounded-full bg-gray-100" aria-hidden="true">
+                                <span class="bg-emerald-500" style="width: {{ $percentOf($productiveArea, $totalArea) }}%"></span>
+                                <span class="bg-orange-400" style="width: {{ $percentOf($damagedArea, $totalArea) }}%"></span>
+                            </div>
+                            <div class="mt-4 grid grid-cols-2 gap-3">
+                                <div class="rounded-xl bg-emerald-50 px-3 py-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Productive</p>
+                                    <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($productiveArea, 2) }} ha</p>
+                                </div>
+                                <div class="rounded-xl bg-orange-50 px-3 py-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-orange-700">Damaged</p>
+                                    <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($damagedArea, 2) }} ha</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Production</p>
+                                <div class="mt-1 flex items-end gap-2">
+                                    <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($totalAdjustedProduction, 2) }}</p>
+                                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">MT adjusted</p>
+                                </div>
+                            </div>
+                            <span class="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+                                {{ $percentOf($totalProductionLoss, max($totalOriginalProduction, $totalAdjustedProduction + $totalProductionLoss)) }}% loss
+                            </span>
+                        </div>
+
+                        <div class="mt-5">
+                            <div class="flex h-3 overflow-hidden rounded-full bg-gray-100" aria-hidden="true">
+                                <span class="bg-emerald-500" style="width: {{ $percentOf($totalAdjustedProduction, max($totalOriginalProduction, $totalAdjustedProduction + $totalProductionLoss)) }}%"></span>
+                                <span class="bg-orange-400" style="width: {{ $percentOf($totalProductionLoss, max($totalOriginalProduction, $totalAdjustedProduction + $totalProductionLoss)) }}%"></span>
+                            </div>
+                            <div class="mt-4 grid grid-cols-2 gap-3">
+                                <div class="rounded-xl bg-emerald-50 px-3 py-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Adjusted</p>
+                                    <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($totalAdjustedProduction, 2) }} MT</p>
+                                </div>
+                                <div class="rounded-xl bg-orange-50 px-3 py-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-orange-700">Loss</p>
+                                    <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($totalProductionLoss, 2) }} MT</p>
+                                </div>
+                            </div>
+                            <p class="mt-3 text-xs text-gray-500">Original estimate: {{ number_format($totalOriginalProduction, 2) }} MT</p>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6">
@@ -325,8 +441,83 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            let plantingStatusChart = null;
+
+            const destroyPlantingStatusChart = () => {
+                if (plantingStatusChart) {
+                    plantingStatusChart.destroy();
+                    plantingStatusChart = null;
+                }
+            };
+
+            const initPlantingStatusChart = () => {
+                const canvas = document.querySelector('[data-planting-status-chart]');
+
+                destroyPlantingStatusChart();
+
+                if (!canvas || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                let statusSummary = { labels: ['Planned', 'Damaged', 'Other'], values: [0, 0, 0] };
+
+                try {
+                    statusSummary = JSON.parse(canvas.dataset.statusSummary || '{}');
+                } catch (error) {
+                    statusSummary = { labels: ['Planned', 'Damaged', 'Other'], values: [0, 0, 0] };
+                }
+
+                const labels = Array.isArray(statusSummary.labels) ? statusSummary.labels : ['Planned', 'Damaged', 'Other'];
+                const values = Array.isArray(statusSummary.values)
+                    ? statusSummary.values.map(value => Number(value) || 0)
+                    : [0, 0, 0];
+                const hasData = values.some(value => value > 0);
+                const chartValues = hasData ? values : [1];
+                const chartLabels = hasData ? labels : ['No records'];
+                const chartColors = hasData ? ['#10b981', '#fb923c', '#d1d5db'] : ['#e5e7eb'];
+
+                plantingStatusChart = new Chart(canvas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            data: chartValues,
+                            backgroundColor: chartColors,
+                            borderColor: '#ffffff',
+                            borderWidth: 3,
+                            hoverOffset: hasData ? 5 : 0,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                enabled: hasData,
+                                callbacks: {
+                                    label(context) {
+                                        const total = values.reduce((sum, value) => sum + value, 0);
+                                        const value = values[context.dataIndex] || 0;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+
+                                        return `${labels[context.dataIndex]}: ${value.toLocaleString()} (${percentage}%)`;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            };
+
+            initPlantingStatusChart();
+
             const form = document.querySelector('[data-auto-filter-form]');
 
             if (!form) {
@@ -394,7 +585,9 @@
                     const html = await response.text();
                     const doc = new DOMParser().parseFromString(html, 'text/html');
 
+                    destroyPlantingStatusChart();
                     replaceSection(doc, '[data-summary-cards]');
+                    initPlantingStatusChart();
                     replaceSection(doc, '[data-export-actions]');
                     replaceSection(doc, '[data-report-results]');
                 } catch (error) {
