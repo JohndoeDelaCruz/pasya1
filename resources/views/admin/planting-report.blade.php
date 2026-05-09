@@ -19,6 +19,22 @@
             'labels' => ['Planned', 'Damaged', 'Other'],
             'values' => [$plannedRecords, $damagedRecords, $otherRecords],
         ];
+        $cropDistribution = collect($summary['crop_distribution'] ?? []);
+        $topCropDistribution = $cropDistribution->take(6)->values();
+        $remainingCropRecords = (int) $cropDistribution->skip(6)->sum('records');
+        $visibleCropDistribution = $remainingCropRecords > 0
+            ? $topCropDistribution->push([
+                'label' => 'Other crops',
+                'records' => $remainingCropRecords,
+                'area' => (float) $cropDistribution->skip(6)->sum('area'),
+                'production' => (float) $cropDistribution->skip(6)->sum('production'),
+            ])
+            : $topCropDistribution;
+        $topCropRecordCount = max(1, (int) $visibleCropDistribution->max('records'));
+        $cropChartData = [
+            'labels' => $visibleCropDistribution->pluck('label')->values()->all(),
+            'values' => $visibleCropDistribution->pluck('records')->values()->all(),
+        ];
     @endphp
 
     <div class="min-h-full bg-gray-50">
@@ -154,6 +170,55 @@
                                 </div>
                             </div>
                             <p class="mt-3 text-xs text-gray-500">Original estimate: {{ number_format($totalOriginalProduction, 2) }} MT</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-12">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Crops Planted</p>
+                            <h2 class="mt-1 text-base font-semibold text-gray-900">Crop mix by planting records</h2>
+                        </div>
+                        <span class="inline-flex w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                            {{ number_format($cropDistribution->count()) }} crop type{{ $cropDistribution->count() === 1 ? '' : 's' }}
+                        </span>
+                    </div>
+
+                    <div class="mt-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start">
+                        <div class="h-64 min-h-0">
+                            <canvas
+                                id="planting-crop-chart"
+                                data-planting-crop-chart
+                                data-crop-summary='@json($cropChartData)'
+                                aria-label="Crop distribution by planting records"
+                                role="img"
+                            ></canvas>
+                        </div>
+
+                        <div class="space-y-3">
+                            @forelse ($visibleCropDistribution as $crop)
+                                @php
+                                    $cropRecords = (int) ($crop['records'] ?? 0);
+                                    $cropArea = (float) ($crop['area'] ?? 0);
+                                    $cropProduction = (float) ($crop['production'] ?? 0);
+                                @endphp
+                                <div>
+                                    <div class="flex items-center justify-between gap-3">
+                                        <p class="min-w-0 truncate text-sm font-semibold text-gray-800">{{ $crop['label'] }}</p>
+                                        <p class="shrink-0 text-sm font-bold text-gray-900">{{ number_format($cropRecords) }}</p>
+                                    </div>
+                                    <div class="mt-1 h-2 overflow-hidden rounded-full bg-gray-100" aria-hidden="true">
+                                        <div class="h-full rounded-full bg-emerald-500" style="width: {{ $percentOf($cropRecords, $topCropRecordCount) }}%"></div>
+                                    </div>
+                                    <p class="mt-1 text-xs text-gray-500">{{ number_format($cropArea, 2) }} ha, {{ number_format($cropProduction, 2) }} MT adjusted</p>
+                                </div>
+                            @empty
+                                <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
+                                    <p class="text-sm font-semibold text-gray-700">No crops to visualize</p>
+                                    <p class="mt-1 text-xs text-gray-500">Matching planting records will appear here.</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
                 </section>
@@ -445,12 +510,25 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let plantingStatusChart = null;
+            let plantingCropChart = null;
 
             const destroyPlantingStatusChart = () => {
                 if (plantingStatusChart) {
                     plantingStatusChart.destroy();
                     plantingStatusChart = null;
                 }
+            };
+
+            const destroyPlantingCropChart = () => {
+                if (plantingCropChart) {
+                    plantingCropChart.destroy();
+                    plantingCropChart = null;
+                }
+            };
+
+            const destroySummaryCharts = () => {
+                destroyPlantingStatusChart();
+                destroyPlantingCropChart();
             };
 
             const initPlantingStatusChart = () => {
@@ -516,7 +594,99 @@
                 });
             };
 
-            initPlantingStatusChart();
+            const initPlantingCropChart = () => {
+                const canvas = document.querySelector('[data-planting-crop-chart]');
+
+                destroyPlantingCropChart();
+
+                if (!canvas || typeof Chart === 'undefined') {
+                    return;
+                }
+
+                let cropSummary = { labels: [], values: [] };
+
+                try {
+                    cropSummary = JSON.parse(canvas.dataset.cropSummary || '{}');
+                } catch (error) {
+                    cropSummary = { labels: [], values: [] };
+                }
+
+                const labels = Array.isArray(cropSummary.labels) ? cropSummary.labels : [];
+                const values = Array.isArray(cropSummary.values)
+                    ? cropSummary.values.map(value => Number(value) || 0)
+                    : [];
+                const hasData = values.some(value => value > 0);
+                const chartLabels = hasData ? labels : ['No crops'];
+                const chartValues = hasData ? values : [0];
+                const chartColors = hasData
+                    ? ['#10b981', '#0ea5e9', '#f59e0b', '#8b5cf6', '#06b6d4', '#fb923c', '#9ca3af']
+                    : ['#e5e7eb'];
+
+                plantingCropChart = new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: chartLabels,
+                        datasets: [{
+                            label: 'Planting records',
+                            data: chartValues,
+                            backgroundColor: chartColors.slice(0, chartValues.length),
+                            borderRadius: 999,
+                            borderSkipped: false,
+                            maxBarThickness: 18,
+                        }],
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f3f4f6',
+                                },
+                                ticks: {
+                                    precision: 0,
+                                    color: '#6b7280',
+                                },
+                            },
+                            y: {
+                                grid: {
+                                    display: false,
+                                },
+                                ticks: {
+                                    color: '#374151',
+                                    font: {
+                                        weight: '600',
+                                    },
+                                },
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                enabled: hasData,
+                                callbacks: {
+                                    label(context) {
+                                        const value = chartValues[context.dataIndex] || 0;
+
+                                        return `${value.toLocaleString()} record${value === 1 ? '' : 's'}`;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            };
+
+            const initSummaryCharts = () => {
+                initPlantingStatusChart();
+                initPlantingCropChart();
+            };
+
+            initSummaryCharts();
 
             const form = document.querySelector('[data-auto-filter-form]');
 
@@ -585,9 +755,9 @@
                     const html = await response.text();
                     const doc = new DOMParser().parseFromString(html, 'text/html');
 
-                    destroyPlantingStatusChart();
+                    destroySummaryCharts();
                     replaceSection(doc, '[data-summary-cards]');
-                    initPlantingStatusChart();
+                    initSummaryCharts();
                     replaceSection(doc, '[data-export-actions]');
                     replaceSection(doc, '[data-report-results]');
                 } catch (error) {

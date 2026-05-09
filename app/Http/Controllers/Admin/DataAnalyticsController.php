@@ -948,6 +948,25 @@ class DataAnalyticsController extends Controller
     private function getPlantingReportSummary(Builder $plantingRecordsQuery): array
     {
         $records = (clone $plantingRecordsQuery)->get();
+        $cropDistribution = $records
+            ->groupBy(function ($record) {
+                $cropName = trim((string) ($record->crop_name ?? ''));
+
+                return strtoupper($cropName !== '' ? $cropName : 'Unspecified');
+            })
+            ->map(function ($cropRecords) {
+                $cropName = trim((string) ($cropRecords->first()?->crop_name ?? ''));
+
+                return [
+                    'label' => ucwords(strtolower($cropName !== '' ? $cropName : 'Unspecified')),
+                    'records' => $cropRecords->count(),
+                    'area' => (float) $cropRecords->sum(fn ($record) => (float) $record->area_hectares),
+                    'production' => (float) $cropRecords->sum(fn ($record) => (float) $record->adjusted_predicted_production),
+                ];
+            })
+            ->sortByDesc('records')
+            ->values()
+            ->all();
 
         return [
             'total_records' => $records->count(),
@@ -960,6 +979,7 @@ class DataAnalyticsController extends Controller
             'total_production_loss' => (float) $records->sum(fn ($record) => (float) $record->production_loss_mt),
             'planned_records' => $records->where('display_status', 'planned')->count(),
             'damaged_records' => $records->where('display_status', 'damaged')->count(),
+            'crop_distribution' => $cropDistribution,
         ];
     }
 
