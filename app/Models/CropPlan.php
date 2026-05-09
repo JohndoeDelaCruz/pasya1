@@ -59,11 +59,13 @@ class CropPlan extends Model
         'damage_notes',
         'damage_reported_at',
         'notes',
+        'actual_harvest_date',
     ];
 
     protected $casts = [
         'planting_date' => 'date',
         'expected_harvest_date' => 'date',
+        'actual_harvest_date' => 'date',
         'area_hectares' => 'decimal:2',
         'damaged_area_hectares' => 'decimal:2',
         'predicted_production' => 'decimal:2',

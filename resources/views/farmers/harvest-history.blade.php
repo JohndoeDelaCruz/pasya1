@@ -382,6 +382,65 @@
         </div>
     </div>
 
+        <!-- Harvest Date Modal -->
+        <div x-show="showHarvestModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             style="display: none;"
+             @keydown.escape.window="showHarvestModal = false">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showHarvestModal = false"></div>
+
+            <div x-show="showHarvestModal"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 z-10"
+                 @click.stop>
+
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">🌾 Record Harvest Date</h3>
+                    <button @click="showHarvestModal = false" class="rounded-lg p-1.5 transition hover:bg-gray-100">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <p class="text-sm text-gray-600 mb-4">
+                    Enter the actual date you harvested
+                    <strong x-text="pendingHarvestRecord?.cropType"></strong>.
+                </p>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Actual Harvest Date</label>
+                    <input type="date"
+                           x-model="actualHarvestDate"
+                           :max="new Date().toISOString().split('T')[0]"
+                           class="w-full rounded-xl border border-gray-300 px-4 py-2.5 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500">
+                </div>
+
+                <div class="flex gap-3">
+                    <button @click="showHarvestModal = false"
+                            class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button @click="submitHarvest()"
+                            class="flex-1 rounded-xl bg-green-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-green-600">
+                        Confirm Harvest
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
         // Get base URL for assets
@@ -582,6 +641,9 @@
             return {
                 showDetailsModal: false,
                 selectedCrop: null,
+                showHarvestModal: false,
+                pendingHarvestRecord: null,
+                actualHarvestDate: '',
                 
                 // Harvest History Data from database (farmer's crop plans)
                 harvestHistory: @json($cropPlans ?? []),
@@ -613,31 +675,52 @@
                 
                 async handleAction(record) {
                     if (record.status === 'Growing') {
-                        // Harvest Now action - update status via API
-                        try {
-                            const response = await fetch(`{{ url('farmer/api/crop-plans') }}/${record.id}/status`, {
-                                method: 'PATCH',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                    'Accept': 'application/json'
-                                },
-                                body: JSON.stringify({ status: 'harvested' })
-                            });
-                            
-                            const data = await response.json();
-                            if (data.success) {
-                                record.status = 'Completed';
-                                record.dateHarvested = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                                alert('Crop marked as harvested!');
-                            }
-                        } catch (error) {
-                            console.error('Error updating status:', error);
-                            alert('Failed to update. Please try again.');
-                        }
+                        // Open harvest date modal
+                        this.pendingHarvestRecord = record;
+                        this.actualHarvestDate = new Date().toISOString().split('T')[0];
+                        this.showHarvestModal = true;
                     } else {
                         // Plant Again action - redirect to calendar to create new plan
                         window.location.href = '{{ route("farmers.calendar") }}';
+                    }
+                },
+
+                async submitHarvest() {
+                    const record = this.pendingHarvestRecord;
+                    if (!record) return;
+
+                    try {
+                        const response = await fetch(`{{ url('farmer/api/crop-plans') }}/${record.id}/status`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                status: 'harvested',
+                                actual_harvest_date: this.actualHarvestDate || null,
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success) {
+                            record.status = 'Completed';
+                            if (this.actualHarvestDate) {
+                                const d = new Date(this.actualHarvestDate + 'T00:00:00');
+                                record.dateHarvested = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            } else {
+                                record.dateHarvested = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            }
+                            this.showHarvestModal = false;
+                            this.pendingHarvestRecord = null;
+                            this.actualHarvestDate = '';
+                        } else {
+                            alert('Failed to update. Please try again.');
+                        }
+                    } catch (error) {
+                        console.error('Error updating status:', error);
+                        alert('Failed to update. Please try again.');
                     }
                 }
             }
