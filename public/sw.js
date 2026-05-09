@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pasya-farmer-v6';
+const CACHE_NAME = 'pasya-farmer-v7';
 const OFFLINE_URL = '/offline.html';
 const APP_LAUNCH_URL = '/app';
 
@@ -30,8 +30,14 @@ const isNetworkOnlyPath = (pathname) => {
     return NETWORK_ONLY_PATH_PREFIXES.some((prefix) => matchesPathPrefix(pathname, prefix));
 };
 
+const isHtmlResponse = (response) => {
+    const contentType = response.headers.get('content-type') || '';
+
+    return contentType.includes('text/html');
+};
+
 const shouldCacheResponse = (response) => {
-    return response && response.status === 200 && !response.redirected;
+    return response && response.status === 200 && !response.redirected && !isHtmlResponse(response);
 };
 
 // Assets to cache immediately on install
@@ -93,25 +99,11 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // For page navigations, prefer fresh network HTML and fallback to cache/offline.
+    // For page navigations, always prefer fresh network HTML so CSRF tokens never come from cache.
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request)
-                .then((response) => {
-                    if (shouldCacheResponse(response)) {
-                        const responseClone = response.clone();
-                        event.waitUntil(
-                            caches.open(CACHE_NAME).then((cache) => {
-                                cache.put(event.request, responseClone);
-                            })
-                        );
-                    }
-                    return response;
-                })
-                .catch(async () => {
-                    const cachedPage = await caches.match(event.request);
-                    return cachedPage || caches.match(OFFLINE_URL);
-                })
+                .catch(() => caches.match(OFFLINE_URL))
         );
         return;
     }
