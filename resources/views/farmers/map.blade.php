@@ -88,21 +88,24 @@
                     </div>
 
                     <!-- Municipality Details Panel - Slides from right -->
-                    <button id="details-backdrop" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed inset-0 z-[1900] hidden bg-slate-900/40 backdrop-blur-sm"></button>
+                    <button id="details-backdrop" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed inset-0 z-[1900] hidden bg-slate-900/40 backdrop-blur-sm [touch-action:manipulation]"></button>
 
-                    <div id="details-panel" class="fixed inset-x-0 bottom-0 top-24 z-[2000] translate-y-full overflow-y-auto rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:left-auto sm:right-0 sm:top-0 sm:bottom-0 sm:w-[400px] sm:translate-y-0 sm:translate-x-full sm:rounded-none lg:w-[450px]">
+                    <div id="details-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="panel-municipality-name" class="fixed inset-x-0 bottom-0 top-24 z-[2000] translate-y-full overflow-y-auto overscroll-contain rounded-t-3xl bg-white shadow-2xl transition-transform duration-300 ease-in-out [touch-action:pan-y] [-webkit-overflow-scrolling:touch] sm:left-auto sm:right-0 sm:top-0 sm:bottom-0 sm:w-[400px] sm:translate-y-0 sm:translate-x-full sm:rounded-none lg:w-[450px]">
                         <div class="p-4 lg:p-6">
-                            <!-- Close Button -->
-                            <button onclick="closeDetailsPanel()" class="absolute top-3 right-3 lg:top-4 lg:right-4 text-gray-500 hover:text-gray-700">
-                                <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-
                             <!-- Panel Header -->
-                            <div class="mb-4 lg:mb-6 pr-8">
-                                <h2 id="panel-municipality-name" class="text-xl lg:text-2xl font-bold text-gray-800 mb-2">Municipality Name</h2>
-                                <p class="text-xs lg:text-sm text-gray-600">Click on municipality data below</p>
+                            <div class="sticky top-0 z-20 -mx-4 -mt-4 mb-4 rounded-t-3xl border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur lg:-mx-6 lg:-mt-6 lg:mb-6 lg:px-6 lg:py-4 sm:rounded-none">
+                                <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-gray-300 sm:hidden" aria-hidden="true"></div>
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <h2 id="panel-municipality-name" class="truncate text-xl font-bold text-gray-800 lg:text-2xl">Municipality Name</h2>
+                                        <p class="mt-1 text-xs text-gray-600 lg:text-sm">Click on municipality data below</p>
+                                    </div>
+                                    <button type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 shadow-sm transition-colors hover:bg-gray-200 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 [touch-action:manipulation]">
+                                        <svg class="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Loading Indicator -->
@@ -534,18 +537,55 @@ ${legendItems}
         let cropChart = null;
         let cropContributionChart = null;
         let currentMunicipality = null;
+        let detailsPanelTouchStartY = null;
 
         function closeDetailsPanel() {
-            document.getElementById('details-panel').classList.add('translate-y-full', 'sm:translate-x-full');
-            document.getElementById('details-backdrop').classList.add('hidden');
+            const panel = document.getElementById('details-panel');
+            const backdrop = document.getElementById('details-backdrop');
+
+            panel.classList.add('translate-y-full', 'sm:translate-x-full');
+            panel.setAttribute('aria-hidden', 'true');
+            backdrop.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
             currentMunicipality = null;
         }
 
         function openDetailsPanel() {
-            document.getElementById('details-panel').classList.remove('translate-y-full', 'sm:translate-x-full');
-            document.getElementById('details-backdrop').classList.remove('hidden');
+            const panel = document.getElementById('details-panel');
+            const backdrop = document.getElementById('details-backdrop');
+
+            panel.scrollTop = 0;
+            panel.classList.remove('translate-y-full', 'sm:translate-x-full');
+            panel.setAttribute('aria-hidden', 'false');
+            backdrop.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
+        }
+
+        function setupDetailsPanelExitControls() {
+            const panel = document.getElementById('details-panel');
+
+            panel.addEventListener('touchstart', event => {
+                if (!isSmallScreen() || event.touches.length !== 1) {
+                    return;
+                }
+
+                detailsPanelTouchStartY = event.touches[0].clientY;
+            }, { passive: true });
+
+            panel.addEventListener('touchend', event => {
+                if (!isSmallScreen() || detailsPanelTouchStartY === null || event.changedTouches.length !== 1) {
+                    detailsPanelTouchStartY = null;
+                    return;
+                }
+
+                const swipeDistance = event.changedTouches[0].clientY - detailsPanelTouchStartY;
+
+                if (swipeDistance > 90 && panel.scrollTop <= 0) {
+                    closeDetailsPanel();
+                }
+
+                detailsPanelTouchStartY = null;
+            }, { passive: true });
         }
 
         async function loadMunicipalityDetails(municipalityName) {
@@ -917,6 +957,9 @@ ${legendItems}
         });
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', initMap);
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDetailsPanelExitControls();
+            initMap();
+        });
     </script>
 </x-farmer-layout>

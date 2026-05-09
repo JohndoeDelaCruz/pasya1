@@ -92,19 +92,23 @@
                     </div>
 
                     <!-- Municipality Details Panel - Slides from right -->
-                    <div id="details-panel" class="fixed top-0 right-0 h-full bg-white shadow-2xl z-[2000] transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto w-full sm:w-[400px] lg:w-[450px]">
-                        <div class="p-4 lg:p-6">
-                            <!-- Close Button -->
-                            <button onclick="closeDetailsPanel()" class="absolute top-3 right-3 lg:top-4 lg:right-4 text-gray-500 hover:text-gray-700">
-                                <svg class="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
+                    <button id="details-backdrop" type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="fixed inset-0 z-[1900] hidden bg-slate-900/40 backdrop-blur-sm [touch-action:manipulation]"></button>
 
+                    <div id="details-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="panel-municipality-name" class="fixed inset-y-0 right-0 z-[2000] w-full translate-x-full overflow-y-auto overscroll-contain bg-white shadow-2xl transition-transform duration-300 ease-in-out [-webkit-overflow-scrolling:touch] [touch-action:pan-y] sm:w-[400px] lg:w-[450px]">
+                        <div class="p-4 lg:p-6">
                             <!-- Panel Header -->
-                            <div class="mb-4 lg:mb-6 pr-8">
-                                <h2 id="panel-municipality-name" class="text-xl lg:text-2xl font-bold text-gray-800 mb-2">Municipality Name</h2>
-                                <p class="text-xs lg:text-sm text-gray-600">Click on municipality data below</p>
+                            <div class="sticky top-0 z-20 -mx-4 -mt-4 mb-4 border-b border-gray-200 bg-white/95 px-4 py-3 backdrop-blur lg:-mx-6 lg:-mt-6 lg:mb-6 lg:px-6 lg:py-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <h2 id="panel-municipality-name" class="truncate text-xl font-bold text-gray-800 lg:text-2xl">Municipality Name</h2>
+                                        <p class="mt-1 text-xs text-gray-600 lg:text-sm">Click on municipality data below</p>
+                                    </div>
+                                    <button type="button" onclick="closeDetailsPanel()" aria-label="Close municipality details" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600 shadow-sm transition-colors hover:bg-gray-200 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 [touch-action:manipulation]">
+                                        <svg class="h-5 w-5 lg:h-6 lg:w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <!-- Loading Indicator -->
@@ -494,12 +498,25 @@ ${legendItems}
         let currentMunicipality = null;
 
         function closeDetailsPanel() {
-            document.getElementById('details-panel').classList.add('translate-x-full');
+            const panel = document.getElementById('details-panel');
+            const backdrop = document.getElementById('details-backdrop');
+
+            panel.classList.add('translate-x-full');
+            panel.setAttribute('aria-hidden', 'true');
+            backdrop.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
             currentMunicipality = null;
         }
 
         function openDetailsPanel() {
-            document.getElementById('details-panel').classList.remove('translate-x-full');
+            const panel = document.getElementById('details-panel');
+            const backdrop = document.getElementById('details-backdrop');
+
+            panel.scrollTop = 0;
+            panel.classList.remove('translate-x-full');
+            panel.setAttribute('aria-hidden', 'false');
+            backdrop.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
         }
 
         async function loadMunicipalityDetails(municipalityName) {
@@ -859,9 +876,13 @@ ${legendItems}
         document.getElementById('year-filter').addEventListener('change', onFilterChange);
         document.getElementById('view-filter').addEventListener('change', onFilterChange);
         document.getElementById('farm-type-filter').addEventListener('change', onFilterChange);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeDetailsPanel();
+            }
+        });
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', initMap);
     </script>
 </x-admin-layout>
-
