@@ -84,24 +84,24 @@
                                 </div>
 
                                 <div class="mt-4 border-t border-green-200 pt-4">
-                                    <template x-if="record.status === 'Growing' && record.isHarvestReady">
-                                        <button @click="handleAction(record)"
-                                                class="w-full rounded-lg px-3 py-2 text-sm font-medium transition"
-                                                :class="{
-                                                    'bg-red-500 hover:bg-red-600 text-white': record.maturityStatus === 'overdue',
-                                                    'bg-amber-500 hover:bg-amber-600 text-white': record.maturityStatus === 'ready',
-                                                    'bg-yellow-500 hover:bg-yellow-600 text-white': record.maturityStatus === 'almost_ready'
-                                                }">
-                                            🌾 Finish Harvest
-                                        </button>
-                                    </template>
-                                    <template x-if="record.status === 'Growing' && !record.isHarvestReady">
-                                        <div class="flex items-center space-x-2">
-                                            <div class="h-2 flex-1 rounded-full bg-gray-200">
-                                                <div class="h-2 rounded-full bg-green-500"
-                                                     :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                    <template x-if="record.status === 'Growing'">
+                                        <div class="space-y-2">
+                                            <div class="flex items-center space-x-2">
+                                                <div class="h-2 flex-1 rounded-full bg-gray-200">
+                                                    <div class="h-2 rounded-full bg-green-500"
+                                                         :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                                </div>
+                                                <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                             </div>
-                                            <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
+                                            <button @click="handleAction(record)"
+                                                    class="w-full rounded-lg px-3 py-2 text-sm font-medium transition bg-green-500 hover:bg-green-600 text-white"
+                                                    :class="{
+                                                        'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
+                                                        'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
+                                                        'bg-yellow-500 hover:bg-yellow-600': record.maturityStatus === 'almost_ready'
+                                                    }">
+                                                🌾 Finish Harvest
+                                            </button>
                                         </div>
                                     </template>
                                     <template x-if="record.status === 'Completed'">
@@ -194,31 +194,29 @@
                                             </div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <!-- Show Finish Harvest button only when harvest is approaching (7 days or less) -->
-                                            <template x-if="record.status === 'Growing' && record.isHarvestReady">
-                                                <button @click="handleAction(record)" 
-                                                        class="px-3 py-1.5 text-sm font-medium rounded-lg transition"
-                                                        :class="{
-                                                            'bg-red-500 hover:bg-red-600 text-white': record.maturityStatus === 'overdue',
-                                                            'bg-amber-500 hover:bg-amber-600 text-white': record.maturityStatus === 'ready',
-                                                            'bg-yellow-500 hover:bg-yellow-600 text-white': record.maturityStatus === 'almost_ready'
-                                                        }">
-                                                    🌾 Finish Harvest
-                                                </button>
-                                            </template>
-                                            <!-- Show growing status for crops not yet ready -->
-                                            <template x-if="record.status === 'Growing' && !record.isHarvestReady">
-                                                <div class="flex items-center space-x-2">
-                                                    <div class="w-16 bg-gray-200 rounded-full h-2">
-                                                        <div class="bg-green-500 h-2 rounded-full" 
-                                                             :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                            <template x-if="record.status === 'Growing'">
+                                                <div class="flex flex-col gap-1.5">
+                                                    <div class="flex items-center space-x-2">
+                                                        <div class="w-16 bg-gray-200 rounded-full h-2">
+                                                            <div class="bg-green-500 h-2 rounded-full"
+                                                                 :style="'width: ' + Math.min(100, record.progressPercentage) + '%'"></div>
+                                                        </div>
+                                                        <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                                     </div>
-                                                    <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
+                                                    <button @click="handleAction(record)"
+                                                            class="px-3 py-1.5 text-sm font-medium rounded-lg transition text-white bg-green-500 hover:bg-green-600"
+                                                            :class="{
+                                                                'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
+                                                                'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
+                                                                'bg-yellow-500 hover:bg-yellow-600': record.maturityStatus === 'almost_ready'
+                                                            }">
+                                                        🌾 Finish Harvest
+                                                    </button>
                                                 </div>
                                             </template>
                                             <!-- Show Plant Again for completed harvests -->
                                             <template x-if="record.status === 'Completed'">
-                                                <button @click="handleAction(record)" 
+                                                <button @click="handleAction(record)"
                                                         class="text-sm font-medium text-blue-600 hover:text-blue-700 transition">
                                                     🌱 Plant Again
                                                 </button>
