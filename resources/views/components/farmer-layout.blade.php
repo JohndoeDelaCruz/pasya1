@@ -39,10 +39,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-50 overflow-x-hidden" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()" @keydown.escape.window="sidebarOpen = false">
-    <div class="flex h-screen overflow-hidden">
+    <div class="mobile-app-shell flex overflow-hidden">
         <!-- Sidebar -->
-        <aside class="fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0"
-               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+        <aside class="mobile-sidebar-panel fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
+               :class="{ 'is-open': sidebarOpen }">
             <div class="flex flex-col h-full">
                 <!-- Farmer Profile Section -->
                 <div class="p-6 border-b border-green-600">
@@ -60,7 +60,7 @@
                 </div>
 
                 <!-- Navigation Menu -->
-                <nav class="flex-1 overflow-y-auto py-4 farmer-sidebar-scrollbar" @click="if ($event.target.closest('a')) sidebarOpen = false">
+                <nav class="mobile-scroll-area flex-1 overflow-y-auto py-4 farmer-sidebar-scrollbar" @click="if ($event.target.closest('a')) sidebarOpen = false">
                     <!-- Dashboard Section -->
                     <div class="px-4 mb-6">
                         <h4 class="text-xs font-semibold text-green-200 uppercase tracking-wider mb-2">Dashboard</h4>
@@ -308,19 +308,20 @@
             </header>
 
             <!-- Main Content -->
-            <main class="flex-1 min-w-0 overflow-y-auto">
+            <main class="mobile-scroll-area flex-1 min-w-0 overflow-y-auto">
                 {{ $slot }}
             </main>
         </div>
     </div>
 
     <!-- Overlay for mobile -->
-    <div
-         @click="sidebarOpen = false"
-         class="fixed inset-0 z-[9998] bg-gray-600 bg-opacity-75 opacity-0 pointer-events-none transition-opacity duration-200 ease-linear lg:hidden"
-         :class="sidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
-         :aria-hidden="(!sidebarOpen).toString()">
-    </div>
+    <template x-if="sidebarOpen">
+        <div
+             @click="sidebarOpen = false"
+             class="mobile-sidebar-overlay fixed inset-0 z-[9998] bg-gray-600 bg-opacity-75 lg:hidden"
+             aria-hidden="true">
+        </div>
+    </template>
 
     <!-- PWA Install Prompt -->
     <div x-show="showInstallPrompt && !isAppInstalled" 
@@ -454,12 +455,14 @@
                         // Check for updates
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
+
+                            if (!newWorker) {
+                                return;
+                            }
+
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New update available
-                                    if (confirm('A new version of PASYA is available. Reload to update?')) {
-                                        window.location.reload();
-                                    }
+                                    console.log('A new version of PASYA is available and will be used after the next reload.');
                                 }
                             });
                         });

@@ -68,6 +68,53 @@
     background: #86efac;
 }
 
+/* Mobile/PWA shell performance */
+.mobile-app-shell {
+    height: 100vh;
+    height: 100dvh;
+}
+
+.mobile-sidebar-panel {
+    transform: translate3d(-100%, 0, 0);
+    transition: transform 180ms ease-out;
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.mobile-sidebar-panel.is-open {
+    transform: translate3d(0, 0, 0);
+}
+
+.mobile-sidebar-overlay {
+    touch-action: manipulation;
+}
+
+.mobile-scroll-area {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+@media (min-width: 1024px) {
+    .mobile-sidebar-panel,
+    .mobile-sidebar-panel.is-open {
+        transform: none;
+        transition: none;
+        will-change: auto;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    .mobile-sidebar-panel {
+        transition-duration: 140ms;
+    }
+
+    .mobile-sidebar-overlay {
+        animation: none;
+        transition: none;
+    }
+}
+
 /* Custom Animations */
 @keyframes fadeIn {
     from {
