@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\DataAnalyticsController;
 use App\Http\Controllers\Admin\CropTrendsController;
 use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\WeatherController as AdminWeatherController;
-use App\Http\Controllers\Admin\RecommendationsController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Farmer\FarmerDashboardController;
 use App\Http\Controllers\Farmer\FarmerMapController;
@@ -177,10 +176,6 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::delete('/crop-mappings/{cropMapping}', [CropMappingController::class, 'destroy'])->name('crop-mappings.destroy');
     Route::post('/crop-mappings/{cropMapping}/toggle', [CropMappingController::class, 'toggle'])->name('crop-mappings.toggle');
     Route::post('/crop-mappings/auto-map', [CropMappingController::class, 'autoMap'])->name('crop-mappings.auto-map');
-    
-    Route::get('/recommendations', [RecommendationsController::class, 'index'])->name('recommendations');
-    Route::post('/subsidies', [RecommendationsController::class, 'storeSubsidy'])->name('subsidies.store');
-    Route::post('/resources', [RecommendationsController::class, 'storeResource'])->name('resources.store');
     
     // Announcement Routes
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
