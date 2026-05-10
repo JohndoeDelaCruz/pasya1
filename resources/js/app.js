@@ -351,7 +351,9 @@ const setupPageTransitionLoader = () => {
 	}
 
 	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const loaderDelay = 240;
 	let navigationStarted = false;
+	let loaderDelayId = null;
 	let animation = null;
 
 	if (!prefersReducedMotion) {
@@ -372,6 +374,11 @@ const setupPageTransitionLoader = () => {
 	}
 
 	const showLoader = () => {
+		if (loaderDelayId) {
+			window.clearTimeout(loaderDelayId);
+			loaderDelayId = null;
+		}
+
 		loader.classList.add('is-visible');
 		loader.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('pasya-page-is-loading');
@@ -383,6 +390,10 @@ const setupPageTransitionLoader = () => {
 
 	const hideLoader = () => {
 		navigationStarted = false;
+		if (loaderDelayId) {
+			window.clearTimeout(loaderDelayId);
+			loaderDelayId = null;
+		}
 		loader.classList.remove('is-visible');
 		loader.setAttribute('aria-hidden', 'true');
 		document.body.classList.remove('pasya-page-is-loading');
@@ -390,6 +401,15 @@ const setupPageTransitionLoader = () => {
 		if (animation) {
 			animation.stop();
 		}
+	};
+
+	const scheduleLoader = () => {
+		navigationStarted = true;
+		if (loaderDelayId || loader.classList.contains('is-visible')) {
+			return;
+		}
+
+		loaderDelayId = window.setTimeout(showLoader, loaderDelay);
 	};
 
 	const isEligibleLink = (link, event) => {
@@ -444,13 +464,7 @@ const setupPageTransitionLoader = () => {
 			return;
 		}
 
-		navigationStarted = true;
-		event.preventDefault();
-		showLoader();
-
-		window.setTimeout(() => {
-			window.location.assign(link.href);
-		}, prefersReducedMotion ? 0 : 180);
+		scheduleLoader();
 	});
 
 	document.addEventListener('submit', (event) => {
@@ -460,10 +474,9 @@ const setupPageTransitionLoader = () => {
 			return;
 		}
 
-		showLoader();
+		scheduleLoader();
 	});
 
-	window.addEventListener('beforeunload', showLoader);
 	window.addEventListener('pageshow', hideLoader);
 	window.addEventListener('load', hideLoader, { once: true });
 };
