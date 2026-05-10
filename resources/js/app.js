@@ -351,15 +351,19 @@ const setupPageTransitionLoader = () => {
 	}
 
 	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 	const loaderDelay = 240;
+	const iosNavigationDelay = 140;
 	let navigationStarted = false;
 	let loaderDelayId = null;
+	let loaderVisible = false;
+	let animationReady = false;
 	let animation = null;
 
 	if (!prefersReducedMotion) {
 		animation = lottie.loadAnimation({
 			container: animationContainer,
-			renderer: 'svg',
+			renderer: isIos ? 'canvas' : 'svg',
 			loop: true,
 			autoplay: false,
 			animationData: pasyaLoadingAnimation,
@@ -369,7 +373,12 @@ const setupPageTransitionLoader = () => {
 		});
 
 		animation.addEventListener('DOMLoaded', () => {
+			animationReady = true;
 			loader.classList.add('has-lottie');
+
+			if (loaderVisible) {
+				animation.goToAndPlay(0, true);
+			}
 		});
 	}
 
@@ -382,8 +391,9 @@ const setupPageTransitionLoader = () => {
 		loader.classList.add('is-visible');
 		loader.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('pasya-page-is-loading');
+		loaderVisible = true;
 
-		if (animation) {
+		if (animation && animationReady) {
 			animation.goToAndPlay(0, true);
 		}
 	};
@@ -397,6 +407,7 @@ const setupPageTransitionLoader = () => {
 		loader.classList.remove('is-visible');
 		loader.setAttribute('aria-hidden', 'true');
 		document.body.classList.remove('pasya-page-is-loading');
+		loaderVisible = false;
 
 		if (animation) {
 			animation.stop();
@@ -461,6 +472,16 @@ const setupPageTransitionLoader = () => {
 		const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
 
 		if (!link || !isEligibleLink(link, event) || navigationStarted) {
+			return;
+		}
+
+		if (isIos) {
+			navigationStarted = true;
+			event.preventDefault();
+			window.setTimeout(showLoader, 0);
+			window.setTimeout(() => {
+				window.location.assign(link.href);
+			}, iosNavigationDelay);
 			return;
 		}
 

@@ -63,7 +63,8 @@ body {
 }
 
 .pasya-page-loader-animation,
-.pasya-page-loader-animation svg {
+.pasya-page-loader-animation svg,
+.pasya-page-loader-animation canvas {
     display: block;
     width: 100% !important;
     height: 100% !important;
