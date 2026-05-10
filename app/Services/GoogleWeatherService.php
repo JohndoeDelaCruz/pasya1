@@ -8,48 +8,19 @@ use Illuminate\Support\Facades\Log;
 
 class GoogleWeatherService
 {
-    private string $baseUrl;
-    private ?string $apiKey;
-    private string $unitsSystem;
     private int $timeout;
     private int $cacheTtl;
     private string $geoJsonPath;
 
     public function __construct()
     {
-        $this->baseUrl = rtrim((string) config('services.google_weather.base_url', 'https://weather.googleapis.com/v1'), '/');
-        $this->apiKey = config('services.google_weather.api_key')
-            ? (string) config('services.google_weather.api_key')
-            : null;
-        $this->unitsSystem = strtoupper((string) config('services.google_weather.units', 'METRIC'));
         $this->timeout = (int) config('services.google_weather.timeout', 15);
-        $this->cacheTtl = (int) config('services.google_weather.cache_ttl', 900);
+        $this->cacheTtl = 3600; // 1 hour — Open-Meteo is free/unlimited
         $this->geoJsonPath = public_path('data/benguet.geojson');
     }
 
-    /**
-     * Get current weather conditions for a municipality.
-     */
     public function getCurrentConditions(string $municipality): array
     {
-        if (blank($this->apiKey)) {
-            // No Google key configured – go straight to Open-Meteo
-            $coordinates = $this->getMunicipalityCoordinates($municipality);
-            if (!$coordinates) {
-                return [
-                    'success' => false,
-                    'error_code' => 'missing_coordinates',
-                    'message' => 'No coordinates found for municipality: ' . $municipality,
-                ];
-            }
-            $cacheKey = 'openmeteo_weather_' . strtolower($this->normalizeMunicipalityName($municipality));
-            $cached = Cache::get($cacheKey);
-            if (is_array($cached) && ($cached['success'] ?? false) === true) {
-                return $cached;
-            }
-            return $this->getFromOpenMeteo($coordinates, $cacheKey);
-        }
-
         $coordinates = $this->getMunicipalityCoordinates($municipality);
         if (!$coordinates) {
             return [
@@ -59,70 +30,13 @@ class GoogleWeatherService
             ];
         }
 
-        $cacheKey = sprintf(
-            'google_weather_current_%s_%s',
-            strtolower($this->normalizeMunicipalityName($municipality)),
-            strtolower($this->unitsSystem)
-        );
-
+        $cacheKey = 'openmeteo_weather_' . strtolower($this->normalizeMunicipalityName($municipality));
         $cached = Cache::get($cacheKey);
         if (is_array($cached) && ($cached['success'] ?? false) === true) {
             return $cached;
         }
 
-        try {
-            $response = Http::timeout($this->timeout)
-                ->acceptJson()
-                ->get($this->baseUrl . '/currentConditions:lookup', [
-                    'key' => $this->apiKey,
-                    'location.latitude' => $coordinates['latitude'],
-                    'location.longitude' => $coordinates['longitude'],
-                    'unitsSystem' => $this->unitsSystem,
-                ]);
-
-            if (!$response->successful()) {
-                Log::warning('Google Weather API request failed, falling back to Open-Meteo', [
-                    'status' => $response->status(),
-                    'municipality' => $coordinates['municipality'],
-                ]);
-
-                $omCacheKey = 'openmeteo_weather_' . strtolower($this->normalizeMunicipalityName($municipality));
-                $omCached = Cache::get($omCacheKey);
-                if (is_array($omCached) && ($omCached['success'] ?? false) === true) {
-                    return $omCached;
-                }
-                return $this->getFromOpenMeteo($coordinates, $omCacheKey);
-            }
-
-            $payload = $response->json();
-
-            $result = [
-                'success' => true,
-                'source' => 'google-weather-api',
-                'location' => [
-                    'municipality' => $coordinates['municipality'],
-                    'latitude' => $coordinates['latitude'],
-                    'longitude' => $coordinates['longitude'],
-                ],
-                'weather' => $this->transformCurrentConditions($payload),
-            ];
-
-            Cache::put($cacheKey, $result, $this->cacheTtl);
-
-            return $result;
-        } catch (\Throwable $e) {
-            Log::warning('Google Weather API exception, falling back to Open-Meteo', [
-                'municipality' => $municipality,
-                'message' => $e->getMessage(),
-            ]);
-
-            $omCacheKey = 'openmeteo_weather_' . strtolower($this->normalizeMunicipalityName($municipality));
-            $omCached = Cache::get($omCacheKey);
-            if (is_array($omCached) && ($omCached['success'] ?? false) === true) {
-                return $omCached;
-            }
-            return $this->getFromOpenMeteo($coordinates, $omCacheKey);
-        }
+        return $this->getFromOpenMeteo($coordinates, $cacheKey);
     }
 
     private function getFromOpenMeteo(array $coordinates, string $cacheKey): array
@@ -241,75 +155,6 @@ class GoogleWeatherService
         return $dirs[(int) round($degrees / 45) % 8];
     }
 
-    private function transformCurrentConditions(array $payload): array
-    {
-        return [
-            'observed_at' => data_get($payload, 'currentTime'),
-            'timezone' => data_get($payload, 'timeZone.id'),
-            'is_daytime' => (bool) data_get($payload, 'isDaytime', false),
-            'description' => data_get($payload, 'weatherCondition.description.text'),
-            'condition_type' => data_get($payload, 'weatherCondition.type'),
-            'icon_base_uri' => data_get($payload, 'weatherCondition.iconBaseUri'),
-            'temperature' => $this->formatMeasurement(
-                data_get($payload, 'temperature.degrees'),
-                data_get($payload, 'temperature.unit'),
-                true
-            ),
-            'feels_like' => $this->formatMeasurement(
-                data_get($payload, 'feelsLikeTemperature.degrees'),
-                data_get($payload, 'feelsLikeTemperature.unit'),
-                true
-            ),
-            'humidity_percent' => data_get($payload, 'relativeHumidity'),
-            'precipitation_probability_percent' => data_get($payload, 'precipitation.probability.percent'),
-            'thunderstorm_probability_percent' => data_get($payload, 'thunderstormProbability'),
-            'uv_index' => data_get($payload, 'uvIndex'),
-            'cloud_cover_percent' => data_get($payload, 'cloudCover'),
-            'wind' => [
-                'speed' => $this->formatMeasurement(
-                    data_get($payload, 'wind.speed.value'),
-                    data_get($payload, 'wind.speed.unit')
-                ),
-                'gust' => $this->formatMeasurement(
-                    data_get($payload, 'wind.gust.value'),
-                    data_get($payload, 'wind.gust.unit')
-                ),
-                'direction' => data_get($payload, 'wind.direction.cardinal'),
-                'direction_degrees' => data_get($payload, 'wind.direction.degrees'),
-            ],
-        ];
-    }
-
-    private function formatMeasurement(mixed $value, ?string $unit, bool $isTemperature = false): ?array
-    {
-        if ($value === null || !is_numeric($value)) {
-            return null;
-        }
-
-        $roundedValue = round((float) $value, 1);
-        $displayUnit = $this->formatUnit($unit, $isTemperature);
-
-        return [
-            'value' => $roundedValue,
-            'unit' => $unit,
-            'display' => trim($roundedValue . ' ' . $displayUnit),
-        ];
-    }
-
-    private function formatUnit(?string $unit, bool $isTemperature = false): string
-    {
-        if (!$unit) {
-            return '';
-        }
-
-        return match ($unit) {
-            'CELSIUS' => $isTemperature ? '°C' : 'C',
-            'FAHRENHEIT' => $isTemperature ? '°F' : 'F',
-            'KILOMETERS_PER_HOUR' => 'km/h',
-            'MILES_PER_HOUR' => 'mph',
-            default => str_replace('_', ' ', strtolower($unit)),
-        };
-    }
 
     private function getMunicipalityCoordinates(string $municipality): ?array
     {
