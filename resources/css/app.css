@@ -990,6 +990,294 @@ textarea {
     padding: 0.3rem 0.7rem;
 }
 
+.admin-mobile-filter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.admin-mobile-table-list {
+    display: block;
+}
+
+@media (min-width: 768px) {
+    .admin-mobile-table-list {
+        display: none;
+    }
+}
+
+@media (max-width: 767px) {
+    .admin-pwa-compact {
+        --admin-mobile-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+    }
+
+    .admin-pwa-compact .admin-section-card {
+        border-radius: 0.75rem;
+        box-shadow: var(--admin-mobile-shadow);
+    }
+
+    .admin-pwa-compact .admin-section-title {
+        font-size: 1rem;
+        line-height: 1.3;
+    }
+
+    .admin-pwa-compact .admin-section-subtitle {
+        font-size: 0.8125rem;
+        line-height: 1.35;
+    }
+
+    .admin-pwa-compact .admin-kpi-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.65rem;
+    }
+
+    .admin-pwa-compact .admin-kpi-icon svg {
+        width: 1.2rem;
+        height: 1.2rem;
+    }
+
+    .admin-pwa-compact .admin-chip {
+        padding: 0.2rem 0.55rem;
+        font-size: 0.6875rem;
+        line-height: 1.2;
+    }
+
+    .admin-mobile-button-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .admin-mobile-button-row > :where(a, button) {
+        min-height: 2.5rem;
+        padding: 0.5rem 0.45rem;
+        border-radius: 0.65rem;
+        font-size: 0.8125rem;
+        line-height: 1.2;
+        text-align: center;
+    }
+
+    .admin-mobile-filter-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    .admin-mobile-filter-label {
+        grid-column: 1 / -1;
+    }
+
+    .admin-mobile-filter-grid > :where(select, a) {
+        width: 100%;
+        min-width: 0 !important;
+        height: 2.5rem;
+        padding: 0.45rem 0.6rem;
+        border-radius: 0.65rem;
+        font-size: 0.8125rem;
+        line-height: 1.2;
+    }
+
+    .admin-mobile-filter-grid > a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .admin-mobile-chart-inner {
+        min-height: 300px;
+        padding: 0.35rem;
+    }
+
+    .admin-mobile-announcements .admin-mobile-announcement-header,
+    .admin-mobile-predictions .admin-mobile-prediction-header {
+        padding: 0.85rem 1rem;
+    }
+
+    .admin-mobile-announcements .admin-mobile-announcement-body,
+    .admin-mobile-predictions .admin-mobile-prediction-body {
+        padding: 1rem;
+    }
+
+    .admin-mobile-predictions details {
+        border-radius: 0.75rem;
+    }
+
+    .admin-mobile-predictions summary {
+        padding: 0.75rem;
+    }
+
+    .admin-crop-management .admin-mobile-hero {
+        border-radius: 0.8rem;
+        padding: 1rem;
+        box-shadow: var(--admin-mobile-shadow);
+    }
+
+    .admin-crop-management .admin-mobile-hero h1 {
+        font-size: 1.25rem;
+        line-height: 1.25;
+        margin-bottom: 0.35rem;
+    }
+
+    .admin-crop-management .admin-mobile-hero p {
+        font-size: 0.8125rem;
+        line-height: 1.4;
+    }
+
+    .admin-mobile-full-action {
+        width: 100%;
+        min-height: 2.5rem;
+        padding: 0.55rem 0.75rem;
+        border-radius: 0.65rem;
+        font-size: 0.8125rem;
+    }
+
+    .admin-mobile-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .admin-mobile-stat-card {
+        min-height: 8.25rem;
+        padding: 0.85rem;
+        border-radius: 0.75rem;
+        box-shadow: var(--admin-mobile-shadow);
+    }
+
+    .admin-mobile-stat-label {
+        font-size: 0.6875rem;
+        line-height: 1.15;
+        letter-spacing: 0.055em;
+    }
+
+    .admin-mobile-stat-value {
+        margin-top: 0.35rem;
+        font-size: 2rem;
+        line-height: 1;
+    }
+
+    .admin-mobile-stat-icon {
+        padding: 0.65rem;
+    }
+
+    .admin-mobile-stat-icon svg {
+        width: 1.35rem;
+        height: 1.35rem;
+    }
+
+    .admin-mobile-section-panel {
+        border-radius: 0.8rem;
+        box-shadow: var(--admin-mobile-shadow);
+    }
+
+    .admin-mobile-section-header {
+        padding: 0.9rem 1rem;
+    }
+
+    .admin-mobile-section-title {
+        font-size: 1.05rem;
+        line-height: 1.25;
+    }
+
+    .admin-mobile-section-subtitle {
+        font-size: 0.8125rem;
+    }
+
+    .admin-mobile-section-action {
+        width: 100%;
+        min-height: 2.45rem;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.8125rem;
+        border-radius: 0.65rem;
+        transform: none !important;
+    }
+
+    .admin-mobile-search-panel {
+        padding: 0.75rem 1rem;
+    }
+
+    .admin-mobile-search-panel input,
+    .admin-mobile-search-panel select {
+        height: 2.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.65rem;
+    }
+
+    .admin-mobile-table-list {
+        display: block;
+        padding: 0.75rem;
+        background: #f9fafb;
+    }
+
+    .admin-mobile-list-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        background: #ffffff;
+        padding: 0.85rem;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .admin-mobile-list-card + .admin-mobile-list-card {
+        margin-top: 0.65rem;
+    }
+
+    .admin-mobile-pill {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        border-radius: 9999px;
+        padding: 0.18rem 0.5rem;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .admin-mobile-metric-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.4rem;
+    }
+
+    .admin-mobile-metric {
+        min-width: 0;
+        border-radius: 0.55rem;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        padding: 0.4rem 0.5rem;
+        color: #374151;
+        font-size: 0.75rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .admin-mobile-metric span {
+        display: block;
+        color: #6b7280;
+        font-size: 0.65rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .admin-mobile-icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.55rem;
+        background: #f3f4f6;
+    }
+
+    .admin-mobile-icon-button svg {
+        width: 1rem;
+        height: 1rem;
+    }
+}
+
 /* Crop Data Management action buttons */
 @media (min-width: 1024px) and (max-width: 1279px) {
     .crop-data-page-header {

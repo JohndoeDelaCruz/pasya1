@@ -1,7 +1,7 @@
 <x-admin-layout>
     <x-slot name="title">Data & Analytics</x-slot>
 
-    <div class="space-y-5 lg:space-y-6 admin-dashboard-shell dashboard-reduced-motion" x-data="{ 
+    <div class="admin-pwa-compact space-y-3 sm:space-y-5 lg:space-y-6 admin-dashboard-shell dashboard-reduced-motion" x-data="{
         showMunicipalityModal: false,
         showResourceModal: false,
         selectedMunicipality: '{{ $filterMunicipality ?? '' }}',
@@ -28,16 +28,16 @@
         }
     }, 100)">
         <!-- Page Header -->
-        <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <div class="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
             <div class="pasya-text-safe max-w-3xl">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-green-700">Admin Dashboard</p>
-                <h1 class="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">Data & Analytics</h1>
-                <p class="mt-2 text-sm text-gray-600 lg:text-base">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-green-700 sm:text-xs sm:tracking-[0.18em]">Admin Dashboard</p>
+                <h1 class="mt-0.5 text-xl font-bold text-gray-900 sm:mt-1 sm:text-3xl lg:text-4xl">Data & Analytics</h1>
+                <p class="mt-1.5 text-xs leading-5 text-gray-600 sm:mt-2 sm:text-sm lg:text-base">
                     Monitor crop production performance, track municipality trends, and review AI forecasts from one workspace.
                 </p>
             </div>
 
-            <div class="pasya-button-row">
+            <div class="pasya-button-row admin-mobile-button-row">
                 <a href="{{ route('admin.export-summary') }}" class="inline-flex flex-1 items-center justify-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm sm:flex-none">
                     Export Summary
                 </a>
@@ -54,9 +54,9 @@
         </div>
 
         <!-- Filter Bar -->
-        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-section-card p-4">
-            <div class="pasya-action-row">
-                <div class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-section-card p-3 sm:p-4">
+            <div class="admin-mobile-filter-grid">
+                <div class="admin-mobile-filter-label flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                     </svg>
@@ -125,9 +125,9 @@
         </form>
 
         <!-- Crop Production Chart -->
-        <div class="admin-section-card p-5 lg:p-6">
-            <div class="admin-section-header mb-5">
-                <div class="flex items-start gap-3">
+        <div class="admin-section-card p-3 sm:p-5 lg:p-6">
+            <div class="admin-section-header mb-3 sm:mb-5">
+                <div class="flex items-start gap-2.5 sm:gap-3">
                     <div class="admin-kpi-icon">
                         <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -180,7 +180,7 @@
             @if($hasChartData)
                 <div class="space-y-3">
                     <div class="admin-chart-card max-h-[560px] overflow-y-auto pr-2 custom-scrollbar">
-                        <div id="chartInner" class="min-h-[360px] min-w-0 p-2 sm:p-3">
+                        <div id="chartInner" class="admin-mobile-chart-inner min-h-[300px] sm:min-h-[360px] min-w-0 p-2 sm:p-3">
                             <canvas id="trendChart" class="h-full w-full cursor-pointer"></canvas>
                         </div>
                     </div>
@@ -305,9 +305,9 @@
         <div id="chart-panel-overlay" onclick="closeChartDetailsPanel()" class="fixed inset-0 bg-black bg-opacity-30 z-[1999] hidden"></div>
 
         <!-- Key Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6">
             <!-- Total Area Planted/Harvested -->
-            <div class="admin-section-card p-5 lg:p-6">
+            <div class="admin-section-card p-3 sm:p-5 lg:p-6">
                 <div class="mb-3 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-600">Total Area Planted and Harvested</h3>
@@ -329,7 +329,7 @@
             </div>
 
             <!-- Average Yield -->
-            <div class="admin-section-card p-5 lg:p-6">
+            <div class="admin-section-card p-3 sm:p-5 lg:p-6">
                 <div class="mb-3 flex items-start justify-between gap-3">
                     <div>
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-600">Average Yield</h3>
@@ -357,9 +357,9 @@
         </div>
 
         <!-- Summary and Announcements -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-6">
             <!-- Performance Snapshot -->
-            <div class="admin-section-card p-5 lg:p-6">
+            <div class="admin-section-card p-3 sm:p-5 lg:p-6">
                 <div class="admin-section-header mb-4">
                     <div>
                         <h2 class="admin-section-title">Performance Snapshot</h2>
@@ -413,32 +413,32 @@
             </div>
 
         <!-- Announcements Management Widget -->
-        <div class="admin-section-card overflow-hidden">
-            <div class="bg-gradient-to-r from-green-700 to-emerald-700 px-6 py-4">
+        <div class="admin-section-card admin-mobile-announcements overflow-hidden">
+            <div class="admin-mobile-announcement-header bg-gradient-to-r from-green-700 to-emerald-700 px-6 py-4">
                 <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        <div class="text-white">
-                            <h2 class="text-lg font-bold">Announcements</h2>
-                            <p class="text-green-100 text-sm">Manage farmer notifications</p>
+                        <div class="min-w-0 text-white">
+                            <h2 class="text-base font-bold sm:text-lg">Announcements</h2>
+                            <p class="text-xs text-green-100 sm:text-sm">Manage farmer notifications</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
                         <span class="admin-chip bg-white/20 text-white">
                             {{ $activeAnnouncementsCount ?? 0 }} Active
                         </span>
-                        <a href="{{ route('admin.announcements.create') }}" class="px-4 py-2 bg-white text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-colors text-sm">
+                        <a href="{{ route('admin.announcements.create') }}" class="px-3 py-1.5 sm:px-4 sm:py-2 bg-white text-green-700 font-semibold rounded-lg hover:bg-green-50 transition-colors text-xs sm:text-sm">
                             + New
                         </a>
                     </div>
                 </div>
             </div>
             
-            <div class="p-6">
+            <div class="admin-mobile-announcement-body p-6">
                 @if(isset($recentAnnouncements) && $recentAnnouncements->count() > 0)
                     <div class="space-y-3">
                         @foreach($recentAnnouncements->take(4) as $announcement)
@@ -512,15 +512,15 @@
 
         <!-- ML Predictions Section -->
         @if(isset($predictions) && $predictions['available'])
-            <div id="predictions-section" class="admin-section-card p-5 lg:p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div id="predictions-section" class="admin-section-card admin-mobile-predictions p-3 sm:p-5 lg:p-6">
+                <div class="admin-mobile-prediction-header -m-3 mb-3 flex flex-col gap-3 border-b border-gray-100 p-3 sm:-m-5 sm:mb-4 sm:flex-row sm:items-center sm:justify-between sm:p-5 lg:-m-6 lg:mb-4 lg:p-6">
+                    <div class="flex items-center gap-2.5 sm:gap-3">
+                        <div class="w-9 h-9 sm:w-12 sm:h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                             </svg>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <h2 class="admin-section-title">AI Production Predictions</h2>
                             <p class="admin-section-subtitle">Machine learning forecasts based on historical production patterns.</p>
                         </div>
@@ -533,6 +533,7 @@
                 </div>
 
                 @if(!empty($predictions['predictions']))
+                    <div class="admin-mobile-prediction-body">
                     @php
                         // Group predictions by year, then municipality, then crop
                         $groupedPredictions = collect($predictions['predictions'])
@@ -622,7 +623,7 @@
                         </details>
                     @endforeach
 
-                    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+                    <div class="mt-4 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
                         <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                         </svg>
@@ -630,6 +631,7 @@
                             <p class="font-semibold text-blue-900 mb-1">About these predictions</p>
                             <p class="text-blue-800">These predictions are generated by our machine learning model trained on historical crop production data. Predictions are based on municipality, crop type, season, and historical farming patterns.</p>
                         </div>
+                    </div>
                     </div>
                 @else
                     <div class="text-center py-8">
@@ -923,20 +925,25 @@
                         return;
                     }
 
+                    const isCompactChart = window.matchMedia('(max-width: 640px)').matches;
+
                     // Apply uniform bar styling
                     chartData.datasets = chartData.datasets.map((dataset) => ({
                         ...dataset,
                         borderWidth: 1,
                         borderRadius: 6,
                         borderSkipped: false,
-                        barThickness: 18,
-                        maxBarThickness: 22,
+                        barThickness: isCompactChart ? 14 : 18,
+                        maxBarThickness: isCompactChart ? 18 : 22,
                     }));
 
                     // Dynamic height based on number of labels
                     const chartInner = document.getElementById('chartInner');
                     if (chartInner) {
-                        const dynamicHeight = Math.max(360, chartData.labels.length * 34 + 120);
+                        const dynamicHeight = Math.max(
+                            isCompactChart ? 300 : 360,
+                            chartData.labels.length * (isCompactChart ? 28 : 34) + (isCompactChart ? 84 : 120)
+                        );
                         chartInner.style.height = dynamicHeight + 'px';
                     }
 
