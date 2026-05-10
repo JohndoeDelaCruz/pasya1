@@ -376,26 +376,26 @@
                     </div>
 
                     <div class="md:col-span-2 xl:col-span-6 flex flex-wrap items-center gap-3">
-                        <button type="submit" class="inline-flex items-center justify-center rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
+                        <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 sm:flex-none">
                             Apply Filters
                         </button>
-                        <a href="{{ route('admin.planting-report') }}" class="inline-flex items-center justify-center rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                        <a href="{{ route('admin.planting-report') }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">
                             Reset
                         </a>
 
-                        <div class="ml-auto flex flex-wrap items-center gap-3" data-export-actions>
+                        <div class="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto" data-export-actions>
                             @if ($hasRecords)
-                                <a href="{{ route('admin.planting-report.export.csv', $exportFilters) }}" class="inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100">
+                                <a href="{{ route('admin.planting-report.export.csv', $exportFilters) }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 sm:flex-none">
                                     Export CSV
                                 </a>
-                                <a href="{{ route('admin.planting-report.export.pdf', $exportFilters) }}" class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                                <a href="{{ route('admin.planting-report.export.pdf', $exportFilters) }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">
                                     Export PDF
                                 </a>
                             @else
-                                <span class="inline-flex cursor-not-allowed items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400">
+                                <span class="inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400 sm:flex-none">
                                     Export CSV
                                 </span>
-                                <span class="inline-flex cursor-not-allowed items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400">
+                                <span class="inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 py-2.5 text-sm font-semibold text-gray-400 sm:flex-none">
                                     Export PDF
                                 </span>
                             @endif
@@ -405,8 +405,8 @@
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" data-report-results>
-                <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-                    <div>
+                <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="pasya-text-safe">
                         <h2 class="text-lg font-semibold text-gray-900">Planting Records</h2>
                         <p class="text-sm text-gray-500">Each row comes from a crop plan submitted on the farmer calendar.</p>
                     </div>
@@ -424,7 +424,7 @@
                         <p class="mt-1 text-sm text-gray-500">Farmer calendar submissions will appear here once crop plans are added.</p>
                     </div>
                 @else
-                    <div class="overflow-x-auto">
+                    <div class="pasya-scroll-table overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>

@@ -164,20 +164,26 @@
                                 <!-- Monthly Production Chart -->
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Monthly Production</h3>
-                                    <canvas id="monthly-chart" height="200"></canvas>
+                                    <div class="pasya-chart-frame h-52">
+                                        <canvas id="monthly-chart"></canvas>
+                                    </div>
                                 </div>
 
                                 <!-- Crop Contribution Chart -->
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Crop Contribution</h3>
                                     <p id="crop-contribution-desc" class="text-xs text-gray-500 mb-2">Municipality share of production based on current filters</p>
-                                    <canvas id="crop-contribution-chart" height="300"></canvas>
+                                    <div class="pasya-chart-frame h-64 sm:h-72">
+                                        <canvas id="crop-contribution-chart"></canvas>
+                                    </div>
                                 </div>
 
                                 <!-- Crop Distribution Chart -->
                                 <div>
                                     <h3 class="text-sm font-semibold text-gray-700 uppercase mb-3">Crop Distribution</h3>
-                                    <canvas id="crop-chart" height="250"></canvas>
+                                    <div class="pasya-chart-frame h-60 sm:h-64">
+                                        <canvas id="crop-chart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -657,7 +663,7 @@ ${legendItems}
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             display: false
@@ -708,7 +714,7 @@ ${legendItems}
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'bottom',
@@ -824,7 +830,7 @@ ${legendItems}
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             position: 'bottom',

@@ -28,8 +28,8 @@
 
     <div class="space-y-6" x-data="predictionResults()">
         <!-- Page Header -->
-        <div class="flex items-center justify-between">
-            <div>
+        <div class="pasya-action-row-between">
+            <div class="pasya-text-safe">
                 <h1 class="text-2xl font-bold text-gray-800">Prediction Results</h1>
                 <p class="text-sm text-gray-500 mt-1">
                     {{ ucwords(strtolower($filters['crop'])) }} • {{ ucwords(strtolower($filters['municipality'])) }} • {{ ucwords(strtolower($filters['farm_type'])) }}
@@ -37,7 +37,7 @@
             </div>
             
             <!-- ML API Status Indicator -->
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 @if($mlApiHealthy)
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
                         <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -68,16 +68,16 @@
         </div>
 
         <!-- Filter Summary Card -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-3">
+        <div class="pasya-card-safe bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="min-w-0 flex-1">
+                    <div class="pasya-action-row-between mb-3">
                         <h3 class="text-lg font-semibold text-gray-800">Applied Filters</h3>
                         <div class="text-sm text-gray-600">
                             <span class="font-medium">{{ count($predictions) }}</span> predictions generated
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                    <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:grid-cols-3">
                         <div>
                             <span class="text-gray-500">Municipality:</span>
                             <span class="font-medium text-gray-800 ml-2">{{ ucwords(strtolower($filters['municipality'])) }}</span>
@@ -118,16 +118,16 @@
                         @endif
                     </div>
                 </div>
-                <button @click="$dispatch('open-modal', 'prediction-modal')" class="ml-6 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap">
+                <button @click="$dispatch('open-modal', 'prediction-modal')" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors sm:w-auto lg:ml-6">
                     Modify Filters
                 </button>
             </div>
         </div>
 
         <!-- Prediction Chart -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
+        <div class="pasya-card-safe bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div class="pasya-action-row-between mb-6">
+                <div class="pasya-text-safe">
                     <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -140,7 +140,7 @@
                 </div>
                 
                 <!-- Legend -->
-                <div class="flex items-center gap-5">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-5">
                     <div class="flex items-center gap-2.5 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
                         <svg width="28" height="12" class="flex-shrink-0">
                             <line x1="0" y1="6" x2="28" y2="6" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3"/>
@@ -159,13 +159,13 @@
             </div>
 
             <!-- Chart -->
-            <div class="h-[400px] relative">
+            <div class="pasya-chart-frame h-[320px] sm:h-[400px]">
                 <canvas id="predictionChart"></canvas>
             </div>
             
             <!-- Chart Info -->
-            <div class="mt-4 flex items-center justify-between text-sm">
-                <div class="flex items-center gap-2 text-gray-600">
+            <div class="mt-4 pasya-action-row-between text-sm">
+                <div class="flex min-w-0 flex-wrap items-center gap-2 text-gray-600">
                     @if($mlUnavailableCount > 0)
                         <span class="text-red-700">{{ $mlUnavailableCount }} period(s) have no ML output due API connectivity or response issues.</span>
                     @endif
@@ -180,8 +180,8 @@
         </div>
 
         <!-- Data Table -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-4">
+        <div class="pasya-card-safe bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div class="pasya-action-row-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-800">Detailed Predictions</h3>
                 <div class="text-sm text-gray-600">
                     Showing results for: <span class="font-semibold text-green-600">{{ ucwords(strtolower($filters['crop'])) }}</span>
@@ -223,7 +223,7 @@
                 @endif
             </div>
             
-            <div class="overflow-x-auto">
+            <div class="pasya-scroll-table overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>

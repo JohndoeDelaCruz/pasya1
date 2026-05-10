@@ -203,6 +203,168 @@ body {
     overscroll-behavior: contain;
 }
 
+/* Mobile/PWA alignment guardrails */
+.pasya-public-shell,
+.pasya-app-body,
+.pasya-auth-shell,
+.pasya-download-shell {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.mobile-app-shell,
+.mobile-content-shell,
+.mobile-scroll-area,
+.mobile-header-scroll-area,
+.mobile-app-header > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.mobile-header-scroll-area > *,
+.mobile-scroll-area > * {
+    min-width: 0;
+}
+
+.pasya-app-body :where(img, video, canvas, svg),
+.pasya-auth-shell :where(img, video, canvas, svg),
+.pasya-download-shell :where(img, video, canvas, svg),
+.pasya-public-shell :where(img, video, canvas, svg) {
+    max-width: 100%;
+}
+
+.pasya-app-body canvas,
+.pasya-auth-shell canvas {
+    display: block;
+}
+
+.pasya-card-safe {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.admin-chart-card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.pasya-text-safe {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.pasya-action-row,
+.pasya-button-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.pasya-action-row-between {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.pasya-action-row > *,
+.pasya-action-row-between > *,
+.pasya-button-row > * {
+    min-width: 0;
+}
+
+.pasya-form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.pasya-chart-frame {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: var(--pasya-chart-height, 20rem);
+    overflow: hidden;
+}
+
+.pasya-chart-frame > canvas,
+#chartInner > canvas {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+}
+
+.pasya-scroll-table,
+.overflow-x-auto {
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.trend-chart-panel {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .pasya-mobile-full {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .pasya-action-row,
+    .pasya-action-row-between {
+        align-items: stretch;
+    }
+
+    .pasya-action-row > :where(a, button, select),
+    .pasya-action-row-between > :where(a, button, select),
+    .pasya-button-row > :where(a, button, select) {
+        max-width: 100%;
+    }
+
+    .admin-section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .admin-section-title,
+    .admin-section-subtitle {
+        overflow-wrap: anywhere;
+    }
+
+    .admin-chip {
+        width: fit-content;
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .crop-data-actions > * {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+}
+
+.crop-data-page-header,
+.crop-data-actions {
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .crop-data-page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+}
+
 @media (min-width: 1024px) {
     .mobile-app-header {
         position: relative;

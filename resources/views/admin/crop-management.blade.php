@@ -4,8 +4,8 @@
     <div class="p-3 sm:p-6 space-y-4 sm:space-y-6">
         {{-- Header Section --}}
         <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-            <div class="flex justify-between items-center">
-                <div>
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="pasya-text-safe">
                     <h1 class="text-xl sm:text-3xl font-bold mb-1 sm:mb-2">Crop & Municipality Management</h1>
                     <p class="text-green-100 text-sm sm:text-base">Manage crop types and municipalities for scalable data organization</p>
                     <p class="text-sm text-green-200 mt-1">
@@ -15,10 +15,10 @@
                         Data is automatically synced from imported crop records
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     @if($stats['archived_crop_types'] + $stats['archived_municipalities'] > 0)
                     <a href="{{ route('admin.crop-management.archived') }}"
-                       class="bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-md flex items-center text-sm">
+                       class="flex flex-1 items-center justify-center bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-md text-sm sm:flex-none">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                         </svg>
@@ -29,7 +29,7 @@
                     </a>
                     @else
                     <a href="{{ route('admin.crop-management.archived') }}"
-                       class="bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-md flex items-center text-sm">
+                       class="flex flex-1 items-center justify-center bg-white/20 hover:bg-white/30 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 shadow-md text-sm sm:flex-none">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                         </svg>
@@ -73,7 +73,7 @@
             {{-- Crop Types Stats --}}
             <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-green-500">
                 <div class="flex items-center justify-between">
-                    <div class="flex-1">
+                    <div class="min-w-0 flex-1">
                         <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Crop Types</p>
                         <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['active_crop_types'] }}</p>
                         <p class="text-xs text-gray-500 mt-2">
@@ -98,7 +98,7 @@
             {{-- Municipalities Stats --}}
             <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-blue-500">
                 <div class="flex items-center justify-between">
-                    <div class="flex-1">
+                    <div class="min-w-0 flex-1">
                         <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Municipalities</p>
                         <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['active_municipalities'] }}</p>
                         <p class="text-xs text-gray-500 mt-2">
@@ -123,7 +123,7 @@
             {{-- Imported Crops --}}
             <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-purple-500">
                 <div class="flex items-center justify-between">
-                    <div class="flex-1">
+                    <div class="min-w-0 flex-1">
                         <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Imported Crops</p>
                         <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['unique_imported_crops'] }}</p>
                         <p class="text-xs text-gray-500 mt-2">
@@ -143,7 +143,7 @@
             {{-- Imported Municipalities --}}
             <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 border-l-4 border-amber-500">
                 <div class="flex items-center justify-between">
-                    <div class="flex-1">
+                    <div class="min-w-0 flex-1">
                         <p class="text-sm font-medium text-gray-600 uppercase tracking-wide">Imported Areas</p>
                         <p class="text-4xl font-bold text-gray-900 mt-2">{{ $stats['unique_imported_municipalities'] }}</p>
                         <p class="text-xs text-gray-500 mt-2">
@@ -168,8 +168,8 @@
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 {{-- Section Header --}}
                 <div class="bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200 px-6 py-4">
-                    <div class="flex justify-between items-center">
-                        <div>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="pasya-text-safe">
                             <h2 class="text-xl font-bold text-gray-800 flex items-center">
                                 <svg class="w-6 h-6 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-.5a1.5 1.5 0 000 3h.5a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 00-1-1h-.5a1.5 1.5 0 010-3H4a1 1 0 001-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z"/>
@@ -179,7 +179,7 @@
                             <p class="text-sm text-gray-600 mt-1">Manage available crop varieties</p>
                         </div>
                         <button onclick="openAddCropTypeModal()" 
-                                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center text-sm">
+                                class="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg text-sm">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
@@ -191,7 +191,7 @@
                 {{-- Search Bar --}}
                 <div class="px-6 py-4 bg-gray-50 border-b">
                     <form method="GET" action="{{ route('admin.crop-management.index') }}">
-                        <div class="flex items-center gap-3">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                             <div class="relative flex-1">
                                 <input type="text" 
                                        name="crop_search" 
@@ -202,7 +202,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
                             </div>
-                            <select name="crop_status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <select name="crop_status" onchange="this.form.submit()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 sm:w-auto">
                                 <option value="">All</option>
                                 <option value="active" {{ request('crop_status') === 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="archived" {{ request('crop_status') === 'archived' ? 'selected' : '' }}>Archived</option>
@@ -212,7 +212,7 @@
                 </div>
 
                 {{-- Table --}}
-                <div class="overflow-x-auto">
+                <div class="pasya-scroll-table overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -359,8 +359,8 @@
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 {{-- Section Header --}}
                 <div class="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200 px-6 py-4">
-                    <div class="flex justify-between items-center">
-                        <div>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="pasya-text-safe">
                             <h2 class="text-xl font-bold text-gray-800 flex items-center">
                                 <svg class="w-6 h-6 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
@@ -370,7 +370,7 @@
                             <p class="text-sm text-gray-600 mt-1">Manage municipal locations</p>
                         </div>
                         <button onclick="openAddMunicipalityModal()" 
-                                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg flex items-center text-sm">
+                                class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg text-sm">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                             </svg>
@@ -382,7 +382,7 @@
                 {{-- Search Bar --}}
                 <div class="px-6 py-4 bg-gray-50 border-b">
                     <form method="GET" action="{{ route('admin.crop-management.index') }}">
-                        <div class="flex items-center gap-3">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                             <div class="relative flex-1">
                                 <input type="text" 
                                        name="municipality_search" 
@@ -393,7 +393,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
                             </div>
-                            <select name="municipality_status" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <select name="municipality_status" onchange="this.form.submit()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 sm:w-auto">
                                 <option value="">All</option>
                                 <option value="active" {{ request('municipality_status') === 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="archived" {{ request('municipality_status') === 'archived' ? 'selected' : '' }}>Archived</option>
@@ -403,7 +403,7 @@
                 </div>
 
                 {{-- Table --}}
-                <div class="overflow-x-auto">
+                <div class="pasya-scroll-table overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>

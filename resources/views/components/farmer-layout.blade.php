@@ -249,7 +249,7 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50"
+                                 class="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50"
                                  style="display: none;">
                                 <div class="px-4 py-3 border-b border-gray-100">
                                     <p class="text-sm font-medium text-gray-800">{{ Auth::guard('farmer')->user()->full_name }}</p>

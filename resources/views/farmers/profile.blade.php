@@ -42,7 +42,7 @@
                         </div>
                         
                         <h2 class="break-words text-xl font-bold text-gray-800">{{ $farmer->full_name }}</h2>
-                        <p class="text-green-600 font-medium">{{ $farmer->farmer_id }}</p>
+                        <p class="break-words text-green-600 font-medium">{{ $farmer->farmer_id }}</p>
                         <p class="text-gray-500 text-sm mt-1">{{ $farmer->municipality_name }}, Benguet</p>
                         
                         <div class="mt-6 pt-6 border-t border-gray-100">

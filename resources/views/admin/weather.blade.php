@@ -21,9 +21,9 @@
                 <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Weather Monitoring</h1>
                 <p class="text-xs sm:text-sm text-gray-500 mt-1">Real-time weather conditions across Benguet municipalities</p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <button @click="refreshAll()" :disabled="loadingAll"
-                    class="flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors">
+                    class="flex w-full items-center justify-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors sm:w-auto">
                     <svg class="w-4 h-4" :class="loadingAll && 'animate-spin'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
@@ -36,12 +36,12 @@
         <div x-show="selectedWeather" x-cloak x-transition class="detail-grid-enter bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
             <!-- Compact header with temp + stats in one row -->
             <div class="bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-600 px-5 py-4 text-white">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex min-w-0 items-center gap-3">
                         <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                             <span class="text-xl" x-text="selectedWeather?.is_daytime ? '☀️' : '🌙'"></span>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <h2 class="text-lg font-bold leading-tight" x-text="selectedMunicipality"></h2>
                             <p class="text-sky-100 text-xs mt-0.5">
                                 <span x-text="selectedWeather?.description || 'Loading...'"></span>
@@ -50,7 +50,7 @@
                             </p>
                         </div>
                     </div>
-                    <div class="text-right flex items-baseline gap-1">
+                    <div class="flex items-baseline gap-1 text-left sm:text-right">
                         <span class="text-3xl font-extrabold tracking-tight" x-text="selectedWeather?.temperature?.display || '--'"></span>
                         <div class="text-xs text-sky-200 ml-1">
                             Feels <span x-text="selectedWeather?.feels_like?.display || '--'"></span>
@@ -88,7 +88,7 @@
             </div>
 
             <!-- Timestamp + close -->
-            <div class="px-5 py-2 flex items-center justify-between border-t border-gray-100">
+            <div class="px-5 py-2 flex flex-col gap-2 border-t border-gray-100 sm:flex-row sm:items-center sm:justify-between">
                 <span class="text-[11px] text-gray-400" x-text="selectedWeather?.observed_at ? 'Updated ' + new Date(selectedWeather.observed_at).toLocaleString() : ''"></span>
                 <button @click="selectedWeather = null; selectedMunicipality = null" class="text-xs text-gray-400 hover:text-gray-600 transition flex items-center gap-1">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -101,7 +101,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             <template x-for="m in municipalities" :key="m">
                 <div @click="selectMunicipality(m)"
-                     class="weather-card bg-white rounded-xl shadow-sm p-4 cursor-pointer border-2 transition-all"
+                     class="weather-card min-w-0 bg-white rounded-xl shadow-sm p-4 cursor-pointer border-2 transition-all"
                      :class="selectedMunicipality === m ? 'border-sky-500 ring-2 ring-sky-100 bg-sky-50/30' : 'border-gray-100 hover:border-sky-300 hover:shadow-md'">
                     
                     <!-- Loading State -->
@@ -125,8 +125,8 @@
                     <!-- Data State -->
                     <template x-if="weatherData[m] && !weatherErrors[m]">
                         <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <h3 class="font-bold text-gray-800 text-sm" x-text="m"></h3>
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <h3 class="min-w-0 truncate font-bold text-gray-800 text-sm" x-text="m"></h3>
                                 <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold"
                                       :class="weatherData[m].is_daytime ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'"
                                       x-text="weatherData[m].is_daytime ? '☀ Day' : '🌙 Night'"></span>

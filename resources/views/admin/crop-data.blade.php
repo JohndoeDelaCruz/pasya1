@@ -1,10 +1,10 @@
 <x-admin-layout>
     <x-slot name="title">Crop Data Management</x-slot>
 
-    <div class="p-6">
+    <div class="p-3 sm:p-6">
         {{-- Header --}}
         <div class="crop-data-page-header flex justify-between items-center mb-6">
-            <div>
+            <div class="pasya-text-safe">
                 <h1 class="text-2xl font-bold text-gray-800 mb-2">Crop Data Management</h1>
                 <p class="text-gray-600">View and manage imported crop data</p>
             </div>
@@ -129,7 +129,7 @@
 
         {{-- Filters --}}
         <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <form method="GET" action="{{ route('admin.crop-data.index') }}" class="flex flex-wrap gap-3 items-end">
+            <form method="GET" action="{{ route('admin.crop-data.index') }}" class="pasya-form-grid">
                 {{-- Search Input --}}
                 <div class="flex-1 min-w-[200px]">
                     <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -186,9 +186,9 @@
                 </div>
 
                 {{-- Filter Button --}}
-                <div>
+                <div class="pasya-button-row">
                     <button type="submit" 
-                            class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition flex items-center">
+                            class="flex flex-1 items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition sm:flex-none">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                         </svg>
@@ -198,9 +198,9 @@
 
                 {{-- Clear Button --}}
                 @if(request()->hasAny(['search', 'view', 'municipality', 'crop']))
-                    <div>
+                    <div class="pasya-button-row">
                         <a href="{{ route('admin.crop-data.index') }}" 
-                           class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition flex items-center">
+                           class="flex flex-1 items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition sm:flex-none">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -213,7 +213,7 @@
 
         {{-- Data Table --}}
         <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="overflow-x-auto">
+            <div class="pasya-scroll-table overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>

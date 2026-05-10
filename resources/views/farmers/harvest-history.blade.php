@@ -115,7 +115,7 @@
                         </template>
                     </div>
 
-                    <div class="hidden overflow-x-auto md:block">
+                    <div class="pasya-scroll-table hidden overflow-x-auto md:block">
                         <table class="w-full min-w-[600px]">
                             <thead>
                                 <tr class="border-b border-green-300">

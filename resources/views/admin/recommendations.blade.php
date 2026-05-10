@@ -42,21 +42,21 @@
         @endif
 
         <!-- Page Header -->
-        <div class="flex items-center justify-between">
+        <div class="pasya-action-row-between">
             <h1 class="text-2xl font-bold text-gray-800">Recommendations</h1>
         </div>
 
         <!-- Resource Allocation Section -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-6">
-                <div>
+        <div class="pasya-card-safe bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div class="pasya-action-row-between mb-6">
+                <div class="pasya-text-safe">
                     <h2 class="text-lg font-semibold text-gray-800">📊 Bar Chart Of Resource Planning</h2>
                     <div class="mt-2">
                         <h3 class="text-base font-semibold text-gray-700 mb-1">Allocation vs. Need</h3>
                         <p class="text-sm text-gray-600">Per Crop</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4">
                     <div class="flex items-center gap-2">
                         <div class="w-4 h-4 bg-yellow-500 rounded"></div>
                         <span class="text-sm text-gray-600">Needed Seeds (kg)</span>
@@ -69,37 +69,37 @@
             </div>
 
             <!-- Bar Chart -->
-            <div class="h-80 relative mb-4">
+            <div class="pasya-chart-frame h-72 sm:h-80 mb-4">
                 <canvas id="allocationChart"></canvas>
             </div>
 
             <!-- Allocation Info -->
-            <div class="flex items-center justify-between text-sm text-gray-600">
+            <div class="pasya-action-row-between text-sm text-gray-600">
                 <p>Allocation down by 5.2% this month</p>
                 <p>Showing allocations per crop for this month</p>
             </div>
 
             <!-- Export Button -->
-            <div class="mt-4 flex justify-end gap-2">
-                <select class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+            <div class="mt-4 flex flex-wrap justify-end gap-2">
+                <select class="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 sm:flex-none">
                     <option>Type of file</option>
                     <option>PDF</option>
                     <option>Excel</option>
                     <option>CSV</option>
                 </select>
-                <button class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors">
+                <button class="flex-1 px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors sm:flex-none">
                     Export data
                 </button>
             </div>
         </div>
 
         <!-- Policy Dashboard Section -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-6">
+        <div class="pasya-card-safe bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div class="pasya-action-row-between mb-6">
                 <h2 class="text-lg font-semibold text-gray-800">Policy Dashboard</h2>
                 <button type="button" 
                         @click="showSubsidyModal = true" 
-                        class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors flex items-center gap-2">
+                        class="w-full px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 sm:w-auto">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -109,7 +109,7 @@
 
             <!-- Filters and Actions Row -->
             <form method="GET" action="{{ route('admin.recommendations') }}" class="mb-6">
-                <div class="flex items-center gap-3">
+                <div class="pasya-form-grid">
                     <!-- Name Filter -->
                     <div class="flex-1">
                         <input type="text" name="name" placeholder="Name" value="{{ request('name') }}" 
@@ -143,14 +143,14 @@
                     </div>
 
                     <!-- Reset and Filter Buttons -->
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('admin.recommendations') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 text-sm transition-colors">
+                    <div class="pasya-button-row">
+                        <a href="{{ route('admin.recommendations') }}" class="inline-flex flex-1 items-center justify-center px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 text-sm transition-colors sm:flex-none">
                             Reset
                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </a>
-                        <button type="submit" class="px-4 py-2 text-gray-600 text-sm hover:text-gray-800">
+                        <button type="submit" class="flex-1 px-4 py-2 text-gray-600 text-sm hover:text-gray-800 sm:flex-none">
                             View
                         </button>
                     </div>
@@ -158,7 +158,7 @@
             </form>
 
             <!-- Data Table -->
-            <div class="overflow-x-auto">
+            <div class="pasya-scroll-table overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-white border-b border-gray-200">
                         <tr>
@@ -251,7 +251,7 @@
             </div>
 
             <!-- Pagination Footer -->
-            <div class="mt-4 flex items-center justify-between border-t border-gray-200 pt-4">
+            <div class="mt-4 pasya-action-row-between border-t border-gray-200 pt-4">
                 <div class="text-sm text-gray-700">
                     @if($subsidies->total() > 0)
                         0 of {{ $subsidies->total() }} row(s) selected.
@@ -260,7 +260,7 @@
                     @endif
                 </div>
                 
-                <div class="flex items-center gap-6">
+                <div class="flex flex-wrap items-center gap-3 sm:gap-6">
                     <div class="flex items-center gap-2">
                         <span class="text-sm text-gray-700">Rows per page</span>
                         <select class="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-300">

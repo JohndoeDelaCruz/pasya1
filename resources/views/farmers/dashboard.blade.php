@@ -13,13 +13,13 @@
             </div>
             
             <div class="relative flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                <div>
+                <div class="pasya-text-safe">
                     @php
                         $hour = now()->hour;
                         $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
                     @endphp
                     <p class="text-green-100 text-sm font-medium mb-1">{{ $greeting }} 👋</p>
-                    <h1 class="text-xl sm:text-3xl font-bold mb-2">{{ Auth::guard('farmer')->user()->full_name }}</h1>
+                    <h1 class="break-words text-xl sm:text-3xl font-bold mb-2">{{ Auth::guard('farmer')->user()->full_name }}</h1>
                     <div class="flex flex-wrap items-center gap-2 sm:gap-4">
                         <div class="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
                             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -55,7 +55,7 @@
                                 <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Events</p>
                             <p class="text-lg font-bold text-gray-800">{{ $stats['events_count'] ?? 0 }} This Month</p>
                         </div>
@@ -69,7 +69,7 @@
                                 <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
                             </svg>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Crops</p>
                             <p class="text-lg font-bold text-gray-800">{{ $stats['active_crops'] ?? 0 }} Active</p>
                         </div>
@@ -82,7 +82,7 @@
                                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                             <p class="text-xs text-gray-500 uppercase tracking-wider">Announcements</p>
                             <p class="text-lg font-bold text-gray-800">{{ isset($announcements) ? $announcements->count() : 0 }} New</p>
                         </div>

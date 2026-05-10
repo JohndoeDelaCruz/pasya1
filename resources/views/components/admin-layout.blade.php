@@ -52,7 +52,7 @@
         }
     </style>
 </head>
-<body class="pasya-app-body bg-gray-50" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
+<body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"
@@ -174,23 +174,23 @@
         </aside>
 
         <!-- Main Content Area -->
-        <div class="mobile-content-shell flex-1 flex flex-col overflow-hidden">
+        <div class="mobile-content-shell flex-1 min-w-0 flex flex-col overflow-hidden">
             <!-- Top Navigation Bar -->
             <header class="mobile-app-header mobile-safe-top-panel mobile-header-visible bg-white shadow-sm z-10" data-mobile-app-header>
-                <div class="flex items-center justify-between px-6 py-4">
+                <div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
                     <!-- Logo -->
-                    <div class="flex items-center gap-2 sm:gap-3">
-                        <button @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-600 hover:text-gray-900 mr-4">
+                    <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+                        <button @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-2 sm:mr-4">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
                         </button>
                         <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="h-10 w-10 sm:h-11 sm:w-11 object-contain flex-shrink-0">
-                        <img src="{{ asset('images/titleh.png') }}" alt="PASYA Title" class="h-12 sm:h-14 w-auto max-w-[150px] sm:max-w-[190px] object-contain">
+                        <img src="{{ asset('images/titleh.png') }}" alt="PASYA Title" class="h-10 sm:h-14 w-auto min-w-0 max-w-[105px] sm:max-w-[190px] object-contain">
                     </div>
 
                     <!-- Right side icons -->
-                    <div class="flex items-center space-x-4">
+                    <div class="flex shrink-0 items-center space-x-2 sm:space-x-4">
                         <!-- Notifications -->
                         <button class="text-gray-600 hover:text-gray-900 relative">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,7 +224,7 @@
                                  x-transition:leave="transition ease-in duration-150"
                                  x-transition:leave-start="opacity-100 transform scale-100"
                                  x-transition:leave-end="opacity-0 transform scale-95"
-                                 class="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-lg py-2 z-50 border border-gray-200"
+                                 class="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-64 bg-white rounded-2xl shadow-lg py-2 z-50 border border-gray-200"
                                  style="display: none;">
                                 
                                 <!-- My Account Section -->
@@ -276,7 +276,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area mobile-header-scroll-area mobile-content-pad mobile-safe-bottom flex-1 overflow-y-auto p-3 sm:p-6" data-hide-header-scroll>
+            <main class="mobile-scroll-area mobile-header-scroll-area mobile-content-pad mobile-safe-bottom flex-1 min-w-0 overflow-y-auto p-3 sm:p-6" data-hide-header-scroll>
                 {{ $slot }}
             </main>
         </div>

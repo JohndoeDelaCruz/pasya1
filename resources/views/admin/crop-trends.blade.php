@@ -9,11 +9,11 @@
 
     <div class="space-y-6" x-data="cropTrends()">
         <!-- Page Header -->
-        <div class="flex items-center justify-between">
+        <div class="pasya-action-row-between">
             <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
             
             <!-- ML API Status Indicator -->
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
                 @if($mlApiHealthy)
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
                         <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -29,9 +29,9 @@
         </div>
 
         <!-- Crop Production Forecasting Chart -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between mb-5">
-                <div>
+        <div class="pasya-card-safe bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div class="pasya-action-row-between mb-5">
+                <div class="pasya-text-safe">
                     <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -50,7 +50,7 @@
                 </div>
                 
                 <!-- Legend -->
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4">
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
                         <svg width="24" height="10" class="flex-shrink-0">
                             <line x1="0" y1="5" x2="24" y2="5" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3"/>
@@ -69,12 +69,12 @@
             </div>
 
             <!-- Forecast Chart -->
-            <div class="h-[350px] relative">
+            <div class="pasya-chart-frame h-[300px] sm:h-[350px]">
                 <canvas id="forecastChart"></canvas>
             </div>
 
-            <div class="mt-4 flex items-center justify-between text-sm text-gray-500">
-                <div class="flex items-center gap-2">
+            <div class="mt-4 pasya-action-row-between text-sm text-gray-500">
+                <div class="flex min-w-0 flex-wrap items-center gap-2">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                     </svg>
@@ -89,14 +89,14 @@
         <!-- Summary Statistics -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Monthly Production Chart (spans 2 cols) -->
-            <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
+            <div class="pasya-card-safe lg:col-span-2 bg-white rounded-xl shadow-md p-4 sm:p-6">
+                <div class="pasya-action-row-between mb-4">
+                    <div class="pasya-text-safe">
                         <h3 class="text-lg font-semibold text-gray-800">Average Monthly Production</h3>
                         <p class="text-sm text-gray-500">{{ $selectedCrop }} • {{ $selectedMunicipality }} • Production in Metric Tons (mt)</p>
                     </div>
                 </div>
-                <div class="h-[240px]">
+                <div class="pasya-chart-frame h-[220px] sm:h-[240px]">
                     <canvas id="demandChart"></canvas>
                 </div>
             </div>

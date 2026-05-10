@@ -6,12 +6,12 @@
             <!-- Header -->
             <div class="bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-4 py-4 sm:px-8 sm:py-6 rounded-2xl mb-4 sm:mb-6 shadow-lg">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
+                    <div class="pasya-text-safe">
                         <h1 class="text-2xl font-bold mb-1">Daily Price Watch</h1>
                         <p class="text-green-100 text-sm">La Trinidad Trading Post Prices</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3 self-start md:self-auto">
-                        <div class="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
+                        <div class="min-w-0 bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
                             <p class="text-xs text-green-100">Last Updated</p>
                             <p class="font-semibold">{{ now()->format('M d, Y g:i A') }}</p>
                         </div>
@@ -75,7 +75,7 @@
             <!-- Price Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                 <template x-for="price in filteredPrices" :key="price.name">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                    <div class="pasya-card-safe bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 cursor-pointer"
                          @click="showPriceDetail(price)">
                         <div class="flex items-start justify-between mb-3">
                             <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
@@ -89,7 +89,7 @@
                                 <span x-text="Math.abs(price.change).toFixed(2)"></span>
                             </span>
                         </div>
-                        <h3 class="font-semibold text-gray-800 mb-1" x-text="price.name"></h3>
+                        <h3 class="pasya-text-safe font-semibold text-gray-800 mb-1" x-text="price.name"></h3>
                         <p class="text-xs text-gray-500 mb-3" x-text="price.category"></p>
                         <div class="flex items-baseline space-x-1">
                             <span class="text-2xl font-bold text-gray-900">₱</span>
@@ -101,15 +101,15 @@
             </div>
 
             <!-- Price Trends Module -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="pasya-card-safe bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
                     <div>
                         <h2 class="text-xl font-bold text-gray-800">Price Trends</h2>
                         <p class="text-sm text-gray-500">Last 6 months comparison</p>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex min-w-0 flex-wrap items-center gap-2">
                         <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">View</label>
-                        <select x-model="selectedTrendCrop" class="px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500">
+                        <select x-model="selectedTrendCrop" class="min-w-0 flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 sm:flex-none">
                             <option value="all">Market Basket</option>
                             <template x-for="dataset in trendData.datasets" :key="dataset.label">
                                 <option :value="dataset.label" x-text="dataset.label"></option>
@@ -147,7 +147,7 @@
 
                     <template x-if="visibleTrendDatasets.length > 0">
                         <div>
-                            <div class="relative h-64 sm:h-72">
+                            <div class="relative h-64 min-w-0 overflow-hidden sm:h-72">
                                 <!-- Horizontal Grid + Y labels -->
                                 <div class="absolute inset-0">
                                     <template x-for="(tick, index) in trendTicks" :key="index">
@@ -178,9 +178,9 @@
                             </div>
 
                             <!-- Month Labels -->
-                            <div class="mt-3 grid" :style="'grid-template-columns: repeat(' + trendData.labels.length + ', minmax(0, 1fr));'">
+                            <div class="mt-3 grid min-w-0" :style="'grid-template-columns: repeat(' + trendData.labels.length + ', minmax(0, 1fr));'">
                                 <template x-for="(month, index) in trendData.labels" :key="index">
-                                    <div class="text-center text-xs text-gray-500 font-medium" x-text="month"></div>
+                                    <div class="truncate text-center text-xs text-gray-500 font-medium" x-text="month"></div>
                                 </template>
                             </div>
                         </div>

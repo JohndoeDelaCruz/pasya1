@@ -29,7 +29,7 @@
     }, 100)">
         <!-- Page Header -->
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-            <div class="max-w-3xl">
+            <div class="pasya-text-safe max-w-3xl">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-green-700">Admin Dashboard</p>
                 <h1 class="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl lg:text-4xl">Data & Analytics</h1>
                 <p class="mt-2 text-sm text-gray-600 lg:text-base">
@@ -37,17 +37,17 @@
                 </p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-                <a href="{{ route('admin.export-summary') }}" class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+            <div class="pasya-button-row">
+                <a href="{{ route('admin.export-summary') }}" class="inline-flex flex-1 items-center justify-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm sm:flex-none">
                     Export Summary
                 </a>
                 <button type="button"
                         @click="showResourceModal = true"
-                        class="inline-flex items-center px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg transition-colors shadow-sm">
+                        class="inline-flex flex-1 items-center justify-center px-4 py-2.5 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg transition-colors shadow-sm sm:flex-none">
                     Allocate Resource
                 </button>
                 <button onclick="document.getElementById('predictions-section')?.scrollIntoView({ behavior: 'smooth' })"
-                        class="inline-flex items-center px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold rounded-lg transition-colors border border-emerald-200">
+                        class="inline-flex flex-1 items-center justify-center px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold rounded-lg transition-colors border border-emerald-200 sm:flex-none">
                     View AI Predictions
                 </button>
             </div>
@@ -55,7 +55,7 @@
 
         <!-- Filter Bar -->
         <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-section-card p-4">
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="pasya-action-row">
                 <div class="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
@@ -64,7 +64,7 @@
                 </div>
 
                 <select name="crop" id="cropFilter" onchange="document.getElementById('filterForm').submit()"
-                    class="min-w-[130px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    class="min-w-[130px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All crops</option>
                     @foreach(App\Models\Crop::select('crop')->distinct()->orderBy('crop')->pluck('crop') as $crop)
                         <option value="{{ $crop }}" {{ request('crop') == $crop ? 'selected' : '' }}>{{ ucwords(strtolower($crop)) }}</option>
@@ -72,7 +72,7 @@
                 </select>
 
                 <select name="municipality" id="municipalityFilter" onchange="document.getElementById('filterForm').submit()"
-                    class="min-w-[150px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    class="min-w-[150px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All municipalities</option>
                     @foreach($allMunicipalities as $municipality)
                         <option value="{{ $municipality }}" {{ $filterMunicipality == $municipality ? 'selected' : '' }}>{{ ucwords(strtolower($municipality)) }}</option>
@@ -80,7 +80,7 @@
                 </select>
 
                 <select name="month" id="monthFilter" onchange="document.getElementById('filterForm').submit()"
-                    class="min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    class="min-w-[120px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All months</option>
                     @foreach(['JAN'=>'Jan','FEB'=>'Feb','MAR'=>'Mar','APR'=>'Apr','MAY'=>'May','JUN'=>'Jun','JUL'=>'Jul','AUG'=>'Aug','SEP'=>'Sep','OCT'=>'Oct','NOV'=>'Nov','DEC'=>'Dec'] as $code => $name)
                         <option value="{{ $code }}" {{ $filterMonth == $code ? 'selected' : '' }}>{{ $name }}</option>
@@ -88,7 +88,7 @@
                 </select>
 
                 <select name="year" id="yearFilter" onchange="document.getElementById('filterForm').submit()"
-                    class="min-w-[100px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    class="min-w-[100px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All years</option>
                     @foreach($allYears as $year)
                         <option value="{{ $year }}" {{ $filterYear == $year ? 'selected' : '' }}>{{ $year }}</option>
@@ -96,7 +96,7 @@
                 </select>
 
                 <select name="farm_type" id="farmTypeFilter" onchange="document.getElementById('filterForm').submit()"
-                    class="min-w-[110px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700">
+                    class="min-w-[110px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All types</option>
                     <option value="RAINFED" {{ $filterFarmType == 'RAINFED' ? 'selected' : '' }}>Rainfed</option>
                     <option value="IRRIGATED" {{ $filterFarmType == 'IRRIGATED' ? 'selected' : '' }}>Irrigated</option>
@@ -133,7 +133,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                     </div>
-                    <div>
+                    <div class="pasya-text-safe">
                         @php
                             $monthNames = ['JAN' => 'January', 'FEB' => 'February', 'MAR' => 'March', 'APR' => 'April',
                                           'MAY' => 'May', 'JUN' => 'June', 'JUL' => 'July', 'AUG' => 'August',
@@ -180,7 +180,7 @@
             @if($hasChartData)
                 <div class="space-y-3">
                     <div class="admin-chart-card max-h-[560px] overflow-y-auto pr-2 custom-scrollbar">
-                        <div id="chartInner" class="min-h-[360px] p-2 sm:p-3">
+                        <div id="chartInner" class="min-h-[360px] min-w-0 p-2 sm:p-3">
                             <canvas id="trendChart" class="h-full w-full cursor-pointer"></canvas>
                         </div>
                     </div>
@@ -1505,7 +1505,7 @@
                                             @endphp
                                             
                                             <!-- Pie Chart Canvas -->
-                                            <div class="flex justify-center mb-4">
+                                            <div class="flex min-w-0 justify-center mb-4">
                                                 <canvas id="cropChart_{{ str_replace(' ', '_', $munName) }}" 
                                                         class="max-w-[250px] max-h-[250px]"
                                                         data-municipality="{{ $munName }}"
