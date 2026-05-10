@@ -211,7 +211,137 @@ const setupNavbarSmoothScroll = () => {
 	}
 };
 
+const setupPwaAutoHideHeaders = () => {
+	const scrollAreas = Array.from(document.querySelectorAll('[data-hide-header-scroll]'));
+
+	if (!scrollAreas.length) {
+		return;
+	}
+
+	const mobileViewport = window.matchMedia('(max-width: 1023px)');
+	const controllers = [];
+	const scrollThreshold = 8;
+	const topThreshold = 6;
+
+	scrollAreas.forEach((scrollArea) => {
+		const shell = scrollArea.closest('[data-mobile-app-shell]');
+		const header = shell ? shell.querySelector('[data-mobile-app-header]') : null;
+
+		if (!shell || !header) {
+			return;
+		}
+
+		const state = {
+			hidden: false,
+			lastScrollTop: Math.max(scrollArea.scrollTop, 0),
+			rafId: null,
+		};
+
+		const setHeaderHeight = () => {
+			const height = Math.ceil(header.getBoundingClientRect().height);
+
+			if (height > 0) {
+				shell.style.setProperty('--pasya-header-height', `${height}px`);
+				shell.style.setProperty('--pasya-header-offset', `${height + 8}px`);
+			}
+		};
+
+		const showHeader = () => {
+			if (!state.hidden && header.classList.contains('mobile-header-visible')) {
+				return;
+			}
+
+			state.hidden = false;
+			shell.classList.remove('mobile-header-is-hidden');
+			header.classList.remove('mobile-header-hidden');
+			header.classList.add('mobile-header-visible');
+		};
+
+		const hideHeader = () => {
+			if (!mobileViewport.matches) {
+				showHeader();
+				return;
+			}
+
+			state.hidden = true;
+			shell.classList.add('mobile-header-is-hidden');
+			header.classList.add('mobile-header-hidden');
+			header.classList.remove('mobile-header-visible');
+		};
+
+		const handleScroll = () => {
+			const maxScrollTop = Math.max(scrollArea.scrollHeight - scrollArea.clientHeight, 0);
+			const currentScrollTop = Math.min(Math.max(scrollArea.scrollTop, 0), maxScrollTop);
+			const delta = currentScrollTop - state.lastScrollTop;
+			const headerHeight = Number.parseFloat(shell.style.getPropertyValue('--pasya-header-height')) || header.offsetHeight || 72;
+
+			if (!mobileViewport.matches || currentScrollTop <= topThreshold) {
+				showHeader();
+				state.lastScrollTop = currentScrollTop;
+				state.rafId = null;
+				return;
+			}
+
+			if (Math.abs(delta) >= scrollThreshold) {
+				if (delta > 0 && currentScrollTop > headerHeight) {
+					hideHeader();
+				} else if (delta < 0) {
+					showHeader();
+				}
+
+				state.lastScrollTop = currentScrollTop;
+			}
+
+			state.rafId = null;
+		};
+
+		scrollArea.addEventListener(
+			'scroll',
+			() => {
+				if (state.rafId === null) {
+					state.rafId = window.requestAnimationFrame(handleScroll);
+				}
+			},
+			{ passive: true }
+		);
+
+		controllers.push({ setHeaderHeight, showHeader });
+		setHeaderHeight();
+		showHeader();
+	});
+
+	if (!controllers.length) {
+		return;
+	}
+
+	const refreshHeaders = () => {
+		controllers.forEach((controller) => {
+			controller.setHeaderHeight();
+			controller.showHeader();
+		});
+	};
+
+	document.addEventListener('pasya-show-mobile-header', refreshHeaders);
+
+	document.addEventListener('focusin', (event) => {
+		if (event.target instanceof Element && event.target.closest('[data-mobile-app-header]')) {
+			refreshHeaders();
+		}
+	});
+
+	window.addEventListener('resize', refreshHeaders);
+	window.addEventListener('orientationchange', refreshHeaders);
+	window.addEventListener('load', refreshHeaders, { once: true });
+
+	if (typeof mobileViewport.addEventListener === 'function') {
+		mobileViewport.addEventListener('change', refreshHeaders);
+	} else if (typeof mobileViewport.addListener === 'function') {
+		mobileViewport.addListener(refreshHeaders);
+	}
+};
+
 document.addEventListener('DOMContentLoaded', () => {
 	setupHeroSceneryFade();
 	setupNavbarSmoothScroll();
+	setupPwaAutoHideHeaders();
 });

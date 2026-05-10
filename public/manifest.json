@@ -4,8 +4,8 @@
     "description": "Agricultural management system for farmers in Benguet",
     "start_url": "/app",
     "display": "standalone",
-    "background_color": "#16a34a",
-    "theme_color": "#16a34a",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
     "orientation": "portrait-primary",
     "scope": "/",
     "icons": [

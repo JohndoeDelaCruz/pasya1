@@ -9,13 +9,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#16a34a">
+    <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PASYA">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="PASYA">
-    <meta name="msapplication-TileColor" content="#16a34a">
+    <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="format-detection" content="telephone=no">
     
@@ -39,7 +39,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()" @keydown.escape.window="sidebarOpen = false">
-    <div class="mobile-app-shell flex overflow-hidden">
+    <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
                :class="{ 'is-open': sidebarOpen }">
@@ -138,13 +138,13 @@
         </aside>
 
         <!-- Main Content Area -->
-        <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+        <div class="mobile-content-shell flex-1 min-w-0 flex flex-col overflow-hidden">
             <!-- Top Navigation Bar -->
-            <header class="mobile-safe-top-panel bg-white shadow-sm z-10">
+            <header class="mobile-app-header mobile-safe-top-panel mobile-header-visible bg-white shadow-sm z-10" data-mobile-app-header>
                 <div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
                     <!-- Logo -->
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
-                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-2 sm:mr-4">
+                        <button @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-2 sm:mr-4">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
@@ -157,7 +157,7 @@
                     <div class="flex shrink-0 items-center space-x-2 sm:space-x-4">
                         <!-- Notifications Dropdown -->
                         <div class="relative" x-data="notificationsDropdown()" x-init="fetchNotifications()">
-                            <button @click="notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="text-gray-600 hover:text-gray-900 relative">
+                            <button @click="$dispatch('pasya-show-mobile-header'); notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="text-gray-600 hover:text-gray-900 relative">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>
@@ -229,7 +229,7 @@
 
                         <!-- User Menu Dropdown -->
                         <div class="relative" x-data="{ userOpen: false }">
-                            <button @click="userOpen = !userOpen" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+                            <button @click="$dispatch('pasya-show-mobile-header'); userOpen = !userOpen" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
                                 <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                                     <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
@@ -308,7 +308,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area mobile-safe-bottom flex-1 min-w-0 overflow-y-auto">
+            <main class="mobile-scroll-area mobile-header-scroll-area mobile-safe-bottom flex-1 min-w-0 overflow-y-auto" data-hide-header-scroll>
                 {{ $slot }}
             </main>
         </div>
@@ -317,7 +317,7 @@
     <!-- Overlay for mobile -->
     <template x-if="sidebarOpen">
         <div
-             @click="sidebarOpen = false"
+             @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = false"
              class="mobile-sidebar-overlay fixed inset-0 z-[9998] bg-gray-600 bg-opacity-75 lg:hidden"
              aria-hidden="true">
         </div>

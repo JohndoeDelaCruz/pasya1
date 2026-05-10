@@ -7,11 +7,13 @@
     --pasya-safe-right: env(safe-area-inset-right, 0px);
     --pasya-safe-bottom: env(safe-area-inset-bottom, 0px);
     --pasya-safe-left: env(safe-area-inset-left, 0px);
+    --pasya-header-height: calc(4.5rem + var(--pasya-safe-top));
+    --pasya-header-offset: calc(var(--pasya-header-height) + 0.5rem);
 }
 
 html {
     min-height: 100%;
-    background: #16a34a;
+    background: #ffffff;
 }
 
 body {
@@ -21,7 +23,7 @@ body {
 
 .pasya-public-shell,
 .pasya-app-body {
-    background: #f9fafb;
+    background: #ffffff;
 }
 
 .pasya-download-shell,
@@ -119,11 +121,56 @@ body {
     height: 100vh;
     height: 100dvh;
     min-height: -webkit-fill-available;
-    background: #f9fafb;
+    position: relative;
+    background: #ffffff;
+}
+
+.mobile-content-shell {
+    position: relative;
+}
+
+.mobile-app-header {
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 30;
+    transform: translate3d(0, 0, 0);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+    will-change: transform;
+}
+
+.mobile-app-header.mobile-header-hidden {
+    transform: translate3d(0, calc(-1 * var(--pasya-header-offset)), 0);
+    box-shadow: none;
+}
+
+.mobile-app-header.mobile-header-visible {
+    transform: translate3d(0, 0, 0);
+}
+
+.mobile-header-scroll-area {
+    padding-top: calc(var(--pasya-header-height) + var(--pasya-content-top-padding, 0px));
+}
+
+.mobile-content-pad {
+    --pasya-content-top-padding: 0.75rem;
+}
+
+.mobile-safe-top-panel,
+.mobile-app-shell::before {
+    background: #ffffff;
 }
 
 .mobile-safe-top-panel {
     padding-top: var(--pasya-safe-top);
+}
+
+.mobile-app-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 25;
+    height: var(--pasya-safe-top);
+    pointer-events: none;
 }
 
 .mobile-safe-sidebar {
@@ -157,6 +204,18 @@ body {
 }
 
 @media (min-width: 1024px) {
+    .mobile-app-header {
+        position: relative;
+    }
+
+    .mobile-header-scroll-area {
+        padding-top: var(--pasya-content-top-padding, 0px);
+    }
+
+    .mobile-app-shell::before {
+        display: none;
+    }
+
     .mobile-sidebar-panel,
     .mobile-sidebar-panel.is-open {
         transform: none;
@@ -165,13 +224,29 @@ body {
     }
 }
 
+@media (min-width: 640px) {
+    .mobile-content-pad {
+        --pasya-content-top-padding: 1.5rem;
+    }
+}
+
 @supports (-webkit-touch-callout: none) {
     .mobile-sidebar-panel {
         transition-duration: 140ms;
     }
 
+    .mobile-app-header {
+        transition-duration: 150ms;
+    }
+
     .mobile-sidebar-overlay {
         animation: none;
+        transition: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mobile-app-header {
         transition: none;
     }
 }
