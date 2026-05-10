@@ -50,6 +50,7 @@ class AnnouncementController extends Controller
 
         $validated['created_by'] = Auth::id();
         $validated['is_active'] = $request->has('is_active');
+        $validated['municipality'] = !empty($validated['municipality']) ? $validated['municipality'] : null;
 
         // If no published_at date, publish immediately
         if (empty($validated['published_at'])) {
@@ -97,6 +98,7 @@ class AnnouncementController extends Controller
         ]);
 
         $validated['is_active'] = $request->has('is_active');
+        $validated['municipality'] = !empty($validated['municipality']) ? $validated['municipality'] : null;
 
         $announcement->update($validated);
 

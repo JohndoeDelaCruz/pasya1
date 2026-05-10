@@ -66,6 +66,7 @@ class Announcement extends Model
     {
         return $query->where(function ($q) use ($municipality) {
             $q->whereNull('municipality')
+                ->orWhere('municipality', '')
                 ->orWhere('municipality', $municipality);
         });
     }
