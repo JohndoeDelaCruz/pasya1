@@ -11,38 +11,6 @@
     --pasya-header-offset: calc(var(--pasya-header-height) + 0.5rem);
 }
 
-/* Page transition loader bar */
-#pasya-page-loader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 99999;
-    height: 3px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 150ms ease;
-}
-
-#pasya-page-loader.is-loading {
-    opacity: 1;
-}
-
-#pasya-page-loader-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #16a34a, #4ade80, #16a34a);
-    background-size: 200% 100%;
-    border-radius: 0 2px 2px 0;
-    transition: width 300ms ease;
-    animation: pasya-loader-shimmer 1.2s linear infinite;
-}
-
-@keyframes pasya-loader-shimmer {
-    0%   { background-position: 200% center; }
-    100% { background-position: -200% center; }
-}
-
 html {
     min-height: 100%;
     background: #ffffff;

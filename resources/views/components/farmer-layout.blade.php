@@ -583,72 +583,7 @@
             });
         }
 
-        // Page transition loader
-        (function () {
-            const loader = document.getElementById('pasya-page-loader');
-            const bar = document.getElementById('pasya-page-loader-bar');
-            let loaderTimer = null;
-            let progressTimer = null;
-
-            function startLoader() {
-                clearTimeout(loaderTimer);
-                clearTimeout(progressTimer);
-                bar.style.width = '0%';
-                loader.classList.add('is-loading');
-
-                // Animate to 80% quickly, then slow down
-                requestAnimationFrame(() => {
-                    bar.style.transition = 'width 300ms ease';
-                    bar.style.width = '30%';
-                    progressTimer = setTimeout(() => {
-                        bar.style.transition = 'width 8000ms cubic-bezier(0.1, 0.05, 0.0, 1)';
-                        bar.style.width = '82%';
-                    }, 300);
-                });
-            }
-
-            function finishLoader() {
-                clearTimeout(loaderTimer);
-                clearTimeout(progressTimer);
-                bar.style.transition = 'width 200ms ease';
-                bar.style.width = '100%';
-                loaderTimer = setTimeout(() => {
-                    loader.classList.remove('is-loading');
-                    bar.style.transition = 'none';
-                    bar.style.width = '0%';
-                }, 250);
-            }
-
-            // Intercept internal navigation link clicks
-            document.addEventListener('click', function (e) {
-                const link = e.target.closest('a[href]');
-                if (!link) return;
-
-                const href = link.getAttribute('href');
-                // Skip: empty, hash-only, external, mailto/tel, opens new tab
-                if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) return;
-                if (link.target === '_blank') return;
-                try {
-                    const url = new URL(href, window.location.origin);
-                    if (url.origin !== window.location.origin) return;
-                    // Skip if navigating to same page
-                    if (url.pathname === window.location.pathname && url.search === window.location.search) return;
-                } catch (_) { return; }
-
-                startLoader();
-            });
-
-            // Also show on form submit (e.g. logout)
-            document.addEventListener('submit', function () {
-                startLoader();
-            });
-
-            // Finish when page becomes visible (handles regular load + back/forward on iOS)
-            window.addEventListener('pageshow', function () {
-                finishLoader();
-            });
-        })();
-
+ 
         // Notifications dropdown component
         function notificationsDropdown() {
             return {
