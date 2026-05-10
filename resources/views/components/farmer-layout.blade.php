@@ -11,7 +11,7 @@
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#ffffff">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="PASYA">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="application-name" content="PASYA">
@@ -31,9 +31,28 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/images/icons/icon-72x72.png">
     
     <!-- Splash Screens for iOS -->
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px)">
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px)">
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px)">
+    {{-- iPhone SE 1st gen (320×568) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+    {{-- iPhone 6/7/8 (375×667) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+    {{-- iPhone 6+/7+/8+ (414×736) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
+    {{-- iPhone X / XS / 11 Pro (375×812) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+    {{-- iPhone XR / 11 (414×896) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+    {{-- iPhone XS Max / 11 Pro Max (414×896 @3x) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
+    {{-- iPhone 12 / 13 / 14 (390×844) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
+    {{-- iPhone 12 Pro Max / 13 Pro Max / 14 Plus (428×926) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)">
+    {{-- iPhone 14 Pro (393×852) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)">
+    {{-- iPhone 14 Pro Max (430×932) --}}
+    <link rel="apple-touch-startup-image" href="/images/splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
+    {{-- iPhone 15 / 15 Pro (393×852) same as 14 Pro --}}
+    {{-- iPhone 15 Plus / 15 Pro Max (430×932) same as 14 Pro Max --}}
     
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -331,7 +350,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 transform translate-y-0"
          x-transition:leave-end="opacity-0 transform translate-y-full"
-         class="fixed bottom-0 inset-x-0 z-50 p-4 lg:p-6"
+         class="fixed bottom-0 inset-x-0 z-50 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:p-6 lg:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
          style="display: none;">
         <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-md mx-auto overflow-hidden">
             <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-3">
@@ -355,9 +374,74 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
-                        <span>Install</span>
+                        <span x-text="isIos ? 'How to Install' : 'Install'"></span>
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- iOS "Add to Home Screen" Guide Modal -->
+    <div x-show="showIosGuide"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[9999] flex items-end justify-center bg-black/50"
+         style="display: none;"
+         @click.self="showIosGuide = false">
+        <div x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="transform translate-y-full"
+             x-transition:enter-end="transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="transform translate-y-0"
+             x-transition:leave-end="transform translate-y-full"
+             class="w-full max-w-md bg-white rounded-t-2xl shadow-2xl pb-[env(safe-area-inset-bottom)]">
+            <div class="bg-gradient-to-r from-green-500 to-emerald-600 rounded-t-2xl px-5 py-4 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <img src="/images/PASYA.png" alt="PASYA" class="w-9 h-9">
+                    <div class="text-white">
+                        <h3 class="font-bold">Install PASYA on iPhone</h3>
+                        <p class="text-green-100 text-xs">Follow these steps</p>
+                    </div>
+                </div>
+                <button @click="showIosGuide = false" class="text-white/80 hover:text-white p-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="flex items-start space-x-4">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-green-700 font-bold text-sm">1</span>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">Tap the Share button</p>
+                        <p class="text-gray-500 text-xs mt-0.5">Tap the <span class="inline-flex items-center"><svg class="w-4 h-4 inline text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg></span> icon at the bottom of Safari</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-green-700 font-bold text-sm">2</span>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">Tap "Add to Home Screen"</p>
+                        <p class="text-gray-500 text-xs mt-0.5">Scroll down in the Share menu and tap <strong>Add to Home Screen</strong></p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span class="text-green-700 font-bold text-sm">3</span>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">Tap "Add"</p>
+                        <p class="text-gray-500 text-xs mt-0.5">Confirm by tapping <strong>Add</strong> in the top right corner</p>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-400 text-center pt-1">PASYA will appear on your home screen like a native app</p>
             </div>
         </div>
     </div>
@@ -370,10 +454,12 @@
             return {
                 sidebarOpen: false,
                 showInstallPrompt: false,
+                showIosGuide: false,
                 deferredPrompt: null,
                 installDismissed: false,
                 installPromptSeen: false,
                 isAppInstalled: false,
+                isIos: /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream,
 
                 initPwaPrompt() {
                     this.installDismissed = localStorage.getItem('pasya_install_prompt_dismissed') === '1';
@@ -399,6 +485,15 @@
                         this.installDismissed = true;
                         localStorage.setItem('pasya_install_prompt_dismissed', '1');
                     });
+
+                    // Show iOS guide automatically on first visit if not installed
+                    if (this.isIos && !this.isAppInstalled && !this.installPromptSeen) {
+                        setTimeout(() => {
+                            this.showInstallPrompt = true;
+                            this.installPromptSeen = true;
+                            localStorage.setItem('pasya_install_prompt_seen', '1');
+                        }, 3000);
+                    }
                 },
 
                 dismissInstallPrompt() {
@@ -414,15 +509,26 @@
                         return;
                     }
 
+                    if (this.isIos) {
+                        this.showIosGuide = true;
+                        return;
+                    }
+
                     if (this.deferredPrompt) {
                         this.showInstallPrompt = true;
                         return;
                     }
 
-                    alert('Install is not available right now. Use your browser menu and choose "Install app" or "Add to Home Screen".');
+                    this.showIosGuide = true;
                 },
 
                 async installApp() {
+                    if (this.isIos) {
+                        this.showInstallPrompt = false;
+                        this.showIosGuide = true;
+                        return;
+                    }
+
                     if (!this.deferredPrompt) {
                         this.openInstallPrompt();
                         return;

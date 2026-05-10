@@ -5,7 +5,7 @@
     "start_url": "/app",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#ffffff",
+    "theme_color": "#16a34a",
     "orientation": "portrait-primary",
     "scope": "/",
     "icons": [
@@ -56,22 +56,6 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable any"
-        }
-    ],
-    "screenshots": [
-        {
-            "src": "/images/screenshots/dashboard.png",
-            "sizes": "1280x720",
-            "type": "image/png",
-            "form_factor": "wide",
-            "label": "Farmer Dashboard"
-        },
-        {
-            "src": "/images/screenshots/mobile.png",
-            "sizes": "750x1334",
-            "type": "image/png",
-            "form_factor": "narrow",
-            "label": "Mobile View"
         }
     ],
     "categories": ["agriculture", "productivity", "utilities"],
