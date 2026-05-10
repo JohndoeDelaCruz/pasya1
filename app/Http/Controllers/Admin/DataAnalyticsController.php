@@ -711,7 +711,7 @@ class DataAnalyticsController extends Controller
         $municipalities = $this->getPlantingReportMunicipalities();
         $statuses = $this->getPlantingReportStatuses();
         $cropTypes = $this->getPlantingReportCropTypes();
-        $farmSetups = $this->getPlantingReportFarmSetups();
+        $farmTypes = $this->getPlantingReportFarmTypes();
         $plantingYears = $this->getPlantingReportYears('planting_date');
         $harvestYears = $this->getPlantingReportYears('expected_harvest_date');
         $months = $this->getPlantingReportMonths();
@@ -722,7 +722,7 @@ class DataAnalyticsController extends Controller
             'municipalities' => $municipalities,
             'statuses' => $statuses,
             'cropTypes' => $cropTypes,
-            'farmSetups' => $farmSetups,
+            'farmTypes' => $farmTypes,
             'plantingYears' => $plantingYears,
             'harvestYears' => $harvestYears,
             'months' => $months,
@@ -850,7 +850,7 @@ class DataAnalyticsController extends Controller
             'planting_year' => 'nullable|integer|between:1900,2100',
             'harvest_month' => 'nullable|integer|between:1,12',
             'harvest_year' => 'nullable|integer|between:1900,2100',
-            'farm_setup' => 'nullable|string|max:255',
+            'farm_type' => 'nullable|string|max:255',
         ]);
     }
 
@@ -938,8 +938,8 @@ class DataAnalyticsController extends Controller
             ->when($filters['harvest_year'] ?? null, function ($query, $year) {
                 $query->whereYear('expected_harvest_date', (int) $year);
             })
-            ->when($filters['farm_setup'] ?? null, function ($query, $farmSetup) {
-                $query->where('farm_type', $farmSetup);
+            ->when($filters['farm_type'] ?? null, function ($query, $farmType) {
+                $query->where('farm_type', $farmType);
             })
             ->latest('planting_date')
             ->latest('created_at');
@@ -1006,7 +1006,7 @@ class DataAnalyticsController extends Controller
             ->pluck('crop_name');
     }
 
-    private function getPlantingReportFarmSetups()
+    private function getPlantingReportFarmTypes()
     {
         return CropPlan::query()
             ->whereNotNull('farm_type')

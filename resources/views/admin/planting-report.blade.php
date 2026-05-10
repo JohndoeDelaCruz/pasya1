@@ -280,16 +280,16 @@
                     </div>
 
                     <div>
-                        <label for="farm_setup" class="block text-sm font-medium text-gray-700 mb-1">Farm Setup</label>
+                        <label for="farm_type" class="block text-sm font-medium text-gray-700 mb-1">Farm Type</label>
                         <select
-                            id="farm_setup"
-                            name="farm_setup"
+                            id="farm_type"
+                            name="farm_type"
                             class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
                         >
-                            <option value="">All farm setups</option>
-                            @foreach ($farmSetups as $farmSetup)
-                                <option value="{{ $farmSetup }}" @selected(($filters['farm_setup'] ?? '') === $farmSetup)>
-                                    {{ ucfirst(strtolower($farmSetup)) }}
+                            <option value="">All farm types</option>
+                            @foreach ($farmTypes as $farmType)
+                                <option value="{{ $farmType }}" @selected(($filters['farm_type'] ?? '') === $farmType)>
+                                    {{ ucfirst(strtolower($farmType)) }}
                                 </option>
                             @endforeach
                         </select>
@@ -432,7 +432,7 @@
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Crop Plan</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Schedule</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Area &amp; Yield</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Farm Setup</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Farm Type</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Recorded</th>
                                 </tr>
