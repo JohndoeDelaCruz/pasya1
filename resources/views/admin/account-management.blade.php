@@ -110,7 +110,11 @@
 
         {{-- Filters --}}
         <div class="bg-white rounded-lg shadow p-4 mb-6">
-            <form method="GET" action="{{ route('admin.farmers.index') }}" class="flex flex-wrap gap-3 items-end">
+            <form method="GET" action="{{ route('admin.farmers.index') }}" class="flex flex-wrap gap-3 items-end" data-auto-filter-form>
+                @if(request()->boolean('no_ids'))
+                    <input type="hidden" name="no_ids" value="1">
+                @endif
+
                 {{-- Search Input --}}
                 <div class="flex-1 min-w-[200px]">
                     <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -152,45 +156,47 @@
                     </select>
                 </div>
 
-                {{-- Filter Button --}}
-                <div>
-                    <button type="submit" 
-                            class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                        </svg>
-                        Filter
-                    </button>
-                </div>
-
-                {{-- No IDs Button --}}
-                <div>
-                    <a href="{{ route('admin.farmers.index', ['no_ids' => 1]) }}"
-                       class="{{ request()->boolean('no_ids') ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-50 hover:bg-red-100 text-red-700' }} font-semibold py-2 px-5 rounded-lg transition flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636L5.636 18.364M12 9v4m0 4h.01M12 3a9 9 0 110 18 9 9 0 010-18z"/>
-                        </svg>
-                        No IDs
-                    </a>
-                </div>
-
-                {{-- Clear Button --}}
-                @if(request()->hasAny(['search', 'municipality', 'cooperative', 'no_ids']))
+                <div class="contents" data-filter-action-row>
+                    {{-- Filter Button --}}
                     <div>
-                        <a href="{{ route('admin.farmers.index') }}" 
-                           class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition flex items-center">
+                        <button type="submit"
+                                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                             </svg>
-                            Clear
+                            Filter
+                        </button>
+                    </div>
+
+                    {{-- No IDs Button --}}
+                    <div>
+                        <a href="{{ route('admin.farmers.index', ['no_ids' => 1]) }}"
+                           class="{{ request()->boolean('no_ids') ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-50 hover:bg-red-100 text-red-700' }} font-semibold py-2 px-5 rounded-lg transition flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636L5.636 18.364M12 9v4m0 4h.01M12 3a9 9 0 110 18 9 9 0 010-18z"/>
+                            </svg>
+                            No IDs
                         </a>
                     </div>
-                @endif
+
+                    {{-- Clear Button --}}
+                    @if(request()->hasAny(['search', 'municipality', 'cooperative', 'no_ids']))
+                        <div>
+                            <a href="{{ route('admin.farmers.index') }}"
+                               class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                                Clear
+                            </a>
+                        </div>
+                    @endif
+                </div>
             </form>
         </div>
 
         {{-- Farmers Table --}}
-        <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="bg-white rounded-lg shadow overflow-hidden" data-farmer-results aria-live="polite">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -254,5 +260,103 @@
                 </div>
             @endif
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const form = document.querySelector('[data-auto-filter-form]');
+
+                if (!form) {
+                    return;
+                }
+
+                const searchInput = form.querySelector('input[name="search"]');
+                const filterControls = form.querySelectorAll('select');
+                let submitTimer;
+                let abortController;
+
+                const getFilterUrl = () => {
+                    const formData = new FormData(form);
+                    const params = new URLSearchParams();
+
+                    formData.forEach((value, key) => {
+                        const normalizedValue = String(value).trim();
+
+                        if (normalizedValue !== '') {
+                            params.set(key, normalizedValue);
+                        }
+                    });
+
+                    const queryString = params.toString();
+                    return queryString ? `${form.action}?${queryString}` : form.action;
+                };
+
+                const replaceSection = (doc, selector) => {
+                    const currentSection = document.querySelector(selector);
+                    const updatedSection = doc.querySelector(selector);
+
+                    if (currentSection && updatedSection) {
+                        currentSection.outerHTML = updatedSection.outerHTML;
+                    }
+                };
+
+                const submitFilters = async () => {
+                    window.clearTimeout(submitTimer);
+
+                    const targetUrl = getFilterUrl();
+
+                    if (targetUrl !== window.location.href) {
+                        window.history.replaceState({}, '', targetUrl);
+                    }
+
+                    abortController?.abort();
+                    const activeController = new AbortController();
+                    abortController = activeController;
+
+                    document.querySelector('[data-farmer-results]')?.setAttribute('aria-busy', 'true');
+
+                    try {
+                        const response = await fetch(targetUrl, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            signal: activeController.signal,
+                        });
+
+                        if (!response.ok) {
+                            window.location.href = targetUrl;
+                            return;
+                        }
+
+                        const html = await response.text();
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                        replaceSection(doc, '[data-filter-action-row]');
+                        replaceSection(doc, '[data-farmer-results]');
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            window.location.href = targetUrl;
+                        }
+                    } finally {
+                        if (abortController === activeController) {
+                            document.querySelector('[data-farmer-results]')?.removeAttribute('aria-busy');
+                        }
+                    }
+                };
+
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    submitFilters();
+                });
+
+                searchInput?.addEventListener('input', () => {
+                    window.clearTimeout(submitTimer);
+                    submitTimer = window.setTimeout(submitFilters, 450);
+                });
+
+                filterControls.forEach((control) => {
+                    control.addEventListener('change', submitFilters);
+                });
+            });
+        </script>
     </div>
 </x-admin-layout>

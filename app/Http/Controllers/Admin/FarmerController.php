@@ -204,14 +204,23 @@ class FarmerController extends Controller
     private function applyFilters(Builder $query, Request $request): void
     {
         if ($request->filled('search')) {
-            $search = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
-            $query->where(function (Builder $subquery) use ($search) {
-                $subquery->where('farmer_id', 'like', "%{$search}%")
-                    ->orWhere('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('municipality', 'like', "%{$search}%")
-                    ->orWhere('cooperative', 'like', "%{$search}%")
-                    ->orWhere('mobile_number', 'like', "%{$search}%");
+            $search = $this->escapeLikeSearch(strtolower(trim($request->search)));
+            $searchColumns = [
+                'farmer_id',
+                'first_name',
+                'middle_name',
+                'last_name',
+                'municipality',
+                'cooperative',
+                'mobile_number',
+            ];
+
+            $query->where(function (Builder $subquery) use ($search, $searchColumns) {
+                foreach ($searchColumns as $index => $column) {
+                    $method = $index === 0 ? 'whereRaw' : 'orWhereRaw';
+
+                    $subquery->{$method}("LOWER(COALESCE({$column}, '')) LIKE ?", ["%{$search}%"]);
+                }
             });
         }
 
@@ -229,6 +238,11 @@ class FarmerController extends Controller
                     ->orWhere('farmer_id', '');
             });
         }
+    }
+
+    private function escapeLikeSearch(string $value): string
+    {
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
     }
 
     private function buildStats(): array
