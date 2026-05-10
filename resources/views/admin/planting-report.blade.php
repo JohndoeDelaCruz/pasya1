@@ -430,7 +430,8 @@
                                 <tr>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Farmer Details</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Crop Plan</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Schedule</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Planting</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Harvest</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Area &amp; Yield</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Farm Type</th>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
@@ -466,9 +467,11 @@
                                             <p class="font-semibold text-gray-900">{{ $record->crop_name }}</p>
                                             <p class="mt-1 text-xs text-gray-500">Notes: {{ $record->notes ? \Illuminate\Support\Str::limit($record->notes, 70) : 'None' }}</p>
                                         </td>
-                                        <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
-                                            <p><span class="font-medium text-gray-900">Planting:</span> {{ $record->planting_date->format('M d, Y') }}</p>
-                                            <p class="mt-1"><span class="font-medium text-gray-900">Harvest:</span> {{ $record->expected_harvest_date->format('M d, Y') }}</p>
+                                        <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                            {{ $record->planting_date->format('M d, Y') }}
+                                        </td>
+                                        <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                            {{ $record->expected_harvest_date->format('M d, Y') }}
                                         </td>
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                             <p class="font-medium text-gray-900">{{ number_format((float) $record->area_hectares, 2) }} ha</p>
