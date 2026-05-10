@@ -53,8 +53,6 @@
     </style>
 </head>
 <body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
-    @include('partials.page-loader')
-
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"
@@ -265,7 +263,9 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area mobile-header-scroll-area mobile-content-pad mobile-safe-bottom flex-1 min-w-0 overflow-y-auto p-3 sm:p-6" data-hide-header-scroll>
+            <main class="mobile-scroll-area mobile-header-scroll-area mobile-content-pad mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto p-3 sm:p-6" data-hide-header-scroll>
+                @include('partials.page-loader', ['contentOnly' => true])
+
                 {{ $slot }}
             </main>
         </div>

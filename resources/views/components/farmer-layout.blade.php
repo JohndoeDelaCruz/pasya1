@@ -58,8 +58,6 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()" @keydown.escape.window="sidebarOpen = false">
-    @include('partials.page-loader')
-
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
@@ -329,7 +327,9 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area mobile-header-scroll-area mobile-safe-bottom flex-1 min-w-0 overflow-y-auto" data-hide-header-scroll>
+            <main class="mobile-scroll-area mobile-header-scroll-area mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto" data-hide-header-scroll>
+                @include('partials.page-loader', ['contentOnly' => true])
+
                 {{ $slot }}
             </main>
         </div>

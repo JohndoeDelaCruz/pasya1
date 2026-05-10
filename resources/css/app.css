@@ -48,6 +48,12 @@ body {
     transition-delay: 0s;
 }
 
+#pasya-page-loader.pasya-page-loader-content {
+    position: absolute;
+    min-height: 0;
+    padding: 1.5rem;
+}
+
 .pasya-page-loader-mark {
     position: relative;
     display: grid;
