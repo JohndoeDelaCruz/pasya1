@@ -327,7 +327,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area mobile-header-scroll-area mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto" data-hide-header-scroll>
+            <main class="mobile-scroll-area mobile-content-area mobile-header-scroll-area mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto" data-hide-header-scroll>
                 @include('partials.page-loader', ['contentOnly' => true])
 
                 {{ $slot }}

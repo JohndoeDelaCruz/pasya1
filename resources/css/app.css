@@ -7,7 +7,6 @@
     --pasya-safe-right: env(safe-area-inset-right, 0px);
     --pasya-safe-bottom: env(safe-area-inset-bottom, 0px);
     --pasya-safe-left: env(safe-area-inset-left, 0px);
-    --pasya-viewport-height: 100dvh;
     --pasya-header-height: calc(4.5rem + var(--pasya-safe-top));
     --pasya-header-offset: calc(var(--pasya-header-height) + 0.5rem);
 }
@@ -19,7 +18,7 @@ html {
 
 body {
     min-height: 100vh;
-    min-height: var(--pasya-viewport-height);
+    min-height: 100dvh;
 }
 
 .pasya-page-is-loading {
@@ -85,6 +84,10 @@ body {
 .pasya-public-shell,
 .pasya-app-body {
     background: #ffffff;
+}
+
+.pasya-app-body {
+    background: #f9fafb;
 }
 
 .pasya-download-shell,
@@ -180,16 +183,14 @@ body {
 /* Mobile/PWA shell performance */
 .mobile-app-shell {
     height: 100vh;
-    height: var(--pasya-viewport-height);
-    min-height: 0;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
     position: relative;
-    background: #f9fafb;
+    background: #ffffff;
 }
 
 .mobile-content-shell {
     position: relative;
-    min-height: 0;
-    height: 100%;
     background: #f9fafb;
 }
 
@@ -246,6 +247,10 @@ body {
     padding-bottom: var(--pasya-safe-bottom);
 }
 
+.mobile-content-area {
+    background: #f9fafb;
+}
+
 .mobile-sidebar-panel {
     transform: translate3d(-100%, 0, 0);
     transition: transform 180ms ease-out;
@@ -264,9 +269,7 @@ body {
 
 .mobile-scroll-area {
     -webkit-overflow-scrolling: touch;
-    min-height: 0;
     overscroll-behavior: contain;
-    background: #f9fafb;
 }
 
 /* Mobile/PWA alignment guardrails */
@@ -459,22 +462,6 @@ body {
 }
 
 @supports (-webkit-touch-callout: none) {
-    .pasya-app-body {
-        height: var(--pasya-viewport-height);
-        min-height: var(--pasya-viewport-height);
-        overflow: hidden;
-    }
-
-    .mobile-app-shell {
-        height: var(--pasya-viewport-height);
-        min-height: 0;
-    }
-
-    .mobile-safe-bottom {
-        padding-bottom: 0;
-        scroll-padding-bottom: var(--pasya-safe-bottom);
-    }
-
     .mobile-sidebar-panel {
         transition-duration: 140ms;
     }
