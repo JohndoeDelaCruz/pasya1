@@ -152,8 +152,8 @@
                 <div class="summary-value">{{ number_format($summary['total_records']) }}</div>
             </td>
             <td>
-                <div class="summary-label">Planned Records</div>
-                <div class="summary-value">{{ number_format($summary['planned_records']) }}</div>
+                <div class="summary-label">Planted Records</div>
+                <div class="summary-value">{{ number_format($summary['planted_records'] ?? $summary['planned_records'] ?? 0) }}</div>
             </td>
             <td>
                 <div class="summary-label">Damaged Records</div>
@@ -231,7 +231,7 @@
                     </td>
                     <td>{{ ucfirst(strtolower((string) $record->farm_type)) }}</td>
                     <td>{{ $record->planting_material_label ?? 'Not set' }}</td>
-                    <td>{{ strtoupper($record->display_status) }}</td>
+                    <td>{{ strtoupper($record->planting_report_status) }}</td>
                 </tr>
             @endforeach
         </tbody>

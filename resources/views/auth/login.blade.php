@@ -2,11 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PASYA">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
     <title>Log In - Benguet Agriculture</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-2 sm:p-4">
+<body class="pasya-auth-shell bg-gray-100 min-h-screen flex items-center justify-center p-2 sm:p-4">
     @php
         $appDownloadUrl = route('app.download');
         $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?' . http_build_query([

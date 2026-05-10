@@ -84,7 +84,7 @@ class PlantingReportTest extends TestCase
         );
 
         $response = $this->actingAs($admin)->get(route('admin.planting-report.export.csv', [
-            'status' => 'planned',
+            'status' => 'planted',
             'municipality' => 'BUGUIAS',
         ]));
 
@@ -96,6 +96,8 @@ class PlantingReportTest extends TestCase
 
         $this->assertStringContainsString('Maria Santos', $csv);
         $this->assertStringContainsString('Broccoli', $csv);
+        $this->assertStringContainsString('planted', $csv);
+        $this->assertStringNotContainsString('planned', $csv);
         $this->assertStringNotContainsString('Jose Reyes', $csv);
         $this->assertStringNotContainsString('Cabbage', $csv);
     }
@@ -121,7 +123,7 @@ class PlantingReportTest extends TestCase
         );
 
         $response = $this->actingAs($admin)->get(route('admin.planting-report.export.pdf', [
-            'status' => 'planned',
+            'status' => 'planted',
             'municipality' => 'BUGUIAS',
         ]));
 

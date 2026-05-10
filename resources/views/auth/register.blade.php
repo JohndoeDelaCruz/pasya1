@@ -2,11 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PASYA">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
     <title>Register - Benguet Agriculture</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="pasya-auth-shell bg-gray-100 min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-2">
             <div class="bg-green-700 p-8 md:p-12 lg:p-16 flex items-center justify-center">

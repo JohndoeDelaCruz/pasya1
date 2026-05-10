@@ -2,6 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --pasya-safe-top: env(safe-area-inset-top, 0px);
+    --pasya-safe-right: env(safe-area-inset-right, 0px);
+    --pasya-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --pasya-safe-left: env(safe-area-inset-left, 0px);
+}
+
+html {
+    min-height: 100%;
+    background: #16a34a;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.pasya-public-shell,
+.pasya-app-body {
+    background: #f9fafb;
+}
+
+.pasya-download-shell,
+.pasya-auth-shell {
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+.pasya-download-shell {
+    padding-top: calc(2rem + var(--pasya-safe-top));
+    padding-right: max(1rem, var(--pasya-safe-right));
+    padding-bottom: calc(2rem + var(--pasya-safe-bottom));
+    padding-left: max(1rem, var(--pasya-safe-left));
+}
+
+.pasya-auth-shell {
+    padding-top: calc(1rem + var(--pasya-safe-top));
+    padding-right: max(1rem, var(--pasya-safe-right));
+    padding-bottom: calc(1rem + var(--pasya-safe-bottom));
+    padding-left: max(1rem, var(--pasya-safe-left));
+}
+
+#main-pill-navbar {
+    top: calc(var(--pasya-safe-top) + 0.75rem);
+}
+
 /* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
@@ -72,6 +118,21 @@
 .mobile-app-shell {
     height: 100vh;
     height: 100dvh;
+    min-height: -webkit-fill-available;
+    background: #f9fafb;
+}
+
+.mobile-safe-top-panel {
+    padding-top: var(--pasya-safe-top);
+}
+
+.mobile-safe-sidebar {
+    padding-top: var(--pasya-safe-top);
+    padding-bottom: var(--pasya-safe-bottom);
+}
+
+.mobile-safe-bottom {
+    padding-bottom: var(--pasya-safe-bottom);
 }
 
 .mobile-sidebar-panel {

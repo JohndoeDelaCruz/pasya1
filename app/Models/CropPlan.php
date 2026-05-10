@@ -235,6 +235,13 @@ class CropPlan extends Model
         return $this->status;
     }
 
+    public function getPlantingReportStatusAttribute(): string
+    {
+        $status = $this->display_status;
+
+        return $status === 'planned' ? 'planted' : $status;
+    }
+
     public function getDamageCauseLabelAttribute(): ?string
     {
         if (!$this->damage_cause) {

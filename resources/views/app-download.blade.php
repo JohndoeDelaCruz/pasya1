@@ -8,16 +8,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PASYA">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Download the PASYA App</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-green-50 px-4 py-8 text-gray-900">
+<body class="pasya-download-shell min-h-screen bg-green-50 px-4 py-8 text-gray-900">
     <main class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md items-center">
         <section class="w-full rounded-lg bg-white p-6 text-center shadow-xl sm:p-8">
             <img

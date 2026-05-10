@@ -798,7 +798,7 @@ class DataAnalyticsController extends Controller
                         optional($record->damage_reported_at)->format('Y-m-d H:i:s'),
                         ucfirst(strtolower((string) $record->farm_type)),
                         $record->planting_material_label ?? 'Not set',
-                        $record->display_status,
+                        $record->planting_report_status,
                         optional($record->created_at)->format('Y-m-d H:i:s'),
                     ]);
                 }
@@ -917,6 +917,13 @@ class DataAnalyticsController extends Controller
                     return;
                 }
 
+                if ($status === 'planted') {
+                    $query->whereIn('status', ['planned', 'planted'])
+                        ->whereNull('damage_reported_at');
+
+                    return;
+                }
+
                 $query->where('status', $status)
                     ->whereNull('damage_reported_at');
             })
@@ -977,8 +984,9 @@ class DataAnalyticsController extends Controller
             'total_original_production' => (float) $records->sum(fn ($record) => (float) ($record->predicted_production ?? 0)),
             'total_predicted_production' => (float) $records->sum(fn ($record) => (float) $record->adjusted_predicted_production),
             'total_production_loss' => (float) $records->sum(fn ($record) => (float) $record->production_loss_mt),
-            'planned_records' => $records->where('display_status', 'planned')->count(),
-            'damaged_records' => $records->where('display_status', 'damaged')->count(),
+            'planted_records' => $records->where('planting_report_status', 'planted')->count(),
+            'planned_records' => $records->where('planting_report_status', 'planted')->count(),
+            'damaged_records' => $records->where('planting_report_status', 'damaged')->count(),
             'crop_distribution' => $cropDistribution,
         ];
     }

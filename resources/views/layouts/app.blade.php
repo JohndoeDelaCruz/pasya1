@@ -2,9 +2,11 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#16a34a">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PASYA">
     <meta name="mobile-web-app-capable" content="yes">
     <title>{{ config('app.name', 'PASYA') }}</title>
     <link rel="manifest" href="/manifest.json">
@@ -21,7 +23,7 @@
     <!-- Flowbite JS for interactive components -->
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 </head>
-<body class="antialiased min-h-screen flex flex-col bg-gray-50">
+<body class="pasya-public-shell antialiased min-h-screen flex flex-col bg-gray-50">
     @include('partials.header')
 
     <main class="flex-1">

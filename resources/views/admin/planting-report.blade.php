@@ -5,9 +5,9 @@
         $hasRecords = $plantingRecords->total() > 0;
         $exportFilters = collect($filters)->filter(fn ($value) => filled($value))->all();
         $totalRecords = (int) ($summary['total_records'] ?? 0);
-        $plannedRecords = (int) ($summary['planned_records'] ?? 0);
+        $plantedRecords = (int) ($summary['planted_records'] ?? $summary['planned_records'] ?? 0);
         $damagedRecords = (int) ($summary['damaged_records'] ?? 0);
-        $otherRecords = max(0, $totalRecords - $plannedRecords - $damagedRecords);
+        $otherRecords = max(0, $totalRecords - $plantedRecords - $damagedRecords);
         $totalArea = (float) ($summary['total_area'] ?? 0);
         $damagedArea = min((float) ($summary['total_damaged_area'] ?? 0), $totalArea);
         $productiveArea = max(0, $totalArea - $damagedArea);
@@ -16,8 +16,8 @@
         $totalProductionLoss = min((float) ($summary['total_production_loss'] ?? 0), max($totalOriginalProduction, 0));
         $percentOf = fn ($value, $total) => $total > 0 ? min(100, round(((float) $value / (float) $total) * 100, 1)) : 0;
         $statusChartData = [
-            'labels' => ['Planned', 'Damaged', 'Other'],
-            'values' => [$plannedRecords, $damagedRecords, $otherRecords],
+            'labels' => ['Planted', 'Damaged', 'Other'],
+            'values' => [$plantedRecords, $damagedRecords, $otherRecords],
         ];
         $cropDistribution = collect($summary['crop_distribution'] ?? []);
         $topCropDistribution = $cropDistribution->take(4)->values();
@@ -76,11 +76,11 @@
                             <div class="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-3 py-2">
                                 <div class="flex items-center gap-2">
                                     <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                                    <span class="text-sm font-medium text-gray-700">Planned</span>
+                                    <span class="text-sm font-medium text-gray-700">Planted</span>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-bold text-gray-900">{{ number_format($plannedRecords) }}</p>
-                                    <p class="text-[11px] text-gray-500">{{ $percentOf($plannedRecords, $totalRecords) }}%</p>
+                                    <p class="text-sm font-bold text-gray-900">{{ number_format($plantedRecords) }}</p>
+                                    <p class="text-[11px] text-gray-500">{{ $percentOf($plantedRecords, $totalRecords) }}%</p>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between gap-3 rounded-xl bg-orange-50 px-3 py-2">
@@ -442,9 +442,8 @@
                                 @foreach ($plantingRecords as $record)
                                     @php
                                         $farmer = $record->farmer;
-                                        $displayStatus = $record->display_status;
+                                        $displayStatus = $record->planting_report_status;
                                         $statusClasses = match ($displayStatus) {
-                                            'planned' => 'bg-amber-100 text-amber-800',
                                             'planted' => 'bg-blue-100 text-blue-800',
                                             'growing' => 'bg-emerald-100 text-emerald-800',
                                             'damaged' => 'bg-orange-100 text-orange-800',
@@ -547,15 +546,15 @@
                     return;
                 }
 
-                let statusSummary = { labels: ['Planned', 'Damaged', 'Other'], values: [0, 0, 0] };
+                let statusSummary = { labels: ['Planted', 'Damaged', 'Other'], values: [0, 0, 0] };
 
                 try {
                     statusSummary = JSON.parse(canvas.dataset.statusSummary || '{}');
                 } catch (error) {
-                    statusSummary = { labels: ['Planned', 'Damaged', 'Other'], values: [0, 0, 0] };
+                    statusSummary = { labels: ['Planted', 'Damaged', 'Other'], values: [0, 0, 0] };
                 }
 
-                const labels = Array.isArray(statusSummary.labels) ? statusSummary.labels : ['Planned', 'Damaged', 'Other'];
+                const labels = Array.isArray(statusSummary.labels) ? statusSummary.labels : ['Planted', 'Damaged', 'Other'];
                 const values = Array.isArray(statusSummary.values)
                     ? statusSummary.values.map(value => Number(value) || 0)
                     : [0, 0, 0];

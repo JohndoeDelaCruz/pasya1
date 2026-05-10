@@ -4,7 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="PASYA - Agricultural management system for farmers in Benguet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
@@ -38,10 +38,10 @@
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-50 overflow-x-hidden" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()" @keydown.escape.window="sidebarOpen = false">
+<body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()" @keydown.escape.window="sidebarOpen = false">
     <div class="mobile-app-shell flex overflow-hidden">
         <!-- Sidebar -->
-        <aside class="mobile-sidebar-panel fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
+        <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
                :class="{ 'is-open': sidebarOpen }">
             <div class="flex flex-col h-full">
                 <!-- Farmer Profile Section -->
@@ -140,7 +140,7 @@
         <!-- Main Content Area -->
         <div class="flex-1 min-w-0 flex flex-col overflow-hidden">
             <!-- Top Navigation Bar -->
-            <header class="bg-white shadow-sm z-10">
+            <header class="mobile-safe-top-panel bg-white shadow-sm z-10">
                 <div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
                     <!-- Logo -->
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -308,7 +308,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area flex-1 min-w-0 overflow-y-auto">
+            <main class="mobile-scroll-area mobile-safe-bottom flex-1 min-w-0 overflow-y-auto">
                 {{ $slot }}
             </main>
         </div>

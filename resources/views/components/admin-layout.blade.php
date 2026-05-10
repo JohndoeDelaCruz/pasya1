@@ -4,7 +4,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#16a34a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PASYA Admin">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -45,10 +52,10 @@
         }
     </style>
 </head>
-<body class="bg-gray-50" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
+<body class="pasya-app-body bg-gray-50" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
     <div class="mobile-app-shell flex overflow-hidden">
         <!-- Sidebar -->
-        <aside class="mobile-sidebar-panel fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"
+        <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"
                :class="{ 'is-open': sidebarOpen }">
             <div class="flex flex-col h-full">
                 <!-- Admin Profile Section -->
@@ -169,7 +176,7 @@
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Navigation Bar -->
-            <header class="bg-white shadow-sm z-10">
+            <header class="mobile-safe-top-panel bg-white shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 py-4">
                     <!-- Logo -->
                     <div class="flex items-center gap-2 sm:gap-3">
@@ -269,7 +276,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area flex-1 overflow-y-auto p-3 sm:p-6">
+            <main class="mobile-scroll-area mobile-safe-bottom flex-1 overflow-y-auto p-3 sm:p-6">
                 {{ $slot }}
             </main>
         </div>
