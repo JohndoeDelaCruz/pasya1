@@ -46,6 +46,32 @@ const setupHeroSceneryFade = () => {
 	handleScroll();
 };
 
+const setupViewportHeight = () => {
+	const updateViewportHeight = () => {
+		const viewportHeight = window.visualViewport?.height || window.innerHeight;
+
+		if (viewportHeight > 0) {
+			document.documentElement.style.setProperty('--pasya-viewport-height', `${viewportHeight}px`);
+		}
+	};
+
+	const scheduleViewportUpdate = () => {
+		window.requestAnimationFrame(updateViewportHeight);
+	};
+
+	updateViewportHeight();
+	window.addEventListener('resize', scheduleViewportUpdate);
+	window.addEventListener('orientationchange', () => {
+		window.setTimeout(updateViewportHeight, 250);
+	});
+	window.addEventListener('pageshow', scheduleViewportUpdate);
+
+	if (window.visualViewport) {
+		window.visualViewport.addEventListener('resize', scheduleViewportUpdate);
+		window.visualViewport.addEventListener('scroll', scheduleViewportUpdate);
+	}
+};
+
 const setupNavbarSmoothScroll = () => {
 	const navbar = document.getElementById('main-pill-navbar');
 	const navList = document.getElementById('pill-nav-list');
@@ -503,6 +529,7 @@ const setupPageTransitionLoader = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+	setupViewportHeight();
 	setupPageTransitionLoader();
 	setupHeroSceneryFade();
 	setupNavbarSmoothScroll();
