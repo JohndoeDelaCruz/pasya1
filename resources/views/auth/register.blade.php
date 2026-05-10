@@ -14,6 +14,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="pasya-auth-shell bg-gray-100 min-h-screen flex items-center justify-center p-2 sm:p-4 overflow-x-hidden">
+    @include('partials.page-loader')
+
     <div class="w-full max-w-6xl bg-white rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-2">
             <div class="bg-green-700 p-4 sm:p-8 md:p-12 lg:p-16 flex items-center justify-center">

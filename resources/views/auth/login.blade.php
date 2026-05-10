@@ -14,6 +14,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="pasya-auth-shell bg-gray-100 min-h-screen flex items-center justify-center p-2 sm:p-4">
+    @include('partials.page-loader')
+
     @php
         $appDownloadUrl = route('app.download');
         $qrCodeUrl = 'https://api.qrserver.com/v1/create-qr-code/?' . http_build_query([

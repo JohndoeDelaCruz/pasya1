@@ -53,6 +53,8 @@
     </style>
 </head>
 <body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
+    @include('partials.page-loader')
+
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"

@@ -24,6 +24,8 @@
     <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.js"></script>
 </head>
 <body class="pasya-public-shell antialiased min-h-screen flex flex-col bg-gray-50">
+    @include('partials.page-loader')
+
     @include('partials.header')
 
     <main class="flex-1">

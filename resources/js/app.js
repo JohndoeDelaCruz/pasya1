@@ -1,6 +1,8 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
+import lottie from 'lottie-web';
+import pasyaLoadingAnimation from '../lottie/loading-screen.json';
 
 window.Alpine = Alpine;
 
@@ -340,7 +342,134 @@ const setupPwaAutoHideHeaders = () => {
 	}
 };
 
+const setupPageTransitionLoader = () => {
+	const loader = document.getElementById('pasya-page-loader');
+	const animationContainer = document.getElementById('pasya-page-loader-animation');
+
+	if (!loader || !animationContainer) {
+		return;
+	}
+
+	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	let navigationStarted = false;
+	let animation = null;
+
+	if (!prefersReducedMotion) {
+		animation = lottie.loadAnimation({
+			container: animationContainer,
+			renderer: 'svg',
+			loop: true,
+			autoplay: false,
+			animationData: pasyaLoadingAnimation,
+			rendererSettings: {
+				preserveAspectRatio: 'xMidYMid meet',
+			},
+		});
+
+		animation.addEventListener('DOMLoaded', () => {
+			loader.classList.add('has-lottie');
+		});
+	}
+
+	const showLoader = () => {
+		loader.classList.add('is-visible');
+		loader.setAttribute('aria-hidden', 'false');
+		document.body.classList.add('pasya-page-is-loading');
+
+		if (animation) {
+			animation.goToAndPlay(0, true);
+		}
+	};
+
+	const hideLoader = () => {
+		navigationStarted = false;
+		loader.classList.remove('is-visible');
+		loader.setAttribute('aria-hidden', 'true');
+		document.body.classList.remove('pasya-page-is-loading');
+
+		if (animation) {
+			animation.stop();
+		}
+	};
+
+	const isEligibleLink = (link, event) => {
+		if (
+			event.defaultPrevented ||
+			event.button !== 0 ||
+			event.metaKey ||
+			event.ctrlKey ||
+			event.shiftKey ||
+			event.altKey ||
+			link.hasAttribute('download') ||
+			link.dataset.noPageLoader !== undefined
+		) {
+			return false;
+		}
+
+		const target = link.getAttribute('target');
+
+		if (target && target.toLowerCase() !== '_self') {
+			return false;
+		}
+
+		const href = link.getAttribute('href');
+
+		if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) {
+			return false;
+		}
+
+		let destination;
+
+		try {
+			destination = new URL(href, window.location.href);
+		} catch {
+			return false;
+		}
+
+		if (destination.origin !== window.location.origin) {
+			return false;
+		}
+
+		return !(
+			destination.pathname === window.location.pathname &&
+			destination.search === window.location.search &&
+			destination.hash
+		);
+	};
+
+	document.addEventListener('click', (event) => {
+		const link = event.target instanceof Element ? event.target.closest('a[href]') : null;
+
+		if (!link || !isEligibleLink(link, event) || navigationStarted) {
+			return;
+		}
+
+		navigationStarted = true;
+		event.preventDefault();
+		showLoader();
+
+		window.setTimeout(() => {
+			window.location.assign(link.href);
+		}, prefersReducedMotion ? 0 : 180);
+	});
+
+	document.addEventListener('submit', (event) => {
+		const form = event.target;
+
+		if (event.defaultPrevented || !(form instanceof HTMLFormElement) || form.dataset.noPageLoader !== undefined) {
+			return;
+		}
+
+		showLoader();
+	});
+
+	window.addEventListener('beforeunload', showLoader);
+	window.addEventListener('pageshow', hideLoader);
+	window.addEventListener('load', hideLoader, { once: true });
+};
+
 document.addEventListener('DOMContentLoaded', () => {
+	setupPageTransitionLoader();
 	setupHeroSceneryFade();
 	setupNavbarSmoothScroll();
 	setupPwaAutoHideHeaders();

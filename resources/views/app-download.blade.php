@@ -20,6 +20,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="pasya-download-shell min-h-screen bg-green-50 px-4 py-8 text-gray-900">
+    @include('partials.page-loader')
+
     <main class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md items-center">
         <section class="w-full rounded-lg bg-white p-6 text-center shadow-xl sm:p-8">
             <img
