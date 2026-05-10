@@ -23,7 +23,7 @@
             <div class="bg-green-700 p-4 sm:p-8 lg:p-16 flex items-center justify-center">
                 <div
                     class="w-full max-w-md"
-                    x-data="{ loginMode: @js($initialLoginMode), get adminMode() { return this.loginMode === 'admin' } }"
+                    x-data="{ loginMode: @js($initialLoginMode), showPassword: false, get adminMode() { return this.loginMode === 'admin' } }"
                 >
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-yellow-400 text-center mb-4 sm:mb-8">Log In</h1>
 
@@ -33,7 +33,7 @@
                     <div class="mb-4 sm:mb-6 grid grid-cols-2 gap-1 rounded-lg border border-green-500 bg-green-800/30 p-1" role="tablist" aria-label="Login type">
                         <button
                             type="button"
-                            @click="loginMode = 'farmer'; if ($refs.password) $refs.password.value = ''"
+                            @click="loginMode = 'farmer'; showPassword = false; if ($refs.password) $refs.password.value = ''"
                             :class="adminMode ? 'text-yellow-400 hover:bg-green-600' : 'bg-yellow-400 text-black shadow-md'"
                             class="rounded-md px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-bold transition-colors"
                             role="tab"
@@ -78,17 +78,27 @@
                         <!-- Password -->
                         <div x-show="adminMode" style="{{ $initialLoginMode === 'admin' ? '' : 'display: none;' }}">
                             <label for="password" class="block text-yellow-400 text-sm font-medium mb-1 sm:mb-2">Admin Password</label>
-                            <input 
-                                id="password" 
-                                type="password" 
-                                name="password" 
-                                x-ref="password"
-                                @disabled($initialLoginMode !== 'admin')
-                                :disabled="!adminMode"
-                                placeholder="Enter your admin password"
-                                autocomplete="current-password"
-                                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
-                            />
+                            <div class="relative">
+                                <input 
+                                    id="password" 
+                                    :type="showPassword ? 'text' : 'password'" 
+                                    name="password" 
+                                    x-ref="password"
+                                    @disabled($initialLoginMode !== 'admin')
+                                    :disabled="!adminMode"
+                                    placeholder="Enter your admin password"
+                                    autocomplete="current-password"
+                                    class="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-20 sm:pr-24 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
+                                />
+                                <button
+                                    type="button"
+                                    @click="showPassword = !showPassword"
+                                    class="absolute inset-y-0 right-0 my-1.5 mr-1.5 rounded-md px-3 text-xs sm:text-sm font-bold text-yellow-400 transition-colors hover:bg-green-500 hover:text-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                    :aria-label="showPassword ? 'Hide admin password' : 'Show admin password'"
+                                    :aria-pressed="showPassword.toString()"
+                                    x-text="showPassword ? 'Hide' : 'Show'"
+                                >Show</button>
+                            </div>
                             <x-input-error :messages="$errors->get('password')" class="mt-2 text-yellow-300" />
                         </div>
 
