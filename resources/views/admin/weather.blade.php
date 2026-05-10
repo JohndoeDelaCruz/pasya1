@@ -102,7 +102,7 @@
             <template x-for="m in municipalities" :key="m">
                 <div @click="selectMunicipality(m)"
                      class="weather-card bg-white rounded-xl shadow-sm p-4 cursor-pointer border-2 transition-all"
-                     :class="selectedMunicipality === m ? 'border-sky-500 ring-2 ring-sky-100 bg-sky-50/30' : 'border-gray-100 hover:border-sky-300 hover:shadow-md'">>
+                     :class="selectedMunicipality === m ? 'border-sky-500 ring-2 ring-sky-100 bg-sky-50/30' : 'border-gray-100 hover:border-sky-300 hover:shadow-md'">
                     
                     <!-- Loading State -->
                     <template x-if="!weatherData[m] && loadingMunicipalities[m]">
@@ -161,7 +161,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
                             </svg>
                             <p class="text-sm font-medium text-gray-700" x-text="m"></p>
-                            <p class="text-xs text-gray-400 mt-1">Click to load weather</p>
+                            <p class="text-xs text-gray-400 mt-1">Weather data will appear shortly</p>
                         </div>
                     </template>
                 </div>
@@ -202,10 +202,7 @@
                 selectedWeather: null,
 
                 init() {
-                    // Auto-load first 4 municipalities
-                    this.municipalities.slice(0, 4).forEach((m, i) => {
-                        setTimeout(() => this.loadWeather(m), i * 300);
-                    });
+                    this.refreshAll();
                 },
 
                 async loadWeather(municipality) {
@@ -246,6 +243,12 @@
 
                 async refreshAll() {
                     this.loadingAll = true;
+
+                    this.municipalities.forEach(m => {
+                        this.loadingMunicipalities[m] = true;
+                        delete this.weatherErrors[m];
+                    });
+
                     const promises = this.municipalities.map((m, i) =>
                         new Promise(resolve => setTimeout(async () => {
                             await this.loadWeather(m);
