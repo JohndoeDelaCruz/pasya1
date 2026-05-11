@@ -88,6 +88,10 @@ body {
 
 .pasya-app-body {
     background: #f9fafb;
+    height: 100vh;
+    height: 100dvh;
+    min-height: -webkit-fill-available;
+    overflow: hidden;
 }
 
 .pasya-download-shell,
@@ -182,11 +186,12 @@ body {
 
 /* Mobile/PWA shell performance */
 .mobile-app-shell {
-    height: 100vh;
-    height: 100dvh;
-    min-height: -webkit-fill-available;
-    position: relative;
-    background: #ffffff;
+    position: fixed;
+    inset: 0;
+    bottom: calc(-1 * var(--pasya-safe-bottom));
+    height: auto;
+    min-height: 0;
+    background: #f9fafb;
 }
 
 .mobile-content-shell {
@@ -240,11 +245,11 @@ body {
 
 .mobile-safe-sidebar {
     padding-top: var(--pasya-safe-top);
-    padding-bottom: var(--pasya-safe-bottom);
+    padding-bottom: calc(var(--pasya-safe-bottom) + 1rem);
 }
 
 .mobile-safe-bottom {
-    padding-bottom: var(--pasya-safe-bottom);
+    padding-bottom: calc(var(--pasya-safe-bottom) + 0.5rem);
 }
 
 .mobile-content-area {
@@ -252,6 +257,7 @@ body {
 }
 
 .mobile-sidebar-panel {
+    bottom: calc(-1 * var(--pasya-safe-bottom));
     transform: translate3d(-100%, 0, 0);
     transition: transform 180ms ease-out;
     will-change: transform;
@@ -264,6 +270,7 @@ body {
 }
 
 .mobile-sidebar-overlay {
+    bottom: calc(-1 * var(--pasya-safe-bottom));
     touch-action: manipulation;
 }
 
