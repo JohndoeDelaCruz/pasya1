@@ -75,15 +75,38 @@ body {
     height: 100% !important;
 }
 
+.pasya-page-loader-animation {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+}
+
 .pasya-page-loader-fallback {
     position: absolute;
+    z-index: 1;
     width: 52%;
     height: 52%;
     object-fit: contain;
+    animation: pasya-loader-logo-pulse 1.25s ease-in-out infinite;
+    filter: drop-shadow(0 1rem 1.75rem rgba(22, 163, 74, 0.16));
 }
 
 #pasya-page-loader.has-lottie .pasya-page-loader-fallback {
-    display: none;
+    display: block;
+    opacity: 0.72;
+}
+
+@keyframes pasya-loader-logo-pulse {
+    0%,
+    100% {
+        opacity: 0.82;
+        transform: scale(0.96);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.04);
+    }
 }
 
 .pasya-public-shell,
@@ -463,6 +486,35 @@ body {
 }
 
 @media (min-width: 1024px) {
+    html.pasya-app-root {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .pasya-app-body {
+        height: 100vh;
+        height: 100dvh;
+        min-height: -webkit-fill-available;
+        overflow: hidden;
+    }
+
+    .mobile-app-shell {
+        height: 100vh;
+        height: 100dvh;
+        min-height: -webkit-fill-available;
+        overflow: hidden;
+    }
+
+    .mobile-content-shell {
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .mobile-content-area {
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+
     .mobile-app-header {
         position: relative;
     }
@@ -507,6 +559,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
     .mobile-app-header {
         transition: none;
+    }
+
+    .pasya-page-loader-fallback {
+        animation: none;
     }
 }
 
