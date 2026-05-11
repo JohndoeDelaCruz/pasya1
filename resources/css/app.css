@@ -17,6 +17,8 @@ html {
 }
 
 html.pasya-app-root {
+    --pasya-safe-top: 0px;
+    --pasya-safe-bottom: 0px;
     height: 100%;
     overflow: hidden;
     background: #f9fafb;
