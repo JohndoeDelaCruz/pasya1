@@ -54,9 +54,10 @@ body {
 }
 
 #pasya-page-loader.pasya-page-loader-content {
-    position: absolute;
-    min-height: 0;
-    padding: 1.5rem;
+    position: fixed;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: max(1.5rem, var(--pasya-safe-top)) max(1.5rem, var(--pasya-safe-right)) max(1.5rem, var(--pasya-safe-bottom)) max(1.5rem, var(--pasya-safe-left));
 }
 
 .pasya-page-loader-mark {
@@ -466,6 +467,12 @@ body {
 }
 
 @media (min-width: 1024px) {
+    #pasya-page-loader.pasya-page-loader-content {
+        position: absolute;
+        min-height: 0;
+        padding: 1.5rem;
+    }
+
     html.pasya-app-root {
         height: 100%;
         overflow: hidden;
