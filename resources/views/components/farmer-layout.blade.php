@@ -1,7 +1,7 @@
 @props(['title' => 'Farmer Dashboard'])
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="pasya-app-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -57,7 +57,12 @@
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="pwaInstallPrompt()" x-init="initPwaPrompt()" @keydown.escape.window="sidebarOpen = false">
+<body class="pasya-app-body bg-gray-50 overflow-x-hidden"
+      x-data="pwaInstallPrompt()"
+      x-init="initPwaPrompt()"
+      :class="{ 'pasya-sidebar-open': sidebarOpen }"
+      style="--pasya-sidebar-safe-bg: #15803d; --pasya-sidebar-overlay-safe-bg: rgba(75, 85, 99, 0.75);"
+      @keydown.escape.window="sidebarOpen = false">
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"

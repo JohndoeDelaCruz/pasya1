@@ -1,7 +1,7 @@
 @props(['title' => 'Admin Dashboard'])
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="pasya-app-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -52,7 +52,11 @@
         }
     </style>
 </head>
-<body class="pasya-app-body bg-gray-50 overflow-x-hidden" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
+<body class="pasya-app-body bg-gray-50 overflow-x-hidden"
+      x-data="{ sidebarOpen: false }"
+      :class="{ 'pasya-sidebar-open': sidebarOpen }"
+      style="--pasya-sidebar-safe-bg: #166534; --pasya-sidebar-overlay-safe-bg: rgba(0, 0, 0, 0.5);"
+      @keydown.escape.window="sidebarOpen = false">
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"
