@@ -1,8 +1,6 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
-import lottie from 'lottie-web';
-import pasyaLoadingAnimation from '../lottie/loading-screen.json';
 
 window.Alpine = Alpine;
 
@@ -344,43 +342,16 @@ const setupPwaAutoHideHeaders = () => {
 
 const setupPageTransitionLoader = () => {
 	const loader = document.getElementById('pasya-page-loader');
-	const animationContainer = document.getElementById('pasya-page-loader-animation');
 
-	if (!loader || !animationContainer) {
+	if (!loader) {
 		return;
 	}
 
-	const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 	const loaderDelay = 240;
 	const iosNavigationDelay = 140;
 	let navigationStarted = false;
 	let loaderDelayId = null;
-	let loaderVisible = false;
-	let animationReady = false;
-	let animation = null;
-
-	if (!prefersReducedMotion) {
-		animation = lottie.loadAnimation({
-			container: animationContainer,
-			renderer: isIos ? 'canvas' : 'svg',
-			loop: true,
-			autoplay: false,
-			animationData: pasyaLoadingAnimation,
-			rendererSettings: {
-				preserveAspectRatio: 'xMidYMid meet',
-			},
-		});
-
-		animation.addEventListener('DOMLoaded', () => {
-			animationReady = true;
-			loader.classList.add('has-lottie');
-
-			if (loaderVisible) {
-				animation.goToAndPlay(0, true);
-			}
-		});
-	}
 
 	const showLoader = () => {
 		if (loaderDelayId) {
@@ -391,11 +362,6 @@ const setupPageTransitionLoader = () => {
 		loader.classList.add('is-visible');
 		loader.setAttribute('aria-hidden', 'false');
 		document.body.classList.add('pasya-page-is-loading');
-		loaderVisible = true;
-
-		if (animation && animationReady) {
-			animation.goToAndPlay(0, true);
-		}
 	};
 
 	const hideLoader = () => {
@@ -407,11 +373,6 @@ const setupPageTransitionLoader = () => {
 		loader.classList.remove('is-visible');
 		loader.setAttribute('aria-hidden', 'true');
 		document.body.classList.remove('pasya-page-is-loading');
-		loaderVisible = false;
-
-		if (animation) {
-			animation.stop();
-		}
 	};
 
 	const scheduleLoader = () => {

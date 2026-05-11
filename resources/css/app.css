@@ -67,33 +67,13 @@ body {
     aspect-ratio: 1;
 }
 
-.pasya-page-loader-animation,
-.pasya-page-loader-animation svg,
-.pasya-page-loader-animation canvas {
-    display: block;
-    width: 100% !important;
-    height: 100% !important;
-}
-
-.pasya-page-loader-animation {
+.pasya-page-loader-logo {
     position: absolute;
-    inset: 0;
-    z-index: 2;
-}
-
-.pasya-page-loader-fallback {
-    position: absolute;
-    z-index: 1;
-    width: 52%;
-    height: 52%;
+    width: 58%;
+    height: 58%;
     object-fit: contain;
     animation: pasya-loader-logo-pulse 1.25s ease-in-out infinite;
     filter: drop-shadow(0 1rem 1.75rem rgba(22, 163, 74, 0.16));
-}
-
-#pasya-page-loader.has-lottie .pasya-page-loader-fallback {
-    display: block;
-    opacity: 0.72;
 }
 
 @keyframes pasya-loader-logo-pulse {
@@ -561,7 +541,7 @@ body {
         transition: none;
     }
 
-    .pasya-page-loader-fallback {
+    .pasya-page-loader-logo {
         animation: none;
     }
 }
