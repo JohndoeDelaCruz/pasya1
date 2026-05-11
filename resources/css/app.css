@@ -17,8 +17,7 @@ html {
 }
 
 html.pasya-app-root {
-    height: 100%;
-    overflow: hidden;
+    min-height: 100%;
     background: #f9fafb;
 }
 
@@ -94,10 +93,11 @@ body {
 
 .pasya-app-body {
     background: #f9fafb;
-    height: 100vh;
-    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
     min-height: -webkit-fill-available;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .pasya-app-body.pasya-sidebar-open {
@@ -203,16 +203,21 @@ body {
 
 /* Mobile/PWA shell performance */
 .mobile-app-shell {
-    height: 100vh;
-    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
     min-height: -webkit-fill-available;
     position: relative;
     background: #f9fafb;
+    overflow-x: hidden;
+    overflow-y: visible;
 }
 
 .mobile-content-shell {
     position: relative;
     background: #f9fafb;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
 }
 
 .mobile-app-header {
@@ -270,6 +275,8 @@ body {
 
 .mobile-content-area {
     background: #f9fafb;
+    flex: 0 0 auto;
+    overflow: visible;
 }
 
 .mobile-sidebar-panel {
