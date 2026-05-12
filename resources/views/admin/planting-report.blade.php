@@ -178,7 +178,7 @@
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Crops Planted</p>
-                            <h2 class="mt-1 text-base font-semibold text-gray-900">Crop mix by planting records</h2>
+                            <h2 class="mt-1 text-base font-semibold text-gray-900">Crop records</h2>
                         </div>
                         <span class="inline-flex w-fit rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
                             {{ number_format($cropDistribution->count()) }} crop type{{ $cropDistribution->count() === 1 ? '' : 's' }}
