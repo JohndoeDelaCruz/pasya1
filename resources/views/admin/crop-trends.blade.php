@@ -235,7 +235,7 @@
                     @endif
 
                     <!-- Prediction Form -->
-                    <form method="POST" action="{{ route('admin.crop-trends.predict') }}" class="space-y-4" x-data="{ submitting: false }" @submit="submitting = true">
+                    <form method="POST" action="{{ route('admin.crop-trends.predict') }}" class="space-y-4" x-data="{ submitting: false }" @submit="submitting = true" data-no-page-loader>
                         @csrf
                         
                         <!-- Municipality -->
