@@ -190,11 +190,77 @@
                     <!-- Right side icons -->
                     <div class="flex shrink-0 items-center space-x-2 sm:space-x-4">
                         <!-- Notifications -->
-                        <button class="text-gray-600 hover:text-gray-900 relative">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                            </svg>
-                        </button>
+                        <div class="relative" x-data="adminNotificationsDropdown()" x-init="fetchNotifications()">
+                            <button @click="$dispatch('pasya-show-mobile-header'); notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="text-gray-600 hover:text-gray-900 relative">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                                <span x-show="unreadCount > 0" x-text="unreadCount > 9 ? '9+' : unreadCount"
+                                      class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full min-w-[16px] h-4 flex items-center justify-center px-1 leading-none"
+                                      style="display:none;"></span>
+                            </button>
+
+                            <!-- Notifications Panel -->
+                            <div x-show="notifOpen"
+                                 @click.away="notifOpen = false"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 transform scale-95"
+                                 x-transition:enter-end="opacity-100 transform scale-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 transform scale-100"
+                                 x-transition:leave-end="opacity-0 transform scale-95"
+                                 class="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-white rounded-2xl shadow-lg z-50 border border-gray-200 overflow-hidden"
+                                 style="display:none;">
+                                <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+                                    <h3 class="font-semibold text-gray-800">Announcement Notifications</h3>
+                                    <a href="{{ route('admin.announcements.index') }}" class="text-xs text-green-600 hover:underline">View all</a>
+                                </div>
+
+                                <!-- Loading -->
+                                <div x-show="loading" class="px-4 py-6 text-center">
+                                    <svg class="animate-spin h-5 w-5 text-green-600 mx-auto" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 12 0 12 4z"></path>
+                                    </svg>
+                                </div>
+
+                                <!-- Empty state -->
+                                <div x-show="!loading && notifications.length === 0" class="px-4 py-8 text-center">
+                                    <svg class="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-500">No announcements yet</p>
+                                </div>
+
+                                <!-- Notifications List -->
+                                <div x-show="!loading && notifications.length > 0" class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                                    <template x-for="notification in notifications" :key="notification.id">
+                                        <a :href="notification.link"
+                                           class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                                           :class="{ 'bg-green-50': isNew(notification) }">
+                                            <!-- Priority dot -->
+                                            <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
+                                                  :class="{
+                                                    'bg-red-500': notification.priority === 'urgent',
+                                                    'bg-orange-400': notification.priority === 'high',
+                                                    'bg-blue-400': notification.priority === 'normal',
+                                                    'bg-gray-400': notification.priority === 'low'
+                                                  }"></span>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-800 truncate" x-text="notification.title"></p>
+                                                <p class="text-xs text-gray-500 line-clamp-2 mt-0.5" x-text="notification.message"></p>
+                                                <p class="text-xs text-gray-400 mt-1" x-text="notification.time_ago"></p>
+                                            </div>
+                                            <span x-show="!notification.is_active" class="text-xs bg-gray-100 text-gray-500 rounded px-1.5 py-0.5 flex-shrink-0">Inactive</span>
+                                        </a>
+                                    </template>
+                                </div>
+
+                                <div class="px-4 py-2 border-t border-gray-100">
+                                    <a href="{{ route('admin.announcements.create') }}" class="block text-center text-xs text-green-600 hover:underline py-1">+ New Announcement</a>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- User Account Menu -->
                         <div x-data="{ open: false }" class="relative">
@@ -284,5 +350,37 @@
     </template>
     
     @stack('scripts')
+    <script>
+        function adminNotificationsDropdown() {
+            return {
+                notifOpen: false,
+                loading: false,
+                notifications: [],
+                unreadCount: 0,
+
+                async fetchNotifications() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch('{{ route("admin.api.notifications") }}');
+                        const data = await response.json();
+                        if (data.success) {
+                            this.notifications = data.notifications;
+                            this.unreadCount = data.unread_count;
+                        }
+                    } catch (error) {
+                        console.error('Failed to fetch admin notifications:', error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                isNew(notification) {
+                    const created = new Date(notification.created_at);
+                    const oneDayAgo = new Date(Date.now() - 86400000);
+                    return notification.is_active && created > oneDayAgo;
+                },
+            };
+        }
+    </script>
 </body>
 </html>

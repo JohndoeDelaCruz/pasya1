@@ -1315,15 +1315,14 @@ class FarmerDashboardController extends Controller
     }
 
     /**
-     * Get farmer's notifications (crop plan related only)
+     * Get farmer's notifications (all types including announcements)
      */
     public function getNotifications(Request $request)
     {
         $farmer = Auth::guard('farmer')->user();
-        $limit = $request->get('limit', 10);
+        $limit = $request->get('limit', 20);
 
         $notifications = FarmerNotification::where('farmer_id', $farmer->id)
-            ->cropPlanRelated()
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->get()
@@ -1344,7 +1343,6 @@ class FarmerDashboardController extends Controller
             });
 
         $unreadCount = FarmerNotification::where('farmer_id', $farmer->id)
-            ->cropPlanRelated()
             ->unread()
             ->count();
 

@@ -30,11 +30,12 @@ class FarmerNotification extends Model
     ];
 
     /**
-     * Notification types (crop plan related only)
+     * Notification types
      */
     const TYPE_CROP_PLAN = 'crop_plan';
     const TYPE_PLANTING_REMINDER = 'planting_reminder';
     const TYPE_HARVEST_REMINDER = 'harvest_reminder';
+    const TYPE_ANNOUNCEMENT = 'announcement';
 
     /**
      * Get the farmer that owns this notification
@@ -62,6 +63,14 @@ class FarmerNotification extends Model
             self::TYPE_PLANTING_REMINDER,
             self::TYPE_HARVEST_REMINDER,
         ]);
+    }
+
+    /**
+     * Scope for all notification types (including announcements)
+     */
+    public function scopeAllTypes($query)
+    {
+        return $query;
     }
 
     /**
@@ -101,6 +110,7 @@ class FarmerNotification extends Model
         return match($this->icon ?? $this->type) {
             'clock', self::TYPE_HARVEST_REMINDER => 'M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z',
             'plant', self::TYPE_PLANTING_REMINDER, self::TYPE_CROP_PLAN => 'M12 19V6M12 6c-2 0-4-1-5-3M12 6c2 0 4-1 5-3M7 14c-2 1-3 3-3 5M17 14c2 1 3 3 3 5',
+            self::TYPE_ANNOUNCEMENT, 'announcement', 'megaphone' => 'M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z',
             default => 'M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z',
         };
     }

@@ -186,6 +186,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
     Route::patch('/announcements/{announcement}/toggle-status', [AnnouncementController::class, 'toggleStatus'])->name('announcements.toggle-status');
+    
+    // Admin Notifications API
+    Route::get('/api/notifications', [AnnouncementController::class, 'getAdminNotifications'])->name('api.notifications');
+    Route::post('/api/notifications/{announcement}/read', [AnnouncementController::class, 'markAdminNotificationRead'])->name('api.notifications.read');
 });
 
 Route::middleware('auth')->group(function () {
