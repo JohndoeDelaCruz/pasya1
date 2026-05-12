@@ -39,7 +39,7 @@ class CropPlan extends Model
         'earthquake' => 'Earthquake',
         'volcanic_ashfall' => 'Volcanic Ashfall',
         'storm_surge' => 'Storm Surge',
-        'other' => 'Other Natural Disaster',
+        'other' => 'Others',
     ];
 
     protected $fillable = [
