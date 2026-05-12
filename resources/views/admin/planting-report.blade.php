@@ -50,7 +50,7 @@
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Record Status</p>
-                            <h2 class="mt-1 text-base font-semibold text-gray-900">Planting report mix</h2>
+                            <h2 class="mt-1 text-base font-semibold text-gray-900">Planting report</h2>
                         </div>
                         <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                             {{ number_format($totalRecords) }} total
@@ -118,7 +118,7 @@
                                 </div>
                             </div>
                             <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                                {{ $percentOf($productiveArea, $totalArea) }}% productive
+                                {{ $percentOf($productiveArea, $totalArea) }}% production
                             </span>
                         </div>
 
@@ -129,7 +129,7 @@
                             </div>
                             <div class="mt-4 grid grid-cols-2 gap-3">
                                 <div class="rounded-xl bg-emerald-50 px-3 py-2">
-                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Productive</p>
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Production</p>
                                     <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($productiveArea, 2) }} ha</p>
                                 </div>
                                 <div class="rounded-xl bg-orange-50 px-3 py-2">
