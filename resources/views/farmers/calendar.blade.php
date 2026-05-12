@@ -1016,6 +1016,12 @@
 
                     setEventFilter(filter) {
                         this.eventFilter = filter;
+                        const targetDateKey = this.getTargetDateKeyForFilter(filter);
+
+                        if (targetDateKey) {
+                            this.showCalendarMonthForDateKey(targetDateKey);
+                        }
+
                         this.calendarRefreshKey += 1;
 
                         if (this.selectedDay?.dateKey) {
@@ -1029,6 +1035,48 @@
                             this.selectedEvent = null;
                             this.showEventModal = false;
                         }
+                    },
+
+                    getTargetDateKeyForFilter(filter) {
+                        if (filter === 'all') {
+                            return null;
+                        }
+
+                        const currentMonthKey = `${this.currentDate.getFullYear()}-${String(this.currentDate.getMonth() + 1).padStart(2, '0')}`;
+                        const matchingDateKeys = Object.keys(this.allEvents)
+                            .filter((dateKey) => (this.allEvents[dateKey] || []).some((event) => event.type === filter))
+                            .sort();
+
+                        if (matchingDateKeys.some((dateKey) => dateKey.startsWith(currentMonthKey))) {
+                            return null;
+                        }
+
+                        const currentDateKey = `${this.currentDate.getFullYear()}-${String(this.currentDate.getMonth() + 1).padStart(2, '0')}-01`;
+
+                        return matchingDateKeys.find((dateKey) => dateKey >= currentDateKey)
+                            || matchingDateKeys[matchingDateKeys.length - 1]
+                            || null;
+                    },
+
+                    showCalendarMonthForDateKey(dateKey) {
+                        const date = this.parseDateKey(dateKey);
+
+                        if (!date) {
+                            return;
+                        }
+
+                        this.currentDate = new Date(date.getFullYear(), date.getMonth(), 1);
+                        this.selectedDate = date;
+                    },
+
+                    parseDateKey(dateKey) {
+                        const parts = String(dateKey).split('-').map((part) => Number(part));
+
+                        if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) {
+                            return null;
+                        }
+
+                        return new Date(parts[0], parts[1] - 1, parts[2]);
                     },
 
                     getEventKey(event, index) {
