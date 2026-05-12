@@ -1012,8 +1012,10 @@ class FarmerDashboardController extends Controller
             ], 422);
         }
 
+        $plantedArea = (float) $cropPlan->area_hectares;
+
         $validated = $request->validate([
-            'damaged_area_hectares' => 'required|numeric|min:0.01|max:' . (float) $cropPlan->area_hectares,
+            'damaged_area_hectares' => 'required|numeric|min:0.01|max:' . $plantedArea,
             'damage_cause' => 'required|string|in:' . implode(',', array_keys(CropPlan::DAMAGE_CAUSE_LABELS)),
             'damage_occurred_on' => [
                 'required',
@@ -1021,6 +1023,8 @@ class FarmerDashboardController extends Controller
                 'before_or_equal:' . today()->format('Y-m-d'),
             ],
             'damage_notes' => 'nullable|string|max:500',
+        ], [
+            'damaged_area_hectares.max' => 'Damaged hectares cannot exceed the planted area of ' . number_format($plantedArea, 2) . ' hectares.',
         ]);
 
         $cropPlan->update([
