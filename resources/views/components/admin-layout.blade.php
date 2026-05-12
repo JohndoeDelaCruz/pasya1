@@ -235,8 +235,8 @@
                                 <!-- Notifications List -->
                                 <div x-show="!loading && notifications.length > 0" class="max-h-80 overflow-y-auto divide-y divide-gray-100">
                                     <template x-for="notification in notifications" :key="notification.id">
-                                        <a :href="notification.link"
-                                           class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                                        <div @click="notifOpen = false; window.location.href = notification.link"
+                                           class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                                            :class="{ 'bg-green-50': isNew(notification) }">
                                             <!-- Priority dot -->
                                             <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
@@ -252,7 +252,7 @@
                                                 <p class="text-xs text-gray-400 mt-1" x-text="notification.time_ago"></p>
                                             </div>
                                             <span x-show="!notification.is_active" class="text-xs bg-gray-100 text-gray-500 rounded px-1.5 py-0.5 flex-shrink-0">Inactive</span>
-                                        </a>
+                                        </div>
                                     </template>
                                 </div>
 

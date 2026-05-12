@@ -166,7 +166,7 @@ class AnnouncementController extends Controller
                     'is_active'  => $a->is_active,
                     'time_ago'   => $a->created_at->diffForHumans(),
                     'created_at' => $a->created_at->format('Y-m-d H:i:s'),
-                    'link'       => route('admin.announcements.show', $a->id),
+                    'link'       => '/admin/announcements/' . $a->id,
                 ];
             });
 
