@@ -73,7 +73,7 @@ class CropManagementController extends Controller
      */
     public function archived(Request $request)
     {
-        $cropTypeQuery = CropType::where('is_active', false);
+        $cropTypeQuery = CropType::withTrashed()->where('is_active', false);
         if ($request->filled('crop_search')) {
             $escapedSearch = str_replace(['%', '_'], ['\\%', '\\_'], $request->crop_search);
             $cropTypeQuery->where(function ($q) use ($escapedSearch) {
@@ -83,7 +83,7 @@ class CropManagementController extends Controller
         }
         $archivedCropTypes = $cropTypeQuery->orderBy('name')->paginate(15, ['*'], 'crop_page');
 
-        $municipalityQuery = Municipality::where('is_active', false);
+        $municipalityQuery = Municipality::withTrashed()->where('is_active', false);
         if ($request->filled('municipality_search')) {
             $escapedSearch = str_replace(['%', '_'], ['\\%', '\\_'], $request->municipality_search);
             $municipalityQuery->where(function ($q) use ($escapedSearch) {
@@ -94,9 +94,9 @@ class CropManagementController extends Controller
         $archivedMunicipalities = $municipalityQuery->orderBy('name')->paginate(15, ['*'], 'municipality_page');
 
         $stats = [
-            'archived_crop_types'     => CropType::where('is_active', false)->count(),
+            'archived_crop_types'     => CropType::withTrashed()->where('is_active', false)->count(),
             'active_crop_types'       => CropType::where('is_active', true)->count(),
-            'archived_municipalities' => Municipality::where('is_active', false)->count(),
+            'archived_municipalities' => Municipality::withTrashed()->where('is_active', false)->count(),
             'active_municipalities'   => Municipality::where('is_active', true)->count(),
         ];
 
@@ -318,8 +318,10 @@ class CropManagementController extends Controller
     /**
      * Restore an archived crop type
      */
-    public function restoreCropType(CropType $cropType)
+    public function restoreCropType(int $id)
     {
+        $cropType = CropType::withTrashed()->findOrFail($id);
+        $cropType->restore();
         $cropType->update(['is_active' => true]);
 
         return redirect()->route('admin.crop-management.index')
@@ -327,23 +329,38 @@ class CropManagementController extends Controller
     }
 
     /**
-     * Delete a crop type permanently
+     * Soft-delete a crop type (moves to trash, keeps data in DB)
      */
     public function destroyCropType(CropType $cropType)
     {
         $name = $cropType->name;
 
-        // Check if any crop plans reference this crop type
-        $planCount = \App\Models\CropPlan::where('crop_type_id', $cropType->id)->count();
-        if ($planCount > 0) {
-            return redirect()->route('admin.crop-management.index')
-                ->with('error', 'Cannot delete "' . $name . '": ' . $planCount . ' crop plan(s) are using this crop type. Archive it instead.');
-        }
-
+        // Archive first so it is inactive, then soft-delete
+        $cropType->update(['is_active' => false]);
         $cropType->delete();
 
         return redirect()->route('admin.crop-management.index')
-            ->with('success', 'Crop type "' . $name . '" deleted permanently!');
+            ->with('success', 'Crop type "' . $name . '" archived and removed from active list.');
+    }
+
+    /**
+     * Permanently delete a soft-deleted crop type
+     */
+    public function forceDestroyCropType(int $id)
+    {
+        $cropType = CropType::onlyTrashed()->findOrFail($id);
+        $name = $cropType->name;
+
+        $planCount = \App\Models\CropPlan::where('crop_type_id', $cropType->id)->count();
+        if ($planCount > 0) {
+            return redirect()->back()
+                ->with('error', 'Cannot permanently delete "' . $name . '": ' . $planCount . ' crop plan(s) reference it.');
+        }
+
+        $cropType->forceDelete();
+
+        return redirect()->route('admin.crop-management.archived')
+            ->with('success', 'Crop type "' . $name . '" permanently deleted.');
     }
 
     /**
@@ -416,8 +433,10 @@ class CropManagementController extends Controller
     /**
      * Restore an archived municipality
      */
-    public function restoreMunicipality(Municipality $municipality)
+    public function restoreMunicipality(int $id)
     {
+        $municipality = Municipality::withTrashed()->findOrFail($id);
+        $municipality->restore();
         $municipality->update(['is_active' => true]);
 
         return redirect()->route('admin.crop-management.index')
@@ -425,15 +444,29 @@ class CropManagementController extends Controller
     }
 
     /**
-     * Delete a municipality permanently
+     * Soft-delete a municipality (moves to trash, keeps data in DB)
      */
     public function destroyMunicipality(Municipality $municipality)
     {
         $name = $municipality->name;
+        $municipality->update(['is_active' => false]);
         $municipality->delete();
 
         return redirect()->route('admin.crop-management.index')
-            ->with('success', 'Municipality "' . $name . '" deleted permanently!');
+            ->with('success', 'Municipality "' . $name . '" archived and removed from active list.');
+    }
+
+    /**
+     * Permanently delete a soft-deleted municipality
+     */
+    public function forceDestroyMunicipality(int $id)
+    {
+        $municipality = Municipality::onlyTrashed()->findOrFail($id);
+        $name = $municipality->name;
+        $municipality->forceDelete();
+
+        return redirect()->route('admin.crop-management.archived')
+            ->with('success', 'Municipality "' . $name . '" permanently deleted.');
     }
 
     private function storeCropImage($image): string
