@@ -276,6 +276,7 @@ class FarmerDashboardController extends Controller
                     'productionLossMt' => $plan->production_loss_mt,
                     'damageCauseLabel' => $plan->damage_cause_label,
                     'damageNotes' => $plan->damage_notes,
+                    'damageOccurredOn' => optional($plan->damage_occurred_on)->format('M d, Y'),
                     'damageReportedAt' => optional($plan->damage_reported_at)->format('M d, Y h:i A'),
                 ];
             });
@@ -1014,6 +1015,12 @@ class FarmerDashboardController extends Controller
         $validated = $request->validate([
             'damaged_area_hectares' => 'required|numeric|min:0.01|max:' . (float) $cropPlan->area_hectares,
             'damage_cause' => 'required|string|in:' . implode(',', array_keys(CropPlan::DAMAGE_CAUSE_LABELS)),
+            'damage_occurred_on' => [
+                'required',
+                'date',
+                'after_or_equal:' . $cropPlan->planting_date->format('Y-m-d'),
+                'before_or_equal:' . today()->format('Y-m-d'),
+            ],
             'damage_notes' => 'nullable|string|max:500',
         ]);
 
@@ -1021,6 +1028,7 @@ class FarmerDashboardController extends Controller
             'damaged_area_hectares' => $validated['damaged_area_hectares'],
             'damage_cause' => $validated['damage_cause'],
             'damage_notes' => $validated['damage_notes'] ?? null,
+            'damage_occurred_on' => $validated['damage_occurred_on'],
             'damage_reported_at' => now(),
         ]);
 
@@ -1040,12 +1048,15 @@ class FarmerDashboardController extends Controller
                 'formatted_adjusted_production' => $cropPlan->formatted_adjusted_production,
                 'production_loss_mt' => $cropPlan->production_loss_mt,
                 'damage_notes' => $cropPlan->damage_notes,
+                'damage_occurred_on' => optional($cropPlan->damage_occurred_on)->format('Y-m-d'),
+                'damage_occurred_on_formatted' => optional($cropPlan->damage_occurred_on)->format('M d, Y'),
                 'damage_reported_at' => optional($cropPlan->damage_reported_at)->toIso8601String(),
                 'damage_reported_at_formatted' => optional($cropPlan->damage_reported_at)->format('M d, Y h:i A'),
                 'planting_event' => $cropPlan->toPlantingEvent(),
                 'harvest_event' => array_merge($cropPlan->toHarvestEvent(), [
                     'is_edoh' => true,
                 ]),
+                'damage_event' => $cropPlan->toDamageEvent(),
                 'fertilizer_events' => $cropPlan->toFertilizerEvents(),
             ],
         ]);
@@ -1133,6 +1144,16 @@ class FarmerDashboardController extends Controller
             foreach ($dayEvents as $event) {
                 $events[$dateKey][] = $event;
             }
+        }
+
+        if ($plan->has_damage_report && $plan->damage_occurred_on) {
+            $damageKey = $plan->damage_occurred_on->format('Y-m-d');
+
+            if (!isset($events[$damageKey])) {
+                $events[$damageKey] = [];
+            }
+
+            $events[$damageKey][] = $plan->toDamageEvent();
         }
     }
 

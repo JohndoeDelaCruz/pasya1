@@ -54,6 +54,14 @@
                                 d="M12 3v18M12 3c-1.5 2-4 3-6 3M12 3c1.5 2 4 3 6 3M8 11c-1.5 1-3 3-3 5M16 11c1.5 1 3 3 3 5M10 8l-2 4M14 8l2 4" />
                         </svg>
                     </button>
+                    <button @click="eventFilter = 'damage'"
+                        :class="eventFilter === 'damage' ? 'bg-orange-600 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
+                        class="p-2 rounded-full transition-all duration-200" title="Damage Reports">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                    </button>
                 </div>
 
                 <!-- Add Crop Plan Button - Right -->
@@ -314,7 +322,7 @@
                                 <!-- Event icon when viewing single event -->
                                 <template x-if="selectedEvent && !selectedDay">
                                     <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-                                        :class="selectedEvent.type === 'plant' ? 'bg-green-500' : selectedEvent.type === 'harvest' ? 'bg-emerald-400' : 'bg-teal-400'">
+                                        :class="selectedEvent.type === 'plant' ? 'bg-green-500' : selectedEvent.type === 'harvest' ? 'bg-emerald-400' : selectedEvent.type === 'damage' ? 'bg-orange-500' : 'bg-teal-400'">
                                         <svg x-show="selectedEvent.type === 'plant'" class="w-6 h-6" fill="none"
                                             stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -324,6 +332,11 @@
                                             stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round"
                                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <svg x-show="selectedEvent.type === 'damage'" class="w-6 h-6" fill="none"
+                                            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                                         </svg>
                                     </div>
                                 </template>
@@ -340,7 +353,7 @@
                                     </h3>
                                     <p class="text-sm text-gray-500" x-show="selectedDay?.isToday">Today</p>
                                     <p class="text-sm text-gray-500" x-show="selectedEvent && !selectedDay"
-                                        x-text="selectedEvent?.type === 'plant' ? 'Planting Event' : selectedEvent?.type === 'harvest' ? 'Harvest Event' : 'Event'">
+                                        x-text="selectedEvent?.type === 'plant' ? 'Planting Event' : selectedEvent?.type === 'harvest' ? 'Harvest Event' : selectedEvent?.type === 'damage' ? 'Damage Report' : 'Event'">
                                     </p>
                                 </div>
                             </div>
@@ -399,6 +412,7 @@
                                                 <p><span class="font-medium">Damaged Area:</span> <span x-text="formatHectares(selectedEvent.damaged_area_hectares)"></span></p>
                                                 <p><span class="font-medium">Adjusted Production:</span> <span x-text="formatMetricTons(selectedEvent.adjusted_predicted_production)"></span></p>
                                                 <p><span class="font-medium">Estimated Loss:</span> <span x-text="formatMetricTons(selectedEvent.production_loss_mt)"></span></p>
+                                                <p x-show="selectedEvent.damage_occurred_on_formatted"><span class="font-medium">Date Damaged:</span> <span x-text="selectedEvent.damage_occurred_on_formatted"></span></p>
                                                 <p x-show="selectedEvent.damage_reported_at_formatted"><span class="font-medium">Reported At:</span> <span x-text="selectedEvent.damage_reported_at_formatted"></span></p>
                                                 <p x-show="selectedEvent.damage_notes"><span class="font-medium">Notes:</span> <span x-text="selectedEvent.damage_notes"></span></p>
                                             </div>
@@ -450,6 +464,7 @@
                                                     <p><span class="font-medium">Cause:</span> <span x-text="event.damage_cause_label || 'Damage reported'"></span></p>
                                                     <p><span class="font-medium">Damaged Area:</span> <span x-text="formatHectares(event.damaged_area_hectares)"></span></p>
                                                     <p><span class="font-medium">Adjusted Production:</span> <span x-text="formatMetricTons(event.adjusted_predicted_production)"></span></p>
+                                                    <p x-show="event.damage_occurred_on_formatted"><span class="font-medium">Date Damaged:</span> <span x-text="event.damage_occurred_on_formatted"></span></p>
                                                 </div>
                                             </template>
                                             <div class="mt-3 flex flex-wrap gap-2" x-show="event.crop_plan_id && event.can_report_damage">
@@ -801,8 +816,17 @@
                             <p class="font-semibold" x-text="damageReportForm.crop_name || 'Selected crop plan'"></p>
                             <p class="mt-1 text-xs text-orange-800">Total area: <span x-text="formatHectares(damageReportForm.area_hectares)"></span></p>
                             <template x-if="damageReportForm.has_damage_report">
-                                <p class="mt-1 text-xs text-orange-800">Existing report: <span x-text="damageReportForm.damage_cause_label || 'Damage reported'"></span> on <span x-text="damageReportForm.damage_reported_at_formatted || 'recorded date unavailable'"></span></p>
+                                <p class="mt-1 text-xs text-orange-800">Existing report: <span x-text="damageReportForm.damage_cause_label || 'Damage reported'"></span> on <span x-text="damageReportForm.damage_occurred_on_formatted || damageReportForm.damage_reported_at_formatted || 'recorded date unavailable'"></span></p>
                             </template>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Date Damaged</label>
+                            <input type="date" x-model="damageReportForm.damage_occurred_on"
+                                :min="damageReportForm.planting_date || null" :max="today"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
+                                required>
+                            <p class="mt-1 text-xs text-gray-500">Choose the date when the crop damage happened.</p>
                         </div>
 
                         <div>
@@ -885,7 +909,7 @@
                 return {
                     viewMode: savedDefaultView, // 'day', 'week', 'month'
                     defaultView: savedDefaultView,
-                    eventFilter: 'all', // 'all', 'plant', 'harvest', 'claim', 'fertilizer'
+                    eventFilter: 'all', // 'all', 'plant', 'harvest', 'claim', 'fertilizer', 'damage'
                     currentDate: new Date(),
                     selectedDate: new Date(),
                     showEventModal: false,
@@ -933,11 +957,14 @@
                         crop_plan_id: null,
                         crop_name: '',
                         area_hectares: 0,
+                        planting_date: '',
                         original_predicted_production: 0,
                         damaged_area_hectares: '',
                         damage_cause: '',
                         damage_cause_label: '',
                         damage_notes: '',
+                        damage_occurred_on: todayStr,
+                        damage_occurred_on_formatted: '',
                         damage_reported_at_formatted: '',
                         has_damage_report: false
                     },
@@ -966,6 +993,7 @@
                             damagedArea > 0 &&
                             Number.isFinite(totalArea) &&
                             damagedArea <= totalArea &&
+                            !!this.damageReportForm.damage_occurred_on &&
                             !!this.damageReportForm.damage_cause;
                     },
 
@@ -1057,11 +1085,14 @@
                             crop_plan_id: null,
                             crop_name: '',
                             area_hectares: 0,
+                            planting_date: '',
                             original_predicted_production: 0,
                             damaged_area_hectares: '',
                             damage_cause: '',
                             damage_cause_label: '',
                             damage_notes: '',
+                            damage_occurred_on: this.today,
+                            damage_occurred_on_formatted: '',
                             damage_reported_at_formatted: '',
                             has_damage_report: false
                         };
@@ -1081,11 +1112,14 @@
                             crop_plan_id: event.crop_plan_id,
                             crop_name: event.crop_name || event.title || 'Crop plan',
                             area_hectares: parseFloat(event.area || 0),
+                            planting_date: event.planting_date || '',
                             original_predicted_production: parseFloat(event.original_predicted_production ?? event.predicted_production ?? 0),
                             damaged_area_hectares: event.has_damage_report ? parseFloat(event.damaged_area_hectares || 0) : '',
                             damage_cause: event.damage_cause || '',
                             damage_cause_label: event.damage_cause_label || '',
                             damage_notes: event.damage_notes || '',
+                            damage_occurred_on: event.damage_occurred_on || this.today,
+                            damage_occurred_on_formatted: event.damage_occurred_on_formatted || '',
                             damage_reported_at_formatted: event.damage_reported_at_formatted || '',
                             has_damage_report: !!event.has_damage_report
                         };
@@ -1129,6 +1163,7 @@
                                 body: JSON.stringify({
                                     damaged_area_hectares: parseFloat(this.damageReportForm.damaged_area_hectares),
                                     damage_cause: this.damageReportForm.damage_cause,
+                                    damage_occurred_on: this.damageReportForm.damage_occurred_on,
                                     damage_notes: this.damageReportForm.damage_notes
                                 })
                             });
@@ -1600,6 +1635,7 @@
                             case 'harvest': return 'bg-emerald-400 text-white';
                             case 'claim': return 'bg-teal-200 text-teal-800';
                             case 'fertilizer': return 'bg-teal-500 text-white';
+                            case 'damage': return 'bg-orange-500 text-white';
                             default: return 'bg-gray-200 text-gray-700';
                         }
                     },
@@ -1636,6 +1672,7 @@
                             case 'harvest': return 'bg-emerald-200';
                             case 'claim': return 'bg-teal-100';
                             case 'fertilizer': return 'bg-teal-200';
+                            case 'damage': return 'bg-orange-200';
                             default: return 'bg-gray-100';
                         }
                     },
@@ -1646,6 +1683,7 @@
                             case 'harvest': return 'bg-emerald-50 border-emerald-200';
                             case 'claim': return 'bg-teal-50 border-teal-200';
                             case 'fertilizer': return 'bg-teal-50 border-teal-300';
+                            case 'damage': return 'bg-orange-50 border-orange-200';
                             default: return 'bg-gray-50 border-gray-200';
                         }
                     },
@@ -1656,6 +1694,7 @@
                             case 'harvest': return 'bg-emerald-400';
                             case 'claim': return 'bg-teal-400';
                             case 'fertilizer': return 'bg-teal-500';
+                            case 'damage': return 'bg-orange-500';
                             default: return 'bg-gray-400';
                         }
                     },

@@ -57,6 +57,7 @@ class CropPlan extends Model
         'status',
         'damage_cause',
         'damage_notes',
+        'damage_occurred_on',
         'damage_reported_at',
         'notes',
         'actual_harvest_date',
@@ -69,6 +70,7 @@ class CropPlan extends Model
         'area_hectares' => 'decimal:2',
         'damaged_area_hectares' => 'decimal:2',
         'predicted_production' => 'decimal:2',
+        'damage_occurred_on' => 'date',
         'damage_reported_at' => 'datetime',
     ];
 
@@ -300,6 +302,16 @@ class CropPlan extends Model
         ] + $this->eventContext();
     }
 
+    public function toDamageEvent(): array
+    {
+        return [
+            'id' => $this->id,
+            'title' => "Damage reported for {$this->crop_name}",
+            'type' => 'damage',
+            'description' => "Crop damage occurred for {$this->crop_name}. {$this->damaged_area_hectares} ha affected by {$this->damage_cause_label}. Estimated loss: " . number_format($this->production_loss_mt, 2) . ' MT.',
+        ] + $this->eventContext();
+    }
+
     /**
      * Generate fertilizer schedule events based on growth stages.
      *
@@ -362,6 +374,7 @@ class CropPlan extends Model
             'original_predicted_production' => (float) ($this->predicted_production ?? 0),
             'adjusted_predicted_production' => $this->adjusted_predicted_production,
             'production_loss_mt' => $this->production_loss_mt,
+            'planting_date' => $this->planting_date?->format('Y-m-d'),
             'planting_material_type' => $this->planting_material_type,
             'planting_material_label' => $this->planting_material_label,
             'display_status' => $this->display_status,
@@ -370,6 +383,8 @@ class CropPlan extends Model
             'damage_cause' => $this->damage_cause,
             'damage_cause_label' => $this->damage_cause_label,
             'damage_notes' => $this->damage_notes,
+            'damage_occurred_on' => $this->damage_occurred_on?->format('Y-m-d'),
+            'damage_occurred_on_formatted' => $this->damage_occurred_on?->format('M d, Y'),
             'damage_reported_at' => $this->damage_reported_at?->toIso8601String(),
             'damage_reported_at_formatted' => $this->damage_reported_at?->format('M d, Y h:i A'),
             'can_report_damage' => !in_array($this->status, ['harvested', 'cancelled'], true),
@@ -382,15 +397,16 @@ class CropPlan extends Model
             return '';
         }
 
-        $reportedAt = $this->damage_reported_at?->format('M d, Y');
+        $damageDate = $this->damage_occurred_on?->format('M d, Y')
+            ?? $this->damage_reported_at?->format('M d, Y');
         $summary = " Damage reported: {$this->damaged_area_hectares} ha affected";
 
         if ($this->damage_cause_label) {
             $summary .= " by {$this->damage_cause_label}";
         }
 
-        if ($reportedAt) {
-            $summary .= " on {$reportedAt}";
+        if ($damageDate) {
+            $summary .= " on {$damageDate}";
         }
 
         $summary .= ". Estimated loss: " . number_format($this->production_loss_mt, 2) . ' MT.';
