@@ -235,9 +235,9 @@
                                 <!-- Notifications List -->
                                 <div x-show="!loading && notifications.length > 0" class="max-h-80 overflow-y-auto divide-y divide-gray-100">
                                     <template x-for="notification in notifications" :key="notification.id">
-                                        <div @click="notifOpen = false; window.location.href = notification.link"
+                                        <div @click="markRead(notification); window.location.href = notification.link"
                                            class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
-                                           :class="{ 'bg-green-50': isNew(notification) }">
+                                           :class="{ 'bg-green-50': !isRead(notification) }">
                                             <!-- Priority dot -->
                                             <span class="mt-1.5 w-2 h-2 rounded-full flex-shrink-0"
                                                   :class="{
@@ -247,11 +247,14 @@
                                                     'bg-gray-400': notification.priority === 'low'
                                                   }"></span>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-800 truncate" x-text="notification.title"></p>
+                                                <p class="text-sm truncate" :class="isRead(notification) ? 'font-normal text-gray-600' : 'font-semibold text-gray-800'" x-text="notification.title"></p>
                                                 <p class="text-xs text-gray-500 line-clamp-2 mt-0.5" x-text="notification.message"></p>
                                                 <p class="text-xs text-gray-400 mt-1" x-text="notification.time_ago"></p>
                                             </div>
-                                            <span x-show="!notification.is_active" class="text-xs bg-gray-100 text-gray-500 rounded px-1.5 py-0.5 flex-shrink-0">Inactive</span>
+                                            <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                                                <span x-show="!notification.is_active" class="text-xs bg-gray-100 text-gray-500 rounded px-1.5 py-0.5">Inactive</span>
+                                                <span x-show="!isRead(notification)" class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                            </div>
                                         </div>
                                     </template>
                                 </div>
@@ -357,6 +360,25 @@
                 loading: false,
                 notifications: [],
                 unreadCount: 0,
+                _readKey: 'pasya_admin_notif_read',
+
+                _readIds() {
+                    try { return JSON.parse(localStorage.getItem(this._readKey) || '[]'); }
+                    catch(e) { return []; }
+                },
+
+                isRead(notification) {
+                    return this._readIds().includes(notification.id);
+                },
+
+                markRead(notification) {
+                    const ids = this._readIds();
+                    if (!ids.includes(notification.id)) {
+                        ids.push(notification.id);
+                        localStorage.setItem(this._readKey, JSON.stringify(ids));
+                        this.unreadCount = Math.max(0, this.unreadCount - 1);
+                    }
+                },
 
                 async fetchNotifications() {
                     this.loading = true;
@@ -365,19 +387,14 @@
                         const data = await response.json();
                         if (data.success) {
                             this.notifications = data.notifications;
-                            this.unreadCount = data.unread_count;
+                            const readIds = this._readIds();
+                            this.unreadCount = data.notifications.filter(n => !readIds.includes(n.id)).length;
                         }
                     } catch (error) {
                         console.error('Failed to fetch admin notifications:', error);
                     } finally {
                         this.loading = false;
                     }
-                },
-
-                isNew(notification) {
-                    const created = new Date(notification.created_at);
-                    const oneDayAgo = new Date(Date.now() - 86400000);
-                    return notification.is_active && created > oneDayAgo;
                 },
             };
         }
