@@ -1018,7 +1018,6 @@ class FarmerDashboardController extends Controller
             'damage_occurred_on' => [
                 'required',
                 'date',
-                'after_or_equal:' . $cropPlan->planting_date->format('Y-m-d'),
                 'before_or_equal:' . today()->format('Y-m-d'),
             ],
             'damage_notes' => 'nullable|string|max:500',

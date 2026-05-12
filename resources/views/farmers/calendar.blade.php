@@ -823,7 +823,7 @@
                         <div>
                             <label class="mb-1 block text-sm font-medium text-gray-700">Date Damaged</label>
                             <input type="date" x-model="damageReportForm.damage_occurred_on"
-                                :min="damageReportForm.planting_date || null" :max="today"
+                                :max="today"
                                 class="w-full rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
                                 required>
                             <p class="mt-1 text-xs text-gray-500">Choose the date when the crop damage happened.</p>
