@@ -385,10 +385,10 @@
 
                         <div class="flex w-full flex-wrap items-center gap-3 sm:ml-auto sm:w-auto" data-export-actions>
                             @if ($hasRecords)
-                                <a href="{{ route('admin.planting-report.export.csv', $exportFilters) }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 sm:flex-none">
+                                <a href="{{ route('admin.planting-report.export.csv', $exportFilters) }}" data-no-page-loader class="inline-flex flex-1 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 sm:flex-none">
                                     Export CSV
                                 </a>
-                                <a href="{{ route('admin.planting-report.export.pdf', $exportFilters) }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">
+                                <a href="{{ route('admin.planting-report.export.pdf', $exportFilters) }}" data-no-page-loader class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">
                                     Export PDF
                                 </a>
                             @else
@@ -490,7 +490,8 @@
                                             </span>
                                             @if ($record->has_damage_report)
                                                 <p class="mt-2 text-xs font-medium text-orange-700">{{ $record->damage_cause_label ?? 'Damage reported' }}</p>
-                                                <p class="mt-1 text-xs text-gray-500">{{ $record->damage_reported_at?->format('M d, Y h:i A') ?? 'Report time unavailable' }}</p>
+                                                <p class="mt-1 text-xs text-gray-500">Date damaged: {{ $record->damage_occurred_on?->format('M d, Y') ?? 'Date unavailable' }}</p>
+                                                <p class="mt-1 text-xs text-gray-500">Reported: {{ $record->damage_reported_at?->format('M d, Y h:i A') ?? 'Report time unavailable' }}</p>
                                                 <p class="mt-1 text-xs text-gray-500">{{ $record->damage_notes ? \Illuminate\Support\Str::limit($record->damage_notes, 80) : 'No additional notes' }}</p>
                                             @endif
                                         </td>

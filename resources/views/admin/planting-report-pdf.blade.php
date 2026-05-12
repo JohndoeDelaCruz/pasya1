@@ -224,6 +224,7 @@
                         @if ($record->has_damage_report)
                             {{ number_format((float) $record->damaged_area_hectares, 2) }} ha<br>
                             <span class="muted">{{ $record->damage_cause_label ?? 'Damage reported' }}</span><br>
+                            <span class="muted">Date: {{ optional($record->damage_occurred_on)->format('M d, Y') ?? 'Unavailable' }}</span><br>
                             <span class="muted">Loss: {{ number_format((float) $record->production_loss_mt, 2) }} MT</span>
                         @else
                             <span class="muted">No report</span>
