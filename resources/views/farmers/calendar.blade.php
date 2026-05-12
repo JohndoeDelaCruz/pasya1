@@ -7,7 +7,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <!-- Event Type Filter - Left -->
                 <div class="flex items-center bg-green-200 rounded-full p-1 shadow-sm">
-                    <button @click="eventFilter = 'all'"
+                    <button @click="setEventFilter('all')"
                         :class="eventFilter === 'all' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
                         class="p-2 rounded-full transition-all duration-200" title="All Events">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -15,7 +15,7 @@
                                 d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                         </svg>
                     </button>
-                    <button @click="eventFilter = 'plant'"
+                    <button @click="setEventFilter('plant')"
                         :class="eventFilter === 'plant' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
                         class="p-2 rounded-full transition-all duration-200" title="Planting Events">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -23,7 +23,7 @@
                                 d="M12 19V6M12 6c-2 0-4-1-5-3M12 6c2 0 4-1 5-3M7 14c-2 1-3 3-3 5M17 14c2 1 3 3 3 5" />
                         </svg>
                     </button>
-                    <button @click="eventFilter = 'harvest'"
+                    <button @click="setEventFilter('harvest')"
                         :class="eventFilter === 'harvest' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
                         class="p-2 rounded-full transition-all duration-200" title="Harvest Events">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -31,7 +31,7 @@
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
                         </svg>
                     </button>
-                    <button @click="eventFilter = 'claim'"
+                    <button @click="setEventFilter('claim')"
                         :class="eventFilter === 'claim' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
                         class="p-2 rounded-full transition-all duration-200" title="Claim Events">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -46,7 +46,7 @@
                             <circle cx="7" cy="7" r="1.5" />
                         </svg>
                     </button>
-                    <button @click="eventFilter = 'fertilizer'"
+                    <button @click="setEventFilter('fertilizer')"
                         :class="eventFilter === 'fertilizer' ? 'bg-teal-600 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
                         class="p-2 rounded-full transition-all duration-200" title="Fertilizer Events">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -54,7 +54,7 @@
                                 d="M12 3v18M12 3c-1.5 2-4 3-6 3M12 3c1.5 2 4 3 6 3M8 11c-1.5 1-3 3-3 5M16 11c1.5 1 3 3 3 5M10 8l-2 4M14 8l2 4" />
                         </svg>
                     </button>
-                    <button @click="eventFilter = 'damage'"
+                    <button @click="setEventFilter('damage')"
                         :class="eventFilter === 'damage' ? 'bg-orange-600 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
                         class="p-2 rounded-full transition-all duration-200" title="Damage Reports">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -190,7 +190,7 @@
                         <div class="min-w-[600px]">
                         <!-- Day Headers -->
                         <div class="grid grid-cols-7 mb-2">
-                            <template x-for="(day, index) in weekDays" :key="'header-' + index">
+                            <template x-for="(day, index) in weekDays" :key="'header-' + eventFilter + '-' + index">
                                 <div class="text-center text-xs sm:text-sm font-semibold text-gray-400 py-2"
                                     x-text="day.dayName.substring(0, 3)"></div>
                             </template>
@@ -198,7 +198,7 @@
 
                         <!-- Week Days Grid -->
                         <div class="grid grid-cols-7 gap-1">
-                            <template x-for="(day, index) in weekDays" :key="index">
+                            <template x-for="(day, index) in weekDays" :key="eventFilter + '-' + calendarRefreshKey + '-' + day.dateKey">
                                 <div @click="selectDayFromWeek(day)" :class="{
                                          'bg-gray-100 border-gray-200': !day.isCurrentMonth,
                                          'bg-green-50 border-green-200': day.isCurrentMonth && !day.isToday,
@@ -214,7 +214,7 @@
 
                                     <!-- Events -->
                                     <div class="flex-1 space-y-1 overflow-y-auto">
-                                        <template x-for="(event, eventIndex) in day.events" :key="eventIndex">
+                                        <template x-for="(event, eventIndex) in day.events" :key="getEventKey(event, eventIndex)">
                                             <div :class="getEventClass(event.type)"
                                                 class="text-xs px-2 py-1.5 rounded-md font-medium cursor-pointer hover:opacity-90 transition-all truncate flex items-center gap-1"
                                                 @click.stop="showEventDetails(event)">
@@ -246,9 +246,9 @@
 
                         <!-- Calendar Days Grid -->
                         <div class="space-y-1">
-                            <template x-for="(week, weekIndex) in calendarWeeks" :key="weekIndex">
+                            <template x-for="(week, weekIndex) in calendarWeeks" :key="eventFilter + '-' + calendarRefreshKey + '-week-' + weekIndex">
                                 <div class="grid grid-cols-7 gap-1">
-                                    <template x-for="(day, dayIndex) in week" :key="weekIndex + '-' + dayIndex">
+                                    <template x-for="(day, dayIndex) in week" :key="eventFilter + '-' + calendarRefreshKey + '-' + (day.dateKey || (weekIndex + '-' + dayIndex))">
                                         <div @click="!day.isEmpty && selectDay(day)" :class="{
                                                  'bg-transparent': day.isEmpty,
                                                  'bg-green-50 border-green-200 border cursor-pointer hover:shadow-md': !day.isEmpty && !day.isToday,
@@ -272,7 +272,7 @@
                                                     <!-- Events -->
                                                     <div class="space-y-1">
                                                         <template x-for="(event, eventIndex) in day.events.slice(0, 2)"
-                                                            :key="eventIndex">
+                                                            :key="getEventKey(event, eventIndex)">
                                                             <div :class="getEventClass(event.type)"
                                                                 class="text-xs px-2 py-1 rounded-md font-medium truncate flex items-center gap-1">
                                                                 <template x-if="getCropImage(event.crop_name) && eventIndex > 0">
@@ -910,6 +910,7 @@
                     viewMode: savedDefaultView, // 'day', 'week', 'month'
                     defaultView: savedDefaultView,
                     eventFilter: 'all', // 'all', 'plant', 'harvest', 'claim', 'fertilizer', 'damage'
+                    calendarRefreshKey: 0,
                     currentDate: new Date(),
                     selectedDate: new Date(),
                     showEventModal: false,
@@ -1011,6 +1012,42 @@
 
                     get selectedCropType() {
                         return this.cropTypesData.find(c => c.id == this.cropPlanForm.crop_type_id) || null;
+                    },
+
+                    setEventFilter(filter) {
+                        this.eventFilter = filter;
+                        this.calendarRefreshKey += 1;
+
+                        if (this.selectedDay?.dateKey) {
+                            this.selectedDay = {
+                                ...this.selectedDay,
+                                events: this.getEventsForDateKey(this.selectedDay.dateKey)
+                            };
+                        }
+
+                        if (this.selectedEvent && filter !== 'all' && this.selectedEvent.type !== filter) {
+                            this.selectedEvent = null;
+                            this.showEventModal = false;
+                        }
+                    },
+
+                    getEventKey(event, index) {
+                        return [
+                            this.eventFilter,
+                            event.type || 'event',
+                            event.crop_plan_id || event.id || event.title || 'item',
+                            event.date || event.planting_date || event.expected_harvest_date || index
+                        ].join('-');
+                    },
+
+                    getEventsForDateKey(dateKey) {
+                        const dayEvents = this.allEvents[dateKey] || [];
+
+                        if (this.eventFilter === 'all') {
+                            return dayEvents;
+                        }
+
+                        return dayEvents.filter((event) => event.type === this.eventFilter);
                     },
 
                     get selectedCropSupportsSeedling() {
@@ -1143,6 +1180,7 @@
                         }
 
                         this.allEvents = data.events || {};
+                        this.calendarRefreshKey += 1;
                     },
 
                     async submitDamageReport() {
@@ -1414,14 +1452,16 @@
                             return this.allEvents;
                         }
 
-                        // Filter events by type
                         const filtered = {};
-                        for (const [date, events] of Object.entries(this.allEvents)) {
-                            const filteredEvents = events.filter(e => e.type === this.eventFilter);
+
+                        for (const dateKey of Object.keys(this.allEvents)) {
+                            const filteredEvents = this.getEventsForDateKey(dateKey);
+
                             if (filteredEvents.length > 0) {
-                                filtered[date] = filteredEvents;
+                                filtered[dateKey] = filteredEvents;
                             }
                         }
+
                         return filtered;
                     },
 
@@ -1489,7 +1529,7 @@
                                     today.getMonth() === d.getMonth() &&
                                     today.getFullYear() === d.getFullYear(),
                                 isCurrentMonth: d.getMonth() === this.selectedDate.getMonth(),
-                                events: this.events[dateKey] || []
+                                events: this.getEventsForDateKey(dateKey)
                             });
                         }
                         return days;
@@ -1497,7 +1537,7 @@
 
                     getDayEvents(date) {
                         const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                        return this.events[dateKey] || [];
+                        return this.getEventsForDateKey(dateKey);
                     },
 
                     getDayName(date) {
@@ -1516,9 +1556,10 @@
                         const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
                         this.selectedDay = {
                             date: date.getDate(),
+                            dateKey: dateKey,
                             isCurrentMonth: true,
                             isToday: this.isToday(date),
-                            events: this.events[dateKey] || []
+                            events: this.getEventsForDateKey(dateKey)
                         };
                         this.showEventModal = true;
                     },
@@ -1581,10 +1622,11 @@
 
                             days.push({
                                 date: date,
+                                dateKey: dateKey,
                                 isEmpty: false,
                                 isCurrentMonth: true,
                                 isToday: isToday,
-                                events: this.events[dateKey] || []
+                                events: this.getEventsForDateKey(dateKey)
                             });
 
                             if (days.length === 7) {
