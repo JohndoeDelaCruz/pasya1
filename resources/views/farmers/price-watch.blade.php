@@ -213,8 +213,8 @@
                                          :alt="selectedPrice?.name"
                                          class="w-full h-full object-cover"
                                          x-show="!imageLoadError"
-                                         @error="imageLoadError = true"
-                                         @load="imageLoadError = false">
+                                         x-on:error="imageLoadError = true"
+                                         x-on:load="imageLoadError = false">
                                     <span class="text-4xl" x-show="imageLoadError" x-text="selectedPrice?.emoji"></span>
                                 </div>
                                 <div class="min-w-0">
