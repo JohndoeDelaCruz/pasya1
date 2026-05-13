@@ -222,19 +222,6 @@ class FarmerDashboardController extends Controller
             ->take(50)
             ->get();
 
-        // Get available crop types with all needed info
-        $cropTypes = CropType::active()->orderBy('name')->get()->map(function ($crop) {
-            return [
-                'id' => $crop->id,
-                'name' => $crop->name,
-                'category' => $crop->category,
-                'description' => $crop->description,
-                'days_to_harvest' => $crop->days_to_harvest_value,
-                'average_yield_per_hectare' => $crop->average_yield_value,
-                'growth_cycle' => $this->formatGrowthCycle($crop->days_to_harvest_value),
-            ];
-        });
-
         // Get farmer's crop plans (harvest history)
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
             ->with('cropType')
@@ -287,7 +274,7 @@ class FarmerDashboardController extends Controller
         // Get production summary
         $summary = $this->getProductionSummary($farmer);
 
-        return view('farmers.harvest-history', compact('crops', 'cropTypes', 'cropPlans', 'summary'));
+        return view('farmers.harvest-history', compact('crops', 'cropPlans', 'summary'));
     }
 
     /**
