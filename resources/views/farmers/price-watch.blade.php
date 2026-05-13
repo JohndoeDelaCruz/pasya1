@@ -28,36 +28,22 @@
             <div class="mb-6">
                 <p class="text-sm text-gray-600 mb-3">Filter:</p>
                 <div class="flex flex-wrap gap-2">
-                    <button @click="activeCategory = 'all'" 
-                            :class="activeCategory === 'all' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                        📋 All
-                    </button>
-                    <button @click="activeCategory = 'Leafy Vegetables'" 
-                            :class="activeCategory === 'Leafy Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                        🥬 Pechay, Lettuce
-                    </button>
-                    <button @click="activeCategory = 'Root Vegetables'" 
-                            :class="activeCategory === 'Root Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                        🥕 Carrots, Potato
-                    </button>
-                    <button @click="activeCategory = 'Fruit Vegetables'" 
-                            :class="activeCategory === 'Fruit Vegetables' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                        🍅 Tomato, Sayote
-                    </button>
-                    <button @click="activeCategory = 'Cruciferous'" 
-                            :class="activeCategory === 'Cruciferous' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                        🥦 Broccoli, Cabbage
-                    </button>
-                    <button @click="activeCategory = 'Legumes'" 
-                            :class="activeCategory === 'Legumes' ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                            class="px-4 py-2 rounded-full text-sm font-medium transition shadow-sm">
-                        🫛 Beans
-                    </button>
+                    <template x-for="filter in priceFilters" :key="filter.value">
+                        <button
+                            type="button"
+                            @click="activeCategory = filter.value"
+                            :title="filter.title || filter.label"
+                            :class="activeCategory === filter.value ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
+                            class="inline-flex max-w-full items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition"
+                        >
+                            <span class="truncate" x-text="filter.label"></span>
+                            <span
+                                class="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                :class="activeCategory === filter.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'"
+                                x-text="filter.count"
+                            ></span>
+                        </button>
+                    </template>
                 </div>
             </div>
 
@@ -313,6 +299,7 @@
                 },
                 
                 prices: @json($prices),
+                priceFilters: @json($priceFilters),
                 
                 trendData: @json($trends),
                 
@@ -368,10 +355,14 @@
                 getCategoryBgClass(category) {
                     const classes = {
                         'Leafy Vegetables': 'bg-green-100',
+                        'Leafy Vegetable': 'bg-green-100',
                         'Root Vegetables': 'bg-orange-100',
+                        'Root Crop': 'bg-orange-100',
                         'Fruit Vegetables': 'bg-red-100',
+                        'Vegetable': 'bg-red-100',
                         'Cruciferous': 'bg-emerald-100',
                         'Legumes': 'bg-lime-100',
+                        'Other': 'bg-gray-100',
                     };
                     return classes[category] || 'bg-gray-100';
                 },

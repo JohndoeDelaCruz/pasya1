@@ -200,11 +200,12 @@ class FarmerDashboardController extends Controller
 
         // Get all crop prices with mock data (can be replaced with real API)
         $prices = $this->getAllPrices();
+        $priceFilters = $this->getPriceFilters($prices);
 
         // Get price trends
         $trends = $this->getPriceTrends();
 
-        return view('farmers.price-watch', compact('prices', 'trends'));
+        return view('farmers.price-watch', compact('prices', 'priceFilters', 'trends'));
     }
 
     /**
@@ -534,6 +535,38 @@ class FarmerDashboardController extends Controller
         }
 
         return $prices;
+    }
+
+    /**
+     * Build Price Watch filters from the actual crop list shown on the page.
+     */
+    private function getPriceFilters(array $prices): array
+    {
+        $filters = [[
+            'value' => 'all',
+            'label' => 'All',
+            'count' => count($prices),
+        ]];
+
+        collect($prices)
+            ->groupBy(fn (array $price) => (string) ($price['category'] ?? 'Other'))
+            ->sortKeys()
+            ->each(function ($categoryPrices, string $category) use (&$filters) {
+                $cropNames = $categoryPrices
+                    ->pluck('name')
+                    ->filter()
+                    ->values();
+
+                $filters[] = [
+                    'value' => $category,
+                    'label' => $cropNames->isNotEmpty() ? $cropNames->take(3)->join(', ') : $category,
+                    'category' => $category,
+                    'count' => $categoryPrices->count(),
+                    'title' => $cropNames->join(', '),
+                ];
+            });
+
+        return $filters;
     }
 
     /**
