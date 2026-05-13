@@ -230,6 +230,10 @@ class CropPlan extends Model
 
     public function getDisplayStatusAttribute(): string
     {
+        if (in_array($this->status, ['harvested', 'cancelled'], true)) {
+            return $this->status;
+        }
+
         if ($this->has_damage_report) {
             return 'damaged';
         }
