@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Farmer;
+use App\Models\ArchivedFarmer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -183,6 +184,10 @@ class FarmerImportService
                         'deleted_at' => null,
                         'updated_at' => $now,
                     ]);
+
+                if ($existingFarmer->deleted_at !== null) {
+                    ArchivedFarmer::removeForFarmer($existingFarmer->id);
+                }
 
                 continue;
             }

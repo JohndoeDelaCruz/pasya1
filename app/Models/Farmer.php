@@ -41,6 +41,19 @@ class Farmer extends Authenticatable
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleted(function (Farmer $farmer) {
+            if (! $farmer->isForceDeleting()) {
+                ArchivedFarmer::syncFromFarmer($farmer);
+            }
+        });
+
+        static::restored(function (Farmer $farmer) {
+            ArchivedFarmer::removeForFarmer($farmer->getKey());
+        });
+    }
+
     /**
      * Get the user who created this farmer account
      */
