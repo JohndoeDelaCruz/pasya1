@@ -353,7 +353,7 @@
                     </div>
 
                     <!-- Prediction Form -->
-                    <form method="POST" action="{{ route('admin.crop-trends.predict') }}" class="space-y-4">
+                    <form method="POST" action="{{ route('admin.crop-trends.predict') }}" class="space-y-4" x-data="{ submitting: false }" @submit="submitting = true" data-no-page-loader>
                         @csrf
                         
                         <!-- Municipality -->
@@ -434,11 +434,17 @@
 
                         <!-- Submit Button -->
                         <div class="flex items-center justify-between gap-3 pt-2">
-                            <button type="button" @click="show = false" class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium">
+                            <button type="button" @click="show = false" class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium" :disabled="submitting">
                                 Cancel
                             </button>
-                            <button type="submit" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-md transition-colors">
-                                Submit
+                            <button type="submit" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-800 font-semibold rounded-md transition-colors flex items-center gap-2" :disabled="submitting">
+                                <span x-show="submitting">
+                                    <svg class="animate-spin h-5 w-5 text-gray-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                                <span x-text="submitting ? 'Processing...' : 'Submit'">Submit</span>
                             </button>
                         </div>
                     </form>
