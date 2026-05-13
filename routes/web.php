@@ -163,11 +163,13 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::post('/crop-types/{cropType}/archive', [CropManagementController::class, 'archiveCropType'])->name('crop-types.archive');
     Route::post('/crop-types/{cropType}/restore', [CropManagementController::class, 'restoreCropType'])->name('crop-types.restore');
     Route::delete('/crop-types/{cropType}', [CropManagementController::class, 'destroyCropType'])->name('crop-types.destroy');
+    Route::delete('/crop-types/{id}/force-delete', [CropManagementController::class, 'forceDestroyCropType'])->name('crop-types.force-delete');
     Route::post('/municipalities', [CropManagementController::class, 'storeMunicipality'])->name('municipalities.store');
     Route::put('/municipalities/{municipality}', [CropManagementController::class, 'updateMunicipality'])->name('municipalities.update');
     Route::post('/municipalities/{municipality}/archive', [CropManagementController::class, 'archiveMunicipality'])->name('municipalities.archive');
     Route::post('/municipalities/{municipality}/restore', [CropManagementController::class, 'restoreMunicipality'])->name('municipalities.restore');
     Route::delete('/municipalities/{municipality}', [CropManagementController::class, 'destroyMunicipality'])->name('municipalities.destroy');
+    Route::delete('/municipalities/{id}/force-delete', [CropManagementController::class, 'forceDestroyMunicipality'])->name('municipalities.force-delete');
     
     // Crop Name Mappings Routes (ML API Integration)
     Route::get('/crop-mappings', [CropMappingController::class, 'index'])->name('crop-mappings.index');
@@ -186,6 +188,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('announcements.update');
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
     Route::patch('/announcements/{announcement}/toggle-status', [AnnouncementController::class, 'toggleStatus'])->name('announcements.toggle-status');
+    
+    // Admin Notifications API
+    Route::get('/api/notifications', [AnnouncementController::class, 'getAdminNotifications'])->name('api.notifications');
+    Route::post('/api/notifications/{announcement}/read', [AnnouncementController::class, 'markAdminNotificationRead'])->name('api.notifications.read');
 });
 
 Route::middleware('auth')->group(function () {

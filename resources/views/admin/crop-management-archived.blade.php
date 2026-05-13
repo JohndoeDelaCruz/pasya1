@@ -151,7 +151,7 @@
                                                     Restore
                                                 </button>
                                             </form>
-                                            <form action="{{ route('admin.crop-types.destroy', $cropType) }}" method="POST" class="inline">
+                                            <form action="{{ route('admin.crop-types.force-delete', $cropType->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"
@@ -263,7 +263,7 @@
                                                     Restore
                                                 </button>
                                             </form>
-                                            <form action="{{ route('admin.municipalities.destroy', $municipality) }}" method="POST" class="inline">
+                                            <form action="{{ route('admin.municipalities.force-delete', $municipality->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit"

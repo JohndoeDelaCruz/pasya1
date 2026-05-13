@@ -224,9 +224,8 @@
                                     
                                     <!-- Notifications List -->
                                     <template x-for="notification in notifications" :key="notification.id">
-                                        <a :href="notification.link || '#'" 
-                                           @click="markAsRead(notification)"
-                                           class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100"
+                                        <div @click="markAsRead(notification); window.location.href = notification.link || '#'"
+                                           class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer"
                                            :class="{ 'bg-green-50': !notification.is_read }">
                                             <div class="flex items-start space-x-3">
                                                 <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
@@ -236,13 +235,13 @@
                                                     </svg>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-gray-800" x-text="notification.title"></p>
+                                                    <p class="text-sm text-gray-800" :class="notification.is_read ? 'font-normal' : 'font-semibold'" x-text="notification.title"></p>
                                                     <p class="text-xs text-gray-500 line-clamp-2" x-text="notification.message"></p>
                                                     <p class="text-xs text-gray-400 mt-1" x-text="notification.time_ago"></p>
                                                 </div>
                                                 <div x-show="!notification.is_read" class="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
                                             </div>
-                                        </a>
+                                        </div>
                                     </template>
                                 </div>
                                 <a href="{{ route('farmers.calendar') }}" class="block px-4 py-3 text-center text-sm font-medium text-green-600 hover:bg-gray-50 border-t border-gray-100">
@@ -613,7 +612,8 @@
                 
                 async markAsRead(notification) {
                     if (notification.is_read) return;
-                    
+                    notification.is_read = true;
+                    this.unreadCount = Math.max(0, this.unreadCount - 1);
                     try {
                         await fetch(`{{ url('farmer/api/notifications') }}/${notification.id}/read`, {
                             method: 'POST',
@@ -622,8 +622,6 @@
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                             },
                         });
-                        notification.is_read = true;
-                        this.unreadCount = Math.max(0, this.unreadCount - 1);
                     } catch (error) {
                         console.error('Failed to mark notification as read:', error);
                     }

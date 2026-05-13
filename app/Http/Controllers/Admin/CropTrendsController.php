@@ -262,6 +262,9 @@ class CropTrendsController extends Controller
         // Get all municipalities and crops for the prediction form
         $municipalities = Crop::distinct()->pluck('municipality')->sort()->values();
         $crops = Crop::distinct()->pluck('crop')->sort()->values();
+
+        // Global max historical year across all crops (used to cap year_to in the form)
+        $globalMaxHistoricalYear = (int) (Crop::max('year') ?? date('Y'));
         
         return view('admin.crop-trends', [
             'months' => $months,
@@ -281,6 +284,7 @@ class CropTrendsController extends Controller
             'selectedCrop' => $topCrop ? ucwords(strtolower($topCrop->crop)) : 'N/A',
             'selectedMunicipality' => $topMunicipality ? ucwords(strtolower($topMunicipality->municipality)) : 'N/A',
             'selectedFarmType' => $topFarmType ? ucwords(strtolower($topFarmType->farm_type)) : 'N/A',
+            'maxHistoricalYear' => $globalMaxHistoricalYear,
         ]);
     }
 
@@ -293,13 +297,17 @@ class CropTrendsController extends Controller
 
         $predictionStart = microtime(true);
 
+        // Determine the global max historical year so we can cap year_to
+        $globalMaxHistoricalYear = (int) (Crop::max('year') ?? date('Y'));
+        $maxAllowedYear = $globalMaxHistoricalYear + 3;
+
         $request->validate([
             'municipality' => 'required|string',
             'farm_type' => 'required|string|in:Rainfed,Irrigated,RAINFED,IRRIGATED',
             'month_from' => 'required|string',
             'month_to' => 'required|string',
-            'year_from' => 'required|integer|min:2000|max:2050',
-            'year_to' => 'required|integer|min:2000|max:2050',
+            'year_from' => ['required', 'integer', 'min:2000', "max:{$maxAllowedYear}"],
+            'year_to' => ['required', 'integer', 'min:2000', "max:{$maxAllowedYear}"],
             'crop' => 'required|string'
         ]);
 
@@ -723,7 +731,8 @@ class CropTrendsController extends Controller
             'mlBackedPredictions' => $mlBackedPredictions,
             'municipalities' => $municipalities,
             'crops' => $crops,
-            'avgAreaHarvested' => round($defaultAreaHarvested, 2)
+            'avgAreaHarvested' => round($defaultAreaHarvested, 2),
+            'maxHistoricalYear' => $globalMaxHistoricalYear,
         ]);
     }
 
