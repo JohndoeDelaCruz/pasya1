@@ -378,7 +378,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
         <!-- Harvest Date Modal -->
         <div x-show="showHarvestModal"

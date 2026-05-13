@@ -252,7 +252,9 @@ class FarmerDashboardController extends Controller
                     'cropType' => $plan->crop_name,
                     'datePlanted' => $plan->planting_date->format('M d, Y'),
                     'dateHarvested' => $plan->status === 'harvested'
-                        ? $plan->expected_harvest_date->format('M d, Y')
+                        ? ($plan->actual_harvest_date
+                            ? $plan->actual_harvest_date->format('M d, Y')
+                            : $plan->expected_harvest_date->format('M d, Y'))
                         : '--',
                     'expectedHarvest' => $plan->expected_harvest_date->format('M d, Y'),
                     'status' => match ($displayStatus) {
