@@ -209,8 +209,13 @@
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-center space-x-3">
                                 <div class="w-16 h-16 rounded-xl overflow-hidden bg-white/20 flex items-center justify-center">
-                                    <img :src="selectedPrice?.image" :alt="selectedPrice?.name" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                    <span class="text-4xl hidden" x-text="selectedPrice?.emoji"></span>
+                                    <img :src="selectedPrice?.image"
+                                         :alt="selectedPrice?.name"
+                                         class="w-full h-full object-cover"
+                                         x-show="!imageLoadError"
+                                         @error="imageLoadError = true"
+                                         @load="imageLoadError = false">
+                                    <span class="text-4xl" x-show="imageLoadError" x-text="selectedPrice?.emoji"></span>
                                 </div>
                                 <div class="min-w-0">
                                     <h3 class="break-words text-xl font-bold" x-text="selectedPrice?.name"></h3>
@@ -243,15 +248,15 @@
                         <div class="space-y-3">
                             <div class="flex flex-col gap-1 rounded-xl bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                                 <span class="text-gray-600">Weekly Average</span>
-                                <span class="font-semibold text-gray-800">₱<span x-text="((selectedPrice?.price || 0) * 0.95).toFixed(2)"></span></span>
+                                <span class="font-semibold text-gray-800" x-text="selectedPrice?.weekly_average != null ? '₱' + Number(selectedPrice.weekly_average).toFixed(2) : 'N/A'"></span>
                             </div>
                             <div class="flex flex-col gap-1 rounded-xl bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                                 <span class="text-gray-600">Monthly Average</span>
-                                <span class="font-semibold text-gray-800">₱<span x-text="((selectedPrice?.price || 0) * 0.92).toFixed(2)"></span></span>
+                                <span class="font-semibold text-gray-800" x-text="selectedPrice?.monthly_average != null ? '₱' + Number(selectedPrice.monthly_average).toFixed(2) : 'N/A'"></span>
                             </div>
                             <div class="flex flex-col gap-1 rounded-xl bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                                 <span class="text-gray-600">Last Year Same Period</span>
-                                <span class="font-semibold text-gray-800">₱<span x-text="((selectedPrice?.price || 0) * 0.85).toFixed(2)"></span></span>
+                                <span class="font-semibold text-gray-800" x-text="selectedPrice?.last_year_price != null ? '₱' + Number(selectedPrice.last_year_price).toFixed(2) : 'N/A'"></span>
                             </div>
                         </div>
                         
@@ -288,6 +293,7 @@
                 selectedTrendCrop: 'all',
                 showDetailModal: false,
                 selectedPrice: null,
+                imageLoadError: false,
                 trendTooltip: {
                     show: false,
                     x: 0,
@@ -369,6 +375,7 @@
                 
                 showPriceDetail(price) {
                     this.selectedPrice = price;
+                    this.imageLoadError = false;
                     this.showDetailModal = true;
                 },
 

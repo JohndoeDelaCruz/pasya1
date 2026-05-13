@@ -60,11 +60,13 @@
                     <table class="w-full">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Crop</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-48">Current Price (₱/kg)</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Previous Price</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Change</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Crop</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-40">Today's Price (₱/kg)</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Weekly Avg (₱/kg)</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Monthly Avg (₱/kg)</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-36">Last Year (₱/kg)</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Change vs Yesterday</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -74,34 +76,66 @@
                                     $currentPrice = $price ? (float) $price->price_per_kg : 0;
                                     $previousPrice = $price ? (float) $price->previous_price : null;
                                     $change = $previousPrice !== null ? round($currentPrice - $previousPrice, 2) : null;
+                                    $weeklyAvg  = $price && $price->weekly_average  !== null ? (float) $price->weekly_average  : null;
+                                    $monthlyAvg = $price && $price->monthly_average !== null ? (float) $price->monthly_average : null;
+                                    $lastYear   = $price && $price->last_year_price !== null ? (float) $price->last_year_price  : null;
                                 @endphp
                                 <input type="hidden" name="prices[{{ $index }}][crop_type_id]" value="{{ $crop->id }}">
                                 <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-6 py-4">
+                                    <td class="px-4 py-3">
                                         <span class="font-medium text-gray-800">{{ $crop->name }}</span>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ $crop->category }}</td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-4 py-3 text-sm text-gray-500">{{ $crop->category }}</td>
+                                    {{-- Today's price --}}
+                                    <td class="px-4 py-3">
                                         <div class="relative">
                                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">₱</span>
                                             <input type="number"
                                                    name="prices[{{ $index }}][price_per_kg]"
                                                    value="{{ number_format($currentPrice, 2, '.', '') }}"
-                                                   min="0"
-                                                   max="99999.99"
-                                                   step="0.01"
-                                                   class="w-full pl-7 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                                                   min="0" max="99999.99" step="0.01"
+                                                   class="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
                                                    placeholder="0.00">
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">
-                                        @if($previousPrice !== null)
-                                            ₱{{ number_format($previousPrice, 2) }}
-                                        @else
-                                            <span class="text-gray-300">—</span>
-                                        @endif
+                                    {{-- Weekly average --}}
+                                    <td class="px-4 py-3">
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₱</span>
+                                            <input type="number"
+                                                   name="prices[{{ $index }}][weekly_average]"
+                                                   value="{{ $weeklyAvg !== null ? number_format($weeklyAvg, 2, '.', '') : '' }}"
+                                                   min="0" max="99999.99" step="0.01"
+                                                   class="w-full pl-7 pr-2 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition bg-blue-50/30"
+                                                   placeholder="optional">
+                                        </div>
                                     </td>
-                                    <td class="px-6 py-4 text-sm font-medium">
+                                    {{-- Monthly average --}}
+                                    <td class="px-4 py-3">
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₱</span>
+                                            <input type="number"
+                                                   name="prices[{{ $index }}][monthly_average]"
+                                                   value="{{ $monthlyAvg !== null ? number_format($monthlyAvg, 2, '.', '') : '' }}"
+                                                   min="0" max="99999.99" step="0.01"
+                                                   class="w-full pl-7 pr-2 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition bg-blue-50/30"
+                                                   placeholder="optional">
+                                        </div>
+                                    </td>
+                                    {{-- Last year same period --}}
+                                    <td class="px-4 py-3">
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₱</span>
+                                            <input type="number"
+                                                   name="prices[{{ $index }}][last_year_price]"
+                                                   value="{{ $lastYear !== null ? number_format($lastYear, 2, '.', '') : '' }}"
+                                                   min="0" max="99999.99" step="0.01"
+                                                   class="w-full pl-7 pr-2 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition bg-blue-50/30"
+                                                   placeholder="optional">
+                                        </div>
+                                    </td>
+                                    {{-- Change --}}
+                                    <td class="px-4 py-3 text-sm font-medium">
                                         @if($change !== null && $change != 0)
                                             <span class="{{ $change > 0 ? 'text-red-600' : 'text-green-600' }}">
                                                 {{ $change > 0 ? '▲' : '▼' }} ₱{{ number_format(abs($change), 2) }}

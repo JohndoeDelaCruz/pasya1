@@ -431,6 +431,10 @@ class FarmerDashboardController extends Controller
             $previousPrice = $dbPrice->previous_price !== null ? (float) $dbPrice->previous_price : null;
             $change = $previousPrice !== null ? round($currentPrice - $previousPrice, 2) : 0;
 
+            $weeklyAvg  = $dbPrice->weekly_average  !== null ? (float) $dbPrice->weekly_average  : null;
+            $monthlyAvg = $dbPrice->monthly_average !== null ? (float) $dbPrice->monthly_average : null;
+            $lastYear   = $dbPrice->last_year_price !== null ? (float) $dbPrice->last_year_price  : null;
+
             $prices[] = [
                 'name' => $crop->name,
                 'emoji' => $emoji,
@@ -442,6 +446,9 @@ class FarmerDashboardController extends Controller
                 'category' => $crop->category ?? 'Vegetables',
                 'description' => $crop->description ?? "{$crop->name} from Benguet highlands.",
                 'updated_at' => $dbPrice->updated_at,
+                'weekly_average'  => $weeklyAvg,
+                'monthly_average' => $monthlyAvg,
+                'last_year_price' => $lastYear,
             ];
         }
 

@@ -11,11 +11,17 @@ class CropPrice extends Model
         'crop_type_id',
         'price_per_kg',
         'previous_price',
+        'weekly_average',
+        'monthly_average',
+        'last_year_price',
     ];
 
     protected $casts = [
         'price_per_kg' => 'decimal:2',
         'previous_price' => 'decimal:2',
+        'weekly_average' => 'decimal:2',
+        'monthly_average' => 'decimal:2',
+        'last_year_price' => 'decimal:2',
     ];
 
     public function cropType(): BelongsTo
