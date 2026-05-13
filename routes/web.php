@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CropDataController;
 use App\Http\Controllers\Admin\FarmerController;
 use App\Http\Controllers\Admin\CropManagementController;
 use App\Http\Controllers\Admin\CropMappingController;
+use App\Http\Controllers\Admin\CropPriceController;
 use App\Http\Controllers\Admin\DataAnalyticsController;
 use App\Http\Controllers\Admin\CropTrendsController;
 use App\Http\Controllers\Admin\MapController;
@@ -179,6 +180,10 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::post('/crop-mappings/{cropMapping}/toggle', [CropMappingController::class, 'toggle'])->name('crop-mappings.toggle');
     Route::post('/crop-mappings/auto-map', [CropMappingController::class, 'autoMap'])->name('crop-mappings.auto-map');
     
+    // Price Watch Management Routes
+    Route::get('/crop-prices', [CropPriceController::class, 'index'])->name('crop-prices.index');
+    Route::put('/crop-prices', [CropPriceController::class, 'update'])->name('crop-prices.update');
+
     // Announcement Routes
     Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
     Route::get('/announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');

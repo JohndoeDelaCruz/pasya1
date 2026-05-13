@@ -13,7 +13,7 @@
                     <div class="flex flex-wrap items-center gap-3 self-start md:self-auto">
                         <div class="min-w-0 bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
                             <p class="text-xs text-green-100">Last Updated</p>
-                            <p class="font-semibold">{{ now()->format('M d, Y g:i A') }}</p>
+                            <p class="font-semibold">{{ $lastUpdated ? \Carbon\Carbon::parse($lastUpdated)->format('M d, Y g:i A') : 'Not yet set' }}</p>
                         </div>
                         <button @click="refreshPrices()" class="p-3 bg-white/20 hover:bg-white/30 rounded-xl transition">
                             <svg class="w-5 h-5" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">

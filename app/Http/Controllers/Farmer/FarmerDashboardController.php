@@ -8,6 +8,7 @@ use App\Models\CropType;
 use App\Models\CropProduction;
 use App\Models\CropPlan;
 use App\Models\Crop;
+use App\Models\CropPrice;
 use App\Models\FarmerNotification;
 use App\Services\MLApiService;
 use App\Services\PredictionService;
@@ -198,14 +199,13 @@ class FarmerDashboardController extends Controller
     {
         $farmer = Auth::guard('farmer')->user();
 
-        // Get all crop prices with mock data (can be replaced with real API)
         $prices = $this->getAllPrices();
         $priceFilters = $this->getPriceFilters($prices);
-
-        // Get price trends
         $trends = $this->getPriceTrends();
 
-        return view('farmers.price-watch', compact('prices', 'priceFilters', 'trends'));
+        $lastUpdated = CropPrice::max('updated_at');
+
+        return view('farmers.price-watch', compact('prices', 'priceFilters', 'trends', 'lastUpdated'));
     }
 
     /**
@@ -352,174 +352,96 @@ class FarmerDashboardController extends Controller
      */
     private function getAllPrices()
     {
-        // Prefer active crop types, then any crop types, then built-in defaults.
         $cropTypes = $this->getPriceWatchCropTypes();
 
-        // Emoji mapping based on crop name
+        // Load all admin-set prices keyed by crop_type_id
+        $dbPrices = CropPrice::all()->keyBy('crop_type_id');
+
         $emojiMap = [
-            'cabbage' => '🥬',
-            'chinese cabbage' => '🥬',
-            'lettuce' => '🥬',
-            'celery' => '🥬',
-            'carrots' => '🥕',
-            'carrot' => '🥕',
-            'potatoes' => '🥔',
-            'potato' => '🥔',
-            'radish' => '🥕',
-            'broccoli' => '🥦',
-            'cauliflower' => '🥦',
-            'snap beans' => '🫛',
-            'string beans' => '🫛',
-            'baguio beans' => '🫛',
-            'beans' => '🫛',
-            'sweet peas' => '🫛',
-            'peas' => '🫛',
-            'garden peas' => '🫛',
-            'tomatoes' => '🍅',
-            'tomato' => '🍅',
-            'bell pepper' => '🫑',
-            'pepper' => '🫑',
-            'sayote' => '🥒',
-            'onion' => '🧅',
-            'garlic' => '🧄',
-            'strawberry' => '🍓',
+            'chinese cabbage' => '🥬', 'cabbage' => '🥬', 'lettuce' => '🥬', 'celery' => '🥬',
+            'carrots' => '🥕', 'carrot' => '🥕', 'radish' => '🥕',
+            'potatoes' => '🥔', 'potato' => '🥔',
+            'broccoli' => '🥦', 'cauliflower' => '🥦',
+            'snap beans' => '🫛', 'string beans' => '🫛', 'baguio beans' => '🫛',
+            'beans' => '🫛', 'sweet peas' => '🫛', 'garden peas' => '🫛', 'peas' => '🫛',
+            'tomatoes' => '🍅', 'tomato' => '🍅',
+            'bell pepper' => '🫑', 'pepper' => '🫑',
+            'sayote' => '🥒', 'onion' => '🧅', 'garlic' => '🧄', 'strawberry' => '🍓',
         ];
 
-        // Image mapping based on crop name (local images)
         $imageMap = [
-            'cabbage' => 'images/crops/cabbage.jpg',
             'chinese cabbage' => 'images/crops/Chinese_cabbage.jpg',
+            'cabbage' => 'images/crops/cabbage.jpg',
             'lettuce' => 'images/crops/Lettuce-Baguio.png',
             'carrots' => 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
             'carrot' => 'images/crops/carrots2023-12-2716-44-36_2024-01-03_22-33-52.jpg',
-            'potatoes' => 'images/crops/White_potato.jpg',
-            'potato' => 'images/crops/White_potato.jpg',
-            'whitepotato' => 'images/crops/White_potato.jpg',
             'white potato' => 'images/crops/White_potato.jpg',
+            'potatoes' => 'images/crops/White_potato.jpg', 'potato' => 'images/crops/White_potato.jpg',
             'bell pepper' => 'images/crops/Bell-peppers.webp',
-            'sweet pepper' => 'images/crops/Bell-peppers.webp',
-            'pepper' => 'images/crops/Bell-peppers.webp',
+            'sweet pepper' => 'images/crops/Bell-peppers.webp', 'pepper' => 'images/crops/Bell-peppers.webp',
             'cauliflower' => 'images/crops/Cauli-flower.jpg',
             'broccoli' => 'images/crops/brocolli.jpg',
-            'beans' => 'images/crops/snap_beans.jpg',
-            'snap beans' => 'images/crops/snap_beans.jpg',
-            'string beans' => 'images/crops/snap_beans.jpg',
-            'baguio beans' => 'images/crops/snap_beans.jpg',
-            'garden peas' => 'images/crops/garden_peas.jpg',
-            'peas' => 'images/crops/garden_peas.jpg',
+            'snap beans' => 'images/crops/snap_beans.jpg', 'string beans' => 'images/crops/snap_beans.jpg',
+            'baguio beans' => 'images/crops/snap_beans.jpg', 'beans' => 'images/crops/snap_beans.jpg',
+            'garden peas' => 'images/crops/garden_peas.jpg', 'peas' => 'images/crops/garden_peas.jpg',
         ];
 
-        // Specification mapping based on crop name
         $specificationMap = [
-            'cabbage' => '2 heads/kg',
-            'chinese cabbage' => '1 pc/kg',
-            'lettuce' => '4 pcs/kg',
-            'carrots' => '6 pcs/kg',
-            'carrot' => '6 pcs/kg',
-            'potatoes' => '4 pcs/kg',
-            'potato' => '4 pcs/kg',
-            'cauliflower' => '2 heads/kg',
-            'broccoli' => '2 heads/kg',
-            'beans' => '50 pcs/kg',
-            'snap beans' => '45 pcs/kg',
-            'string beans' => '40 pcs/kg',
-            'baguio beans' => '60 pcs/kg',
-            'sweet peas' => '50 pcs/kg',
-            'peas' => '50 pcs/kg',
-            'bell pepper' => '5 pcs/kg',
-            'pepper' => '5 pcs/kg',
-            'tomatoes' => '8 pcs/kg',
-            'tomato' => '8 pcs/kg',
-            'sayote' => '3 pcs/kg',
-            'radish' => '5 pcs/kg',
-            'onion' => '8 pcs/kg',
-            'garlic' => '15 pcs/kg',
-            'strawberry' => '1 pack',
-            'celery' => '3 stalks/kg',
-        ];
-
-        // Base prices for generating mock data (can be replaced with real API later)
-        $basePrices = [
-            'cabbage' => 77.00,
-            'chinese cabbage' => 149.00,
-            'lettuce' => 160.00,
-            'celery' => 100.00,
-            'carrots' => 80.00,
-            'carrot' => 80.00,
-            'potatoes' => 145.00,
-            'potato' => 145.00,
-            'radish' => 229.00,
-            'broccoli' => 380.00,
-            'cauliflower' => 237.00,
-            'beans' => 120.00,
-            'snap beans' => 90.00,
-            'string beans' => 60.00,
-            'baguio beans' => 119.00,
-            'sweet peas' => 680.00,
-            'peas' => 200.00,
-            'garden peas' => 200.00,
-            'tomatoes' => 45.00,
-            'tomato' => 45.00,
-            'bell pepper' => 120.00,
-            'pepper' => 120.00,
-            'sayote' => 35.00,
-            'onion' => 80.00,
-            'garlic' => 180.00,
-            'strawberry' => 350.00,
+            'cabbage' => '2 heads/kg', 'chinese cabbage' => '1 pc/kg', 'lettuce' => '4 pcs/kg',
+            'carrots' => '6 pcs/kg', 'carrot' => '6 pcs/kg',
+            'potatoes' => '4 pcs/kg', 'potato' => '4 pcs/kg',
+            'cauliflower' => '2 heads/kg', 'broccoli' => '2 heads/kg',
+            'snap beans' => '45 pcs/kg', 'string beans' => '40 pcs/kg',
+            'baguio beans' => '60 pcs/kg', 'beans' => '50 pcs/kg',
+            'sweet peas' => '50 pcs/kg', 'peas' => '50 pcs/kg',
+            'bell pepper' => '5 pcs/kg', 'pepper' => '5 pcs/kg',
+            'tomatoes' => '8 pcs/kg', 'tomato' => '8 pcs/kg',
+            'sayote' => '3 pcs/kg', 'radish' => '5 pcs/kg',
+            'onion' => '8 pcs/kg', 'garlic' => '15 pcs/kg',
+            'strawberry' => '1 pack', 'celery' => '3 stalks/kg',
         ];
 
         $prices = [];
 
         foreach ($cropTypes as $crop) {
-            $name = strtolower($crop->name);
+            $cropId = $crop->id ?? null;
+            $dbPrice = $cropId ? ($dbPrices[$cropId] ?? null) : null;
 
-            // Find matching keys for this crop
+            // Skip crops with no price set or price = 0
+            if (!$dbPrice || (float) $dbPrice->price_per_kg <= 0) {
+                continue;
+            }
+
+            $name = strtolower($crop->name);
             $emoji = '🌱';
             $image = 'images/crops/unnamed.jpg';
             $specification = '1 kg';
-            $basePrice = 100.00;
 
             foreach ($emojiMap as $key => $value) {
-                if (str_contains($name, $key)) {
-                    $emoji = $value;
-                    break;
-                }
+                if (str_contains($name, $key)) { $emoji = $value; break; }
             }
-
             foreach ($imageMap as $key => $value) {
-                if (str_contains($name, $key)) {
-                    $image = $value;
-                    break;
-                }
+                if (str_contains($name, $key)) { $image = $value; break; }
             }
-
             foreach ($specificationMap as $key => $value) {
-                if (str_contains($name, $key)) {
-                    $specification = $value;
-                    break;
-                }
+                if (str_contains($name, $key)) { $specification = $value; break; }
             }
 
-            foreach ($basePrices as $key => $value) {
-                if (str_contains($name, $key)) {
-                    $basePrice = $value;
-                    break;
-                }
-            }
-
-            // Generate a small random change for price variation (simulating market changes)
-            $change = round((rand(-20, 20) / 100) * $basePrice, 2);
+            $currentPrice = (float) $dbPrice->price_per_kg;
+            $previousPrice = $dbPrice->previous_price !== null ? (float) $dbPrice->previous_price : null;
+            $change = $previousPrice !== null ? round($currentPrice - $previousPrice, 2) : 0;
 
             $prices[] = [
                 'name' => $crop->name,
                 'emoji' => $emoji,
                 'image' => asset($image),
                 'specification' => $specification,
-                'price' => round($basePrice + $change, 2),
+                'price' => $currentPrice,
                 'change' => $change,
                 'unit' => 'kg',
                 'category' => $crop->category ?? 'Vegetables',
                 'description' => $crop->description ?? "{$crop->name} from Benguet highlands.",
+                'updated_at' => $dbPrice->updated_at,
             ];
         }
 

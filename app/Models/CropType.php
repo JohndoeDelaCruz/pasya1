@@ -173,6 +173,14 @@ class CropType extends Model
     }
 
     /**
+     * Get the admin-set price for this crop type
+     */
+    public function cropPrice(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\CropPrice::class);
+    }
+
+    /**
      * Get the days to harvest, with fallback to defaults
      */
     public function getDaysToHarvestValueAttribute(): int
