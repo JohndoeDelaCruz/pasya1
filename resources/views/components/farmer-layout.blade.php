@@ -63,6 +63,7 @@
       :class="{ 'pasya-sidebar-open': sidebarOpen }"
       style="--pasya-sidebar-safe-bg: #15803d; --pasya-sidebar-overlay-safe-bg: rgba(75, 85, 99, 0.75);"
       @keydown.escape.window="sidebarOpen = false">
+    @include('partials.page-loader')
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
         <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
