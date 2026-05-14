@@ -83,27 +83,43 @@ class FarmerAccountManagementTest extends TestCase
 
     public function test_farmer_import_reads_reference_number_workbook_layout(): void
     {
-        $summary = $this->importWorkbook([
+        $rows = [
             ['MUNICIPAL REFERENCE NUMBER', 'NAME', 'BARANGAY'],
-            ['14-11-10-001-00045', 'JOHNNY PINILIW', 'ALAPANG'],
-            ['NO REFERENCE NUMBER', 'HANNAH MAE PINOS-AN', 'SHILAN'],
-            ['14-11-10-002-00206', 'GERALDINE ALMORA', 'ALNO'],
-        ]);
+        ];
 
-        $this->assertSame(3, $summary['created']);
+        for ($index = 1; $index <= 70; $index++) {
+            $rows[] = [
+                sprintf('14-11-10-001-%05d', $index),
+                "PRACTICE FARMER {$index}",
+                'ALAPANG',
+            ];
+        }
+
+        for ($index = 71; $index <= 91; $index++) {
+            $rows[] = [
+                'NO REFERENCE NUMBER',
+                "PRACTICE FARMER {$index}",
+                'SHILAN',
+            ];
+        }
+
+        $summary = $this->importWorkbook($rows);
+
+        $this->assertSame(91, $summary['created']);
         $this->assertSame(0, $summary['updated']);
-        $this->assertSame(1, $summary['imported_missing_rsbsa']);
+        $this->assertSame(21, $summary['imported_missing_rsbsa']);
         $this->assertSame(0, $summary['skipped_missing_name']);
+        $this->assertSame(91, Farmer::count());
 
         $this->assertDatabaseHas('farmers', [
-            'farmer_id' => '14-11-10-001-00045',
-            'first_name' => 'JOHNNY PINILIW',
+            'farmer_id' => '14-11-10-001-00001',
+            'first_name' => 'PRACTICE FARMER 1',
             'municipality' => 'ALAPANG',
         ]);
 
         $this->assertDatabaseHas('farmers', [
             'farmer_id' => null,
-            'first_name' => 'HANNAH MAE PINOS-AN',
+            'first_name' => 'PRACTICE FARMER 91',
             'municipality' => 'SHILAN',
         ]);
     }

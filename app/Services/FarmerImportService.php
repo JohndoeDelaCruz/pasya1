@@ -276,6 +276,10 @@ class FarmerImportService
             return [];
         }
 
+        if (isset($columns['rsbsa']) && ! isset($columns['name']) && ! isset($columns['number'])) {
+            return [];
+        }
+
         if (isset($columns['rsbsa']) && ! isset($columns['number'])) {
             $columns['number'] = null;
         }
