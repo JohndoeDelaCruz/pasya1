@@ -14,6 +14,7 @@ use App\Services\MLApiService;
 use App\Services\PredictionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
@@ -181,7 +182,7 @@ class FarmerDashboardController extends Controller
         ]);
 
         // Check current password
-        if (!password_verify($validated['current_password'], $farmer->password)) {
+        if (!Hash::check($validated['current_password'], $farmer->password)) {
             return back()->withErrors(['current_password' => 'The current password is incorrect.']);
         }
 
@@ -1271,7 +1272,7 @@ class FarmerDashboardController extends Controller
     public function getNotifications(Request $request)
     {
         $farmer = Auth::guard('farmer')->user();
-        $limit = $request->get('limit', 20);
+        $limit = min((int) $request->get('limit', 20), 100);
 
         $notifications = FarmerNotification::where('farmer_id', $farmer->id)
             ->orderBy('created_at', 'desc')

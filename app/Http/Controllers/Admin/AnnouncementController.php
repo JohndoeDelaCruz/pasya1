@@ -42,10 +42,10 @@ class AnnouncementController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'content' => 'required|string|max:10000',
             'priority' => 'required|in:low,normal,high,urgent',
             'target_audience' => 'required|in:all,farmers,admins',
-            'municipality' => 'nullable|string',
+            'municipality' => 'nullable|string|max:100',
             'published_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after:published_at',
             'is_active' => 'boolean',
@@ -95,10 +95,10 @@ class AnnouncementController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'content' => 'required|string|max:10000',
             'priority' => 'required|in:low,normal,high,urgent',
             'target_audience' => 'required|in:all,farmers,admins',
-            'municipality' => 'nullable|string',
+            'municipality' => 'nullable|string|max:100',
             'published_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after:published_at',
             'is_active' => 'boolean',

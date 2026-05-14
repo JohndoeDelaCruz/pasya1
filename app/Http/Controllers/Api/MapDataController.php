@@ -94,6 +94,8 @@ class MapDataController extends Controller
             'year' => 'nullable|integer|min:1990|max:2100',
         ]);
 
+        abort_if(strlen((string) $municipality) > 100, 404);
+
         $crop = $request->input('crop');
         $year = $request->input('year');
 
