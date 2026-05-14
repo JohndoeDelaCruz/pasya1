@@ -39,6 +39,6 @@ Route::prefix('map')->name('api.map.')->middleware('throttle:60,1')->group(funct
     Route::get('/statistics', [MapDataController::class, 'getStatistics'])->name('statistics');
 });
 
-Route::prefix('weather')->name('api.weather.')->middleware('throttle:30,1')->group(function () {
+Route::prefix('weather')->name('api.weather.')->middleware('throttle:120,1')->group(function () {
     Route::get('/current', [WeatherController::class, 'current'])->name('current');
 });

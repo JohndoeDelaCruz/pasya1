@@ -211,8 +211,16 @@
 
                     try {
                         const params = new URLSearchParams({ municipality });
-                        const response = await fetch(`/api/weather/current?${params}`);
-                        const data = await response.json();
+                        const response = await fetch(`/api/weather/current?${params}`, {
+                            headers: { 'Accept': 'application/json' },
+                        });
+
+                        let data;
+                        try {
+                            data = await response.json();
+                        } catch {
+                            throw new Error('Server returned an unexpected response. Please try again.');
+                        }
 
                         if (!response.ok || !data.success) {
                             throw new Error(data.message || 'Failed to load weather');
@@ -253,7 +261,7 @@
                         new Promise(resolve => setTimeout(async () => {
                             await this.loadWeather(m);
                             resolve();
-                        }, i * 200))
+                        }, i * 400))
                     );
                     await Promise.all(promises);
                     this.loadingAll = false;
