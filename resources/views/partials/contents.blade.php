@@ -3,8 +3,8 @@
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_65%_50%_at_50%_20%,rgba(34,197,94,0.24)_0%,rgba(0,0,0,0)_70%)]"></div>
 
     <div class="relative z-10 mx-auto max-w-screen-xl px-4 py-16 text-center sm:py-20 lg:py-24">
-        <p class="mb-5 text-lg font-extrabold text-green-100 lg:text-2xl sm:px-32 lg:px-60 reveal-up" style="--reveal-delay: 0ms" data-reveal-distance="sm">Ready to Cultivate the Future of Farming in Benguet?</p>
-        <h1 class="mb-8 text-3xl font-extrabold tracking-tight leading-tight text-white md:text-4xl lg:text-5xl reveal-up" style="--reveal-delay: 90ms">Join hundreds of farmers and <br>experts already using PASYA to <br>make smarter decisions</h1>
+        <p class="mb-5 text-base font-extrabold text-green-100 sm:text-lg lg:text-2xl max-w-2xl mx-auto reveal-up" style="--reveal-delay: 0ms" data-reveal-distance="sm">Ready to Cultivate the Future of Farming in Benguet?</p>
+        <h1 class="mb-8 text-2xl font-extrabold tracking-tight leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl reveal-up" style="--reveal-delay: 90ms">Join hundreds of farmers and experts already using PASYA to make smarter decisions</h1>
         <form class="w-full max-w-xl mx-auto reveal-up" method="POST" action="#" style="--reveal-delay: 180ms" data-reveal-distance="sm">
             @csrf
             <label for="default-email" class="mb-2 text-sm font-medium text-gray-900 sr-only">Email sign-up</label>
@@ -26,17 +26,17 @@
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 0ms">
                     <img class="mx-auto mb-5 h-40 w-40  object-contain" src="{{ asset('images/realtimebg.png') }}" alt="Real-Time Insights Icon"/>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Real-Time Insights</h2>
-                    <p class="text-base leading-7 text-green-50">Get instant updates on crop <br>conditions and market trends</p>
+                    <p class="text-base leading-7 text-green-50">Get instant updates on crop conditions and market trends</p>
                 </div>
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 100ms">
                     <img class="mx-auto mb-5 h-40 w-40  object-contain" src="{{ asset('images/analyticsbg.png') }}" alt="Advanced Analytics Icon"/>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Advanced Analytics</h2>
-                    <p class="text-base leading-7 text-green-50">Make data-driven decisions <br>with our powerful tools</p>
+                    <p class="text-base leading-7 text-green-50">Make data-driven decisions with our powerful tools</p>
                 </div>
                 <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 200ms">
                     <img class="mx-auto mb-5 h-40 w-40  object-contain" src="{{ asset('images/supportbg.png') }}" alt="Expert Support Icon"/>
                     <h2 class="mb-3 text-2xl font-semibold text-white">Expert Support</h2>
-                    <p class="text-base leading-7 text-green-50">Access our team of <br>agricultural specialists 24/7</p>
+                    <p class="text-base leading-7 text-green-50">Access our team of agricultural specialists 24/7</p>
                 </div>
             </div>
         </div>

@@ -50,13 +50,13 @@
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_60%_55%_at_50%_45%,rgba(0,0,0,0.30)_0%,rgba(0,0,0,0)_100%)]"></div>
         </div>
 
-        <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center flex flex-col items-center justify-center w-full pt-0 -translate-y-8 sm:-translate-y-12 lg:-translate-y-16">
+        <div class="relative z-10 px-4 mx-auto max-w-screen-xl text-center flex flex-col items-center justify-center w-full pt-0 sm:-translate-y-8 md:-translate-y-12 lg:-translate-y-16">
             <div class="hero-panel mx-auto max-w-5xl px-5 sm:px-10 lg:px-12 flex flex-col items-center reveal-up is-visible" data-reveal-distance="lg">
-                <img class="h-32 sm:h-44 max-w-sm mx-auto mb-6 drop-shadow-xl hover:scale-105 transition-transform duration-500 ease-in-out reveal-up is-visible" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" style="--reveal-delay: 80ms" data-reveal-distance="sm"/>
-                <h1 class="hero-title mb-4 text-4xl font-extrabold tracking-tight leading-tight md:text-5xl lg:text-7xl text-white font-['Outfit'] drop-shadow-lg reveal-up is-visible" style="--reveal-delay: 160ms">
+                <img class="h-20 sm:h-32 md:h-44 max-w-[10rem] sm:max-w-sm mx-auto mb-4 sm:mb-6 drop-shadow-xl hover:scale-105 transition-transform duration-500 ease-in-out reveal-up is-visible" src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" style="--reveal-delay: 80ms" data-reveal-distance="sm"/>
+                <h1 class="hero-title mb-4 text-2xl font-extrabold tracking-tight leading-tight sm:text-4xl md:text-5xl lg:text-7xl text-white font-['Outfit'] drop-shadow-lg reveal-up is-visible" style="--reveal-delay: 160ms">
                     PASYA: Predictive Analytics for Yield Advancement
                 </h1>
-                <p class="hero-subtitle mb-10 text-xl font-medium lg:text-2xl sm:px-8 lg:px-10 text-gray-200 font-['Outfit'] drop-shadow reveal-up is-visible" style="--reveal-delay: 260ms" data-reveal-distance="sm">
+                <p class="hero-subtitle mb-6 sm:mb-10 text-sm font-medium sm:text-xl lg:text-2xl sm:px-8 lg:px-10 text-gray-200 font-['Outfit'] drop-shadow reveal-up is-visible" style="--reveal-delay: 260ms" data-reveal-distance="sm">
                     Harvest Intelligence, Grow with Certainty
                 </p>
                 <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center reveal-up is-visible" style="--reveal-delay: 340ms" data-reveal-distance="sm">
@@ -98,7 +98,7 @@
                 <p class="mb-3 inline-flex rounded-full border border-green-300/40 bg-white/10 px-4 py-1.5 text-sm font-semibold text-green-100 backdrop-blur">
                     PASYA Mobile
                 </p>
-                <h2 class="max-w-3xl text-3xl font-extrabold leading-tight text-white md:text-4xl lg:text-5xl">
+                <h2 class="max-w-3xl text-2xl font-extrabold leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl">
                     Install PASYA on your phone before you sign in.
                 </h2>
                 <p class="mt-5 max-w-2xl text-base leading-7 text-green-50 md:text-lg">
@@ -159,17 +159,17 @@
     <section class="bg-gradient-to-b from-green-50 via-white to-white py-12 px-4">
         <div class="mx-auto grid max-w-screen-xl gap-6 text-center md:grid-cols-3">
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 0ms">
-                <img class="mx-auto mb-6 h-45 w-45 object-contain" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
+                <img class="mx-auto mb-6 h-36 w-36 sm:h-44 sm:w-44 object-contain" src="{{ asset('images/growing_plant.svg') }}" alt="Hectares Icon"/>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">10,000+</h2>
                 <p class="text-lg font-medium text-gray-600">Hectares monitored</p>
             </div>
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 100ms">
-                <img class="mx-auto mb-6 h-45 w-45 object-contain" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
+                <img class="mx-auto mb-6 h-36 w-36 sm:h-44 sm:w-44 object-contain" src="{{ asset('images/growth_arrow.svg') }}" alt="Yields Icon"/>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">+20%</h2>
                 <p class="text-lg font-medium text-gray-600">Yields</p>
             </div>
             <div class="reveal-up rounded-2xl border border-green-100 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg md:p-8" style="--reveal-delay: 200ms">
-                <img class="mx-auto mb-6 h-45 w-45 object-contain" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
+                <img class="mx-auto mb-6 h-36 w-36 sm:h-44 sm:w-44 object-contain" src="{{ asset('images/leaf.svg') }}" alt="Food Waste Icon"/>
                 <h2 class="mb-2 text-3xl font-extrabold text-green-700">15%</h2>
                 <p class="text-lg font-medium text-gray-600">Reduced Food Waste</p>
             </div>
@@ -181,9 +181,9 @@
         <div id="blog" class="py-12 px-4 mx-auto max-w-screen-xl lg:py-16">
             <div>
                 <a href="#" class="reveal-up group grid overflow-hidden rounded-3xl border border-green-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl md:grid-cols-[0.95fr_1.05fr]" data-reveal-distance="lg">
-                    <img class="h-64 w-full object-cover md:h-full" src="{{ asset('images/strawberry_farm.jpg') }}" alt="Benguet Strawberry Farm"/>
+                    <img class="h-48 sm:h-64 w-full object-cover md:h-full" src="{{ asset('images/strawberry_farm.jpg') }}" alt="Benguet Strawberry Farm"/>
                     <div class="flex flex-col justify-center p-6 leading-normal md:p-10">
-                        <h5 class="mb-4 text-3xl font-extrabold tracking-tight text-green-700 reveal-up" style="--reveal-delay: 40ms" data-reveal-distance="sm">Data-Driven Precision</h5>
+                        <h5 class="mb-4 text-2xl font-extrabold tracking-tight text-green-700 sm:text-3xl reveal-up" style="--reveal-delay: 40ms" data-reveal-distance="sm">Data-Driven Precision</h5>
                         <p class="mb-5 text-base leading-7 text-gray-600 reveal-up" style="--reveal-delay: 120ms" data-reveal-distance="sm">Our models are trained on 10+ years of regional data, achieving over 90% accuracy in trend forecasting for key highland vegetables.</p>
                         <p class="mb-7 text-base leading-7 text-gray-600 reveal-up" style="--reveal-delay: 200ms" data-reveal-distance="sm">Using advanced machine learning algorithms and multi-year production records, PASYA empowers farmers to make informed decisions about planting, harvesting, and resource allocation.</p>
                         <div class="reveal-up" style="--reveal-delay: 280ms" data-reveal-distance="sm">
@@ -199,7 +199,7 @@
             {{-- About Section --}}
             <div id="about" class="mt-12 mb-8 reveal-up" data-reveal-distance="lg">
                 <div class="mx-auto max-w-4xl text-center">
-                    <img class="mx-auto mb-6 h-40 w-40 rounded-full bg-green-50 object-contain p-3 shadow-sm reveal-up" src="{{ asset('images/doa_icon.png') }}" alt="Department of Agriculture" style="--reveal-delay: 0ms" data-reveal-distance="sm"/>
+                    <img class="mx-auto mb-6 h-28 w-28 sm:h-40 sm:w-40 rounded-full bg-green-50 object-contain p-3 shadow-sm reveal-up" src="{{ asset('images/doa_icon.png') }}" alt="Department of Agriculture" style="--reveal-delay: 0ms" data-reveal-distance="sm"/>
                     <p class="mb-8 text-base leading-8 text-gray-600 reveal-up md:text-lg" style="--reveal-delay: 90ms" data-reveal-distance="sm">The Department of Agriculture is the principal government agency responsible for the promotion of the agricultural development and growth.
                     It provides the policy framework, helps direct public investments, and in partnership with the local government units (LGUs),
                     provides the support services necessary to make agriculture and agri-based enterprises profitable and help spread the benefits of development to the poor, particularly those in the rural areas.
@@ -207,11 +207,11 @@
                 </div>
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="rounded-2xl border border-green-100 bg-green-50/60 p-6 shadow-sm reveal-up md:p-8" style="--reveal-delay: 140ms">
-                        <h2 class="mb-3 text-3xl font-extrabold text-green-700">Our Mission</h2>
+                        <h2 class="mb-3 text-2xl font-extrabold text-green-700 sm:text-3xl">Our Mission</h2>
                         <p class="text-base leading-7 text-gray-600 md:text-lg">We are committed to provide our BEST SERVICES for empowering the farming communities.</p>
                     </div>
                     <div class="rounded-2xl border border-green-100 bg-green-50/60 p-6 shadow-sm reveal-up md:p-8" style="--reveal-delay: 240ms">
-                        <h2 class="mb-3 text-3xl font-extrabold text-green-700">Our Vision</h2>
+                        <h2 class="mb-3 text-2xl font-extrabold text-green-700 sm:text-3xl">Our Vision</h2>
                         <p class="text-base leading-7 text-gray-600 md:text-lg">Demand and technology-driven agriculture and fisheries sector for a food-secure, progressive and sustainable Cordillera.</p>
                     </div>
                 </div>
