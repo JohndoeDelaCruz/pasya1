@@ -198,7 +198,7 @@
                                  x-transition:leave="transition ease-in duration-100"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white rounded-xl shadow-lg border border-gray-200 z-50"
+                                 class="fixed sm:absolute inset-x-3 sm:inset-x-auto sm:right-0 top-[4.75rem] sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-2xl shadow-xl sm:shadow-lg border border-gray-200 z-50 overflow-hidden"
                                  style="display: none;">
                                 <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                                     <h3 class="font-semibold text-gray-800">Notifications</h3>
@@ -206,7 +206,7 @@
                                         Mark all read
                                     </button>
                                 </div>
-                                <div class="max-h-80 overflow-y-auto">
+                                <div class="max-h-[55vh] sm:max-h-80 overflow-y-auto">
                                     <!-- Loading State -->
                                     <div x-show="loading" class="px-4 py-8 text-center">
                                         <svg class="animate-spin h-6 w-6 text-green-600 mx-auto" fill="none" viewBox="0 0 24 24">

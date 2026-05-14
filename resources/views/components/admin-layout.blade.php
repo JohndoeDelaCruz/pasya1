@@ -216,7 +216,7 @@
                                  x-transition:leave="transition ease-in duration-150"
                                  x-transition:leave-start="opacity-100 transform scale-100"
                                  x-transition:leave-end="opacity-0 transform scale-95"
-                                 class="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-white rounded-2xl shadow-lg z-50 border border-gray-200 overflow-hidden"
+                                 class="fixed sm:absolute inset-x-3 sm:inset-x-auto sm:right-0 top-[4.75rem] sm:top-auto sm:mt-2 sm:w-96 bg-white rounded-2xl shadow-xl sm:shadow-lg z-50 border border-gray-200 overflow-hidden"
                                  style="display:none;">
                                 <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
                                     <h3 class="font-semibold text-gray-800">Announcement Notifications</h3>
@@ -240,7 +240,7 @@
                                 </div>
 
                                 <!-- Notifications List -->
-                                <div x-show="!loading && notifications.length > 0" class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                                <div x-show="!loading && notifications.length > 0" class="max-h-[55vh] sm:max-h-80 overflow-y-auto divide-y divide-gray-100">
                                     <template x-for="notification in notifications" :key="notification.id">
                                         <div @click="markRead(notification); window.location.href = notification.link"
                                            class="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
