@@ -4,7 +4,10 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Farmer;
 use App\Models\User;
+use App\Services\FarmerImportService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Tests\TestCase;
 
 class FarmerAccountManagementTest extends TestCase
@@ -50,6 +53,61 @@ class FarmerAccountManagementTest extends TestCase
         $response->assertSee('data-farmer-results', false);
     }
 
+    public function test_farmer_import_reads_strawberry_farmer_workbook_layout(): void
+    {
+        $summary = $this->importWorkbook([
+            ['No.', 'Name of Cluster Member', null, 'RSBSA/ FISHR No.'],
+            [],
+            [],
+            ['FCA 1: BSU-Agribased Technology Business Incubator Cooperative'],
+            [1, 'Abiado, Israel', null, '14-11-10-016-00550'],
+            [2, 'Alilies, Septer L.', null, null],
+        ]);
+
+        $this->assertSame(2, $summary['created']);
+        $this->assertSame(0, $summary['updated']);
+        $this->assertSame(1, $summary['imported_missing_rsbsa']);
+
+        $this->assertDatabaseHas('farmers', [
+            'farmer_id' => '14-11-10-016-00550',
+            'first_name' => 'Abiado, Israel',
+            'cooperative' => 'BSU-Agribased Technology Business Incubator Cooperative',
+        ]);
+
+        $this->assertDatabaseHas('farmers', [
+            'farmer_id' => null,
+            'first_name' => 'Alilies, Septer L.',
+            'cooperative' => 'BSU-Agribased Technology Business Incubator Cooperative',
+        ]);
+    }
+
+    public function test_farmer_import_reads_reference_number_workbook_layout(): void
+    {
+        $summary = $this->importWorkbook([
+            ['MUNICIPAL REFERENCE NUMBER', 'NAME', 'BARANGAY'],
+            ['14-11-10-001-00045', 'JOHNNY PINILIW', 'ALAPANG'],
+            ['NO REFERENCE NUMBER', 'HANNAH MAE PINOS-AN', 'SHILAN'],
+            ['14-11-10-002-00206', 'GERALDINE ALMORA', 'ALNO'],
+        ]);
+
+        $this->assertSame(3, $summary['created']);
+        $this->assertSame(0, $summary['updated']);
+        $this->assertSame(1, $summary['imported_missing_rsbsa']);
+        $this->assertSame(0, $summary['skipped_missing_name']);
+
+        $this->assertDatabaseHas('farmers', [
+            'farmer_id' => '14-11-10-001-00045',
+            'first_name' => 'JOHNNY PINILIW',
+            'municipality' => 'ALAPANG',
+        ]);
+
+        $this->assertDatabaseHas('farmers', [
+            'farmer_id' => null,
+            'first_name' => 'HANNAH MAE PINOS-AN',
+            'municipality' => 'SHILAN',
+        ]);
+    }
+
     private function createFarmer(User $admin, array $overrides = []): Farmer
     {
         return Farmer::create(array_merge([
@@ -66,5 +124,25 @@ class FarmerAccountManagementTest extends TestCase
             'password' => 'password',
             'created_by' => $admin->id,
         ], $overrides));
+    }
+
+    private function importWorkbook(array $rows): array
+    {
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()->fromArray($rows);
+
+        $path = tempnam(sys_get_temp_dir(), 'farmers_import_') . '.xlsx';
+
+        try {
+            (new Xlsx($spreadsheet))->save($path);
+
+            return app(FarmerImportService::class)->import($path);
+        } finally {
+            $spreadsheet->disconnectWorksheets();
+
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
     }
 }

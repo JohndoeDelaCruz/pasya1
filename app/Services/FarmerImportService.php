@@ -31,7 +31,7 @@ class FarmerImportService
         $skippedMissingName = 0;
         $importRows = [];
 
-        foreach ($rows as $row) {
+        foreach ($rows as $sheetRowNumber => $row) {
             $firstColumn = $this->normalize($row['A'] ?? '');
 
             if (Str::startsWith($firstColumn, 'FCA')) {
@@ -46,20 +46,26 @@ class FarmerImportService
                 continue;
             }
 
-            $rowNumber = $this->normalize($row[$columns['number']] ?? '');
+            $rowNumber = $columns['number']
+                ? $this->normalize($row[$columns['number']] ?? '')
+                : (string) $sheetRowNumber;
 
-            if (! ctype_digit($rowNumber)) {
+            if ($columns['number'] && ! ctype_digit($rowNumber)) {
                 continue;
             }
 
             $excelName = $this->normalize($row[$columns['name']] ?? '');
-            $rsbsaNumber = $this->normalize($row[$columns['rsbsa']] ?? '');
+            $rsbsaNumber = $this->normalizeFarmerId($row[$columns['rsbsa']] ?? '');
             $municipality = $columns['municipality']
                 ? $this->normalize($row[$columns['municipality']] ?? '')
                 : '';
             $cooperative = $columns['cooperative']
                 ? $this->normalize($row[$columns['cooperative']] ?? '')
                 : ($currentCooperative ?? '');
+
+            if (! $columns['number'] && $excelName === '' && $rsbsaNumber === '' && $municipality === '' && $cooperative === '') {
+                continue;
+            }
 
             if ($excelName === '') {
                 $skippedMissingName++;
@@ -105,6 +111,24 @@ class FarmerImportService
         $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
 
         return trim($text);
+    }
+
+    private function normalizeFarmerId(mixed $value): string
+    {
+        $id = $this->normalize($value);
+        $normalizedId = Str::lower($id);
+
+        return in_array($normalizedId, [
+            'no reference number',
+            'no reference no.',
+            'no reference no',
+            'no ref number',
+            'no rsbsa',
+            'no rsbsa/fishr',
+            'none',
+            'n/a',
+            'na',
+        ], true) ? '' : $id;
     }
 
     private function saveRows(array $rows): array
@@ -233,12 +257,12 @@ class FarmerImportService
                 continue;
             }
 
-            if (Str::contains($header, ['rsbsa', 'fishr', 'farmer id'])) {
+            if (Str::contains($header, ['rsbsa', 'fishr', 'farmer id', 'reference number', 'reference no'])) {
                 $columns['rsbsa'] = $column;
                 continue;
             }
 
-            if (Str::contains($header, 'municipality')) {
+            if (Str::contains($header, ['municipality', 'barangay', 'brgy'])) {
                 $columns['municipality'] = $column;
                 continue;
             }
@@ -248,9 +272,15 @@ class FarmerImportService
             }
         }
 
-        return isset($columns['name']) || isset($columns['rsbsa']) || isset($columns['municipality']) || isset($columns['cooperative'])
-            ? $columns
-            : [];
+        if (! isset($columns['name']) && ! isset($columns['rsbsa']) && ! isset($columns['municipality']) && ! isset($columns['cooperative'])) {
+            return [];
+        }
+
+        if (isset($columns['rsbsa']) && ! isset($columns['number'])) {
+            $columns['number'] = null;
+        }
+
+        return $columns;
     }
 
     private function missingIdKey(string $cooperative, string $name): string
