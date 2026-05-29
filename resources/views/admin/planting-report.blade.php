@@ -301,6 +301,21 @@
                     </div>
 
                     <div>
+                        <label for="validation_status" class="block text-sm font-medium text-gray-700 mb-1">LGU Validation</label>
+                        <select
+                            id="validation_status"
+                            name="validation_status"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
+                        >
+                            @foreach ($validationStatuses as $value => $label)
+                                <option value="{{ $value }}" @selected(($filters['validation_status'] ?? 'approved') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="planting_month" class="block text-sm font-medium text-gray-700 mb-1">Planting Month</label>
                         <select
                             id="planting_month"
@@ -397,7 +412,7 @@
                 <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="pasya-text-safe">
                         <h2 class="text-lg font-semibold text-gray-900">Planting Records</h2>
-                        <p class="text-sm text-gray-500">Each row comes from a crop plan submitted on the farmer calendar.</p>
+                        <p class="text-sm text-gray-500">Defaults to LGU-approved crop plans submitted from the farmer calendar.</p>
                     </div>
                     <p class="text-sm text-gray-500">{{ $plantingRecords->total() }} record{{ $plantingRecords->total() === 1 ? '' : 's' }}</p>
                 </div>
@@ -440,6 +455,12 @@
                                             'cancelled' => 'bg-red-100 text-red-800',
                                             default => 'bg-gray-100 text-gray-700',
                                         };
+                                        $validationClasses = match ($record->lgu_validation_status) {
+                                            'approved' => 'bg-green-100 text-green-800',
+                                            'pending' => 'bg-amber-100 text-amber-800',
+                                            'rejected' => 'bg-red-100 text-red-800',
+                                            default => 'bg-gray-100 text-gray-700',
+                                        };
                                     @endphp
                                     <tr class="align-top hover:bg-gray-50/70">
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
@@ -477,6 +498,20 @@
                                             <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase {{ $statusClasses }}">
                                                 {{ $displayStatus }}
                                             </span>
+                                            <span class="mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ $validationClasses }}">
+                                                {{ $record->lgu_validation_status_label }}
+                                            </span>
+                                            @if ($record->lgu_validated_at || $record->lguValidator)
+                                                <p class="mt-2 text-xs text-gray-500">
+                                                    Validator: {{ $record->lguValidator?->name ?? 'LGU account unavailable' }}
+                                                </p>
+                                                <p class="mt-1 text-xs text-gray-500">
+                                                    Reviewed: {{ $record->lgu_validated_at?->format('M d, Y h:i A') ?? 'Pending review' }}
+                                                </p>
+                                            @endif
+                                            @if ($record->lgu_validation_notes)
+                                                <p class="mt-1 text-xs text-gray-500">LGU note: {{ \Illuminate\Support\Str::limit($record->lgu_validation_notes, 80) }}</p>
+                                            @endif
                                             @if ($record->has_damage_report)
                                                 <p class="mt-2 text-xs font-medium text-orange-700">{{ $record->damage_cause_label ?? 'Damage reported' }}</p>
                                                 <p class="mt-1 text-xs text-gray-500">Date damaged: {{ $record->damage_occurred_on?->format('M d, Y') ?? 'Date unavailable' }}</p>

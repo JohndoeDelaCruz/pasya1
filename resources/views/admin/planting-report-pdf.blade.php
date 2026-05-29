@@ -130,6 +130,9 @@
             'Harvest Year' => $filters['harvest_year'] ?? null,
             'Farm Type' => isset($filters['farm_type']) && filled($filters['farm_type']) ? ucfirst(strtolower($filters['farm_type'])) : null,
             'Status' => isset($filters['status']) && filled($filters['status']) ? ucfirst($filters['status']) : null,
+            'LGU Validation' => isset($filters['validation_status']) && filled($filters['validation_status'])
+                ? ($filters['validation_status'] === 'all' ? 'All validation statuses' : \Illuminate\Support\Str::headline(str_replace('_', ' ', $filters['validation_status'])))
+                : null,
         ])->filter(fn ($value) => filled($value));
     @endphp
 
@@ -232,7 +235,12 @@
                     </td>
                     <td>{{ ucfirst(strtolower((string) $record->farm_type)) }}</td>
                     <td>{{ $record->planting_material_label ?? 'Not set' }}</td>
-                    <td>{{ strtoupper($record->planting_report_status) }}</td>
+                    <td>
+                        {{ strtoupper($record->planting_report_status) }}<br>
+                        <span class="muted">LGU: {{ $record->lgu_validation_status_label }}</span><br>
+                        <span class="muted">Validator: {{ $record->lguValidator?->name ?? 'N/A' }}</span><br>
+                        <span class="muted">Reviewed: {{ optional($record->lgu_validated_at)->format('M d, Y') ?? 'Pending' }}</span>
+                    </td>
                 </tr>
             @endforeach
         </tbody>

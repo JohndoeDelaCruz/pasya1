@@ -55,10 +55,25 @@ class PwaLaunchTest extends TestCase
 
         $admin = User::factory()->create([
             'email' => 'admin@example.test',
+            'role' => User::ROLE_DA_ADMIN,
+            'is_active' => true,
         ]);
 
         $this->actingAs($admin)
             ->get('/app')
             ->assertRedirect(route('admin.dashboard', absolute: false));
+    }
+
+    public function test_pwa_launch_sends_lgu_validators_to_the_lgu_dashboard(): void
+    {
+        $validator = User::factory()->create([
+            'role' => User::ROLE_LGU_VALIDATOR,
+            'municipality' => 'BUGUIAS',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($validator)
+            ->get('/app')
+            ->assertRedirect(route('lgu.dashboard', absolute: false));
     }
 }

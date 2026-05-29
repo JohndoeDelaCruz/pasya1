@@ -7,6 +7,7 @@ use App\Models\Announcement;
 use App\Models\CropType;
 use App\Models\CropProduction;
 use App\Models\CropPlan;
+use App\Models\CropPlanDamageReport;
 use App\Models\Crop;
 use App\Models\CropPrice;
 use App\Models\FarmerNotification;
@@ -96,7 +97,7 @@ class FarmerDashboardController extends Controller
         // Get farmer's active crop plans
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
             ->active()
-            ->with('cropType')
+            ->with(['cropType', 'latestDamageReport'])
             ->orderBy('planting_date')
             ->get();
 
@@ -329,6 +330,7 @@ class FarmerDashboardController extends Controller
         // Get events from farmer's crop plans (database only - no mock data)
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
             ->whereIn('status', ['planned', 'planted', 'growing'])
+            ->with(['cropType', 'latestDamageReport'])
             ->get();
 
         /** @var CropPlan $plan */
@@ -767,6 +769,7 @@ class FarmerDashboardController extends Controller
                 'farm_type' => $farmType,
                 'planting_material_type' => $plantingMaterialType,
                 'status' => 'planned',
+                'lgu_validation_status' => CropPlan::VALIDATION_PENDING,
                 'notes' => $validated['notes'] ?? null,
             ]);
             Log::info('storeCropPlan: CropPlan created', ['crop_plan_id' => $cropPlan->id]);
@@ -788,7 +791,7 @@ class FarmerDashboardController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Crop plan created successfully!',
+                'message' => 'Crop plan submitted for LGU validation.',
                 'data' => [
                     'id' => $cropPlan->id,
                     'crop_name' => $cropPlan->crop_name,
@@ -824,6 +827,133 @@ class FarmerDashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create crop plan. Please try again.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Revise a crop plan that is still pending or was returned by the LGU.
+     */
+    public function updateCropPlan(Request $request, CropPlan $cropPlan)
+    {
+        /** @var \App\Models\Farmer $farmer */
+        $farmer = Auth::guard('farmer')->user();
+
+        if (!$farmer || $cropPlan->farmer_id !== $farmer->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        if (!in_array($cropPlan->lgu_validation_status, [CropPlan::VALIDATION_PENDING, CropPlan::VALIDATION_REJECTED], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only pending or rejected crop plans can be revised.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'crop_type_id' => 'required|exists:crop_types,id',
+            'planting_date' => 'required|date',
+            'area_hectares' => 'required|numeric|min:0.01|max:1000',
+            'farm_type' => 'nullable|string|in:IRRIGATED,RAINFED',
+            'planting_material_type' => 'nullable|string|in:SEED,SEEDLING',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $cropType = CropType::findOrFail($validated['crop_type_id']);
+            $plantingDate = Carbon::parse($validated['planting_date']);
+            $areaHectares = (float) $validated['area_hectares'];
+            $farmType = $validated['farm_type'] ?? 'IRRIGATED';
+            $plantingMaterialType = strtoupper((string) ($validated['planting_material_type'] ?? $cropType->default_planting_material_type));
+
+            if (!$cropType->supportsPlantingMaterialType($plantingMaterialType)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'The selected planting material is not available for this crop.',
+                    'errors' => [
+                        'planting_material_type' => ['The selected planting material is not available for this crop.'],
+                    ],
+                ], 422);
+            }
+
+            $daysToHarvest = $cropType->getDaysToHarvestForMaterial($plantingMaterialType);
+            $expectedHarvestDate = $cropType->calculateHarvestDate($plantingDate, $plantingMaterialType);
+            $prediction = $this->getProductionPredictionData(
+                $cropType->name,
+                $farmer->municipality ?? 'BUGUIAS',
+                $farmType,
+                $plantingDate,
+                $areaHectares
+            );
+
+            $revisionCount = (int) ($cropPlan->lgu_validation_revision ?? 0);
+            if ($cropPlan->lgu_validation_status === CropPlan::VALIDATION_REJECTED) {
+                $revisionCount++;
+            }
+
+            $cropPlan->update([
+                'crop_type_id' => $cropType->id,
+                'crop_name' => $cropType->name,
+                'planting_date' => $plantingDate,
+                'expected_harvest_date' => $expectedHarvestDate,
+                'area_hectares' => $areaHectares,
+                'predicted_production' => $prediction['predicted_production'],
+                'municipality' => strtoupper($farmer->municipality ?? 'BUGUIAS'),
+                'farm_type' => $farmType,
+                'planting_material_type' => $plantingMaterialType,
+                'status' => 'planned',
+                'notes' => $validated['notes'] ?? null,
+                'lgu_validation_status' => CropPlan::VALIDATION_PENDING,
+                'lgu_validated_by' => null,
+                'lgu_validated_at' => null,
+                'lgu_validation_notes' => null,
+                'lgu_validation_revision' => $revisionCount,
+                'submitted_to_da_at' => null,
+            ]);
+
+            $cropPlan->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Crop plan resubmitted for LGU validation.',
+                'data' => [
+                    'id' => $cropPlan->id,
+                    'crop_name' => $cropPlan->crop_name,
+                    'planting_date' => $cropPlan->planting_date->format('Y-m-d'),
+                    'expected_harvest_date' => $cropPlan->expected_harvest_date->format('Y-m-d'),
+                    'edoh_formatted' => $cropPlan->expected_harvest_date->format('M d, Y'),
+                    'days_to_harvest' => $daysToHarvest,
+                    'area_hectares' => $cropPlan->area_hectares,
+                    'predicted_production' => $cropPlan->predicted_production,
+                    'predicted_production_formatted' => $cropPlan->formatted_production,
+                    'prediction_source' => $prediction['prediction_source'],
+                    'prediction_source_label' => $prediction['prediction_source_label'],
+                    'productivity_mt_ha' => $prediction['productivity_mt_ha'],
+                    'confidence_score' => $prediction['confidence_score'],
+                    'planting_material_type' => $cropPlan->planting_material_type,
+                    'planting_material_label' => $cropPlan->planting_material_label,
+                    'planting_event' => $cropPlan->toPlantingEvent(),
+                    'harvest_event' => array_merge($cropPlan->toHarvestEvent(), [
+                        'is_edoh' => true,
+                    ]),
+                    'fertilizer_events' => $cropPlan->toFertilizerEvents(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to revise crop plan', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'crop_plan_id' => $cropPlan->id,
+                'farmer_id' => $farmer->id,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to revise crop plan. Please try again.',
                 'error' => config('app.debug') ? $e->getMessage() : 'Server error',
             ], 500);
         }
@@ -979,39 +1109,74 @@ class FarmerDashboardController extends Controller
             'damaged_area_hectares.max' => 'Damaged hectares cannot exceed the planted area of ' . number_format($plantedArea, 2) . ' hectares.',
         ]);
 
-        $cropPlan->update([
-            'damaged_area_hectares' => $validated['damaged_area_hectares'],
-            'damage_cause' => $validated['damage_cause'],
-            'damage_notes' => $validated['damage_notes'] ?? null,
-            'damage_occurred_on' => $validated['damage_occurred_on'],
-            'damage_reported_at' => now(),
-        ]);
+        $damageReport = $cropPlan->damageReports()
+            ->whereIn('lgu_validation_status', [
+                CropPlanDamageReport::VALIDATION_PENDING,
+                CropPlanDamageReport::VALIDATION_REJECTED,
+            ])
+            ->latest()
+            ->first();
 
-        $cropPlan->refresh();
+        $revisionCount = (int) ($damageReport?->lgu_validation_revision ?? 0);
+        if ($damageReport?->lgu_validation_status === CropPlanDamageReport::VALIDATION_REJECTED) {
+            $revisionCount++;
+        }
+
+        if ($damageReport) {
+            $damageReport->update([
+                'damaged_area_hectares' => $validated['damaged_area_hectares'],
+                'damage_cause' => $validated['damage_cause'],
+                'damage_notes' => $validated['damage_notes'] ?? null,
+                'damage_occurred_on' => $validated['damage_occurred_on'],
+                'lgu_validation_status' => CropPlanDamageReport::VALIDATION_PENDING,
+                'lgu_validated_by' => null,
+                'lgu_validated_at' => null,
+                'lgu_validation_notes' => null,
+                'lgu_validation_revision' => $revisionCount,
+                'submitted_to_da_at' => null,
+                'applied_at' => null,
+            ]);
+        } else {
+            $damageReport = CropPlanDamageReport::create([
+                'crop_plan_id' => $cropPlan->id,
+                'farmer_id' => $farmer->id,
+                'damaged_area_hectares' => $validated['damaged_area_hectares'],
+                'damage_cause' => $validated['damage_cause'],
+                'damage_notes' => $validated['damage_notes'] ?? null,
+                'damage_occurred_on' => $validated['damage_occurred_on'],
+                'lgu_validation_status' => CropPlanDamageReport::VALIDATION_PENDING,
+            ]);
+        }
+
+        $damageReport->load(['cropPlan', 'farmer']);
+        $cropPlan->load('latestDamageReport')->refresh();
 
         return response()->json([
             'success' => true,
-            'message' => 'Damage report submitted successfully.',
+            'message' => 'Damage report submitted for LGU validation.',
             'data' => [
                 'crop_plan_id' => $cropPlan->id,
                 'display_status' => $cropPlan->display_status,
-                'damage_cause' => $cropPlan->damage_cause,
-                'damage_cause_label' => $cropPlan->damage_cause_label,
-                'damaged_area_hectares' => (float) $cropPlan->damaged_area_hectares,
+                'damage_report_id' => $damageReport->id,
+                'damage_cause' => $damageReport->damage_cause,
+                'damage_cause_label' => $damageReport->damage_cause_label,
+                'damaged_area_hectares' => (float) $damageReport->damaged_area_hectares,
                 'adjusted_area_hectares' => $cropPlan->adjusted_area_hectares,
                 'adjusted_predicted_production' => $cropPlan->adjusted_predicted_production,
                 'formatted_adjusted_production' => $cropPlan->formatted_adjusted_production,
-                'production_loss_mt' => $cropPlan->production_loss_mt,
-                'damage_notes' => $cropPlan->damage_notes,
-                'damage_occurred_on' => optional($cropPlan->damage_occurred_on)->format('Y-m-d'),
-                'damage_occurred_on_formatted' => optional($cropPlan->damage_occurred_on)->format('M d, Y'),
-                'damage_reported_at' => optional($cropPlan->damage_reported_at)->toIso8601String(),
-                'damage_reported_at_formatted' => optional($cropPlan->damage_reported_at)->format('M d, Y h:i A'),
+                'production_loss_mt' => $damageReport->estimated_production_loss_mt,
+                'damage_notes' => $damageReport->damage_notes,
+                'damage_occurred_on' => optional($damageReport->damage_occurred_on)->format('Y-m-d'),
+                'damage_occurred_on_formatted' => optional($damageReport->damage_occurred_on)->format('M d, Y'),
+                'damage_reported_at' => optional($damageReport->updated_at)->toIso8601String(),
+                'damage_reported_at_formatted' => optional($damageReport->updated_at)->format('M d, Y h:i A'),
+                'lgu_validation_status' => $damageReport->lgu_validation_status,
+                'lgu_validation_status_label' => $damageReport->lgu_validation_status_label,
                 'planting_event' => $cropPlan->toPlantingEvent(),
                 'harvest_event' => array_merge($cropPlan->toHarvestEvent(), [
                     'is_edoh' => true,
                 ]),
-                'damage_event' => $cropPlan->toDamageEvent(),
+                'damage_event' => $damageReport->toCalendarEvent(),
                 'fertilizer_events' => $cropPlan->toFertilizerEvents(),
             ],
         ]);
@@ -1057,7 +1222,7 @@ class FarmerDashboardController extends Controller
         $farmer = Auth::guard('farmer')->user();
 
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
-            ->with('cropType')
+            ->with(['cropType', 'latestDamageReport'])
             ->orderBy('planting_date')
             ->get();
 
@@ -1109,6 +1274,27 @@ class FarmerDashboardController extends Controller
             }
 
             $events[$damageKey][] = $plan->toDamageEvent();
+        }
+
+        $latestDamageReport = $plan->relationLoaded('latestDamageReport')
+            ? $plan->latestDamageReport
+            : null;
+
+        if (
+            $latestDamageReport
+            && in_array($latestDamageReport->lgu_validation_status, [
+                CropPlanDamageReport::VALIDATION_PENDING,
+                CropPlanDamageReport::VALIDATION_REJECTED,
+            ], true)
+            && $latestDamageReport->damage_occurred_on
+        ) {
+            $damageKey = $latestDamageReport->damage_occurred_on->format('Y-m-d');
+
+            if (!isset($events[$damageKey])) {
+                $events[$damageKey] = [];
+            }
+
+            $events[$damageKey][] = $latestDamageReport->toCalendarEvent();
         }
     }
 

@@ -30,6 +30,9 @@ class AdminUserSeeder extends Seeder
             'email' => $adminEmail,
             'email_verified_at' => now(),
             'password' => Hash::make($adminPassword),
+            'role' => User::ROLE_DA_ADMIN,
+            'municipality' => null,
+            'is_active' => true,
         ]);
 
         if ($adminUser->wasRecentlyCreated) {

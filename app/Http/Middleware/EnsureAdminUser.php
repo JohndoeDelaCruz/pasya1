@@ -15,9 +15,8 @@ class EnsureAdminUser
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::guard('web')->user();
-        $adminEmail = (string) config('app.admin_email');
 
-        if (! $user || ! hash_equals($adminEmail, (string) $user->email)) {
+        if (! $user || ! $user->isDaAdmin() || ! (bool) $user->is_active) {
             abort(403);
         }
 

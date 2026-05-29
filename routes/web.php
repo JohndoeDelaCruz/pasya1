@@ -11,8 +11,10 @@ use App\Http\Controllers\Admin\CropTrendsController;
 use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\WeatherController as AdminWeatherController;
 use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\LguValidatorController;
 use App\Http\Controllers\Farmer\FarmerDashboardController;
 use App\Http\Controllers\Farmer\FarmerMapController;
+use App\Http\Controllers\Lgu\LguDashboardController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
@@ -32,17 +34,21 @@ Route::get('/app-download', function () {
 
 Route::get('/app', function () {
     if (Auth::guard('farmer')->check()) {
-        return redirect()->route('farmers.dashboard');
+        return redirect()->route('dashboard');
     }
 
     if (Auth::guard('web')->check()) {
         $user = Auth::guard('web')->user();
 
-        if (hash_equals((string) config('app.admin_email'), (string) $user->email)) {
+        if ($user->isDaAdmin()) {
             return redirect()->route('admin.dashboard');
         }
 
-        return redirect()->route('dashboard');
+        if ($user->isLguValidator()) {
+            return redirect()->route('lgu.dashboard');
+        }
+
+        return redirect()->route('farmers.dashboard');
     }
 
     return redirect('/');
@@ -53,13 +59,16 @@ Route::get('/dashboard', function (FarmerAccountBridgeService $farmerAccountBrid
         return redirect()->route('farmers.dashboard');
     }
 
-    // Redirect admin users to admin dashboard
-    if (Auth::guard('web')->check() && Auth::user()->email === config('app.admin_email')) {
-        return redirect()->route('admin.dashboard');
-    }
-
     if (Auth::guard('web')->check()) {
         $user = Auth::guard('web')->user();
+
+        if ($user->isDaAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->isLguValidator()) {
+            return redirect()->route('lgu.dashboard');
+        }
 
         try {
             $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);
@@ -103,6 +112,7 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     Route::get('/api/crop-types', [FarmerDashboardController::class, 'getCropTypes'])->name('api.crop-types');
     Route::get('/api/crop-plans', [FarmerDashboardController::class, 'getCropPlans'])->name('api.crop-plans');
     Route::post('/api/crop-plans', [FarmerDashboardController::class, 'storeCropPlan'])->name('api.crop-plans.store');
+    Route::patch('/api/crop-plans/{cropPlan}', [FarmerDashboardController::class, 'updateCropPlan'])->name('api.crop-plans.update');
     Route::post('/api/crop-plans/preview', [FarmerDashboardController::class, 'previewCropPlan'])->name('api.crop-plans.preview');
     Route::post('/api/crop-plans/{cropPlan}/damage-report', [FarmerDashboardController::class, 'reportCropDamage'])->name('api.crop-plans.damage-report');
     Route::patch('/api/crop-plans/{cropPlan}/status', [FarmerDashboardController::class, 'updateCropPlanStatus'])->name('api.crop-plans.status');
@@ -141,6 +151,14 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::put('/farmers/{farmer}', [FarmerController::class, 'update'])->name('farmers.update');
     Route::post('/farmers/{id}/restore', [FarmerController::class, 'restore'])->name('farmers.restore');
     Route::delete('/farmers/{farmer}', [FarmerController::class, 'destroy'])->name('farmers.destroy');
+
+    // LGU Validator Staff Management
+    Route::get('/lgu-validators', [LguValidatorController::class, 'index'])->name('lgu-validators.index');
+    Route::get('/lgu-validators/create', [LguValidatorController::class, 'create'])->name('lgu-validators.create');
+    Route::post('/lgu-validators', [LguValidatorController::class, 'store'])->name('lgu-validators.store');
+    Route::get('/lgu-validators/{validator}/edit', [LguValidatorController::class, 'edit'])->name('lgu-validators.edit');
+    Route::put('/lgu-validators/{validator}', [LguValidatorController::class, 'update'])->name('lgu-validators.update');
+    Route::patch('/lgu-validators/{validator}/active', [LguValidatorController::class, 'toggleActive'])->name('lgu-validators.active');
     
     // Crop Data Management Routes
     Route::get('/crop-data', [CropDataController::class, 'index'])->name('crop-data.index');
@@ -198,6 +216,17 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/api/notifications', [AnnouncementController::class, 'getAdminNotifications'])->name('api.notifications');
     Route::post('/api/notifications/{announcement}/read', [AnnouncementController::class, 'markAdminNotificationRead'])->name('api.notifications.read');
 });
+
+Route::middleware(['auth', 'verified', 'active_user', 'role:lgu_validator'])
+    ->prefix('lgu')
+    ->name('lgu.')
+    ->group(function () {
+        Route::get('/dashboard', [LguDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/crop-plans/{cropPlan}/approve', [LguDashboardController::class, 'approveCropPlan'])->name('crop-plans.approve');
+        Route::post('/crop-plans/{cropPlan}/reject', [LguDashboardController::class, 'rejectCropPlan'])->name('crop-plans.reject');
+        Route::post('/damage-reports/{damageReport}/approve', [LguDashboardController::class, 'approveDamageReport'])->name('damage-reports.approve');
+        Route::post('/damage-reports/{damageReport}/reject', [LguDashboardController::class, 'rejectDamageReport'])->name('damage-reports.reject');
+    });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

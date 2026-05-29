@@ -15,7 +15,7 @@ class PlantingReportTest extends TestCase
 
     public function test_admin_can_view_farmer_calendar_records_in_planting_report(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->createAdmin();
 
         $this->createPlantingRecord(
             $admin,
@@ -49,7 +49,7 @@ class PlantingReportTest extends TestCase
 
     public function test_admin_can_export_filtered_planting_report_as_csv(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->createAdmin();
 
         $this->createPlantingRecord(
             $admin,
@@ -104,7 +104,7 @@ class PlantingReportTest extends TestCase
 
     public function test_admin_can_export_filtered_planting_report_as_pdf(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->createAdmin();
 
         $this->createPlantingRecord(
             $admin,
@@ -173,7 +173,18 @@ class PlantingReportTest extends TestCase
             'farm_type' => 'IRRIGATED',
             'planting_material_type' => 'SEEDLING',
             'status' => 'planned',
+            'lgu_validation_status' => CropPlan::VALIDATION_APPROVED,
+            'lgu_validated_at' => now(),
+            'submitted_to_da_at' => now(),
             'notes' => 'First wet-season batch',
         ], $cropPlanOverrides));
+    }
+
+    private function createAdmin(): User
+    {
+        return User::factory()->create([
+            'role' => User::ROLE_DA_ADMIN,
+            'is_active' => true,
+        ]);
     }
 }
