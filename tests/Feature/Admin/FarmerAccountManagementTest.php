@@ -16,7 +16,7 @@ class FarmerAccountManagementTest extends TestCase
 
     public function test_admin_farmer_search_is_case_insensitive(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->createAdmin();
 
         $this->createFarmer($admin, [
             'farmer_id' => '14-11-10-008-00017',
@@ -43,7 +43,7 @@ class FarmerAccountManagementTest extends TestCase
 
     public function test_account_management_filter_has_dynamic_update_hooks(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->createAdmin();
 
         $response = $this->actingAs($admin)->get(route('admin.farmers.index'));
 
@@ -160,5 +160,13 @@ class FarmerAccountManagementTest extends TestCase
                 unlink($path);
             }
         }
+    }
+
+    private function createAdmin(): User
+    {
+        return User::factory()->create([
+            'role' => User::ROLE_DA_ADMIN,
+            'is_active' => true,
+        ]);
     }
 }

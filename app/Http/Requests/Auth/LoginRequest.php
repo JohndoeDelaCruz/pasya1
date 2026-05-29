@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use App\Models\Farmer;
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string'],
             'password' => ['nullable', 'string'],
+            'login_mode' => ['nullable', 'in:farmer,staff,admin'],
         ];
     }
 
@@ -46,6 +48,48 @@ class LoginRequest extends FormRequest
 
         $loginInput = trim((string) $this->input('email'));
         $remember = $this->boolean('remember');
+        $loginMode = $this->input('login_mode') === 'staff' || $this->input('login_mode') === 'admin'
+            ? 'staff'
+            : 'farmer';
+        $password = (string) $this->input('password', '');
+        $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if ($loginMode === 'staff') {
+            if ($password === '') {
+                throw ValidationException::withMessages([
+                    'password' => 'Staff password is required.',
+                ]);
+            }
+
+            $this->ensureIsNotRateLimited();
+
+            if (! Auth::guard('web')->attempt([
+                $fieldType => $loginInput,
+                'password' => $password,
+            ], $remember)) {
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.failed'),
+                ]);
+            }
+
+            /** @var \App\Models\User|null $user */
+            $user = Auth::guard('web')->user();
+
+            if (! $user || ! $user->isActiveStaff()) {
+                Auth::guard('web')->logout();
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => 'This account is not an active DA or LGU staff account.',
+                ]);
+            }
+
+            RateLimiter::clear($this->throttleKey());
+
+            return;
+        }
 
         $farmer = Farmer::where('farmer_id', $loginInput)->first();
 
@@ -54,8 +98,6 @@ class LoginRequest extends FormRequest
             return;
         }
 
-        $password = (string) $this->input('password', '');
-
         if ($password === '') {
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
@@ -63,16 +105,26 @@ class LoginRequest extends FormRequest
         }
 
         $this->ensureIsNotRateLimited();
-        
-        // Try to authenticate as admin user first (email or username)
-        $fieldType = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        
+
+        // Allow web-backed farmer accounts, but keep staff in the Staff Login mode.
         $credentials = [
             $fieldType => $loginInput,
             'password' => $password,
         ];
 
-        if (Auth::attempt($credentials, $remember)) {
+        if (Auth::guard('web')->attempt($credentials, $remember)) {
+            /** @var User|null $user */
+            $user = Auth::guard('web')->user();
+
+            if ($user?->hasStaffRole()) {
+                Auth::guard('web')->logout();
+                RateLimiter::hit($this->throttleKey());
+
+                throw ValidationException::withMessages([
+                    'email' => 'Use Staff Login for DA and LGU validator accounts.',
+                ]);
+            }
+
             RateLimiter::clear($this->throttleKey());
             return;
         }

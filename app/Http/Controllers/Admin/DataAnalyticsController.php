@@ -710,6 +710,7 @@ class DataAnalyticsController extends Controller
         $plantingRecords = $plantingRecordsQuery->paginate(15)->withQueryString();
         $municipalities = $this->getPlantingReportMunicipalities();
         $statuses = $this->getPlantingReportStatuses();
+        $validationStatuses = $this->getPlantingReportValidationStatuses();
         $cropTypes = $this->getPlantingReportCropTypes();
         $farmTypes = $this->getPlantingReportFarmTypes();
         $plantingYears = $this->getPlantingReportYears('planting_date');
@@ -721,6 +722,7 @@ class DataAnalyticsController extends Controller
             'summary' => $summary,
             'municipalities' => $municipalities,
             'statuses' => $statuses,
+            'validationStatuses' => $validationStatuses,
             'cropTypes' => $cropTypes,
             'farmTypes' => $farmTypes,
             'plantingYears' => $plantingYears,
@@ -772,6 +774,10 @@ class DataAnalyticsController extends Controller
                 'Farm Type',
                 'Planting Material',
                 'Status',
+                'LGU Validation',
+                'LGU Validator',
+                'LGU Validated At',
+                'LGU Notes',
                 'Recorded At',
             ]);
 
@@ -801,6 +807,10 @@ class DataAnalyticsController extends Controller
                         ucfirst(strtolower((string) $record->farm_type)),
                         $record->planting_material_label ?? 'Not set',
                         $record->planting_report_status,
+                        $record->lgu_validation_status_label,
+                        $record->lguValidator?->name ?? '',
+                        optional($record->lgu_validated_at)->format('Y-m-d H:i:s'),
+                        $record->lgu_validation_notes ?? '',
                         optional($record->created_at)->format('Y-m-d H:i:s'),
                     ]);
                 }
@@ -843,9 +853,10 @@ class DataAnalyticsController extends Controller
 
     private function validatePlantingReportFilters(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'search' => 'nullable|string|max:255',
             'status' => 'nullable|in:' . implode(',', $this->getPlantingReportStatuses()),
+            'validation_status' => 'nullable|in:' . implode(',', array_keys($this->getPlantingReportValidationStatuses())),
             'municipality' => 'nullable|string|max:255',
             'crop_type' => 'nullable|string|max:255',
             'planting_month' => 'nullable|integer|between:1,12',
@@ -854,6 +865,10 @@ class DataAnalyticsController extends Controller
             'harvest_year' => 'nullable|integer|between:1900,2100',
             'farm_type' => 'nullable|string|max:255',
         ]);
+
+        $validated['validation_status'] = $validated['validation_status'] ?? CropPlan::VALIDATION_APPROVED;
+
+        return $validated;
     }
 
     private function getPlantingReportQuery(array $filters): Builder
@@ -871,6 +886,7 @@ class DataAnalyticsController extends Controller
                     'cooperative',
                     'deleted_at',
                 ]),
+                'lguValidator:id,name,email,municipality',
             ])
             ->when($filters['search'] ?? null, function ($query, $search) {
                 $normalizedSearch = strtolower(trim($search));
@@ -928,6 +944,13 @@ class DataAnalyticsController extends Controller
 
                 $query->where('status', $status)
                     ->whereNull('damage_reported_at');
+            })
+            ->when($filters['validation_status'] ?? CropPlan::VALIDATION_APPROVED, function ($query, $status) {
+                if ($status === 'all') {
+                    return;
+                }
+
+                $query->where('lgu_validation_status', $status);
             })
             ->when($filters['municipality'] ?? null, function ($query, $municipality) {
                 $query->where('municipality', $municipality);
@@ -1005,6 +1028,16 @@ class DataAnalyticsController extends Controller
     private function getPlantingReportStatuses(): array
     {
         return ['planted', 'growing', 'damaged', 'harvested', 'cancelled'];
+    }
+
+    private function getPlantingReportValidationStatuses(): array
+    {
+        return [
+            CropPlan::VALIDATION_APPROVED => 'LGU Approved',
+            CropPlan::VALIDATION_PENDING => 'Pending LGU Review',
+            CropPlan::VALIDATION_REJECTED => 'Needs Revision',
+            'all' => 'All validation statuses',
+        ];
     }
 
     private function getPlantingReportCropTypes()

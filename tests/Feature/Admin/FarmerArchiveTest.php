@@ -13,7 +13,7 @@ class FarmerArchiveTest extends TestCase
 
     public function test_admin_can_archive_a_farmer_account(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->createAdmin();
         $farmer = Farmer::create([
             'farmer_id' => 'FMR250001',
             'first_name' => 'Ana',
@@ -76,7 +76,7 @@ class FarmerArchiveTest extends TestCase
 
     public function test_admin_can_view_and_restore_archived_farmer_accounts(): void
     {
-        $admin = User::factory()->create();
+        $admin = $this->createAdmin();
         $farmer = Farmer::create([
             'farmer_id' => 'FMR250003',
             'first_name' => 'Mario',
@@ -112,5 +112,13 @@ class FarmerArchiveTest extends TestCase
 
         $this->assertNotNull($restoredFarmer);
         $this->assertNull($restoredFarmer->deleted_at);
+    }
+
+    private function createAdmin(): User
+    {
+        return User::factory()->create([
+            'role' => User::ROLE_DA_ADMIN,
+            'is_active' => true,
+        ]);
     }
 }

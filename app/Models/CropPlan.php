@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
@@ -31,6 +33,16 @@ class CropPlan extends Model
 {
     use HasFactory;
 
+    public const VALIDATION_PENDING = 'pending';
+    public const VALIDATION_APPROVED = 'approved';
+    public const VALIDATION_REJECTED = 'rejected';
+
+    public const VALIDATION_STATUS_LABELS = [
+        self::VALIDATION_PENDING => 'Pending LGU Review',
+        self::VALIDATION_APPROVED => 'LGU Approved',
+        self::VALIDATION_REJECTED => 'Needs Revision',
+    ];
+
     public const DAMAGE_CAUSE_LABELS = [
         'typhoon' => 'Typhoon',
         'flood' => 'Flood',
@@ -55,6 +67,12 @@ class CropPlan extends Model
         'farm_type',
         'planting_material_type',
         'status',
+        'lgu_validation_status',
+        'lgu_validated_by',
+        'lgu_validated_at',
+        'lgu_validation_notes',
+        'lgu_validation_revision',
+        'submitted_to_da_at',
         'damage_cause',
         'damage_notes',
         'damage_occurred_on',
@@ -72,6 +90,8 @@ class CropPlan extends Model
         'predicted_production' => 'decimal:2',
         'damage_occurred_on' => 'date',
         'damage_reported_at' => 'datetime',
+        'lgu_validated_at' => 'datetime',
+        'submitted_to_da_at' => 'datetime',
     ];
 
     /**
@@ -88,6 +108,21 @@ class CropPlan extends Model
     public function cropType(): BelongsTo
     {
         return $this->belongsTo(CropType::class);
+    }
+
+    public function lguValidator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'lgu_validated_by');
+    }
+
+    public function damageReports(): HasMany
+    {
+        return $this->hasMany(CropPlanDamageReport::class);
+    }
+
+    public function latestDamageReport(): HasOne
+    {
+        return $this->hasOne(CropPlanDamageReport::class)->latestOfMany();
     }
 
     /**
@@ -258,6 +293,22 @@ class CropPlan extends Model
             ?? Str::headline(str_replace('_', ' ', $this->damage_cause));
     }
 
+    public function getLguValidationStatusLabelAttribute(): string
+    {
+        return self::VALIDATION_STATUS_LABELS[$this->lgu_validation_status]
+            ?? Str::headline(str_replace('_', ' ', (string) $this->lgu_validation_status));
+    }
+
+    public function getIsLguPendingAttribute(): bool
+    {
+        return $this->lgu_validation_status === self::VALIDATION_PENDING;
+    }
+
+    public function getIsLguRejectedAttribute(): bool
+    {
+        return $this->lgu_validation_status === self::VALIDATION_REJECTED;
+    }
+
     /**
      * Get formatted planting material label.
      */
@@ -368,10 +419,17 @@ class CropPlan extends Model
 
     private function eventContext(): array
     {
+        $latestDamageReport = $this->relationLoaded('latestDamageReport')
+            ? $this->latestDamageReport
+            : null;
+
         return [
             'crop_plan_id' => $this->id,
+            'crop_type_id' => $this->crop_type_id,
             'crop_name' => $this->crop_name,
             'area' => (float) $this->area_hectares,
+            'farm_type' => $this->farm_type,
+            'notes' => $this->notes,
             'adjusted_area_hectares' => $this->adjusted_area_hectares,
             'damaged_area_hectares' => (float) ($this->damaged_area_hectares ?? 0),
             'predicted_production' => $this->adjusted_predicted_production,
@@ -391,6 +449,17 @@ class CropPlan extends Model
             'damage_occurred_on_formatted' => $this->damage_occurred_on?->format('M d, Y'),
             'damage_reported_at' => $this->damage_reported_at?->toIso8601String(),
             'damage_reported_at_formatted' => $this->damage_reported_at?->format('M d, Y h:i A'),
+            'lgu_validation_status' => $this->lgu_validation_status,
+            'lgu_validation_status_label' => $this->lgu_validation_status_label,
+            'lgu_validation_notes' => $this->lgu_validation_notes,
+            'lgu_validation_revision' => (int) ($this->lgu_validation_revision ?? 0),
+            'lgu_validated_at' => $this->lgu_validated_at?->toIso8601String(),
+            'lgu_validated_at_formatted' => $this->lgu_validated_at?->format('M d, Y h:i A'),
+            'latest_damage_report' => $latestDamageReport?->toCalendarPayload(),
+            'can_revise_crop_plan' => in_array($this->lgu_validation_status, [
+                self::VALIDATION_PENDING,
+                self::VALIDATION_REJECTED,
+            ], true),
             'can_report_damage' => !in_array($this->status, ['harvested', 'cancelled'], true),
         ];
     }

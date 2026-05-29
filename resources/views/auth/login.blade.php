@@ -23,7 +23,7 @@
             'margin' => 8,
             'data' => $appDownloadUrl,
         ]);
-        $initialLoginMode = old('login_mode') === 'admin' ? 'admin' : 'farmer';
+        $initialLoginMode = in_array(old('login_mode'), ['staff', 'admin'], true) ? 'staff' : 'farmer';
     @endphp
 
     <div class="w-full max-w-5xl bg-white rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden">
@@ -32,7 +32,7 @@
             <div class="bg-green-700 p-4 sm:p-8 lg:p-16 flex items-center justify-center">
                 <div
                     class="w-full max-w-md"
-                    x-data="{ loginMode: @js($initialLoginMode), showPassword: false, get adminMode() { return this.loginMode === 'admin' } }"
+                    x-data="{ loginMode: @js($initialLoginMode), showPassword: false, get staffMode() { return this.loginMode === 'staff' } }"
                 >
                     <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-yellow-400 text-center mb-4 sm:mb-8">Log In</h1>
 
@@ -43,22 +43,22 @@
                         <button
                             type="button"
                             @click="loginMode = 'farmer'; showPassword = false; if ($refs.password) $refs.password.value = ''"
-                            :class="adminMode ? 'text-yellow-400 hover:bg-green-600' : 'bg-yellow-400 text-black shadow-md'"
+                            :class="staffMode ? 'text-yellow-400 hover:bg-green-600' : 'bg-yellow-400 text-black shadow-md'"
                             class="rounded-md px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-bold transition-colors"
                             role="tab"
-                            :aria-selected="(!adminMode).toString()"
+                            :aria-selected="(!staffMode).toString()"
                         >
                             Farmer
                         </button>
                         <button
                             type="button"
-                            @click="loginMode = 'admin'"
-                            :class="adminMode ? 'bg-yellow-400 text-black shadow-md' : 'text-yellow-400 hover:bg-green-600'"
+                            @click="loginMode = 'staff'"
+                            :class="staffMode ? 'bg-yellow-400 text-black shadow-md' : 'text-yellow-400 hover:bg-green-600'"
                             class="rounded-md px-3 sm:px-4 py-1.5 sm:py-2 text-sm font-bold transition-colors"
                             role="tab"
-                            :aria-selected="adminMode.toString()"
+                            :aria-selected="staffMode.toString()"
                         >
-                            Admin Login
+                            Staff Login
                         </button>
                     </div>
 
@@ -68,35 +68,34 @@
 
                         <!-- Farmer ID / Email / Username -->
                         <div>
-                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-1 sm:mb-2" x-text="adminMode ? 'Admin Email / Username' : 'RSBSA
-                            '">RSBSA</label>
+                            <label for="email" class="block text-yellow-400 text-sm font-medium mb-1 sm:mb-2" x-text="staffMode ? 'Staff Email / Username' : 'RSBSA'">RSBSA</label>
                             <input 
                                 id="email" 
                                 type="text" 
                                 name="email" 
                                 value="{{ old('email') }}"
-                                :placeholder="adminMode ? 'Enter your admin email or username' : 'Enter your RSBSA'"
+                                :placeholder="staffMode ? 'Enter your staff email or username' : 'Enter your RSBSA'"
                                 required 
                                 autofocus 
                                 autocomplete="username"
                                 class="w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
                             />
-                            <p class="mt-1 sm:mt-2 text-xs leading-snug text-green-100" x-text="adminMode ? 'Use your admin account credentials to continue.'"></p>
+                            <p class="mt-1 sm:mt-2 text-xs leading-snug text-green-100" x-text="staffMode ? 'Use your DA Admin or LGU validator account credentials to continue.' : ''"></p>
                             <x-input-error :messages="$errors->get('email')" class="mt-2 text-yellow-300" />
                         </div>
 
                         <!-- Password -->
-                        <div x-show="adminMode" style="{{ $initialLoginMode === 'admin' ? '' : 'display: none;' }}">
-                            <label for="password" class="block text-yellow-400 text-sm font-medium mb-1 sm:mb-2">Admin Password</label>
+                        <div x-show="staffMode" style="{{ $initialLoginMode === 'staff' ? '' : 'display: none;' }}">
+                            <label for="password" class="block text-yellow-400 text-sm font-medium mb-1 sm:mb-2">Staff Password</label>
                             <div class="relative">
                                 <input 
                                     id="password" 
                                     :type="showPassword ? 'text' : 'password'" 
                                     name="password" 
                                     x-ref="password"
-                                    @disabled($initialLoginMode !== 'admin')
-                                    :disabled="!adminMode"
-                                    placeholder="Enter your admin password"
+                                    @disabled($initialLoginMode !== 'staff')
+                                    :disabled="!staffMode"
+                                    placeholder="Enter your staff password"
                                     autocomplete="current-password"
                                     class="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-20 sm:pr-24 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400 transition-colors"
                                 />
@@ -104,7 +103,7 @@
                                     type="button"
                                     @click="showPassword = !showPassword"
                                     class="absolute inset-y-0 right-0 my-1.5 mr-1.5 rounded-md px-3 text-xs sm:text-sm font-bold text-yellow-400 transition-colors hover:bg-green-500 hover:text-yellow-200 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                    :aria-label="showPassword ? 'Hide admin password' : 'Show admin password'"
+                                    :aria-label="showPassword ? 'Hide staff password' : 'Show staff password'"
                                     :aria-pressed="showPassword.toString()"
                                     x-text="showPassword ? 'Hide' : 'Show'"
                                 >Show</button>
@@ -114,7 +113,7 @@
 
                         <!-- Forgot Password Link -->
                         @if (Route::has('password.request'))
-                            <div class="text-left" x-show="adminMode" style="{{ $initialLoginMode === 'admin' ? '' : 'display: none;' }}">
+                            <div class="text-left" x-show="staffMode" style="{{ $initialLoginMode === 'staff' ? '' : 'display: none;' }}">
                                 <a href="{{ route('password.request') }}" class="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline transition-colors">
                                     Forget your password
                                 </a>

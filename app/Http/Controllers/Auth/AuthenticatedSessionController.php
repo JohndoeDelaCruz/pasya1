@@ -36,14 +36,16 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        // Redirect admin users to admin dashboard (check web guard first)
-        if (Auth::guard('web')->check() && Auth::user()->email === config('app.admin_email')) {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
-        }
-
-        // Check if logged in as regular web user
         if (Auth::guard('web')->check()) {
             $user = Auth::guard('web')->user();
+
+            if ($user->isDaAdmin()) {
+                return redirect()->intended(route('admin.dashboard', absolute: false));
+            }
+
+            if ($user->isLguValidator()) {
+                return redirect()->intended(route('lgu.dashboard', absolute: false));
+            }
 
             try {
                 $farmer = $farmerAccountBridgeService->findOrCreateForUser($user);

@@ -65,7 +65,7 @@
                 </div>
 
                 <!-- Add Crop Plan Button - Right -->
-                <button @click="showCropPlanModal = true"
+                <button @click="resetCropPlanForm(); showCropPlanModal = true"
                     class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-2 sm:px-4 rounded-xl shadow-sm transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
@@ -405,6 +405,21 @@
                                                 <span class="uppercase" x-text="selectedEvent.display_status"></span>
                                             </div>
                                         </template>
+                                        <template x-if="selectedEvent.lgu_validation_status_label">
+                                            <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                                <span class="rounded-full px-2.5 py-1 font-semibold"
+                                                    :class="getValidationBadgeClass(selectedEvent.lgu_validation_status)"
+                                                    x-text="selectedEvent.lgu_validation_status_label"></span>
+                                                <span class="text-gray-500" x-show="selectedEvent.lgu_validation_revision > 0"
+                                                    x-text="'Revision ' + selectedEvent.lgu_validation_revision"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedEvent.lgu_validation_notes">
+                                            <p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                                                <span class="font-semibold">LGU note:</span>
+                                                <span x-text="selectedEvent.lgu_validation_notes"></span>
+                                            </p>
+                                        </template>
                                         <template x-if="selectedEvent.has_damage_report">
                                             <div class="mt-3 space-y-1 rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs text-orange-900">
                                                 <p class="font-semibold">Damage Report</p>
@@ -417,10 +432,24 @@
                                                 <p x-show="selectedEvent.damage_notes"><span class="font-medium">Notes:</span> <span x-text="selectedEvent.damage_notes"></span></p>
                                             </div>
                                         </template>
+                                        <template x-if="selectedEvent.latest_damage_report && selectedEvent.latest_damage_report.lgu_validation_status !== 'approved'">
+                                            <div class="mt-3 space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                                                <p class="font-semibold">Pending Damage Validation</p>
+                                                <p><span class="font-medium">Status:</span> <span x-text="selectedEvent.latest_damage_report.lgu_validation_status_label"></span></p>
+                                                <p><span class="font-medium">Damaged Area:</span> <span x-text="formatHectares(selectedEvent.latest_damage_report.damaged_area_hectares)"></span></p>
+                                                <p x-show="selectedEvent.latest_damage_report.damage_cause_label"><span class="font-medium">Cause:</span> <span x-text="selectedEvent.latest_damage_report.damage_cause_label"></span></p>
+                                                <p x-show="selectedEvent.latest_damage_report.lgu_validation_notes"><span class="font-medium">LGU note:</span> <span x-text="selectedEvent.latest_damage_report.lgu_validation_notes"></span></p>
+                                            </div>
+                                        </template>
                                         <div class="mt-3 flex flex-wrap gap-2" x-show="selectedEvent.crop_plan_id && selectedEvent.can_report_damage">
                                             <button @click="openDamageReportModal(selectedEvent)"
                                                 class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
-                                                <span x-text="selectedEvent.has_damage_report ? 'Update Damage Report' : 'Report Damage'"></span>
+                                                <span x-text="selectedEvent.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise Damage Report' : (selectedEvent.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit Pending Damage' : (selectedEvent.has_damage_report ? 'Update Damage Report' : 'Report Damage'))"></span>
+                                            </button>
+                                            <button x-show="selectedEvent.can_revise_crop_plan"
+                                                @click="openCropPlanRevisionModal(selectedEvent)"
+                                                class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100">
+                                                <span x-text="selectedEvent.lgu_validation_status === 'rejected' ? 'Revise Crop Plan' : 'Edit Pending Plan'"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -467,10 +496,30 @@
                                                     <p x-show="event.damage_occurred_on_formatted"><span class="font-medium">Date Damaged:</span> <span x-text="event.damage_occurred_on_formatted"></span></p>
                                                 </div>
                                             </template>
+                                            <template x-if="event.lgu_validation_status_label">
+                                                <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                                    <span class="rounded-full px-2.5 py-1 font-semibold"
+                                                        :class="getValidationBadgeClass(event.lgu_validation_status)"
+                                                        x-text="event.lgu_validation_status_label"></span>
+                                                    <span class="text-gray-500" x-show="event.lgu_validation_notes">LGU note available</span>
+                                                </div>
+                                            </template>
+                                            <template x-if="event.latest_damage_report && event.latest_damage_report.lgu_validation_status !== 'approved'">
+                                                <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                                                    <p class="font-semibold">Pending Damage Validation</p>
+                                                    <p x-text="event.latest_damage_report.lgu_validation_status_label"></p>
+                                                    <p x-show="event.latest_damage_report.lgu_validation_notes" x-text="event.latest_damage_report.lgu_validation_notes"></p>
+                                                </div>
+                                            </template>
                                             <div class="mt-3 flex flex-wrap gap-2" x-show="event.crop_plan_id && event.can_report_damage">
                                                 <button @click="openDamageReportModal(event)"
                                                     class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
-                                                    <span x-text="event.has_damage_report ? 'Update Damage Report' : 'Report Damage'"></span>
+                                                    <span x-text="event.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise Damage Report' : (event.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit Pending Damage' : (event.has_damage_report ? 'Update Damage Report' : 'Report Damage'))"></span>
+                                                </button>
+                                                <button x-show="event.can_revise_crop_plan"
+                                                    @click="openCropPlanRevisionModal(event)"
+                                                    class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100">
+                                                    <span x-text="event.lgu_validation_status === 'rejected' ? 'Revise Crop Plan' : 'Edit Pending Plan'"></span>
                                                 </button>
                                             </div>
                                         </div>
@@ -580,8 +629,8 @@
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
             x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;"
-            @keydown.escape.window="showCropPlanModal = false">
-            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showCropPlanModal = false"></div>
+            @keydown.escape.window="showCropPlanModal = false; resetCropPlanForm()">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="showCropPlanModal = false; resetCropPlanForm()"></div>
 
             <div class="flex min-h-full items-center justify-center p-4">
                 <div x-show="showCropPlanModal" x-transition:enter="transition ease-out duration-300"
@@ -600,11 +649,11 @@
                                     </svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <h3 class="text-lg font-bold text-white">Plan Your Crop</h3>
-                                    <p class="text-sm text-green-100">Enter details to see EDOH & predictions</p>
+                                    <h3 class="text-lg font-bold text-white" x-text="isEditingCropPlan ? 'Revise Crop Plan' : 'Plan Your Crop'">Plan Your Crop</h3>
+                                    <p class="text-sm text-green-100" x-text="isEditingCropPlan ? 'Update the record and resubmit it to LGU validation' : 'Enter details to see EDOH & predictions'"></p>
                                 </div>
                             </div>
-                            <button @click="showCropPlanModal = false"
+                            <button @click="showCropPlanModal = false; resetCropPlanForm()"
                                 class="shrink-0 rounded-lg p-2 text-white transition hover:bg-white/20">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -762,7 +811,7 @@
 
                     <!-- Modal Footer -->
                     <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row">
-                        <button @click="showCropPlanModal = false"
+                        <button @click="showCropPlanModal = false; resetCropPlanForm()"
                             class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition font-medium">
                             Cancel
                         </button>
@@ -774,7 +823,7 @@
                                 <path class="opacity-75" fill="currentColor"
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            <span x-text="isSubmitting ? 'Saving...' : 'Add to Calendar'"></span>
+                            <span x-text="isSubmitting ? 'Saving...' : (isEditingCropPlan ? 'Resubmit Plan' : 'Add to Calendar')"></span>
                         </button>
                     </div>
                 </div>
@@ -935,6 +984,7 @@
                         planting_material_type: 'SEED',
                         notes: ''
                     },
+                    editingCropPlanId: null,
 
                     // Prediction preview
                     showPredictionPreview: false,
@@ -986,6 +1036,10 @@
                             this.cropPlanForm.planting_date &&
                             this.cropPlanForm.area_hectares > 0 &&
                             this.showPredictionPreview;
+                    },
+
+                    get isEditingCropPlan() {
+                        return !!this.editingCropPlanId;
                     },
 
                     get canSubmitDamageReport() {
@@ -1180,6 +1234,18 @@
                         return `${numericValue.toFixed(2)} ha`;
                     },
 
+                    getValidationBadgeClass(status) {
+                        if (status === 'approved') {
+                            return 'bg-green-100 text-green-800';
+                        }
+
+                        if (status === 'rejected') {
+                            return 'bg-red-100 text-red-800';
+                        }
+
+                        return 'bg-amber-100 text-amber-800';
+                    },
+
                     showToast(message) {
                         this.successMessage = message;
                         this.showSuccessToast = true;
@@ -1217,25 +1283,52 @@
                             return;
                         }
 
+                        const latestDamageReport = event.latest_damage_report && event.latest_damage_report.lgu_validation_status !== 'approved'
+                            ? event.latest_damage_report
+                            : null;
+
                         this.damageReportForm = {
                             crop_plan_id: event.crop_plan_id,
                             crop_name: event.crop_name || event.title || 'Crop plan',
                             area_hectares: parseFloat(event.area || 0),
                             planting_date: event.planting_date || '',
                             original_predicted_production: parseFloat(event.original_predicted_production ?? event.predicted_production ?? 0),
-                            damaged_area_hectares: event.has_damage_report ? parseFloat(event.damaged_area_hectares || 0) : '',
-                            damage_cause: event.damage_cause || '',
-                            damage_cause_label: event.damage_cause_label || '',
-                            damage_notes: event.damage_notes || '',
-                            damage_occurred_on: event.damage_occurred_on || this.today,
-                            damage_occurred_on_formatted: event.damage_occurred_on_formatted || '',
+                            damaged_area_hectares: latestDamageReport
+                                ? parseFloat(latestDamageReport.damaged_area_hectares || 0)
+                                : (event.has_damage_report ? parseFloat(event.damaged_area_hectares || 0) : ''),
+                            damage_cause: latestDamageReport?.damage_cause || event.damage_cause || '',
+                            damage_cause_label: latestDamageReport?.damage_cause_label || event.damage_cause_label || '',
+                            damage_notes: latestDamageReport?.damage_notes || event.damage_notes || '',
+                            damage_occurred_on: latestDamageReport?.damage_occurred_on || event.damage_occurred_on || this.today,
+                            damage_occurred_on_formatted: latestDamageReport?.damage_occurred_on_formatted || event.damage_occurred_on_formatted || '',
                             damage_reported_at_formatted: event.damage_reported_at_formatted || '',
-                            has_damage_report: !!event.has_damage_report
+                            has_damage_report: !!event.has_damage_report || !!latestDamageReport
                         };
 
                         this.selectedEvent = event;
                         this.showEventModal = false;
                         this.showDamageModal = true;
+                    },
+
+                    openCropPlanRevisionModal(event) {
+                        if (!event || !event.crop_plan_id || !event.can_revise_crop_plan) {
+                            return;
+                        }
+
+                        this.editingCropPlanId = event.crop_plan_id;
+                        this.cropPlanForm = {
+                            crop_type_id: event.crop_type_id || '',
+                            planting_date: event.planting_date || this.today,
+                            area_hectares: event.area || '',
+                            farm_type: event.farm_type || 'IRRIGATED',
+                            planting_material_type: event.planting_material_type || 'SEED',
+                            notes: event.notes || ''
+                        };
+                        this.showPredictionPreview = false;
+                        this.selectedEvent = event;
+                        this.showEventModal = false;
+                        this.showCropPlanModal = true;
+                        this.calculatePreview();
                     },
 
                     async refreshCropPlanEvents() {
@@ -1289,7 +1382,7 @@
                             this.closeDamageModal();
                             this.selectedEvent = null;
                             this.selectedDay = null;
-                            this.showToast('Damage report submitted successfully.');
+                            this.showToast('Damage report submitted for LGU validation.');
                         } catch (error) {
                             console.error('Error submitting damage report:', error);
                             alert('Failed to submit damage report. Error: ' + error.message);
@@ -1411,8 +1504,13 @@
                                 planting_material_type: this.cropPlanForm.planting_material_type,
                             });
 
-                            const response = await fetch('{{ route("farmers.api.crop-plans.store") }}', {
-                                method: 'POST',
+                            const wasEditing = this.isEditingCropPlan;
+                            const cropPlanUrl = wasEditing
+                                ? `{{ url('/farmer/api/crop-plans') }}/${this.editingCropPlanId}`
+                                : '{{ route("farmers.api.crop-plans.store") }}';
+
+                            const response = await fetch(cropPlanUrl, {
+                                method: wasEditing ? 'PATCH' : 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -1448,7 +1546,7 @@
                                 this.resetCropPlanForm();
                                 this.showCropPlanModal = false;
 
-                                this.showToast('Crop plan added! EDOH: ' + data.data.edoh_formatted);
+                                this.showToast((wasEditing ? 'Crop plan resubmitted! EDOH: ' : 'Crop plan added! EDOH: ') + data.data.edoh_formatted);
                             } else {
                                 console.error('Server returned error:', data);
                                 alert('Failed to save crop plan: ' + (data.message || 'Unknown error') + (data.error ? '\n\nDetails: ' + data.error : ''));
@@ -1501,6 +1599,7 @@
                     },
 
                     resetCropPlanForm() {
+                        this.editingCropPlanId = null;
                         this.cropPlanForm = {
                             crop_type_id: '',
                             planting_date: this.today,
