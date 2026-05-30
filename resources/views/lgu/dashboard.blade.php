@@ -12,6 +12,7 @@
             'all' => 'All submissions',
             'crop_plans' => 'Crop plans',
             'damage_reports' => 'Damage reports',
+            'harvest_reports' => 'Harvest reports',
         ];
         $badgeClass = fn ($status) => match ($status) {
             'approved' => 'bg-green-100 text-green-800',
@@ -47,7 +48,7 @@
                 </div>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                     <p class="text-xs font-semibold uppercase text-gray-500">Plan Pending</p>
                     <p class="mt-2 text-2xl font-bold text-amber-700">{{ number_format($stats['crop_plans_pending']) }}</p>
@@ -71,6 +72,18 @@
                 <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                     <p class="text-xs font-semibold uppercase text-gray-500">Damage Revision</p>
                     <p class="mt-2 text-2xl font-bold text-red-700">{{ number_format($stats['damage_rejected']) }}</p>
+                </div>
+                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Harvest Pending</p>
+                    <p class="mt-2 text-2xl font-bold text-amber-700">{{ number_format($stats['harvest_pending']) }}</p>
+                </div>
+                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Harvest Approved</p>
+                    <p class="mt-2 text-2xl font-bold text-green-700">{{ number_format($stats['harvest_approved']) }}</p>
+                </div>
+                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Harvest Revision</p>
+                    <p class="mt-2 text-2xl font-bold text-red-700">{{ number_format($stats['harvest_rejected']) }}</p>
                 </div>
             </div>
 
@@ -104,7 +117,7 @@
             </form>
 
             <div class="space-y-5" data-lgu-queue-content>
-            @if(($filters['type'] ?? 'all') !== 'damage_reports')
+            @if(in_array(($filters['type'] ?? 'all'), ['all', 'crop_plans'], true))
                 <section class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
                     <div class="border-b border-gray-100 px-4 py-4 sm:px-5">
                         <h2 class="text-lg font-semibold text-gray-900">Crop Plans</h2>
@@ -214,7 +227,7 @@
                 </section>
             @endif
 
-            @if(($filters['type'] ?? 'all') !== 'crop_plans')
+            @if(in_array(($filters['type'] ?? 'all'), ['all', 'damage_reports'], true))
                 <section class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
                     <div class="border-b border-gray-100 px-4 py-4 sm:px-5">
                         <h2 class="text-lg font-semibold text-gray-900">Damage Reports</h2>
@@ -272,6 +285,70 @@
 
                     @if(method_exists($damageReports, 'links'))
                         <div class="border-t border-gray-100 px-4 py-4">{{ $damageReports->links() }}</div>
+                    @endif
+                </section>
+            @endif
+
+            @if(in_array(($filters['type'] ?? 'all'), ['all', 'harvest_reports'], true))
+                <section class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+                    <div class="border-b border-gray-100 px-4 py-4 sm:px-5">
+                        <h2 class="text-lg font-semibold text-gray-900">Harvest Reports</h2>
+                        <p class="mt-1 text-sm text-gray-500">Approved reports become the official actual harvest in DA records.</p>
+                    </div>
+
+                    <div class="divide-y divide-gray-100">
+                        @forelse($harvestReports as $harvestReport)
+                            <div class="grid gap-4 p-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] lg:items-start">
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <p class="font-semibold text-gray-900">{{ $harvestReport->cropPlan?->crop_name ?? 'Crop plan unavailable' }}</p>
+                                        <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $badgeClass($harvestReport->lgu_validation_status) }}">{{ $harvestReport->lgu_validation_status_label }}</span>
+                                    </div>
+                                    <p class="mt-1 text-sm text-gray-600">{{ $harvestReport->farmer?->full_name ?? 'Farmer unavailable' }} | {{ $harvestReport->farmer?->farmer_id ?? 'N/A' }}</p>
+                                    <p class="mt-2 text-sm text-gray-700">Actual harvest: {{ number_format((float) $harvestReport->actual_production_mt, 4) }} MT ({{ number_format((float) $harvestReport->actual_production_kg, 2) }} kg)</p>
+                                    <p class="mt-1 text-xs text-gray-500">Harvested {{ $harvestReport->actual_harvest_date?->format('M d, Y') }} | Submitted {{ $harvestReport->created_at?->format('M d, Y h:i A') }}</p>
+                                    <p class="mt-2 text-xs text-gray-500">{{ $harvestReport->harvest_notes ?: 'No farmer notes' }}</p>
+                                    @if($harvestReport->lgu_validation_notes)
+                                        <p class="mt-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">LGU note: {{ $harvestReport->lgu_validation_notes }}</p>
+                                    @endif
+                                </div>
+
+                                <div class="text-sm text-gray-600">
+                                    <p>Plan area: {{ number_format((float) ($harvestReport->cropPlan?->area_hectares ?? 0), 2) }} ha</p>
+                                    <p class="mt-1">Predicted harvest: {{ number_format((float) ($harvestReport->cropPlan?->adjusted_predicted_production ?? 0), 2) }} MT</p>
+                                    @if($harvestReport->variance_mt !== null)
+                                        <p class="mt-1">Variance: {{ number_format((float) $harvestReport->variance_mt, 4) }} MT</p>
+                                    @endif
+                                </div>
+
+                                <div class="lg:min-w-[15rem]">
+                                    @if($harvestReport->lgu_validation_status === 'pending')
+                                        <div class="flex flex-wrap justify-end gap-2">
+                                            <form method="POST" action="{{ route('lgu.harvest-reports.approve', $harvestReport) }}" class="flex-1 lg:flex-none">
+                                                @csrf
+                                                <button :disabled="!online" class="w-full rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300">Approve</button>
+                                            </form>
+                                            <details class="w-full">
+                                                <summary class="cursor-pointer rounded-lg border border-red-200 px-3 py-2 text-center text-xs font-semibold text-red-700">Reject with notes</summary>
+                                                <form method="POST" action="{{ route('lgu.harvest-reports.reject', $harvestReport) }}" class="mt-2 space-y-2">
+                                                    @csrf
+                                                    <textarea name="notes" required rows="3" placeholder="LGU notes for farmer revision" class="w-full rounded-lg border-gray-200 text-sm focus:border-red-500 focus:ring-red-500"></textarea>
+                                                    <button :disabled="!online" class="w-full rounded-lg bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300">Send Back</button>
+                                                </form>
+                                            </details>
+                                        </div>
+                                    @else
+                                        <p class="text-right text-xs text-gray-500">Reviewed {{ $harvestReport->lgu_validated_at?->format('M d, Y') ?? '' }}</p>
+                                    @endif
+                                </div>
+                            </div>
+                        @empty
+                            <div class="p-8 text-center text-sm text-gray-500">No harvest reports match this queue.</div>
+                        @endforelse
+                    </div>
+
+                    @if(method_exists($harvestReports, 'links'))
+                        <div class="border-t border-gray-100 px-4 py-4">{{ $harvestReports->links() }}</div>
                     @endif
                 </section>
             @endif
@@ -389,7 +466,7 @@
 
             selects.forEach((control) => {
                 control.addEventListener('change', () => {
-                    if (control === typeControl && typeControl.value === 'damage_reports' && statusControl?.value === 'pending') {
+                    if (control === typeControl && ['damage_reports', 'harvest_reports'].includes(typeControl.value) && statusControl?.value === 'pending') {
                         statusControl.value = 'all';
                     }
 

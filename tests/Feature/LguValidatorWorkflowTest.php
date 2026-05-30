@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\CropPlan;
 use App\Models\CropPlanDamageReport;
+use App\Models\CropPlanHarvestReport;
 use App\Models\CropType;
 use App\Models\Farmer;
 use App\Models\User;
@@ -205,6 +206,72 @@ class LguValidatorWorkflowTest extends TestCase
         $response->assertOk();
         $response->assertSee('Approved Damage Crop');
         $response->assertSee('value="all" selected', false);
+    }
+
+    public function test_farmer_harvest_report_waits_for_lgu_approval(): void
+    {
+        $plan = $this->createCropPlan([
+            'municipality' => 'BUGUIAS',
+            'lgu_validation_status' => CropPlan::VALIDATION_APPROVED,
+        ]);
+
+        $this->actingAs($plan->farmer, 'farmer')
+            ->postJson(route('farmers.api.crop-plans.harvest-report', $plan), [
+                'actual_harvest_date' => '2026-05-30',
+                'actual_harvest_quantity_kg' => 1250,
+                'harvest_notes' => 'Actual weighed harvest.',
+            ])
+            ->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('crop_plan_harvest_reports', [
+            'crop_plan_id' => $plan->id,
+            'farmer_id' => $plan->farmer_id,
+            'actual_production_mt' => 1.25,
+            'lgu_validation_status' => CropPlanHarvestReport::VALIDATION_PENDING,
+        ]);
+
+        $this->assertDatabaseHas('crop_plans', [
+            'id' => $plan->id,
+            'status' => 'planned',
+            'actual_harvest_production_mt' => null,
+        ]);
+    }
+
+    public function test_lgu_approves_harvest_report_as_official_actual_harvest(): void
+    {
+        $validator = $this->createValidator('BUGUIAS');
+        $plan = $this->createCropPlan([
+            'municipality' => 'BUGUIAS',
+            'lgu_validation_status' => CropPlan::VALIDATION_APPROVED,
+            'predicted_production' => 36,
+        ]);
+
+        $harvestReport = CropPlanHarvestReport::create([
+            'crop_plan_id' => $plan->id,
+            'farmer_id' => $plan->farmer_id,
+            'actual_harvest_date' => '2026-05-30',
+            'actual_production_mt' => 1.25,
+            'harvest_notes' => 'Actual weighed harvest.',
+            'lgu_validation_status' => CropPlanHarvestReport::VALIDATION_PENDING,
+        ]);
+
+        $this->actingAs($validator)
+            ->post(route('lgu.harvest-reports.approve', $harvestReport))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('crop_plan_harvest_reports', [
+            'id' => $harvestReport->id,
+            'lgu_validation_status' => CropPlanHarvestReport::VALIDATION_APPROVED,
+            'lgu_validated_by' => $validator->id,
+        ]);
+
+        $this->assertDatabaseHas('crop_plans', [
+            'id' => $plan->id,
+            'status' => 'harvested',
+            'actual_harvest_production_mt' => 1.25,
+            'actual_harvest_report_id' => $harvestReport->id,
+        ]);
     }
 
     public function test_da_planting_report_defaults_to_approved_records(): void

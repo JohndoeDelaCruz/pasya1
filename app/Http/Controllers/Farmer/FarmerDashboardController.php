@@ -8,6 +8,7 @@ use App\Models\CropType;
 use App\Models\CropProduction;
 use App\Models\CropPlan;
 use App\Models\CropPlanDamageReport;
+use App\Models\CropPlanHarvestReport;
 use App\Models\Crop;
 use App\Models\CropPrice;
 use App\Models\FarmerNotification;
@@ -15,6 +16,7 @@ use App\Services\MLApiService;
 use App\Services\PredictionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -97,7 +99,7 @@ class FarmerDashboardController extends Controller
         // Get farmer's active crop plans
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
             ->active()
-            ->with(['cropType', 'latestDamageReport'])
+            ->with(['cropType', 'latestDamageReport', 'latestHarvestReport'])
             ->orderBy('planting_date')
             ->get();
 
@@ -226,7 +228,7 @@ class FarmerDashboardController extends Controller
 
         // Get farmer's crop plans (harvest history)
         $cropPlans = CropPlan::where('farmer_id', $farmer->id)
-            ->with('cropType')
+            ->with(['cropType', 'latestHarvestReport'])
             ->orderBy('planting_date', 'desc')
             ->get()
             ->map(function ($plan) {
@@ -235,6 +237,17 @@ class FarmerDashboardController extends Controller
                 $isHarvestReady = $daysUntilHarvest <= 7 && $plan->status !== 'harvested' && !$plan->has_damage_report;
                 $isOverdue = $daysUntilHarvest <= 0 && $plan->status !== 'harvested';
                 $displayStatus = $plan->display_status;
+                $latestHarvestReport = $plan->latestHarvestReport;
+                $harvestValidationStatus = $latestHarvestReport?->lgu_validation_status;
+                $harvestDisplayStatus = match (true) {
+                    $plan->status === 'harvested' => 'Completed',
+                    $harvestValidationStatus === CropPlanHarvestReport::VALIDATION_PENDING => 'Harvest Pending LGU',
+                    $harvestValidationStatus === CropPlanHarvestReport::VALIDATION_REJECTED => 'Harvest Revision',
+                    $plan->lgu_validation_status === CropPlan::VALIDATION_PENDING => 'Plan Pending LGU',
+                    $plan->lgu_validation_status === CropPlan::VALIDATION_REJECTED => 'Plan Revision',
+                    $displayStatus === 'damaged' => 'Damaged',
+                    default => 'Growing',
+                };
 
                 return [
                     'id' => $plan->id,
@@ -245,12 +258,16 @@ class FarmerDashboardController extends Controller
                             ? $plan->actual_harvest_date->format('M d, Y')
                             : $plan->expected_harvest_date->format('M d, Y'))
                         : '--',
-                    'expectedHarvest' => $plan->expected_harvest_date->format('M d, Y'),
-                    'status' => match ($displayStatus) {
-                        'harvested' => 'Completed',
-                        'damaged' => 'Damaged',
-                        default => 'Growing',
+                    'actualHarvestDate' => optional($plan->actual_harvest_date)->format('Y-m-d'),
+                    'actualHarvestProductionMt' => $plan->actual_harvest_production_mt !== null ? (float) $plan->actual_harvest_production_mt : null,
+                    'actualHarvestProductionFormatted' => match (true) {
+                        $plan->actual_harvest_production_mt !== null => number_format((float) $plan->actual_harvest_production_mt, 4) . ' MT',
+                        $latestHarvestReport !== null => number_format((float) $latestHarvestReport->actual_production_mt, 4) . ' MT',
+                        default => 'Not reported',
                     },
+                    'actualHarvestVarianceMt' => $plan->actual_harvest_variance_mt,
+                    'expectedHarvest' => $plan->expected_harvest_date->format('M d, Y'),
+                    'status' => $harvestDisplayStatus,
                     'area' => $plan->area_hectares,
                     'predictedProduction' => $plan->adjusted_predicted_production,
                     'predictedProductionFormatted' => $plan->formatted_adjusted_production,
@@ -270,6 +287,15 @@ class FarmerDashboardController extends Controller
                     'damageNotes' => $plan->damage_notes,
                     'damageOccurredOn' => optional($plan->damage_occurred_on)->format('M d, Y'),
                     'damageReportedAt' => optional($plan->damage_reported_at)->format('M d, Y h:i A'),
+                    'latestHarvestReport' => $latestHarvestReport?->toFarmerPayload(),
+                    'harvestValidationStatus' => $harvestValidationStatus,
+                    'harvestValidationStatusLabel' => $latestHarvestReport?->lgu_validation_status_label,
+                    'canSubmitHarvestReport' => $plan->status !== 'harvested'
+                        && $plan->status !== 'cancelled'
+                        && $plan->lgu_validation_status === CropPlan::VALIDATION_APPROVED
+                        && $harvestValidationStatus !== CropPlanHarvestReport::VALIDATION_PENDING,
+                    'planValidationStatus' => $plan->lgu_validation_status,
+                    'planValidationNotes' => $plan->lgu_validation_notes,
                 ];
             });
 
@@ -1062,6 +1088,13 @@ class FarmerDashboardController extends Controller
             'actual_harvest_date' => 'nullable|date',
         ]);
 
+        if ($validated['status'] === 'harvested') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Submit an actual harvest report so the LGU can validate the harvest before it appears in DA reports.',
+            ], 422);
+        }
+
         $updateData = ['status' => $validated['status']];
         if (!empty($validated['actual_harvest_date'])) {
             $updateData['actual_harvest_date'] = $validated['actual_harvest_date'];
@@ -1073,6 +1106,103 @@ class FarmerDashboardController extends Controller
             'success' => true,
             'message' => 'Status updated successfully!',
             'data' => $cropPlan,
+        ]);
+    }
+
+    public function reportCropHarvest(Request $request, CropPlan $cropPlan)
+    {
+        $farmer = Auth::guard('farmer')->user();
+
+        if ($cropPlan->farmer_id !== $farmer->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 403);
+        }
+
+        if ($cropPlan->status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cancelled crop plans cannot receive harvest reports.',
+            ], 422);
+        }
+
+        if ($cropPlan->lgu_validation_status !== CropPlan::VALIDATION_APPROVED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This crop plan must be LGU-approved before an actual harvest report can be submitted.',
+            ], 422);
+        }
+
+        if ($cropPlan->status === 'harvested' && $cropPlan->actual_harvest_production_mt !== null) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This crop plan already has an LGU-approved actual harvest.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'actual_harvest_date' => [
+                'required',
+                'date',
+                'before_or_equal:' . today()->format('Y-m-d'),
+            ],
+            'actual_harvest_quantity_kg' => ['required', 'numeric', 'min:1'],
+            'harvest_notes' => ['nullable', 'string', 'max:500'],
+        ], [
+            'actual_harvest_quantity_kg.min' => 'Actual harvest quantity must be at least 1 kilogram.',
+        ]);
+
+        $actualProductionMt = round(((float) $validated['actual_harvest_quantity_kg']) / 1000, 4);
+
+        $harvestReport = DB::transaction(function () use ($cropPlan, $farmer, $validated, $actualProductionMt) {
+            $harvestReport = $cropPlan->harvestReports()
+                ->whereIn('lgu_validation_status', [
+                    CropPlanHarvestReport::VALIDATION_PENDING,
+                    CropPlanHarvestReport::VALIDATION_REJECTED,
+                ])
+                ->latest()
+                ->first();
+
+            $revisionCount = (int) ($harvestReport?->lgu_validation_revision ?? 0);
+            if ($harvestReport?->lgu_validation_status === CropPlanHarvestReport::VALIDATION_REJECTED) {
+                $revisionCount++;
+            }
+
+            $payload = [
+                'actual_harvest_date' => $validated['actual_harvest_date'],
+                'actual_production_mt' => $actualProductionMt,
+                'harvest_notes' => $validated['harvest_notes'] ?? null,
+                'lgu_validation_status' => CropPlanHarvestReport::VALIDATION_PENDING,
+                'lgu_validated_by' => null,
+                'lgu_validated_at' => null,
+                'lgu_validation_notes' => null,
+                'lgu_validation_revision' => $revisionCount,
+                'submitted_to_da_at' => null,
+                'applied_at' => null,
+            ];
+
+            if ($harvestReport) {
+                $harvestReport->update($payload);
+
+                return $harvestReport->refresh();
+            }
+
+            return CropPlanHarvestReport::create($payload + [
+                'crop_plan_id' => $cropPlan->id,
+                'farmer_id' => $farmer->id,
+            ]);
+        });
+
+        $harvestReport->load(['cropPlan', 'farmer']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Actual harvest submitted for LGU validation.',
+            'data' => [
+                'crop_plan_id' => $cropPlan->id,
+                'harvest_report' => $harvestReport->toFarmerPayload(),
+            ],
         ]);
     }
 

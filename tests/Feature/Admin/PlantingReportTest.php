@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\CropPlan;
+use App\Models\CropPlanHarvestReport;
 use App\Models\CropType;
 use App\Models\Farmer;
 use App\Models\User;
@@ -17,7 +18,7 @@ class PlantingReportTest extends TestCase
     {
         $admin = $this->createAdmin();
 
-        $this->createPlantingRecord(
+        $record = $this->createPlantingRecord(
             $admin,
             [
                 'farmer_id' => 'FMR260001',
@@ -45,13 +46,25 @@ class PlantingReportTest extends TestCase
         $response->assertSee('Broccoli');
         $response->assertSee('09123456781');
         $response->assertSee('Seedling');
+        $response->assertSee('Predicted Harvest');
+        $response->assertSee('Actual Harvest');
+        $response->assertSee('Not reported');
+
+        $this->attachApprovedHarvestReport($record, $admin, 10.5);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.planting-report'));
+
+        $response->assertOk();
+        $response->assertSee('10.5000 MT');
+        $response->assertSee('Variance');
     }
 
     public function test_admin_can_export_filtered_planting_report_as_csv(): void
     {
         $admin = $this->createAdmin();
 
-        $this->createPlantingRecord(
+        $record = $this->createPlantingRecord(
             $admin,
             [
                 'first_name' => 'Maria',
@@ -66,6 +79,7 @@ class PlantingReportTest extends TestCase
                 'status' => 'planned',
             ],
         );
+        $this->attachApprovedHarvestReport($record, $admin, 10.5);
 
         $this->createPlantingRecord(
             $admin,
@@ -84,7 +98,7 @@ class PlantingReportTest extends TestCase
         );
 
         $response = $this->actingAs($admin)->get(route('admin.planting-report.export.csv', [
-            'status' => 'planted',
+            'status' => 'harvested',
             'municipality' => 'BUGUIAS',
         ]));
 
@@ -96,7 +110,11 @@ class PlantingReportTest extends TestCase
 
         $this->assertStringContainsString('Maria Santos', $csv);
         $this->assertStringContainsString('Broccoli', $csv);
-        $this->assertStringContainsString('planted', $csv);
+        $this->assertStringContainsString('harvested', $csv);
+        $this->assertStringContainsString('Predicted Harvest (MT)', $csv);
+        $this->assertStringContainsString('Actual Harvest (MT)', $csv);
+        $this->assertStringContainsString('Harvest Variance (MT)', $csv);
+        $this->assertStringContainsString('10.5000', $csv);
         $this->assertStringNotContainsString('planned', $csv);
         $this->assertStringNotContainsString('Jose Reyes', $csv);
         $this->assertStringNotContainsString('Cabbage', $csv);
@@ -178,6 +196,32 @@ class PlantingReportTest extends TestCase
             'submitted_to_da_at' => now(),
             'notes' => 'First wet-season batch',
         ], $cropPlanOverrides));
+    }
+
+    private function attachApprovedHarvestReport(CropPlan $cropPlan, User $validator, float $actualProductionMt): CropPlanHarvestReport
+    {
+        $harvestReport = CropPlanHarvestReport::create([
+            'crop_plan_id' => $cropPlan->id,
+            'farmer_id' => $cropPlan->farmer_id,
+            'actual_harvest_date' => '2026-07-20',
+            'actual_production_mt' => $actualProductionMt,
+            'harvest_notes' => 'Actual weighed harvest.',
+            'lgu_validation_status' => CropPlanHarvestReport::VALIDATION_APPROVED,
+            'lgu_validated_by' => $validator->id,
+            'lgu_validated_at' => now(),
+            'submitted_to_da_at' => now(),
+            'applied_at' => now(),
+        ]);
+
+        $cropPlan->update([
+            'status' => 'harvested',
+            'actual_harvest_date' => $harvestReport->actual_harvest_date,
+            'actual_harvest_production_mt' => $actualProductionMt,
+            'actual_harvest_report_id' => $harvestReport->id,
+            'actual_harvest_reported_at' => now(),
+        ]);
+
+        return $harvestReport;
     }
 
     private function createAdmin(): User

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CropMappingController;
 use App\Http\Controllers\Admin\CropPriceController;
 use App\Http\Controllers\Admin\DataAnalyticsController;
 use App\Http\Controllers\Admin\CropTrendsController;
+use App\Http\Controllers\Admin\CropTrendsAlphaController;
 use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\WeatherController as AdminWeatherController;
 use App\Http\Controllers\Admin\AnnouncementController;
@@ -115,6 +116,7 @@ Route::middleware(['auth:farmer'])->prefix('farmer')->name('farmers.')->group(fu
     Route::patch('/api/crop-plans/{cropPlan}', [FarmerDashboardController::class, 'updateCropPlan'])->name('api.crop-plans.update');
     Route::post('/api/crop-plans/preview', [FarmerDashboardController::class, 'previewCropPlan'])->name('api.crop-plans.preview');
     Route::post('/api/crop-plans/{cropPlan}/damage-report', [FarmerDashboardController::class, 'reportCropDamage'])->name('api.crop-plans.damage-report');
+    Route::post('/api/crop-plans/{cropPlan}/harvest-report', [FarmerDashboardController::class, 'reportCropHarvest'])->name('api.crop-plans.harvest-report');
     Route::patch('/api/crop-plans/{cropPlan}/status', [FarmerDashboardController::class, 'updateCropPlanStatus'])->name('api.crop-plans.status');
     Route::delete('/api/crop-plans/{cropPlan}', [FarmerDashboardController::class, 'deleteCropPlan'])->name('api.crop-plans.destroy');
     
@@ -134,6 +136,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     Route::get('/crop-trends', [CropTrendsController::class, 'index'])->name('crop-trends');
     Route::post('/crop-trends/predict', [CropTrendsController::class, 'predict'])->name('crop-trends.predict');
+    Route::get('/crop-trends-alpha', [CropTrendsAlphaController::class, 'index'])->name('crop-trends-alpha');
     
     // Interactive Map
     Route::get('/map', [MapController::class, 'index'])->name('map');
@@ -226,6 +229,8 @@ Route::middleware(['auth', 'verified', 'active_user', 'role:lgu_validator'])
         Route::post('/crop-plans/{cropPlan}/reject', [LguDashboardController::class, 'rejectCropPlan'])->name('crop-plans.reject');
         Route::post('/damage-reports/{damageReport}/approve', [LguDashboardController::class, 'approveDamageReport'])->name('damage-reports.approve');
         Route::post('/damage-reports/{damageReport}/reject', [LguDashboardController::class, 'rejectDamageReport'])->name('damage-reports.reject');
+        Route::post('/harvest-reports/{harvestReport}/approve', [LguDashboardController::class, 'approveHarvestReport'])->name('harvest-reports.approve');
+        Route::post('/harvest-reports/{harvestReport}/reject', [LguDashboardController::class, 'rejectHarvestReport'])->name('harvest-reports.reject');
     });
 
 Route::middleware('auth')->group(function () {

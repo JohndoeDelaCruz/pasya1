@@ -167,8 +167,18 @@
                 <div class="summary-value">{{ number_format($summary['total_area'], 2) }} ha</div>
             </td>
             <td>
-                <div class="summary-label">Adjusted Production</div>
+                <div class="summary-label">Predicted Harvest</div>
                 <div class="summary-value">{{ number_format($summary['total_predicted_production'], 2) }} MT</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div class="summary-label">Actual Harvest</div>
+                <div class="summary-value">{{ number_format($summary['total_actual_harvest'] ?? 0, 2) }} MT</div>
+            </td>
+            <td colspan="2">
+                <div class="summary-label">Actual Variance</div>
+                <div class="summary-value">{{ number_format($summary['total_harvest_variance'] ?? 0, 2) }} MT</div>
             </td>
         </tr>
     </table>
@@ -193,7 +203,9 @@
                 <th>Planting</th>
                 <th>Harvest</th>
                 <th>Area (ha)</th>
-                <th>Adjusted MT</th>
+                <th>Predicted MT</th>
+                <th>Actual MT</th>
+                <th>Variance MT</th>
                 <th>Damage</th>
                 <th>Farm Type</th>
                 <th>Material</th>
@@ -224,6 +236,21 @@
                     <td>{{ number_format((float) $record->area_hectares, 2) }}</td>
                     <td>{{ number_format((float) $record->adjusted_predicted_production, 2) }}</td>
                     <td>
+                        @if ($record->actual_harvest_production_mt !== null)
+                            {{ number_format((float) $record->actual_harvest_production_mt, 4) }}<br>
+                            <span class="muted">{{ optional($record->actual_harvest_date)->format('M d, Y') }}</span>
+                        @else
+                            <span class="muted">Not reported</span>
+                        @endif
+                    </td>
+                    <td>
+                        @if ($record->actual_harvest_variance_mt !== null)
+                            {{ number_format((float) $record->actual_harvest_variance_mt, 4) }}
+                        @else
+                            <span class="muted">N/A</span>
+                        @endif
+                    </td>
+                    <td>
                         @if ($record->has_damage_report)
                             {{ number_format((float) $record->damaged_area_hectares, 2) }} ha<br>
                             <span class="muted">{{ $record->damage_cause_label ?? 'Damage reported' }}</span><br>
@@ -240,6 +267,14 @@
                         <span class="muted">LGU: {{ $record->lgu_validation_status_label }}</span><br>
                         <span class="muted">Validator: {{ $record->lguValidator?->name ?? 'N/A' }}</span><br>
                         <span class="muted">Reviewed: {{ optional($record->lgu_validated_at)->format('M d, Y') ?? 'Pending' }}</span>
+                        @if ($record->actual_harvest_production_mt !== null)
+                            <br><span class="muted">Actual harvest: Approved</span>
+                            <br><span class="muted">Harvest validator: {{ $record->actualHarvestReport?->lguValidator?->name ?? 'N/A' }}</span>
+                        @elseif ($record->actualHarvestReport)
+                            <br><span class="muted">Actual harvest: {{ $record->actualHarvestReport->lgu_validation_status_label }}</span>
+                        @else
+                            <br><span class="muted">Actual harvest: Not reported</span>
+                        @endif
                     </td>
                 </tr>
             @endforeach

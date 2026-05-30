@@ -79,6 +79,9 @@ class CropPlan extends Model
         'damage_reported_at',
         'notes',
         'actual_harvest_date',
+        'actual_harvest_production_mt',
+        'actual_harvest_report_id',
+        'actual_harvest_reported_at',
     ];
 
     protected $casts = [
@@ -88,10 +91,12 @@ class CropPlan extends Model
         'area_hectares' => 'decimal:2',
         'damaged_area_hectares' => 'decimal:4',
         'predicted_production' => 'decimal:2',
+        'actual_harvest_production_mt' => 'decimal:4',
         'damage_occurred_on' => 'date',
         'damage_reported_at' => 'datetime',
         'lgu_validated_at' => 'datetime',
         'submitted_to_da_at' => 'datetime',
+        'actual_harvest_reported_at' => 'datetime',
     ];
 
     /**
@@ -120,9 +125,24 @@ class CropPlan extends Model
         return $this->hasMany(CropPlanDamageReport::class);
     }
 
+    public function harvestReports(): HasMany
+    {
+        return $this->hasMany(CropPlanHarvestReport::class);
+    }
+
     public function latestDamageReport(): HasOne
     {
         return $this->hasOne(CropPlanDamageReport::class)->latestOfMany();
+    }
+
+    public function latestHarvestReport(): HasOne
+    {
+        return $this->hasOne(CropPlanHarvestReport::class)->latestOfMany();
+    }
+
+    public function actualHarvestReport(): BelongsTo
+    {
+        return $this->belongsTo(CropPlanHarvestReport::class, 'actual_harvest_report_id');
     }
 
     /**
@@ -261,6 +281,15 @@ class CropPlan extends Model
         }
 
         return max(0.0, round((float) $this->predicted_production - $this->adjusted_predicted_production, 2));
+    }
+
+    public function getActualHarvestVarianceMtAttribute(): ?float
+    {
+        if ($this->actual_harvest_production_mt === null) {
+            return null;
+        }
+
+        return round((float) $this->actual_harvest_production_mt - $this->adjusted_predicted_production, 4);
     }
 
     public function getDisplayStatusAttribute(): string
@@ -422,6 +451,9 @@ class CropPlan extends Model
         $latestDamageReport = $this->relationLoaded('latestDamageReport')
             ? $this->latestDamageReport
             : null;
+        $latestHarvestReport = $this->relationLoaded('latestHarvestReport')
+            ? $this->latestHarvestReport
+            : null;
 
         return [
             'crop_plan_id' => $this->id,
@@ -449,6 +481,12 @@ class CropPlan extends Model
             'damage_occurred_on_formatted' => $this->damage_occurred_on?->format('M d, Y'),
             'damage_reported_at' => $this->damage_reported_at?->toIso8601String(),
             'damage_reported_at_formatted' => $this->damage_reported_at?->format('M d, Y h:i A'),
+            'actual_harvest_date' => $this->actual_harvest_date?->format('Y-m-d'),
+            'actual_harvest_date_formatted' => $this->actual_harvest_date?->format('M d, Y'),
+            'actual_harvest_production_mt' => $this->actual_harvest_production_mt !== null ? (float) $this->actual_harvest_production_mt : null,
+            'actual_harvest_variance_mt' => $this->actual_harvest_variance_mt,
+            'actual_harvest_reported_at' => $this->actual_harvest_reported_at?->toIso8601String(),
+            'actual_harvest_reported_at_formatted' => $this->actual_harvest_reported_at?->format('M d, Y h:i A'),
             'lgu_validation_status' => $this->lgu_validation_status,
             'lgu_validation_status_label' => $this->lgu_validation_status_label,
             'lgu_validation_notes' => $this->lgu_validation_notes,
@@ -456,6 +494,7 @@ class CropPlan extends Model
             'lgu_validated_at' => $this->lgu_validated_at?->toIso8601String(),
             'lgu_validated_at_formatted' => $this->lgu_validated_at?->format('M d, Y h:i A'),
             'latest_damage_report' => $latestDamageReport?->toCalendarPayload(),
+            'latest_harvest_report' => $latestHarvestReport?->toFarmerPayload(),
             'can_revise_crop_plan' => in_array($this->lgu_validation_status, [
                 self::VALIDATION_PENDING,
                 self::VALIDATION_REJECTED,

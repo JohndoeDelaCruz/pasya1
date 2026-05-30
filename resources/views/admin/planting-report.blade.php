@@ -12,6 +12,9 @@
         $productiveArea = max(0, $totalArea - $damagedArea);
         $totalOriginalProduction = (float) ($summary['total_original_production'] ?? 0);
         $totalAdjustedProduction = (float) ($summary['total_predicted_production'] ?? 0);
+        $totalActualHarvest = (float) ($summary['total_actual_harvest'] ?? 0);
+        $totalHarvestVariance = (float) ($summary['total_harvest_variance'] ?? 0);
+        $actualHarvestRecords = (int) ($summary['actual_harvest_records'] ?? 0);
         $totalProductionLoss = min((float) ($summary['total_production_loss'] ?? 0), max($totalOriginalProduction, 0));
         $percentOf = fn ($value, $total) => $total > 0 ? min(100, round(((float) $value / (float) $total) * 100, 1)) : 0;
         $statusChartData = [
@@ -132,33 +135,33 @@
                     <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Production</p>
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Predicted Harvest</p>
                                 <div class="mt-1 flex items-end gap-2">
                                     <p class="text-2xl font-bold leading-none text-gray-900">{{ number_format($totalAdjustedProduction, 2) }}</p>
-                                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">MT adjusted</p>
+                                    <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">MT</p>
                                 </div>
                             </div>
-                            <span class="rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
-                                {{ $percentOf($totalProductionLoss, max($totalOriginalProduction, $totalAdjustedProduction + $totalProductionLoss)) }}% loss
+                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                                {{ number_format($actualHarvestRecords) }} actual
                             </span>
                         </div>
 
                         <div class="mt-5">
-                            <div class="flex h-3 overflow-hidden rounded-full bg-gray-100" aria-hidden="true">
-                                <span class="bg-emerald-500" style="width: {{ $percentOf($totalAdjustedProduction, max($totalOriginalProduction, $totalAdjustedProduction + $totalProductionLoss)) }}%"></span>
-                                <span class="bg-orange-400" style="width: {{ $percentOf($totalProductionLoss, max($totalOriginalProduction, $totalAdjustedProduction + $totalProductionLoss)) }}%"></span>
-                            </div>
-                            <div class="mt-4 grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-2 gap-3">
                                 <div class="rounded-xl bg-emerald-50 px-3 py-2">
-                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Adjusted</p>
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Predicted</p>
                                     <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($totalAdjustedProduction, 2) }} MT</p>
                                 </div>
-                                <div class="rounded-xl bg-orange-50 px-3 py-2">
-                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-orange-700">Loss</p>
-                                    <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($totalProductionLoss, 2) }} MT</p>
+                                <div class="rounded-xl bg-blue-50 px-3 py-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Actual</p>
+                                    <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($totalActualHarvest, 2) }} MT</p>
                                 </div>
                             </div>
-                            <p class="mt-3 text-xs text-gray-500">Original estimate: {{ number_format($totalOriginalProduction, 2) }} MT</p>
+                            <p class="mt-3 text-xs text-gray-500">
+                                Original estimate: {{ number_format($totalOriginalProduction, 2) }} MT.
+                                Damage loss: {{ number_format($totalProductionLoss, 2) }} MT.
+                                Actual variance: {{ number_format($totalHarvestVariance, 2) }} MT.
+                            </p>
                         </div>
                     </div>
                 </section>
@@ -484,8 +487,21 @@
                                         </td>
                                         <td class="px-4 sm:px-6 py-4 text-sm text-gray-700">
                                             <p class="font-medium text-gray-900">{{ number_format((float) $record->area_hectares, 2) }} ha</p>
-                                            <p class="mt-1 text-xs text-gray-500">Original: {{ number_format((float) $record->predicted_production, 2) }} MT</p>
-                                            <p class="mt-1 text-xs text-gray-500">Adjusted: {{ number_format((float) $record->adjusted_predicted_production, 2) }} MT</p>
+                                            <p class="mt-1 text-xs text-gray-500">Original estimate: {{ number_format((float) $record->predicted_production, 2) }} MT</p>
+                                            <p class="mt-1 text-xs text-gray-500">Predicted harvest: {{ number_format((float) $record->adjusted_predicted_production, 2) }} MT</p>
+                                            <p class="mt-1 text-xs text-gray-500">
+                                                Actual harvest:
+                                                @if($record->actual_harvest_production_mt !== null)
+                                                    {{ number_format((float) $record->actual_harvest_production_mt, 4) }} MT
+                                                @else
+                                                    Not reported
+                                                @endif
+                                            </p>
+                                            @if($record->actual_harvest_variance_mt !== null)
+                                                <p class="mt-1 text-xs {{ $record->actual_harvest_variance_mt < 0 ? 'text-red-700' : 'text-green-700' }}">
+                                                    Variance: {{ number_format((float) $record->actual_harvest_variance_mt, 4) }} MT
+                                                </p>
+                                            @endif
                                             @if ($record->has_damage_report)
                                                 <p class="mt-1 text-xs text-orange-700">Damage: {{ number_format((float) $record->damaged_area_hectares, 2) }} ha affected, {{ number_format((float) $record->production_loss_mt, 2) }} MT lost</p>
                                             @endif
@@ -511,6 +527,15 @@
                                             @endif
                                             @if ($record->lgu_validation_notes)
                                                 <p class="mt-1 text-xs text-gray-500">LGU note: {{ \Illuminate\Support\Str::limit($record->lgu_validation_notes, 80) }}</p>
+                                            @endif
+                                            @if ($record->actual_harvest_production_mt !== null)
+                                                <p class="mt-2 text-xs font-medium text-blue-700">Actual harvest approved</p>
+                                                <p class="mt-1 text-xs text-gray-500">Actual date: {{ $record->actual_harvest_date?->format('M d, Y') ?? 'Date unavailable' }}</p>
+                                                <p class="mt-1 text-xs text-gray-500">Harvest validator: {{ $record->actualHarvestReport?->lguValidator?->name ?? 'LGU account unavailable' }}</p>
+                                            @elseif ($record->actualHarvestReport)
+                                                <p class="mt-2 text-xs font-medium text-amber-700">Actual harvest: {{ $record->actualHarvestReport->lgu_validation_status_label }}</p>
+                                            @else
+                                                <p class="mt-2 text-xs text-gray-500">Actual harvest: Not reported</p>
                                             @endif
                                             @if ($record->has_damage_report)
                                                 <p class="mt-2 text-xs font-medium text-orange-700">{{ $record->damage_cause_label ?? 'Damage reported' }}</p>
