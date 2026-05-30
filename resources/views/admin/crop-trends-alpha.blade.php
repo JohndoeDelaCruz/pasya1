@@ -32,11 +32,11 @@
             </div>
         </div>
 
-        <form method="GET" action="{{ route('admin.crop-trends-alpha') }}" class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+        <form method="GET" action="{{ route('admin.crop-trends-alpha') }}" class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5" x-data>
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div>
                     <label for="municipality" class="block text-sm font-medium text-gray-700">Municipality</label>
-                    <select id="municipality" name="municipality" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500">
+                    <select id="municipality" name="municipality" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500" @change="$el.form.requestSubmit()">
                         @foreach($municipalities as $municipality)
                             <option value="{{ $municipality }}" @selected(\App\Models\Municipality::normalizeLocationName($municipality) === $selectedMunicipality)>
                                 {{ ucwords(strtolower($municipality)) }}
@@ -46,7 +46,7 @@
                 </div>
                 <div>
                     <label for="crop" class="block text-sm font-medium text-gray-700">Crop</label>
-                    <select id="crop" name="crop" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500">
+                    <select id="crop" name="crop" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500" @change="$el.form.requestSubmit()">
                         @foreach($crops as $crop)
                             <option value="{{ $crop }}" @selected(strtoupper($crop) === strtoupper($selectedCrop))>
                                 {{ ucwords(strtolower($crop)) }}
@@ -56,7 +56,7 @@
                 </div>
                 <div>
                     <label for="farm_type" class="block text-sm font-medium text-gray-700">Farm Type</label>
-                    <select id="farm_type" name="farm_type" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500">
+                    <select id="farm_type" name="farm_type" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500" @change="$el.form.requestSubmit()">
                         @foreach($farmTypes as $farmType)
                             <option value="{{ $farmType }}" @selected(strtoupper(str_replace(' ', '', $farmType)) === $selectedFarmType)>
                                 {{ ucfirst(strtolower($farmType)) }}
@@ -65,8 +65,7 @@
                     </select>
                 </div>
                 <div class="flex items-end gap-2">
-                    <button type="submit" class="inline-flex flex-1 items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700">Update</button>
-                    <a href="{{ route('admin.crop-trends-alpha') }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Reset</a>
+                    <a href="{{ route('admin.crop-trends-alpha') }}" class="inline-flex w-full items-center justify-center rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50">Reset</a>
                 </div>
             </div>
         </form>
