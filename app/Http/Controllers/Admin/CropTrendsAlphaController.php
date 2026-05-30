@@ -43,7 +43,7 @@ class CropTrendsAlphaController extends Controller
 
         $coverage = $this->coverage($locationNames, $selectedCrop, $selectedFarmType);
         $actualsByPeriod = $this->actualHarvestsByPeriod($periods, $locationNames, $selectedCrop, $selectedFarmType);
-        $predictionAreas = $this->predictionAreasByPeriod($periods, $locationNames, $selectedMunicipality, $selectedCrop, $selectedFarmType);
+        $predictionAreas = $this->predictionAreasByPeriod($periods, $locationNames, $selectedCrop, $selectedFarmType);
         $predictionsByPeriod = $coverage['can_predict']
             ? $this->predictionsByPeriod($periods, $selectedMunicipality, $selectedCrop, $selectedFarmType, $predictionAreas)
             : collect();
@@ -177,7 +177,7 @@ class CropTrendsAlphaController extends Controller
             ->pluck('total_actual_harvest', 'period_key');
     }
 
-    private function predictionAreasByPeriod(Collection $periods, array $locationNames, string $municipality, string $crop, string $farmType): Collection
+    private function predictionAreasByPeriod(Collection $periods, array $locationNames, string $crop, string $farmType): Collection
     {
         $start = $periods->first()->copy()->startOfMonth();
         $end = $periods->last()->copy()->endOfMonth();
@@ -193,27 +193,11 @@ class CropTrendsAlphaController extends Controller
             ->groupBy('period_key')
             ->pluck('total_area', 'period_key');
 
-        $seasonalAreas = Crop::query()
-            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'municipality', $locationNames))
-            ->whereRaw('UPPER(crop) = ?', [$crop])
-            ->whereRaw('UPPER(farm_type) = ?', [$farmType])
-            ->selectRaw('month, AVG(area_harvested) as avg_area')
-            ->groupBy('month')
-            ->get()
-            ->mapWithKeys(fn ($row) => [$this->normalizeMonth((string) $row->month) => (float) $row->avg_area]);
-
-        $defaultArea = Crop::query()
-            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'municipality', $locationNames))
-            ->whereRaw('UPPER(crop) = ?', [$crop])
-            ->whereRaw('UPPER(farm_type) = ?', [$farmType])
-            ->avg('area_harvested') ?: 1;
-
-        return $periods->mapWithKeys(function (Carbon $period) use ($approvedPlanAreas, $seasonalAreas, $defaultArea) {
+        return $periods->mapWithKeys(function (Carbon $period) use ($approvedPlanAreas) {
             $periodKey = $period->format('Y-m');
-            $monthKey = strtoupper($period->format('M'));
-            $area = (float) ($approvedPlanAreas->get($periodKey) ?: $seasonalAreas->get($monthKey) ?: $defaultArea);
+            $area = (float) ($approvedPlanAreas->get($periodKey) ?: 0);
 
-            return [$periodKey => max(0.0001, $area)];
+            return [$periodKey => max(0, $area)];
         });
     }
 
@@ -221,12 +205,22 @@ class CropTrendsAlphaController extends Controller
     {
         return $periods->mapWithKeys(function (Carbon $period) use ($municipality, $crop, $farmType, $areas) {
             $periodKey = $period->format('Y-m');
+            $area = (float) ($areas->get($periodKey) ?: 0);
+
+            if ($area <= 0) {
+                return [$periodKey => [
+                    'production_mt' => null,
+                    'confidence_score' => null,
+                    'source' => 'no_input',
+                ]];
+            }
+
             $prediction = $this->predictionService->predictProduction([
                 'municipality' => $municipality,
                 'farm_type' => $farmType,
                 'month' => strtoupper($period->format('M')),
                 'crop' => $crop,
-                'area_harvested' => (float) $areas->get($periodKey),
+                'area_harvested' => $area,
                 'year' => (int) $period->format('Y'),
             ]);
 
@@ -251,26 +245,6 @@ class CropTrendsAlphaController extends Controller
     private function normalizeFarmType(string $farmType): string
     {
         return str_replace(' ', '', strtoupper(trim($farmType)));
-    }
-
-    private function normalizeMonth(string $month): string
-    {
-        $normalized = strtoupper(trim($month));
-
-        return match ($normalized) {
-            'JANUARY' => 'JAN',
-            'FEBRUARY' => 'FEB',
-            'MARCH' => 'MAR',
-            'APRIL' => 'APR',
-            'JUNE' => 'JUN',
-            'JULY' => 'JUL',
-            'AUGUST' => 'AUG',
-            'SEPTEMBER', 'SEPT' => 'SEP',
-            'OCTOBER' => 'OCT',
-            'NOVEMBER' => 'NOV',
-            'DECEMBER' => 'DEC',
-            default => substr($normalized, 0, 3),
-        };
     }
 
     private function applyLocationScope($query, string $column, array $locationNames)

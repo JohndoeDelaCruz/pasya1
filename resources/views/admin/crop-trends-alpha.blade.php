@@ -134,7 +134,7 @@
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Month</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actual Harvest</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Predicted Harvest</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Prediction Area</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Farmer-Reported Area</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Confidence</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Source</th>
                         </tr>
@@ -149,12 +149,14 @@
                                 <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-green-700">
                                     {{ $row['predicted_harvest_mt'] !== null ? number_format($row['predicted_harvest_mt'], 4) . ' MT' : 'Not calculated' }}
                                 </td>
-                                <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">{{ number_format($row['prediction_area_ha'], 4) }} ha</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">
+                                    {{ $row['prediction_area_ha'] > 0 ? number_format($row['prediction_area_ha'], 4) . ' ha' : 'No approved plan' }}
+                                </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">
                                     {{ $row['confidence_score'] !== null ? number_format($row['confidence_score'], 1) . '%' : 'N/A' }}
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600">
-                                    {{ $row['source'] === 'ml' ? 'ML forecast' : ($coverage['can_predict'] ? 'Unavailable' : 'Coverage blocked') }}
+                                    {{ $row['source'] === 'ml' ? 'ML forecast' : ($row['source'] === 'no_input' ? 'No farmer input' : ($coverage['can_predict'] ? 'Unavailable' : 'Coverage blocked')) }}
                                 </td>
                             </tr>
                         @endforeach
