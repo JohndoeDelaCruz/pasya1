@@ -86,7 +86,7 @@ class CropPlan extends Model
         'expected_harvest_date' => 'date',
         'actual_harvest_date' => 'date',
         'area_hectares' => 'decimal:2',
-        'damaged_area_hectares' => 'decimal:2',
+        'damaged_area_hectares' => 'decimal:4',
         'predicted_production' => 'decimal:2',
         'damage_occurred_on' => 'date',
         'damage_reported_at' => 'datetime',

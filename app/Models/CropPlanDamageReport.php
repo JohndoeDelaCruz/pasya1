@@ -32,7 +32,7 @@ class CropPlanDamageReport extends Model
     ];
 
     protected $casts = [
-        'damaged_area_hectares' => 'decimal:2',
+        'damaged_area_hectares' => 'decimal:4',
         'damage_occurred_on' => 'date',
         'lgu_validated_at' => 'datetime',
         'submitted_to_da_at' => 'datetime',

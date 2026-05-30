@@ -863,7 +863,7 @@
                     <div class="space-y-4 px-6 py-5">
                         <div class="rounded-xl border border-orange-100 bg-orange-50 px-4 py-3 text-sm text-orange-900">
                             <p class="font-semibold" x-text="damageReportForm.crop_name || 'Selected crop plan'"></p>
-                            <p class="mt-1 text-xs text-orange-800">Total area: <span x-text="formatHectares(damageReportForm.area_hectares)"></span></p>
+                            <p class="mt-1 text-xs text-orange-800">Total area: <span x-text="formatHectares(damageReportForm.area_hectares)"></span> (<span x-text="formatSquareMeters(hectaresToSquareMeters(damageReportForm.area_hectares))"></span>)</p>
                             <template x-if="damageReportForm.has_damage_report">
                                 <p class="mt-1 text-xs text-orange-800">Existing report: <span x-text="damageReportForm.damage_cause_label || 'Damage reported'"></span> on <span x-text="damageReportForm.damage_occurred_on_formatted || damageReportForm.damage_reported_at_formatted || 'recorded date unavailable'"></span></p>
                             </template>
@@ -879,14 +879,15 @@
                         </div>
 
                         <div>
-                            <label class="mb-1 block text-sm font-medium text-gray-700">Damaged Area (Hectares)</label>
-                            <input type="number" x-model="damageReportForm.damaged_area_hectares"
-                                step="0.01" min="0.01" :max="damageReportForm.area_hectares || null"
-                                placeholder="e.g., 1.25"
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Damaged Area (sqm)</label>
+                            <input type="number" x-model="damageReportForm.damaged_area_sqm"
+                                step="1" min="1" :max="damageAreaLimitSqm || null"
+                                placeholder="e.g., 1250"
                                 :aria-invalid="damageAreaError ? 'true' : 'false'"
                                 :class="damageAreaError ? 'border-red-400 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-orange-500 focus:ring-orange-500'"
                                 class="w-full rounded-xl border px-4 py-2.5 transition focus:ring-2">
-                            <p class="mt-1 text-xs text-gray-500">Enter only the affected portion of the planted area. Maximum: <span x-text="formatHectares(damageAreaLimit)"></span>.</p>
+                            <p class="mt-1 text-xs text-gray-500">Enter only the affected portion of the planted area. Maximum: <span x-text="formatSquareMeters(damageAreaLimitSqm)"></span>.</p>
+                            <p class="mt-1 text-xs text-gray-500">DA reports will receive this as <span x-text="formatHectares(damageAreaHectaresForSubmission)"></span>.</p>
                             <p x-show="damageAreaError" x-cloak class="mt-1 text-xs font-medium text-red-600" x-text="damageAreaError"></p>
                         </div>
 
@@ -1013,7 +1014,7 @@
                         area_hectares: 0,
                         planting_date: '',
                         original_predicted_production: 0,
-                        damaged_area_hectares: '',
+                        damaged_area_sqm: '',
                         damage_cause: '',
                         damage_cause_label: '',
                         damage_notes: '',
@@ -1043,8 +1044,8 @@
                     },
 
                     get canSubmitDamageReport() {
-                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_hectares);
-                        const totalArea = this.damageAreaLimit;
+                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_sqm);
+                        const totalArea = this.damageAreaLimitSqm;
 
                         return !!this.damageReportForm.crop_plan_id &&
                             Number.isFinite(damagedArea) &&
@@ -1061,24 +1062,38 @@
                         return Number.isFinite(totalArea) ? totalArea : 0;
                     },
 
-                    get damageAreaError() {
-                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_hectares);
-                        const totalArea = this.damageAreaLimit;
+                    get damageAreaLimitSqm() {
+                        return this.hectaresToSquareMeters(this.damageAreaLimit);
+                    },
 
-                        if (this.damageReportForm.damaged_area_hectares === '' || !Number.isFinite(damagedArea) || !Number.isFinite(totalArea)) {
+                    get damageAreaHectaresForSubmission() {
+                        const damagedAreaSqm = parseFloat(this.damageReportForm.damaged_area_sqm);
+
+                        if (!Number.isFinite(damagedAreaSqm)) {
+                            return 0;
+                        }
+
+                        return Math.round((damagedAreaSqm / 10000) * 10000) / 10000;
+                    },
+
+                    get damageAreaError() {
+                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_sqm);
+                        const totalArea = this.damageAreaLimitSqm;
+
+                        if (this.damageReportForm.damaged_area_sqm === '' || !Number.isFinite(damagedArea) || !Number.isFinite(totalArea)) {
                             return '';
                         }
 
                         if (damagedArea > totalArea) {
-                            return `Damaged hectares cannot exceed the planted area of ${this.formatHectares(totalArea)}.`;
+                            return `Damaged area cannot exceed the planted area of ${this.formatSquareMeters(totalArea)}.`;
                         }
 
                         return '';
                     },
 
                     get damagePreviewLoss() {
-                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_hectares);
-                        const totalArea = this.damageAreaLimit;
+                        const damagedArea = parseFloat(this.damageReportForm.damaged_area_sqm);
+                        const totalArea = this.damageAreaLimitSqm;
                         const originalProduction = parseFloat(this.damageReportForm.original_predicted_production);
 
                         if (!Number.isFinite(damagedArea) || !Number.isFinite(totalArea) || !Number.isFinite(originalProduction) || totalArea <= 0 || damagedArea > totalArea) {
@@ -1234,6 +1249,16 @@
                         return `${numericValue.toFixed(2)} ha`;
                     },
 
+                    hectaresToSquareMeters(value) {
+                        const numericValue = Number(value || 0);
+                        return Math.round(numericValue * 10000);
+                    },
+
+                    formatSquareMeters(value) {
+                        const numericValue = Number(value || 0);
+                        return `${Math.round(numericValue).toLocaleString()} sqm`;
+                    },
+
                     getValidationBadgeClass(status) {
                         if (status === 'approved') {
                             return 'bg-green-100 text-green-800';
@@ -1262,7 +1287,7 @@
                             area_hectares: 0,
                             planting_date: '',
                             original_predicted_production: 0,
-                            damaged_area_hectares: '',
+                            damaged_area_sqm: '',
                             damage_cause: '',
                             damage_cause_label: '',
                             damage_notes: '',
@@ -1293,9 +1318,9 @@
                             area_hectares: parseFloat(event.area || 0),
                             planting_date: event.planting_date || '',
                             original_predicted_production: parseFloat(event.original_predicted_production ?? event.predicted_production ?? 0),
-                            damaged_area_hectares: latestDamageReport
-                                ? parseFloat(latestDamageReport.damaged_area_hectares || 0)
-                                : (event.has_damage_report ? parseFloat(event.damaged_area_hectares || 0) : ''),
+                            damaged_area_sqm: latestDamageReport
+                                ? this.hectaresToSquareMeters(latestDamageReport.damaged_area_hectares || 0)
+                                : (event.has_damage_report ? this.hectaresToSquareMeters(event.damaged_area_hectares || 0) : ''),
                             damage_cause: latestDamageReport?.damage_cause || event.damage_cause || '',
                             damage_cause_label: latestDamageReport?.damage_cause_label || event.damage_cause_label || '',
                             damage_notes: latestDamageReport?.damage_notes || event.damage_notes || '',
@@ -1364,7 +1389,7 @@
                                     'Accept': 'application/json'
                                 },
                                 body: JSON.stringify({
-                                    damaged_area_hectares: parseFloat(this.damageReportForm.damaged_area_hectares),
+                                    damaged_area_hectares: this.damageAreaHectaresForSubmission,
                                     damage_cause: this.damageReportForm.damage_cause,
                                     damage_occurred_on: this.damageReportForm.damage_occurred_on,
                                     damage_notes: this.damageReportForm.damage_notes
