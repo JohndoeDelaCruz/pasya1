@@ -26,6 +26,175 @@ class Municipality extends Model
         'TUBLAY',
     ];
 
+    public const BENGUET_BARANGAYS_BY_MUNICIPALITY = [
+        'ATOK' => [
+            'ABIANG',
+            'CALIKING',
+            'CATTUBO',
+            'NAGUEY',
+            'PAOAY',
+            'PASDONG',
+            'POBLACION',
+            'TOPDAC',
+        ],
+        'BAKUN' => [
+            'AMPUSONGAN',
+            'BAGU',
+            'DALIPEY',
+            'GAMBANG',
+            'KAYAPA',
+            'POBLACION',
+            'SINACBAT',
+        ],
+        'BOKOD' => [
+            'AMBUKLAO',
+            'BILA',
+            'BOBOK-BISAL',
+            'DAKLAN',
+            'EKIP',
+            'KARAO',
+            'NAWAL',
+            'PITO',
+            'POBLACION',
+            'TIKEY',
+        ],
+        'BUGUIAS' => [
+            'ABATAN',
+            'AMGALEYGUEY',
+            'AMLIMAY',
+            'BACULONGAN NORTE',
+            'BACULONGAN SUR',
+            'BANGAO',
+            'BUYACAOAN',
+            'CALAMAGAN',
+            'CATLUBONG',
+            'LENGAOAN',
+            'LOO',
+            'NATUBLENG',
+            'POBLACION',
+            'SEBANG',
+        ],
+        'ITOGON' => [
+            'AMPUCAO',
+            'DALUPIRIP',
+            'GUMATDANG',
+            'LOACAN',
+            'POBLACION',
+            'TINONGDAN',
+            'TUDING',
+            'UCAB',
+            'VIRAC',
+        ],
+        'KABAYAN' => [
+            'ADAOAY',
+            'ANCHUKEY',
+            'BALLAY',
+            'BASHOY',
+            'BATAN',
+            'DUACAN',
+            'EDDET',
+            'GUSARAN',
+            'KABAYAN BARRIO',
+            'LUSOD',
+            'PACSO',
+            'POBLACION',
+            'TAWANGAN',
+        ],
+        'KAPANGAN' => [
+            'BALAKBAK',
+            'BELENG-BELIS',
+            'BOKLAOAN',
+            'CAYAPES',
+            'CUBA',
+            'DATAKAN',
+            'GADANG',
+            'GASWELING',
+            'LABUEG',
+            'PAYKEK',
+            'POBLACION CENTRAL',
+            'PONGAYAN',
+            'PUDONG',
+            'SAGUBO',
+            'TABA-AO',
+        ],
+        'KIBUNGAN' => [
+            'BADEO',
+            'LUBO',
+            'MADAYMEN',
+            'PALINA',
+            'POBLACION',
+            'SAGPAT',
+            'TACADANG',
+        ],
+        'LA TRINIDAD' => [
+            'ALAPANG',
+            'ALNO',
+            'AMBIONG',
+            'BAHONG',
+            'BALILI',
+            'BECKEL',
+            'BETAG',
+            'BINENG',
+            'CRUZ',
+            'LUBAS',
+            'PICO',
+            'POBLACION',
+            'PUGUIS',
+            'SHILAN',
+            'TAWANG',
+            'WANGAL',
+        ],
+        'MANKAYAN' => [
+            'BALILI',
+            'BEDBED',
+            'BULALACAO',
+            'CABITEN',
+            'COLALO',
+            'GUINAOANG',
+            'PACO',
+            'PALASAAN',
+            'POBLACION',
+            'SAPID',
+            'TABIO',
+            'TANEG',
+        ],
+        'SABLAN' => [
+            'BAGONG',
+            'BALLUAY',
+            'BANANGAN',
+            'BANENGBENG',
+            'BAYABAS',
+            'KAMOG',
+            'PAPPA',
+            'POBLACION',
+        ],
+        'TUBA' => [
+            'ANSAGAN',
+            'CAMP 3',
+            'CAMP 4',
+            'CAMP ONE',
+            'NANGALISAN',
+            'POBLACION',
+            'SAN PASCUAL',
+            'TABAAN NORTE',
+            'TABAAN SUR',
+            'TADIANGAN',
+            'TALOY NORTE',
+            'TALOY SUR',
+            'TWIN PEAKS',
+        ],
+        'TUBLAY' => [
+            'AMBASSADOR',
+            'AMBONGDOLAN',
+            'BA-AYAN',
+            'BASIL',
+            'CAPONGA (POB.)',
+            'DACLAN',
+            'TUBLAY CENTRAL',
+            'TUEL',
+        ],
+    ];
+
     protected $fillable = [
         'name',
         'province',
@@ -59,5 +228,46 @@ class Municipality extends Model
     public function getProvinceDisplayAttribute(): string
     {
         return ucwords(strtolower($this->province ?? ''));
+    }
+
+    public static function normalizeLocationName(?string $name): ?string
+    {
+        $normalized = strtoupper(trim((string) $name));
+        $normalized = preg_replace('/\s+/', ' ', $normalized) ?: '';
+
+        return $normalized !== '' ? $normalized : null;
+    }
+
+    public static function barangaysFor(?string $municipality): array
+    {
+        $municipality = self::normalizeLocationName($municipality);
+
+        if (! $municipality || ! isset(self::BENGUET_BARANGAYS_BY_MUNICIPALITY[$municipality])) {
+            return [];
+        }
+
+        return self::BENGUET_BARANGAYS_BY_MUNICIPALITY[$municipality];
+    }
+
+    public static function isBarangayInMunicipality(?string $barangay, ?string $municipality): bool
+    {
+        $barangay = self::normalizeLocationName($barangay);
+
+        return $barangay !== null && in_array($barangay, self::barangaysFor($municipality), true);
+    }
+
+    public static function locationNamesForMunicipality(?string $municipality): array
+    {
+        $municipality = self::normalizeLocationName($municipality);
+
+        if (! $municipality) {
+            return [];
+        }
+
+        return collect([$municipality])
+            ->merge(self::barangaysFor($municipality))
+            ->unique()
+            ->values()
+            ->all();
     }
 }

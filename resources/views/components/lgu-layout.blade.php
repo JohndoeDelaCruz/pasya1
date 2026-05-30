@@ -20,7 +20,12 @@
       :class="{ 'pasya-sidebar-open': sidebarOpen }"
       style="--pasya-sidebar-safe-bg: #14532d; --pasya-sidebar-overlay-safe-bg: rgba(0, 0, 0, 0.5);"
       @keydown.escape.window="sidebarOpen = false">
-    @php($validatorUser = auth()->guard('web')->user())
+    @php
+        $validatorUser = auth()->guard('web')->user();
+        $validatorScope = $validatorUser?->barangay
+            ? ucwords(strtolower($validatorUser->barangay)) . ', ' . ucwords(strtolower($validatorUser->municipality ?? ''))
+            : ucwords(strtolower($validatorUser?->municipality ?? 'Assigned LGU'));
+    @endphp
     @include('partials.page-loader')
 
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
@@ -36,7 +41,7 @@
                         </div>
                         <div class="min-w-0">
                             <p class="truncate text-sm font-bold">{{ $validatorUser?->name ?? 'LGU Validator' }}</p>
-                            <p class="truncate text-xs text-green-200">{{ ucwords(strtolower($validatorUser?->municipality ?? 'Assigned LGU')) }}</p>
+                            <p class="truncate text-xs text-green-200">{{ $validatorScope }}</p>
                         </div>
                     </div>
                 </div>
@@ -77,7 +82,7 @@
                         <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="h-10 w-10 shrink-0 object-contain">
                         <div class="min-w-0">
                             <p class="truncate text-sm font-bold text-gray-900">LGU Validator</p>
-                            <p class="truncate text-xs text-gray-500">{{ ucwords(strtolower($validatorUser?->municipality ?? 'Municipality')) }}</p>
+                            <p class="truncate text-xs text-gray-500">{{ $validatorScope }}</p>
                         </div>
                     </div>
                 </div>

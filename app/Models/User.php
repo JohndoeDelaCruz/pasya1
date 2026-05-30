@@ -33,6 +33,7 @@ class User extends Authenticatable
         'password',
         'role',
         'municipality',
+        'barangay',
         'is_active',
     ];
 
@@ -85,6 +86,13 @@ class User extends Authenticatable
         $municipality = trim((string) $this->municipality);
 
         return $municipality !== '' ? strtoupper($municipality) : null;
+    }
+
+    public function normalizedBarangay(): ?string
+    {
+        $barangay = trim((string) $this->barangay);
+
+        return $barangay !== '' ? strtoupper($barangay) : null;
     }
 
     public function isConfiguredAdminFallback(): bool
