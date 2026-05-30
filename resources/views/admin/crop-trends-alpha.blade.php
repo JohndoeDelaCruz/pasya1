@@ -117,8 +117,19 @@
                 @endif
             </div>
 
-            <div class="mt-5 h-[320px] sm:h-[420px]">
-                <canvas id="alphaTrendChart"></canvas>
+            <div class="mt-5 grid gap-6 xl:grid-cols-2">
+                <div class="min-w-0">
+                    <h3 class="mb-3 text-sm font-semibold uppercase text-gray-700">Actual Harvest</h3>
+                    <div class="h-[300px] sm:h-[360px]">
+                        <canvas id="alphaActualChart"></canvas>
+                    </div>
+                </div>
+                <div class="min-w-0 border-t border-gray-100 pt-5 xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0">
+                    <h3 class="mb-3 text-sm font-semibold uppercase text-gray-700">Predicted Harvest</h3>
+                    <div class="h-[300px] sm:h-[360px]">
+                        <canvas id="alphaPredictedChart"></canvas>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -172,52 +183,55 @@
         function cropTrendsAlpha() {
             return {
                 init() {
-                    this.$nextTick(() => this.initChart());
+                    this.$nextTick(() => this.initCharts());
                 },
-                initChart() {
-                    const canvas = document.getElementById('alphaTrendChart');
-                    if (!canvas || typeof Chart === 'undefined') {
+                initCharts() {
+                    if (typeof Chart === 'undefined') {
+                        return;
+                    }
+
+                    this.renderBarChart(
+                        'alphaActualChart',
+                        'Actual Harvest (MT)',
+                        @json($actualData),
+                        'rgba(37, 99, 235, 0.7)',
+                        'rgb(37, 99, 235)'
+                    );
+                    this.renderBarChart(
+                        'alphaPredictedChart',
+                        'Predicted Harvest (MT)',
+                        @json($predictedData),
+                        'rgba(34, 197, 94, 0.7)',
+                        'rgb(34, 197, 94)'
+                    );
+                },
+                renderBarChart(canvasId, label, values, backgroundColor, borderColor) {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) {
                         return;
                     }
 
                     new Chart(canvas, {
-                        type: 'line',
+                        type: 'bar',
                         data: {
                             labels: @json($labels),
-                            datasets: [
-                                {
-                                    label: 'Actual Harvest (MT)',
-                                    data: @json($actualData),
-                                    borderColor: '#2563eb',
-                                    backgroundColor: 'rgba(37, 99, 235, 0.08)',
-                                    borderWidth: 2.5,
-                                    tension: 0.35,
-                                    fill: false,
-                                    spanGaps: false,
-                                    pointRadius: 4,
-                                    pointBackgroundColor: '#2563eb',
-                                },
-                                {
-                                    label: 'Predicted Harvest (MT)',
-                                    data: @json($predictedData),
-                                    borderColor: '#16a34a',
-                                    backgroundColor: 'rgba(22, 163, 74, 0.12)',
-                                    borderWidth: 3,
-                                    borderDash: [6, 4],
-                                    tension: 0.35,
-                                    fill: true,
-                                    spanGaps: false,
-                                    pointRadius: 3,
-                                    pointBackgroundColor: '#16a34a',
-                                },
-                            ],
+                            datasets: [{
+                                label,
+                                data: values,
+                                backgroundColor,
+                                borderColor,
+                                borderWidth: 1,
+                                maxBarThickness: 28,
+                            }],
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
                             interaction: { mode: 'index', intersect: false },
                             plugins: {
-                                legend: { position: 'bottom' },
+                                legend: {
+                                    display: false,
+                                },
                                 tooltip: {
                                     callbacks: {
                                         label(context) {
@@ -234,12 +248,29 @@
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    title: { display: true, text: 'Production (MT)' },
-                                    grid: { color: 'rgba(15, 23, 42, 0.08)' },
+                                    ticks: {
+                                        callback(value) {
+                                            return Number(value).toLocaleString();
+                                        },
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Production (MT)',
+                                    },
+                                    grid: {
+                                        color: 'rgba(15, 23, 42, 0.08)',
+                                    },
                                 },
                                 x: {
-                                    ticks: { maxRotation: 45, minRotation: 0 },
-                                    grid: { display: false },
+                                    ticks: {
+                                        maxRotation: 45,
+                                        minRotation: 45,
+                                        autoSkip: true,
+                                        maxTicksLimit: 12,
+                                    },
+                                    grid: {
+                                        color: 'rgba(15, 23, 42, 0.06)',
+                                    },
                                 },
                             },
                         },
