@@ -38,7 +38,7 @@ class CropTrendsAlphaController extends Controller
         $locationNames = Municipality::locationNamesForMunicipality($selectedMunicipality);
 
         $start = now()->startOfMonth();
-        $end = now()->copy()->addYears(3)->startOfMonth();
+        $end = now()->copy()->endOfYear();
         $periods = $this->periods($start, $end);
 
         $coverage = $this->coverage($locationNames, $selectedCrop, $selectedFarmType);
