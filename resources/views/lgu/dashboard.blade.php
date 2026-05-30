@@ -41,7 +41,9 @@
             <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Validation Queue</h1>
-                    <p class="mt-1 text-sm text-gray-500">{{ ucwords(strtolower($municipality)) }} submissions for LGU review.</p>
+                    <p class="mt-1 text-sm text-gray-500">
+                        {{ $barangay ? ucwords(strtolower($barangay)) . ', ' : '' }}{{ ucwords(strtolower($municipality)) }} submissions for LGU review.
+                    </p>
                 </div>
             </div>
 

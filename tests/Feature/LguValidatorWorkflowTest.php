@@ -41,6 +41,7 @@ class LguValidatorWorkflowTest extends TestCase
             'username' => 'buguias-validator',
             'email' => 'buguias.validator@example.com',
             'municipality' => 'BUGUIAS',
+            'barangay' => 'ABATAN',
             'password' => 'password123',
             'password_confirmation' => 'password123',
             'is_active' => '1',
@@ -51,6 +52,7 @@ class LguValidatorWorkflowTest extends TestCase
             'email' => 'buguias.validator@example.com',
             'role' => User::ROLE_LGU_VALIDATOR,
             'municipality' => 'BUGUIAS',
+            'barangay' => 'ABATAN',
             'is_active' => true,
         ]);
     }
@@ -67,6 +69,36 @@ class LguValidatorWorkflowTest extends TestCase
         $response->assertOk();
         $response->assertSee($buguiasPlan->crop_name);
         $response->assertDontSee($atokPlan->crop_name);
+    }
+
+    public function test_municipality_lgu_queue_includes_barangay_encoded_farmer_locations(): void
+    {
+        $validator = $this->createValidator('LA TRINIDAD');
+        $alapangPlan = $this->createCropPlan(['municipality' => 'ALAPANG', 'crop_name' => 'Alapang Lettuce']);
+        $shilanPlan = $this->createCropPlan(['municipality' => 'SHILAN', 'crop_name' => 'Shilan Strawberry']);
+        $buguiasPlan = $this->createCropPlan(['municipality' => 'BUGUIAS', 'crop_name' => 'Buguias Cabbage']);
+
+        $response = $this->actingAs($validator)
+            ->get(route('lgu.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee($alapangPlan->crop_name);
+        $response->assertSee($shilanPlan->crop_name);
+        $response->assertDontSee($buguiasPlan->crop_name);
+    }
+
+    public function test_barangay_scoped_lgu_queue_only_shows_that_barangay(): void
+    {
+        $validator = $this->createValidator('LA TRINIDAD', 'ALAPANG');
+        $alapangPlan = $this->createCropPlan(['municipality' => 'ALAPANG', 'crop_name' => 'Alapang Lettuce']);
+        $shilanPlan = $this->createCropPlan(['municipality' => 'SHILAN', 'crop_name' => 'Shilan Strawberry']);
+
+        $response = $this->actingAs($validator)
+            ->get(route('lgu.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee($alapangPlan->crop_name);
+        $response->assertDontSee($shilanPlan->crop_name);
     }
 
     public function test_lgu_can_approve_reject_and_farmer_can_resubmit_crop_plan(): void
@@ -174,11 +206,12 @@ class LguValidatorWorkflowTest extends TestCase
         ]);
     }
 
-    private function createValidator(string $municipality): User
+    private function createValidator(string $municipality, ?string $barangay = null): User
     {
         return User::factory()->create([
             'role' => User::ROLE_LGU_VALIDATOR,
             'municipality' => $municipality,
+            'barangay' => $barangay,
             'is_active' => true,
         ]);
     }

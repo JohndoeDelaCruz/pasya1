@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CropPlan;
 use App\Models\CropPlanDamageReport;
 use App\Models\FarmerNotification;
+use App\Models\Municipality;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,20 +30,22 @@ class LguDashboardController extends Controller
 
         $validator = Auth::guard('web')->user();
         $municipality = $validator->normalizedMunicipality();
+        $barangay = $validator->normalizedBarangay();
+        $locationNames = $this->validatorLocationNames();
         $status = $validated['status'] ?? CropPlan::VALIDATION_PENDING;
         $type = $validated['type'] ?? 'all';
         $search = trim((string) ($validated['search'] ?? ''));
 
         $cropPlansQuery = CropPlan::query()
             ->with(['farmer', 'cropType', 'lguValidator'])
-            ->where('municipality', $municipality)
+            ->whereIn('municipality', $locationNames)
             ->when($status !== 'all', fn ($query) => $query->where('lgu_validation_status', $status))
             ->when($search !== '', fn ($query) => $this->applyCropPlanSearch($query, $search))
             ->latest('created_at');
 
         $damageReportsQuery = CropPlanDamageReport::query()
             ->with(['farmer', 'cropPlan.cropType', 'lguValidator'])
-            ->whereHas('cropPlan', fn ($query) => $query->where('municipality', $municipality))
+            ->whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))
             ->when($status !== 'all', fn ($query) => $query->where('lgu_validation_status', $status))
             ->when($search !== '', fn ($query) => $this->applyDamageReportSearch($query, $search))
             ->latest('created_at');
@@ -56,17 +59,18 @@ class LguDashboardController extends Controller
             : collect();
 
         $stats = [
-            'crop_plans_pending' => CropPlan::where('municipality', $municipality)->where('lgu_validation_status', CropPlan::VALIDATION_PENDING)->count(),
-            'crop_plans_approved' => CropPlan::where('municipality', $municipality)->where('lgu_validation_status', CropPlan::VALIDATION_APPROVED)->count(),
-            'crop_plans_rejected' => CropPlan::where('municipality', $municipality)->where('lgu_validation_status', CropPlan::VALIDATION_REJECTED)->count(),
-            'damage_pending' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->where('municipality', $municipality))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_PENDING)->count(),
-            'damage_approved' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->where('municipality', $municipality))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_APPROVED)->count(),
-            'damage_rejected' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->where('municipality', $municipality))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_REJECTED)->count(),
+            'crop_plans_pending' => CropPlan::whereIn('municipality', $locationNames)->where('lgu_validation_status', CropPlan::VALIDATION_PENDING)->count(),
+            'crop_plans_approved' => CropPlan::whereIn('municipality', $locationNames)->where('lgu_validation_status', CropPlan::VALIDATION_APPROVED)->count(),
+            'crop_plans_rejected' => CropPlan::whereIn('municipality', $locationNames)->where('lgu_validation_status', CropPlan::VALIDATION_REJECTED)->count(),
+            'damage_pending' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_PENDING)->count(),
+            'damage_approved' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_APPROVED)->count(),
+            'damage_rejected' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_REJECTED)->count(),
         ];
 
         return view('lgu.dashboard', [
             'validator' => $validator,
             'municipality' => $municipality,
+            'barangay' => $barangay,
             'cropPlans' => $cropPlans,
             'damageReports' => $damageReports,
             'stats' => $stats,
@@ -200,15 +204,27 @@ class LguDashboardController extends Controller
 
     private function ensureCropPlanInMunicipality(CropPlan $cropPlan): void
     {
-        $municipality = Auth::guard('web')->user()->normalizedMunicipality();
+        $locationNames = $this->validatorLocationNames();
 
-        abort_unless($municipality && strtoupper((string) $cropPlan->municipality) === $municipality, 403);
+        abort_unless(in_array(Municipality::normalizeLocationName($cropPlan->municipality), $locationNames, true), 403);
     }
 
     private function ensureDamageReportInMunicipality(CropPlanDamageReport $damageReport): void
     {
         $damageReport->loadMissing('cropPlan');
         $this->ensureCropPlanInMunicipality($damageReport->cropPlan);
+    }
+
+    private function validatorLocationNames(): array
+    {
+        $validator = Auth::guard('web')->user();
+        $barangay = $validator->normalizedBarangay();
+
+        if ($barangay) {
+            return [$barangay];
+        }
+
+        return Municipality::locationNamesForMunicipality($validator->normalizedMunicipality());
     }
 
     private function applyCropPlanSearch(Builder $query, string $search): void

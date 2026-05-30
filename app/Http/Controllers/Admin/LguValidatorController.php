@@ -24,11 +24,15 @@ class LguValidatorController extends Controller
                     $searchQuery->whereRaw('LOWER(name) LIKE ?', [$searchTerm])
                         ->orWhereRaw('LOWER(username) LIKE ?', [$searchTerm])
                         ->orWhereRaw('LOWER(email) LIKE ?', [$searchTerm])
-                        ->orWhereRaw('LOWER(municipality) LIKE ?', [$searchTerm]);
+                        ->orWhereRaw('LOWER(municipality) LIKE ?', [$searchTerm])
+                        ->orWhereRaw('LOWER(barangay) LIKE ?', [$searchTerm]);
                 });
             })
             ->when($request->filled('municipality'), function ($query) use ($request) {
                 $query->where('municipality', strtoupper((string) $request->municipality));
+            })
+            ->when($request->filled('barangay'), function ($query) use ($request) {
+                $query->where('barangay', strtoupper((string) $request->barangay));
             })
             ->when($request->filled('status'), function ($query) use ($request) {
                 $query->where('is_active', $request->status === 'active');
@@ -45,13 +49,15 @@ class LguValidatorController extends Controller
             'active' => User::where('role', User::ROLE_LGU_VALIDATOR)->where('is_active', true)->count(),
             'inactive' => User::where('role', User::ROLE_LGU_VALIDATOR)->where('is_active', false)->count(),
             'municipalities' => User::where('role', User::ROLE_LGU_VALIDATOR)->whereNotNull('municipality')->distinct()->count('municipality'),
+            'barangay_scoped' => User::where('role', User::ROLE_LGU_VALIDATOR)->whereNotNull('barangay')->count(),
         ];
 
         return view('admin.lgu-validators.index', [
             'validators' => $validators,
             'municipalities' => $this->getMunicipalityOptions(),
+            'barangaysByMunicipality' => Municipality::BENGUET_BARANGAYS_BY_MUNICIPALITY,
             'stats' => $stats,
-            'filters' => $request->only(['search', 'municipality', 'status']),
+            'filters' => $request->only(['search', 'municipality', 'barangay', 'status']),
         ]);
     }
 
@@ -59,6 +65,7 @@ class LguValidatorController extends Controller
     {
         return view('admin.lgu-validators.create', [
             'municipalities' => $this->getMunicipalityOptions(),
+            'barangaysByMunicipality' => Municipality::BENGUET_BARANGAYS_BY_MUNICIPALITY,
         ]);
     }
 
@@ -68,7 +75,12 @@ class LguValidatorController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'municipality' => ['required', 'string', 'max:255'],
+            'municipality' => ['required', 'string', Rule::in($this->getMunicipalityOptions()->all())],
+            'barangay' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) use ($request) {
+                if (filled($value) && ! Municipality::isBarangayInMunicipality($value, $request->input('municipality'))) {
+                    $fail('The selected barangay is not part of the assigned municipality.');
+                }
+            }],
             'password' => ['required', 'confirmed', Password::min(8)],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -81,6 +93,7 @@ class LguValidatorController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => User::ROLE_LGU_VALIDATOR,
             'municipality' => strtoupper($validated['municipality']),
+            'barangay' => Municipality::normalizeLocationName($validated['barangay'] ?? null),
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -96,6 +109,7 @@ class LguValidatorController extends Controller
         return view('admin.lgu-validators.edit', [
             'validator' => $validator,
             'municipalities' => $this->getMunicipalityOptions(),
+            'barangaysByMunicipality' => Municipality::BENGUET_BARANGAYS_BY_MUNICIPALITY,
         ]);
     }
 
@@ -107,7 +121,12 @@ class LguValidatorController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($validator->id)],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($validator->id)],
-            'municipality' => ['required', 'string', 'max:255'],
+            'municipality' => ['required', 'string', Rule::in($this->getMunicipalityOptions()->all())],
+            'barangay' => ['nullable', 'string', 'max:255', function ($attribute, $value, $fail) use ($request) {
+                if (filled($value) && ! Municipality::isBarangayInMunicipality($value, $request->input('municipality'))) {
+                    $fail('The selected barangay is not part of the assigned municipality.');
+                }
+            }],
             'password' => ['nullable', 'confirmed', Password::min(8)],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -117,6 +136,7 @@ class LguValidatorController extends Controller
             'username' => $validated['username'],
             'email' => $validated['email'],
             'municipality' => strtoupper($validated['municipality']),
+            'barangay' => Municipality::normalizeLocationName($validated['barangay'] ?? null),
             'is_active' => $request->boolean('is_active'),
         ]);
 
