@@ -32,8 +32,8 @@ class LguDashboardController extends Controller
         $municipality = $validator->normalizedMunicipality();
         $barangay = $validator->normalizedBarangay();
         $locationNames = $this->validatorLocationNames();
-        $status = $validated['status'] ?? CropPlan::VALIDATION_PENDING;
         $type = $validated['type'] ?? 'all';
+        $status = $validated['status'] ?? ($type === 'damage_reports' ? 'all' : CropPlan::VALIDATION_PENDING);
         $search = trim((string) ($validated['search'] ?? ''));
 
         $cropPlansQuery = CropPlan::query()

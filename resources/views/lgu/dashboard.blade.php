@@ -292,6 +292,8 @@
 
             const search = form.querySelector('input[name="search"]');
             const selects = form.querySelectorAll('select');
+            const statusControl = form.querySelector('select[name="status"]');
+            const typeControl = form.querySelector('select[name="type"]');
             const resetLink = form.querySelector('[data-lgu-filter-reset]');
             const status = form.querySelector('[data-lgu-filter-status]');
             let submitTimer = null;
@@ -386,7 +388,13 @@
             });
 
             selects.forEach((control) => {
-                control.addEventListener('change', () => queueSubmit());
+                control.addEventListener('change', () => {
+                    if (control === typeControl && typeControl.value === 'damage_reports' && statusControl?.value === 'pending') {
+                        statusControl.value = 'all';
+                    }
+
+                    queueSubmit();
+                });
             });
 
             if (search) {
@@ -413,9 +421,6 @@
                     if (search) {
                         search.value = '';
                     }
-
-                    const statusControl = form.querySelector('select[name="status"]');
-                    const typeControl = form.querySelector('select[name="type"]');
 
                     if (statusControl) {
                         statusControl.value = 'pending';

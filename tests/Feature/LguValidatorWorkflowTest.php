@@ -178,6 +178,35 @@ class LguValidatorWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_damage_report_filter_defaults_to_all_statuses(): void
+    {
+        $validator = $this->createValidator('BUGUIAS');
+        $plan = $this->createCropPlan([
+            'municipality' => 'BUGUIAS',
+            'crop_name' => 'Approved Damage Crop',
+            'lgu_validation_status' => CropPlan::VALIDATION_APPROVED,
+        ]);
+
+        CropPlanDamageReport::create([
+            'crop_plan_id' => $plan->id,
+            'farmer_id' => $plan->farmer_id,
+            'damaged_area_hectares' => 1,
+            'damage_cause' => 'typhoon',
+            'damage_occurred_on' => '2026-05-01',
+            'damage_notes' => 'Approved damage report.',
+            'lgu_validation_status' => CropPlanDamageReport::VALIDATION_APPROVED,
+            'lgu_validated_by' => $validator->id,
+            'lgu_validated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($validator)
+            ->get(route('lgu.dashboard', ['type' => 'damage_reports']));
+
+        $response->assertOk();
+        $response->assertSee('Approved Damage Crop');
+        $response->assertSee('value="all" selected', false);
+    }
+
     public function test_da_planting_report_defaults_to_approved_records(): void
     {
         $admin = $this->createAdmin();
