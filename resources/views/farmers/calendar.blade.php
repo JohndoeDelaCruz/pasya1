@@ -64,13 +64,13 @@
                     </button>
                 </div>
 
-                <!-- Add Crop Plan Button - Right -->
+                <!-- Plant crop button -->
                 <button @click="resetCropPlanForm(); showCropPlanModal = true"
                     class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-2 sm:px-4 rounded-xl shadow-sm transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span class="hidden sm:inline">Plan Crop</span>
+                    <span class="hidden sm:inline">Plant Crop</span>
                 </button>
             </div>
 
@@ -449,7 +449,7 @@
                                             <button x-show="selectedEvent.can_revise_crop_plan"
                                                 @click="openCropPlanRevisionModal(selectedEvent)"
                                                 class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100">
-                                                <span x-text="selectedEvent.lgu_validation_status === 'rejected' ? 'Revise Crop Plan' : 'Edit Pending Plan'"></span>
+                                                <span x-text="selectedEvent.lgu_validation_status === 'rejected' ? 'Revise Crop Planting' : 'Edit Pending Planting'"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -519,7 +519,7 @@
                                                 <button x-show="event.can_revise_crop_plan"
                                                     @click="openCropPlanRevisionModal(event)"
                                                     class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100">
-                                                    <span x-text="event.lgu_validation_status === 'rejected' ? 'Revise Crop Plan' : 'Edit Pending Plan'"></span>
+                                                    <span x-text="event.lgu_validation_status === 'rejected' ? 'Revise Crop Planting' : 'Edit Pending Planting'"></span>
                                                 </button>
                                             </div>
                                         </div>
@@ -624,7 +624,7 @@
             </div>
         </div>
 
-        <!-- Crop Plan Modal -->
+        <!-- Crop planting modal -->
         <div x-show="showCropPlanModal" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
             x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
@@ -649,7 +649,7 @@
                                     </svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <h3 class="text-lg font-bold text-white" x-text="isEditingCropPlan ? 'Revise Crop Plan' : 'Plan Your Crop'">Plan Your Crop</h3>
+                                    <h3 class="text-lg font-bold text-white" x-text="isEditingCropPlan ? 'Revise Crop Planting' : 'Plant Your Crop'">Plant Your Crop</h3>
                                     <p class="text-sm text-green-100" x-text="isEditingCropPlan ? 'Update the record and resubmit it to LGU validation' : 'Enter details to see EDOH & predictions'"></p>
                                 </div>
                             </div>
@@ -691,13 +691,14 @@
                                     required>
                             </div>
 
-                            <!-- Area in Hectares -->
+                            <!-- Area in square meters -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Area (Hectares)</label>
-                                <input type="number" x-model="cropPlanForm.area_hectares" @input="calculatePreview"
-                                    step="0.01" min="0.01" max="1000" placeholder="e.g., 2.5"
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Area (sqm)</label>
+                                <input type="number" x-model="cropPlanForm.area_sqm" @input="calculatePreview"
+                                    step="1" min="1" max="10000000" placeholder="e.g., 25000"
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
                                     required>
+                                <p class="mt-1 text-xs text-gray-500">DA reports will receive this as <span x-text="formatHectares(cropPlanAreaHectaresForSubmission)"></span>.</p>
                             </div>
 
                             <!-- Farm Type -->
@@ -777,7 +778,7 @@
                                     <p class="text-lg font-bold text-emerald-600"
                                         x-text="predictionPreview.predicted_production_formatted || '-'"></p>
                                     <p class="text-xs text-gray-400"
-                                        x-text="predictionPreview.area_hectares + ' hectares'"></p>
+                                        x-text="formatSquareMeters(cropPlanForm.area_sqm) + ' / ' + formatHectares(predictionPreview.area_hectares || 0)"></p>
                                 </div>
                             </div>
                             <div class="mt-3 bg-white rounded-lg p-3 shadow-sm">
@@ -823,7 +824,7 @@
                                 <path class="opacity-75" fill="currentColor"
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            <span x-text="isSubmitting ? 'Saving...' : (isEditingCropPlan ? 'Resubmit Plan' : 'Add to Calendar')"></span>
+                            <span x-text="isSubmitting ? 'Saving...' : (isEditingCropPlan ? 'Resubmit Planting' : 'Plant Crop')"></span>
                         </button>
                     </div>
                 </div>
@@ -976,11 +977,11 @@
                     selectedEvent: null,
                     today: todayStr,
 
-                    // Crop plan form
+                    // Crop planting form
                     cropPlanForm: {
                         crop_type_id: '',
                         planting_date: todayStr,
-                        area_hectares: '',
+                        area_sqm: '',
                         farm_type: 'IRRIGATED',
                         planting_material_type: 'SEED',
                         notes: ''
@@ -1035,7 +1036,7 @@
                     get canSubmitCropPlan() {
                         return this.cropPlanForm.crop_type_id &&
                             this.cropPlanForm.planting_date &&
-                            this.cropPlanForm.area_hectares > 0 &&
+                            this.cropPlanAreaHectaresForSubmission > 0 &&
                             this.showPredictionPreview;
                     },
 
@@ -1054,6 +1055,16 @@
                             damagedArea <= totalArea &&
                             !!this.damageReportForm.damage_occurred_on &&
                             !!this.damageReportForm.damage_cause;
+                    },
+
+                    get cropPlanAreaHectaresForSubmission() {
+                        const areaSqm = parseFloat(this.cropPlanForm.area_sqm);
+
+                        if (!Number.isFinite(areaSqm)) {
+                            return 0;
+                        }
+
+                        return Math.round((areaSqm / 10000) * 10000) / 10000;
                     },
 
                     get damageAreaLimit() {
@@ -1344,7 +1355,7 @@
                         this.cropPlanForm = {
                             crop_type_id: event.crop_type_id || '',
                             planting_date: event.planting_date || this.today,
-                            area_hectares: event.area || '',
+                            area_sqm: event.area ? this.hectaresToSquareMeters(event.area) : '',
                             farm_type: event.farm_type || 'IRRIGATED',
                             planting_material_type: event.planting_material_type || 'SEED',
                             notes: event.notes || ''
@@ -1422,8 +1433,8 @@
                         // Validate inputs
                         if (!this.cropPlanForm.crop_type_id ||
                             !this.cropPlanForm.planting_date ||
-                            !this.cropPlanForm.area_hectares ||
-                            this.cropPlanForm.area_hectares <= 0) {
+                            !this.cropPlanForm.area_sqm ||
+                            this.cropPlanAreaHectaresForSubmission <= 0) {
                             this.showPredictionPreview = false;
                             return;
                         }
@@ -1442,7 +1453,7 @@
                                 body: JSON.stringify({
                                     crop_type_id: this.cropPlanForm.crop_type_id,
                                     planting_date: this.cropPlanForm.planting_date,
-                                    area_hectares: parseFloat(this.cropPlanForm.area_hectares),
+                                    area_hectares: this.cropPlanAreaHectaresForSubmission,
                                     farm_type: this.cropPlanForm.farm_type,
                                     planting_material_type: this.cropPlanForm.planting_material_type
                                 })
@@ -1479,7 +1490,7 @@
                             ? baseDaysToHarvest + (supportsSeedling ? seedlingDays : 0)
                             : baseDaysToHarvest;
                         const avgYield = selectedCrop.average_yield_per_hectare ?? selectedCrop.average_yield_value ?? 12;
-                        const area = parseFloat(this.cropPlanForm.area_hectares) || 0;
+                        const area = this.cropPlanAreaHectaresForSubmission;
 
                         // Calculate EDOH
                         const plantingDate = new Date(this.cropPlanForm.planting_date);
@@ -1524,7 +1535,7 @@
                             console.log('Submitting crop plan:', {
                                 crop_type_id: this.cropPlanForm.crop_type_id,
                                 planting_date: this.cropPlanForm.planting_date,
-                                area_hectares: parseFloat(this.cropPlanForm.area_hectares),
+                                area_hectares: this.cropPlanAreaHectaresForSubmission,
                                 farm_type: this.cropPlanForm.farm_type,
                                 planting_material_type: this.cropPlanForm.planting_material_type,
                             });
@@ -1544,7 +1555,7 @@
                                 body: JSON.stringify({
                                     crop_type_id: this.cropPlanForm.crop_type_id,
                                     planting_date: this.cropPlanForm.planting_date,
-                                    area_hectares: parseFloat(this.cropPlanForm.area_hectares),
+                                    area_hectares: this.cropPlanAreaHectaresForSubmission,
                                     farm_type: this.cropPlanForm.farm_type,
                                     planting_material_type: this.cropPlanForm.planting_material_type,
                                     notes: this.cropPlanForm.notes
@@ -1571,7 +1582,7 @@
                                 this.resetCropPlanForm();
                                 this.showCropPlanModal = false;
 
-                                this.showToast((wasEditing ? 'Crop plan resubmitted! EDOH: ' : 'Crop plan added! EDOH: ') + data.data.edoh_formatted);
+                                this.showToast((wasEditing ? 'Crop planting resubmitted! EDOH: ' : 'Crop planted! EDOH: ') + data.data.edoh_formatted);
                             } else {
                                 console.error('Server returned error:', data);
                                 alert('Failed to save crop plan: ' + (data.message || 'Unknown error') + (data.error ? '\n\nDetails: ' + data.error : ''));
@@ -1628,7 +1639,7 @@
                         this.cropPlanForm = {
                             crop_type_id: '',
                             planting_date: this.today,
-                            area_hectares: '',
+                            area_sqm: '',
                             farm_type: 'IRRIGATED',
                             planting_material_type: 'SEED',
                             notes: ''
