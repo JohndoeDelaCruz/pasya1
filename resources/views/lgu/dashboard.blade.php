@@ -72,7 +72,7 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('lgu.dashboard') }}" class="sticky top-0 z-[5] rounded-xl border border-gray-100 bg-white/95 p-4 shadow-sm backdrop-blur">
+            <form method="GET" action="{{ route('lgu.dashboard') }}" class="sticky top-0 z-[5] rounded-xl border border-gray-100 bg-white/95 p-4 shadow-sm backdrop-blur" data-lgu-filter-form data-no-page-loader>
                 <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
                     <div class="xl:col-span-2">
                         <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
@@ -95,12 +95,13 @@
                         </select>
                     </div>
                     <div class="flex flex-wrap items-end gap-2 xl:col-span-2">
-                        <button class="inline-flex flex-1 items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 sm:flex-none">Filter</button>
-                        <a href="{{ route('lgu.dashboard') }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">Reset</a>
+                        <a href="{{ route('lgu.dashboard') }}" data-lgu-filter-reset data-no-page-loader class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">Reset</a>
                     </div>
                 </div>
+                <p class="sr-only" aria-live="polite" data-lgu-filter-status></p>
             </form>
 
+            <div class="space-y-5" data-lgu-queue-content>
             @if(($filters['type'] ?? 'all') !== 'damage_reports')
                 <section class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
                     <div class="border-b border-gray-100 px-4 py-4 sm:px-5">
@@ -272,6 +273,159 @@
                     @endif
                 </section>
             @endif
+            </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('[data-lgu-filter-form]');
+            let queueContent = document.querySelector('[data-lgu-queue-content]');
+
+            if (!form || !queueContent || form.dataset.bound === 'true') {
+                return;
+            }
+
+            form.dataset.bound = 'true';
+
+            const search = form.querySelector('input[name="search"]');
+            const selects = form.querySelectorAll('select');
+            const resetLink = form.querySelector('[data-lgu-filter-reset]');
+            const status = form.querySelector('[data-lgu-filter-status]');
+            let submitTimer = null;
+            let activeRequest = null;
+            let isComposing = false;
+
+            const getFilterUrl = () => {
+                const url = new URL(form.action, window.location.href);
+                const params = new URLSearchParams();
+                const formData = new FormData(form);
+
+                formData.forEach((value, key) => {
+                    const normalizedValue = String(value).trim();
+
+                    if (normalizedValue !== '') {
+                        params.set(key, normalizedValue);
+                    }
+                });
+
+                url.search = params.toString();
+
+                return url;
+            };
+
+            const setStatus = (message) => {
+                if (status) {
+                    status.textContent = message;
+                }
+            };
+
+            const replaceQueueContent = (html) => {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const nextContent = doc.querySelector('[data-lgu-queue-content]');
+
+                if (!nextContent) {
+                    window.location.assign(getFilterUrl().toString());
+                    return;
+                }
+
+                queueContent.replaceWith(nextContent);
+                queueContent = nextContent;
+            };
+
+            const submitFilters = async () => {
+                const targetUrl = getFilterUrl();
+
+                if (activeRequest) {
+                    activeRequest.abort();
+                }
+
+                const request = new AbortController();
+                activeRequest = request;
+                form.setAttribute('aria-busy', 'true');
+                setStatus('Updating validation queue');
+
+                try {
+                    const response = await fetch(targetUrl.toString(), {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        signal: request.signal,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Unable to update filters');
+                    }
+
+                    replaceQueueContent(await response.text());
+                    window.history.replaceState({}, '', targetUrl.toString());
+                    setStatus('Validation queue updated');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        window.location.assign(targetUrl.toString());
+                    }
+                } finally {
+                    if (activeRequest === request) {
+                        form.removeAttribute('aria-busy');
+                        activeRequest = null;
+                    }
+                }
+            };
+
+            const queueSubmit = (delay = 0) => {
+                if (submitTimer) {
+                    window.clearTimeout(submitTimer);
+                }
+
+                submitTimer = window.setTimeout(submitFilters, delay);
+            };
+
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
+                queueSubmit();
+            });
+
+            selects.forEach((control) => {
+                control.addEventListener('change', () => queueSubmit());
+            });
+
+            if (search) {
+                search.addEventListener('compositionstart', () => {
+                    isComposing = true;
+                });
+
+                search.addEventListener('compositionend', () => {
+                    isComposing = false;
+                    queueSubmit(250);
+                });
+
+                search.addEventListener('input', () => {
+                    if (!isComposing) {
+                        queueSubmit(300);
+                    }
+                });
+            }
+
+            if (resetLink) {
+                resetLink.addEventListener('click', (event) => {
+                    event.preventDefault();
+
+                    if (search) {
+                        search.value = '';
+                    }
+
+                    const statusControl = form.querySelector('select[name="status"]');
+                    const typeControl = form.querySelector('select[name="type"]');
+
+                    if (statusControl) {
+                        statusControl.value = 'pending';
+                    }
+
+                    if (typeControl) {
+                        typeControl.value = 'all';
+                    }
+
+                    queueSubmit();
+                });
+            }
+        });
+    </script>
 </x-lgu-layout>
