@@ -233,9 +233,40 @@ class Municipality extends Model
     public static function normalizeLocationName(?string $name): ?string
     {
         $normalized = strtoupper(trim((string) $name));
+        $normalized = str_replace("\xc2\xa0", ' ', $normalized);
         $normalized = preg_replace('/\s+/', ' ', $normalized) ?: '';
 
-        return $normalized !== '' ? $normalized : null;
+        if ($normalized === '') {
+            return null;
+        }
+
+        $compact = str_replace([' ', '_', '-'], '', $normalized);
+
+        foreach (self::BENGUET_MUNICIPALITIES as $municipality) {
+            if ($compact === str_replace(' ', '', $municipality)) {
+                return $municipality;
+            }
+        }
+
+        return $normalized;
+    }
+
+    public static function queryAliasesFor(?string $municipality): array
+    {
+        $municipality = self::normalizeLocationName($municipality);
+
+        if (! $municipality) {
+            return [];
+        }
+
+        return collect([$municipality])
+            ->when(str_contains($municipality, ' '), fn ($names) => $names
+                ->push(str_replace(' ', '', $municipality))
+                ->push(str_replace(' ', '-', $municipality))
+                ->push(str_replace(' ', '_', $municipality)))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public static function barangaysFor(?string $municipality): array
@@ -264,7 +295,7 @@ class Municipality extends Model
             return [];
         }
 
-        return collect([$municipality])
+        return collect(self::queryAliasesFor($municipality))
             ->merge(self::barangaysFor($municipality))
             ->unique()
             ->values()

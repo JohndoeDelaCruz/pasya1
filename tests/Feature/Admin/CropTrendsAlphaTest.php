@@ -65,6 +65,86 @@ class CropTrendsAlphaTest extends TestCase
         $response->assertSee('ML forecast');
     }
 
+    public function test_alpha_page_counts_latrinidad_alias_and_barangay_farmers(): void
+    {
+        $admin = $this->createAdmin();
+        $this->createHistoricalCrop([
+            'municipality' => 'Latrinidad',
+        ]);
+
+        Farmer::create([
+            'farmer_id' => 'FMR-LT-001',
+            'first_name' => 'La',
+            'middle_name' => null,
+            'last_name' => 'Trinidad',
+            'suffix' => null,
+            'municipality' => 'LA TRINIDAD',
+            'cooperative' => null,
+            'contact_info' => null,
+            'email' => 'la-trinidad@example.com',
+            'mobile_number' => '09123000001',
+            'password' => 'password',
+            'created_by' => null,
+        ]);
+        Farmer::create([
+            'farmer_id' => 'FMR-LT-002',
+            'first_name' => 'Beckel',
+            'middle_name' => null,
+            'last_name' => 'Farmer',
+            'suffix' => null,
+            'municipality' => 'BECKEL',
+            'cooperative' => null,
+            'contact_info' => null,
+            'email' => 'beckel@example.com',
+            'mobile_number' => '09123000002',
+            'password' => 'password',
+            'created_by' => null,
+        ]);
+        Farmer::create([
+            'farmer_id' => 'FMR-LT-003',
+            'first_name' => 'Compact',
+            'middle_name' => null,
+            'last_name' => 'Farmer',
+            'suffix' => null,
+            'municipality' => 'LATRINIDAD',
+            'cooperative' => null,
+            'contact_info' => null,
+            'email' => 'compact-latrinidad@example.com',
+            'mobile_number' => '09123000003',
+            'password' => 'password',
+            'created_by' => null,
+        ]);
+        Farmer::create([
+            'farmer_id' => 'FMR-BUG-001',
+            'first_name' => 'Buguias',
+            'middle_name' => null,
+            'last_name' => 'Farmer',
+            'suffix' => null,
+            'municipality' => 'BUGUIAS',
+            'cooperative' => null,
+            'contact_info' => null,
+            'email' => 'buguias-extra@example.com',
+            'mobile_number' => '09123000004',
+            'password' => 'password',
+            'created_by' => null,
+        ]);
+
+        $this->mock(PredictionService::class, function ($mock): void {
+            $mock->shouldNotReceive('checkHealth');
+            $mock->shouldNotReceive('predictProduction');
+        });
+
+        $response = $this->actingAs($admin)->get(route('admin.crop-trends-alpha', [
+            'municipality' => 'Latrinidad',
+            'crop' => 'CABBAGE',
+            'farm_type' => 'IRRIGATED',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('La Trinidad');
+        $response->assertSee('<p class="mt-2 text-2xl font-bold text-gray-900">3</p>', false);
+    }
+
     private function createAdmin(): User
     {
         return User::factory()->create([
@@ -73,9 +153,9 @@ class CropTrendsAlphaTest extends TestCase
         ]);
     }
 
-    private function createHistoricalCrop(): Crop
+    private function createHistoricalCrop(array $overrides = []): Crop
     {
-        return Crop::create([
+        return Crop::create(array_merge([
             'municipality' => 'BUGUIAS',
             'farm_type' => 'IRRIGATED',
             'year' => 2025,
@@ -86,7 +166,7 @@ class CropTrendsAlphaTest extends TestCase
             'production' => 50,
             'productivity' => 10,
             'uploaded_by' => $this->createAdmin()->id,
-        ]);
+        ], $overrides));
     }
 
     private function createFarmers(int $count)

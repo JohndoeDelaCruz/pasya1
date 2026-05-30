@@ -66,7 +66,15 @@ class CropTrendsAlphaController extends Controller
             ];
         })->values();
 
-        $municipalities = Crop::query()->distinct()->orderBy('municipality')->pluck('municipality');
+        $municipalities = Crop::query()
+            ->distinct()
+            ->orderBy('municipality')
+            ->pluck('municipality')
+            ->map(fn ($municipality) => Municipality::normalizeLocationName($municipality))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
         $crops = Crop::query()->distinct()->orderBy('crop')->pluck('crop');
         $farmTypes = Crop::query()->distinct()->orderBy('farm_type')->pluck('farm_type');
 
@@ -123,7 +131,7 @@ class CropTrendsAlphaController extends Controller
     {
         $farmerQuery = Farmer::query();
         if ($locationNames !== []) {
-            $farmerQuery->whereIn(DB::raw('UPPER(municipality)'), $locationNames);
+            $this->applyLocationScope($farmerQuery, 'municipality', $locationNames);
         }
 
         $registeredFarmers = (clone $farmerQuery)->count();
@@ -132,7 +140,7 @@ class CropTrendsAlphaController extends Controller
             ->join('farmers', 'farmers.id', '=', 'crop_plans.farmer_id')
             ->whereNull('farmers.deleted_at')
             ->where('crop_plans.lgu_validation_status', CropPlan::VALIDATION_APPROVED)
-            ->when($locationNames !== [], fn ($query) => $query->whereIn(DB::raw('UPPER(crop_plans.municipality)'), $locationNames))
+            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'crop_plans.municipality', $locationNames))
             ->whereRaw('UPPER(crop_plans.crop_name) = ?', [$crop])
             ->whereRaw('UPPER(crop_plans.farm_type) = ?', [$farmType])
             ->distinct('crop_plans.farmer_id')
@@ -160,7 +168,7 @@ class CropTrendsAlphaController extends Controller
             ->where('lgu_validation_status', CropPlan::VALIDATION_APPROVED)
             ->whereNotNull('actual_harvest_production_mt')
             ->whereBetween('actual_harvest_date', [$start, $end])
-            ->when($locationNames !== [], fn ($query) => $query->whereIn(DB::raw('UPPER(municipality)'), $locationNames))
+            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'municipality', $locationNames))
             ->whereRaw('UPPER(crop_name) = ?', [$crop])
             ->whereRaw('UPPER(farm_type) = ?', [$farmType])
             ->selectRaw($this->periodKeyExpression('actual_harvest_date') . ' as period_key')
@@ -177,7 +185,7 @@ class CropTrendsAlphaController extends Controller
         $approvedPlanAreas = CropPlan::query()
             ->where('lgu_validation_status', CropPlan::VALIDATION_APPROVED)
             ->whereBetween('expected_harvest_date', [$start, $end])
-            ->when($locationNames !== [], fn ($query) => $query->whereIn(DB::raw('UPPER(municipality)'), $locationNames))
+            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'municipality', $locationNames))
             ->whereRaw('UPPER(crop_name) = ?', [$crop])
             ->whereRaw('UPPER(farm_type) = ?', [$farmType])
             ->selectRaw($this->periodKeyExpression('expected_harvest_date') . ' as period_key')
@@ -186,7 +194,7 @@ class CropTrendsAlphaController extends Controller
             ->pluck('total_area', 'period_key');
 
         $seasonalAreas = Crop::query()
-            ->whereRaw('UPPER(municipality) = ?', [$municipality])
+            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'municipality', $locationNames))
             ->whereRaw('UPPER(crop) = ?', [$crop])
             ->whereRaw('UPPER(farm_type) = ?', [$farmType])
             ->selectRaw('month, AVG(area_harvested) as avg_area')
@@ -195,7 +203,7 @@ class CropTrendsAlphaController extends Controller
             ->mapWithKeys(fn ($row) => [$this->normalizeMonth((string) $row->month) => (float) $row->avg_area]);
 
         $defaultArea = Crop::query()
-            ->whereRaw('UPPER(municipality) = ?', [$municipality])
+            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'municipality', $locationNames))
             ->whereRaw('UPPER(crop) = ?', [$crop])
             ->whereRaw('UPPER(farm_type) = ?', [$farmType])
             ->avg('area_harvested') ?: 1;
@@ -263,6 +271,11 @@ class CropTrendsAlphaController extends Controller
             'DECEMBER' => 'DEC',
             default => substr($normalized, 0, 3),
         };
+    }
+
+    private function applyLocationScope($query, string $column, array $locationNames)
+    {
+        return $query->whereIn(DB::raw("UPPER(TRIM({$column}))"), $locationNames);
     }
 
     private function periodKeyExpression(string $column): string

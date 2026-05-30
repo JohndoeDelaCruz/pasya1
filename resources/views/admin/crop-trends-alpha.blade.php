@@ -38,7 +38,7 @@
                     <label for="municipality" class="block text-sm font-medium text-gray-700">Municipality</label>
                     <select id="municipality" name="municipality" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500">
                         @foreach($municipalities as $municipality)
-                            <option value="{{ $municipality }}" @selected(strtoupper($municipality) === strtoupper($selectedMunicipality))>
+                            <option value="{{ $municipality }}" @selected(\App\Models\Municipality::normalizeLocationName($municipality) === $selectedMunicipality)>
                                 {{ ucwords(strtolower($municipality)) }}
                             </option>
                         @endforeach
