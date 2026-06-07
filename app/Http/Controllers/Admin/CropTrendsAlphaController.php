@@ -42,6 +42,7 @@ class CropTrendsAlphaController extends Controller
         $periods = $this->periods($start, $end);
 
         $coverage = $this->coverage($locationNames, $selectedCrop, $selectedFarmType);
+        $actualReporting = $this->actualReporting($locationNames, $selectedCrop, $selectedFarmType);
         $actualsByPeriod = $this->actualHarvestsByPeriod($periods, $locationNames, $selectedCrop, $selectedFarmType);
         $predictionAreas = $this->predictionAreasByPeriod($periods, $locationNames, $selectedCrop, $selectedFarmType);
         $predictionsByPeriod = $coverage['can_predict']
@@ -84,6 +85,7 @@ class CropTrendsAlphaController extends Controller
             'actualData' => $rows->pluck('actual_harvest_mt')->all(),
             'predictedData' => $rows->pluck('predicted_harvest_mt')->all(),
             'coverage' => $coverage,
+            'actualReporting' => $actualReporting,
             'selectedMunicipality' => $selectedMunicipality,
             'selectedCrop' => $selectedCrop,
             'selectedFarmType' => $selectedFarmType,
@@ -153,9 +155,41 @@ class CropTrendsAlphaController extends Controller
         return [
             'registered_farmers' => $registeredFarmers,
             'participating_farmers' => $participatingFarmers,
+            'plan_coverage_percentage' => $percentage,
             'percentage' => $percentage,
             'threshold' => 10,
             'can_predict' => $registeredFarmers > 0 && $percentage >= 10,
+        ];
+    }
+
+    private function actualReporting(array $locationNames, string $crop, string $farmType): array
+    {
+        $harvestReadyQuery = CropPlan::query()
+            ->join('farmers', 'farmers.id', '=', 'crop_plans.farmer_id')
+            ->whereNull('farmers.deleted_at')
+            ->where('crop_plans.lgu_validation_status', CropPlan::VALIDATION_APPROVED)
+            ->whereDate('crop_plans.expected_harvest_date', '<=', today())
+            ->when($locationNames !== [], fn ($query) => $this->applyLocationScope($query, 'crop_plans.municipality', $locationNames))
+            ->whereRaw('UPPER(crop_plans.crop_name) = ?', [$crop])
+            ->whereRaw('UPPER(crop_plans.farm_type) = ?', [$farmType]);
+
+        $harvestReadyFarmers = (clone $harvestReadyQuery)
+            ->distinct('crop_plans.farmer_id')
+            ->count('crop_plans.farmer_id');
+
+        $actualReportedFarmers = (clone $harvestReadyQuery)
+            ->whereNotNull('crop_plans.actual_harvest_production_mt')
+            ->distinct('crop_plans.farmer_id')
+            ->count('crop_plans.farmer_id');
+
+        $percentage = $harvestReadyFarmers > 0
+            ? round(($actualReportedFarmers / $harvestReadyFarmers) * 100, 2)
+            : 0.0;
+
+        return [
+            'harvest_ready_farmers' => $harvestReadyFarmers,
+            'actual_reported_farmers' => $actualReportedFarmers,
+            'percentage' => $percentage,
         ];
     }
 

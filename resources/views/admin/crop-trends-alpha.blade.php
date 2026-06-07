@@ -27,7 +27,7 @@
                     <span class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">ML gated</span>
                 @endif
                 <span class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
-                    {{ number_format($coverage['percentage'], 2) }}% participation
+                    {{ number_format($coverage['plan_coverage_percentage'], 2) }}% plan coverage
                 </span>
             </div>
         </div>
@@ -70,16 +70,28 @@
             </div>
         </form>
 
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Registered Farmers</p>
                 <p class="mt-2 text-2xl font-bold text-gray-900">{{ number_format($coverage['registered_farmers']) }}</p>
                 <p class="mt-1 text-xs text-gray-500">Selected municipality scope</p>
             </section>
             <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Participating Farmers</p>
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Validated Plan Farmers</p>
                 <p class="mt-2 text-2xl font-bold text-gray-900">{{ number_format($coverage['participating_farmers']) }}</p>
-                <p class="mt-1 text-xs text-gray-500">With approved relevant crop records</p>
+                <p class="mt-1 text-xs text-gray-500">With matching LGU-approved crop plans</p>
+            </section>
+            <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Plan Coverage</p>
+                <p class="mt-2 text-2xl font-bold text-green-700">{{ number_format($coverage['plan_coverage_percentage'], 2) }}%</p>
+                <p class="mt-1 text-xs text-gray-500">{{ $coverage['can_predict'] ? 'Meets ML gate' : 'Needs 10% for ML' }}</p>
+            </section>
+            <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Actual Reporting Rate</p>
+                <p class="mt-2 text-2xl font-bold text-blue-700">{{ number_format($actualReporting['percentage'], 2) }}%</p>
+                <p class="mt-1 text-xs text-gray-500">
+                    {{ number_format($actualReporting['actual_reported_farmers']) }} of {{ number_format($actualReporting['harvest_ready_farmers']) }} harvest-ready farmers
+                </p>
             </section>
             <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Actual Harvest</p>
@@ -97,7 +109,7 @@
             <section class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm">
                 <h2 class="text-lg font-semibold text-amber-900">Insufficient farmer participation</h2>
                 <p class="mt-1 text-sm text-amber-800">
-                    Predictions are disabled until at least {{ $coverage['threshold'] }}% of active registered farmers in this scope have relevant LGU-approved crop or harvest records.
+                    Predictions are disabled until at least {{ $coverage['threshold'] }}% of active registered farmers in this scope have matching LGU-approved crop plans.
                 </p>
             </section>
         @endunless
@@ -145,7 +157,7 @@
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Month</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Actual Harvest</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Predicted Harvest</th>
-                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Farmer-Reported Area</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Approved Plan Area</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold uppercase text-gray-500">Confidence</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase text-gray-500">Source</th>
                         </tr>

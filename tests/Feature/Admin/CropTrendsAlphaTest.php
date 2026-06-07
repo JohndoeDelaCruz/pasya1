@@ -8,6 +8,7 @@ use App\Models\CropType;
 use App\Models\Farmer;
 use App\Models\User;
 use App\Services\PredictionService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -61,8 +62,52 @@ class CropTrendsAlphaTest extends TestCase
         ]));
 
         $response->assertOk();
-        $response->assertSee('10.00% participation');
+        $response->assertSee('10.00% plan coverage');
         $response->assertSee('ML forecast');
+    }
+
+    public function test_alpha_page_shows_actual_reporting_rate_for_harvest_ready_plans(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-01 08:00:00'));
+
+        try {
+            $admin = $this->createAdmin();
+            $this->createHistoricalCrop();
+            $farmers = $this->createFarmers(10);
+            $this->createApprovedPlan($farmers[0], [
+                'expected_harvest_date' => '2026-07-20',
+                'actual_harvest_date' => '2026-07-22',
+                'actual_harvest_production_mt' => 8.5,
+                'status' => 'harvested',
+            ]);
+            $this->createApprovedPlan($farmers[1], [
+                'expected_harvest_date' => '2026-07-20',
+            ]);
+
+            $this->mock(PredictionService::class, function ($mock): void {
+                $mock->shouldReceive('checkHealth')->andReturn(true);
+                $mock->shouldReceive('predictProduction')->andReturn([
+                    'success' => true,
+                    'prediction' => [
+                        'production_mt' => 10,
+                        'confidence_score' => 90,
+                    ],
+                ]);
+            });
+
+            $response = $this->actingAs($admin)->get(route('admin.crop-trends-alpha', [
+                'municipality' => 'BUGUIAS',
+                'crop' => 'CABBAGE',
+                'farm_type' => 'IRRIGATED',
+            ]));
+
+            $response->assertOk();
+            $response->assertSee('Actual Reporting Rate');
+            $response->assertSee('50.00%');
+            $response->assertSee('1 of 2 harvest-ready farmers');
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_alpha_page_counts_latrinidad_alias_and_barangay_farmers(): void
@@ -187,18 +232,20 @@ class CropTrendsAlphaTest extends TestCase
         ]));
     }
 
-    private function createApprovedPlan(Farmer $farmer): CropPlan
+    private function createApprovedPlan(Farmer $farmer, array $overrides = []): CropPlan
     {
-        $cropType = CropType::create([
-            'name' => 'Cabbage',
-            'category' => 'Vegetable',
-            'description' => 'Test crop type',
-            'days_to_harvest' => 80,
-            'average_yield_per_hectare' => 10,
-            'is_active' => true,
-        ]);
+        $cropType = CropType::firstOrCreate(
+            ['name' => 'Cabbage'],
+            [
+                'category' => 'Vegetable',
+                'description' => 'Test crop type',
+                'days_to_harvest' => 80,
+                'average_yield_per_hectare' => 10,
+                'is_active' => true,
+            ]
+        );
 
-        return CropPlan::create([
+        return CropPlan::create(array_merge([
             'farmer_id' => $farmer->id,
             'crop_type_id' => $cropType->id,
             'crop_name' => 'CABBAGE',
@@ -212,6 +259,6 @@ class CropTrendsAlphaTest extends TestCase
             'status' => 'planned',
             'lgu_validation_status' => CropPlan::VALIDATION_APPROVED,
             'submitted_to_da_at' => now(),
-        ]);
+        ], $overrides));
     }
 }
