@@ -454,6 +454,7 @@ class CropPlan extends Model
         $latestHarvestReport = $this->relationLoaded('latestHarvestReport')
             ? $this->latestHarvestReport
             : null;
+        $latestHarvestStatus = $latestHarvestReport?->lgu_validation_status;
 
         return [
             'crop_plan_id' => $this->id,
@@ -469,6 +470,8 @@ class CropPlan extends Model
             'adjusted_predicted_production' => $this->adjusted_predicted_production,
             'production_loss_mt' => $this->production_loss_mt,
             'planting_date' => $this->planting_date?->format('Y-m-d'),
+            'expected_harvest_date' => $this->expected_harvest_date?->format('Y-m-d'),
+            'expected_harvest_date_formatted' => $this->expected_harvest_date?->format('M d, Y'),
             'planting_material_type' => $this->planting_material_type,
             'planting_material_label' => $this->planting_material_label,
             'display_status' => $this->display_status,
@@ -500,6 +503,9 @@ class CropPlan extends Model
                 self::VALIDATION_REJECTED,
             ], true),
             'can_report_damage' => !in_array($this->status, ['harvested', 'cancelled'], true),
+            'can_submit_harvest_report' => $this->lgu_validation_status === self::VALIDATION_APPROVED
+                && !in_array($this->status, ['harvested', 'cancelled'], true)
+                && $latestHarvestStatus !== CropPlanHarvestReport::VALIDATION_PENDING,
         ];
     }
 

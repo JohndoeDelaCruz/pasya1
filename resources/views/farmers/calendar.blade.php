@@ -441,8 +441,30 @@
                                                 <p x-show="selectedEvent.latest_damage_report.lgu_validation_notes"><span class="font-medium">LGU note:</span> <span x-text="selectedEvent.latest_damage_report.lgu_validation_notes"></span></p>
                                             </div>
                                         </template>
-                                        <div class="mt-3 flex flex-wrap gap-2" x-show="selectedEvent.crop_plan_id && selectedEvent.can_report_damage">
-                                            <button @click="openDamageReportModal(selectedEvent)"
+                                        <template x-if="selectedEvent.actual_harvest_production_mt !== null">
+                                            <div class="mt-3 space-y-1 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+                                                <p class="font-semibold">Actual Harvest</p>
+                                                <p><span class="font-medium">Quantity:</span> <span x-text="formatMetricTons(selectedEvent.actual_harvest_production_mt)"></span></p>
+                                                <p x-show="selectedEvent.actual_harvest_date_formatted"><span class="font-medium">Harvested:</span> <span x-text="selectedEvent.actual_harvest_date_formatted"></span></p>
+                                            </div>
+                                        </template>
+                                        <template x-if="selectedEvent.latest_harvest_report && selectedEvent.latest_harvest_report.lgu_validation_status !== 'approved'">
+                                            <div class="mt-3 space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                                                <p class="font-semibold">Actual Harvest Validation</p>
+                                                <p><span class="font-medium">Status:</span> <span x-text="selectedEvent.latest_harvest_report.lgu_validation_status_label"></span></p>
+                                                <p><span class="font-medium">Quantity:</span> <span x-text="formatMetricTons(selectedEvent.latest_harvest_report.actual_production_mt)"></span></p>
+                                                <p x-show="selectedEvent.latest_harvest_report.actual_harvest_date_formatted"><span class="font-medium">Harvested:</span> <span x-text="selectedEvent.latest_harvest_report.actual_harvest_date_formatted"></span></p>
+                                                <p x-show="selectedEvent.latest_harvest_report.lgu_validation_notes"><span class="font-medium">LGU note:</span> <span x-text="selectedEvent.latest_harvest_report.lgu_validation_notes"></span></p>
+                                            </div>
+                                        </template>
+                                        <div class="mt-3 flex flex-wrap gap-2" x-show="selectedEvent.crop_plan_id && (selectedEvent.can_report_damage || selectedEvent.can_submit_harvest_report || selectedEvent.can_revise_crop_plan)">
+                                            <button x-show="selectedEvent.type === 'harvest' && selectedEvent.can_submit_harvest_report"
+                                                @click="openHarvestReportModal(selectedEvent)"
+                                                class="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                                                <span x-text="selectedEvent.latest_harvest_report?.lgu_validation_status === 'rejected' ? 'Revise Actual Harvest' : 'Record Actual Harvest'"></span>
+                                            </button>
+                                            <button x-show="selectedEvent.can_report_damage"
+                                                @click="openDamageReportModal(selectedEvent)"
                                                 class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
                                                 <span x-text="selectedEvent.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise Damage Report' : (selectedEvent.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit Pending Damage' : (selectedEvent.has_damage_report ? 'Update Damage Report' : 'Report Damage'))"></span>
                                             </button>
@@ -511,8 +533,28 @@
                                                     <p x-show="event.latest_damage_report.lgu_validation_notes" x-text="event.latest_damage_report.lgu_validation_notes"></p>
                                                 </div>
                                             </template>
-                                            <div class="mt-3 flex flex-wrap gap-2" x-show="event.crop_plan_id && event.can_report_damage">
-                                                <button @click="openDamageReportModal(event)"
+                                            <template x-if="event.actual_harvest_production_mt !== null">
+                                                <div class="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+                                                    <p class="font-semibold">Actual Harvest</p>
+                                                    <p><span class="font-medium">Quantity:</span> <span x-text="formatMetricTons(event.actual_harvest_production_mt)"></span></p>
+                                                    <p x-show="event.actual_harvest_date_formatted"><span class="font-medium">Harvested:</span> <span x-text="event.actual_harvest_date_formatted"></span></p>
+                                                </div>
+                                            </template>
+                                            <template x-if="event.latest_harvest_report && event.latest_harvest_report.lgu_validation_status !== 'approved'">
+                                                <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                                                    <p class="font-semibold">Actual Harvest Validation</p>
+                                                    <p x-text="event.latest_harvest_report.lgu_validation_status_label"></p>
+                                                    <p x-show="event.latest_harvest_report.lgu_validation_notes" x-text="event.latest_harvest_report.lgu_validation_notes"></p>
+                                                </div>
+                                            </template>
+                                            <div class="mt-3 flex flex-wrap gap-2" x-show="event.crop_plan_id && (event.can_report_damage || event.can_submit_harvest_report || event.can_revise_crop_plan)">
+                                                <button x-show="event.type === 'harvest' && event.can_submit_harvest_report"
+                                                    @click="openHarvestReportModal(event)"
+                                                    class="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                                                    <span x-text="event.latest_harvest_report?.lgu_validation_status === 'rejected' ? 'Revise Actual Harvest' : 'Record Actual Harvest'"></span>
+                                                </button>
+                                                <button x-show="event.can_report_damage"
+                                                    @click="openDamageReportModal(event)"
                                                     class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
                                                     <span x-text="event.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise Damage Report' : (event.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit Pending Damage' : (event.has_damage_report ? 'Update Damage Report' : 'Report Damage'))"></span>
                                                 </button>
@@ -935,6 +977,93 @@
             </div>
         </div>
 
+        <!-- Actual Harvest Report Modal -->
+        <div x-show="showHarvestModal" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;"
+            @keydown.escape.window="closeHarvestModal()">
+            <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeHarvestModal()"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div x-show="showHarvestModal" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                    class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-xl"
+                    @click.stop>
+
+                    <div class="bg-gradient-to-r from-emerald-600 to-green-500 px-6 py-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h3 class="text-lg font-bold text-white">Record Actual Harvest</h3>
+                                <p class="text-sm text-emerald-50">Submit the real harvest quantity for LGU validation.</p>
+                            </div>
+                            <button @click="closeHarvestModal()"
+                                class="shrink-0 rounded-lg p-2 text-white transition hover:bg-white/20">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 px-6 py-5">
+                        <div class="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                            <p class="font-semibold" x-text="harvestReportForm.crop_name || 'Selected crop plan'"></p>
+                            <p class="mt-1 text-xs text-emerald-800">Expected harvest: <span x-text="harvestReportForm.expected_harvest_date_formatted || 'Date unavailable'"></span></p>
+                            <p class="mt-1 text-xs text-emerald-800">Projected harvest: <span x-text="formatMetricTons(harvestReportForm.predicted_production)"></span></p>
+                        </div>
+
+                        <template x-if="harvestReportForm.latest_status === 'rejected'">
+                            <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                <p class="font-semibold">LGU requested a revision</p>
+                                <p class="mt-1 text-xs" x-text="harvestReportForm.latest_notes || 'Update the harvest details and submit again.'"></p>
+                            </div>
+                        </template>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Actual Harvest Date</label>
+                            <input type="date" x-model="harvestReportForm.actual_harvest_date"
+                                :max="today"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                                required>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Actual Harvest Quantity (kg)</label>
+                            <input type="number" x-model="harvestReportForm.actual_harvest_quantity_kg"
+                                step="1" min="1" placeholder="e.g., 1250"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"
+                                required>
+                            <p class="mt-1 text-xs text-gray-500" x-text="harvestReportForm.actual_harvest_quantity_kg ? ((Number(harvestReportForm.actual_harvest_quantity_kg) || 0) / 1000).toFixed(4) + ' MT for DA reporting' : 'Enter the real harvested quantity in kilograms.'"></p>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+                            <textarea x-model="harvestReportForm.harvest_notes" rows="3"
+                                placeholder="Any harvest notes for LGU validation"
+                                class="w-full resize-none rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row">
+                        <button @click="closeHarvestModal()"
+                            class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 font-medium text-gray-700 transition hover:bg-gray-100">
+                            Cancel
+                        </button>
+                        <button @click="submitHarvestReport()" :disabled="!canSubmitHarvestReport || isSubmittingHarvest"
+                            class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                            <svg x-show="isSubmittingHarvest" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            <span x-text="isSubmittingHarvest ? 'Submitting...' : 'Submit Harvest Report'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Success Toast -->
         <div x-show="showSuccessToast" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 transform translate-y-2"
@@ -971,6 +1100,7 @@
                     showSettingsModal: false,
                     showCropPlanModal: false,
                     showDamageModal: false,
+                    showHarvestModal: false,
                     showSuccessToast: false,
                     successMessage: '',
                     selectedDay: null,
@@ -993,6 +1123,7 @@
                     isCalculating: false,
                     isSubmitting: false,
                     isSubmittingDamage: false,
+                    isSubmittingHarvest: false,
                     isDeleting: false,
                     predictionPreview: {
                         edoh_formatted: '',
@@ -1025,6 +1156,19 @@
                         has_damage_report: false
                     },
 
+                    harvestReportForm: {
+                        crop_plan_id: null,
+                        crop_name: '',
+                        expected_harvest_date: '',
+                        expected_harvest_date_formatted: '',
+                        predicted_production: 0,
+                        actual_harvest_date: todayStr,
+                        actual_harvest_quantity_kg: '',
+                        harvest_notes: '',
+                        latest_status: '',
+                        latest_notes: ''
+                    },
+
                     // Crop types data with harvest days
                     cropTypesData: @json($cropTypes ?? []),
 
@@ -1055,6 +1199,15 @@
                             damagedArea <= totalArea &&
                             !!this.damageReportForm.damage_occurred_on &&
                             !!this.damageReportForm.damage_cause;
+                    },
+
+                    get canSubmitHarvestReport() {
+                        const harvestKg = Number(this.harvestReportForm.actual_harvest_quantity_kg);
+
+                        return !!this.harvestReportForm.crop_plan_id &&
+                            !!this.harvestReportForm.actual_harvest_date &&
+                            Number.isFinite(harvestKg) &&
+                            harvestKg > 0;
                     },
 
                     get cropPlanAreaHectaresForSubmission() {
@@ -1309,9 +1462,29 @@
                         };
                     },
 
+                    resetHarvestReportForm() {
+                        this.harvestReportForm = {
+                            crop_plan_id: null,
+                            crop_name: '',
+                            expected_harvest_date: '',
+                            expected_harvest_date_formatted: '',
+                            predicted_production: 0,
+                            actual_harvest_date: this.today,
+                            actual_harvest_quantity_kg: '',
+                            harvest_notes: '',
+                            latest_status: '',
+                            latest_notes: ''
+                        };
+                    },
+
                     closeDamageModal() {
                         this.showDamageModal = false;
                         this.resetDamageReportForm();
+                    },
+
+                    closeHarvestModal() {
+                        this.showHarvestModal = false;
+                        this.resetHarvestReportForm();
                     },
 
                     openDamageReportModal(event) {
@@ -1365,6 +1538,40 @@
                         this.showEventModal = false;
                         this.showCropPlanModal = true;
                         this.calculatePreview();
+                    },
+
+                    openHarvestReportModal(event) {
+                        if (!event || !event.crop_plan_id || !event.can_submit_harvest_report) {
+                            if (event?.latest_harvest_report?.lgu_validation_status === 'pending') {
+                                alert('Your harvest report is already waiting for LGU validation.');
+                            }
+                            return;
+                        }
+
+                        const latestHarvestReport = event.latest_harvest_report && event.latest_harvest_report.lgu_validation_status !== 'approved'
+                            ? event.latest_harvest_report
+                            : null;
+
+                        this.harvestReportForm = {
+                            crop_plan_id: event.crop_plan_id,
+                            crop_name: event.crop_name || event.title || 'Crop plan',
+                            expected_harvest_date: event.expected_harvest_date || '',
+                            expected_harvest_date_formatted: event.expected_harvest_date_formatted || '',
+                            predicted_production: parseFloat(event.adjusted_predicted_production ?? event.predicted_production ?? 0),
+                            actual_harvest_date: latestHarvestReport?.actual_harvest_date || event.expected_harvest_date || this.today,
+                            actual_harvest_quantity_kg: latestHarvestReport?.actual_production_kg || '',
+                            harvest_notes: latestHarvestReport?.harvest_notes || '',
+                            latest_status: latestHarvestReport?.lgu_validation_status || '',
+                            latest_notes: latestHarvestReport?.lgu_validation_notes || ''
+                        };
+
+                        if (this.harvestReportForm.actual_harvest_date > this.today) {
+                            this.harvestReportForm.actual_harvest_date = this.today;
+                        }
+
+                        this.selectedEvent = event;
+                        this.showEventModal = false;
+                        this.showHarvestModal = true;
                     },
 
                     async refreshCropPlanEvents() {
@@ -1424,6 +1631,48 @@
                             alert('Failed to submit damage report. Error: ' + error.message);
                         } finally {
                             this.isSubmittingDamage = false;
+                        }
+                    },
+
+                    async submitHarvestReport() {
+                        if (!this.canSubmitHarvestReport || this.isSubmittingHarvest) {
+                            return;
+                        }
+
+                        this.isSubmittingHarvest = true;
+
+                        try {
+                            const response = await fetch(`{{ url('/farmer/api/crop-plans') }}/${this.harvestReportForm.crop_plan_id}/harvest-report`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    actual_harvest_date: this.harvestReportForm.actual_harvest_date,
+                                    actual_harvest_quantity_kg: Number(this.harvestReportForm.actual_harvest_quantity_kg),
+                                    harvest_notes: this.harvestReportForm.harvest_notes || null
+                                })
+                            });
+
+                            const data = await response.json();
+
+                            if (!response.ok || !data.success) {
+                                const validationErrors = data.errors ? Object.values(data.errors).flat().join('\n') : null;
+                                throw new Error(validationErrors || data.message || 'Failed to submit harvest report.');
+                            }
+
+                            await this.refreshCropPlanEvents();
+                            this.closeHarvestModal();
+                            this.selectedEvent = null;
+                            this.selectedDay = null;
+                            this.showToast('Actual harvest submitted for LGU validation.');
+                        } catch (error) {
+                            console.error('Error submitting harvest report:', error);
+                            alert('Failed to submit harvest report. Error: ' + error.message);
+                        } finally {
+                            this.isSubmittingHarvest = false;
                         }
                     },
 
