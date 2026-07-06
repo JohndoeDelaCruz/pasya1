@@ -690,22 +690,39 @@
                     <p class="text-sm font-medium text-gray-800 mb-3">Planting Material Options</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="flex items-center">
-                            <input type="checkbox" id="crop_supports_seed" name="supports_seed_material" value="1" checked
+                            <input type="checkbox" id="crop_supports_seed" name="supports_seed_material" value="1" checked onchange="togglePlantingMaterialInputs('add')"
                                    class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
                             <span class="ml-2 text-sm text-gray-700">Enable Seed</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" id="crop_supports_seedling" name="supports_seedling_material" value="1" onchange="toggleSeedlingDaysInput('add')"
+                            <input type="checkbox" id="crop_supports_seedling" name="supports_seedling_material" value="1" onchange="togglePlantingMaterialInputs('add')"
                                    class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
                             <span class="ml-2 text-sm text-gray-700">Enable Seedling</span>
                         </label>
                     </div>
+                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="crop_days_to_harvest_seed" class="block text-sm font-medium text-gray-700 mb-1">Days to Harvest when planted from Seed (Optional)</label>
+                            <input type="number" id="crop_days_to_harvest_seed" name="days_to_harvest_seed" min="1" max="3650"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                   placeholder="e.g. 118">
+                            <p class="text-xs text-gray-500 mt-1">Optional: total days from sowing (seed) until harvest. If left empty the system will compute as base + seedling nursery days.</p>
+                        </div>
+                        <div>
+                            <label for="crop_days_to_harvest_seedling" class="block text-sm font-medium text-gray-700 mb-1">Days to Harvest when planted from Seedling (Optional)</label>
+                            <input type="number" id="crop_days_to_harvest_seedling" name="days_to_harvest_seedling" min="1" max="3650"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                   placeholder="e.g. 90">
+                            <p class="text-xs text-gray-500 mt-1">Optional: total days from transplanting (seedling) until harvest. Falls back to base days if empty.</p>
+                        </div>
+                    </div>
+
                     <div class="mt-3">
                         <label for="crop_seedling_days" class="block text-sm font-medium text-gray-700 mb-1">Seedling Stage Days</label>
                         <input type="number" id="crop_seedling_days" name="seedling_days" min="1" max="365" disabled
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
                                placeholder="Required when Seedling is enabled">
-                        <p class="text-xs text-gray-500 mt-1">Used to adjust harvest timing when the crop is planted from seed instead of seedling.</p>
+                        <p class="text-xs text-gray-500 mt-1">Used to adjust harvest timing when the crop is planted from seed instead of seedling. If you provide total-days values above, this nursery-days field is optional.</p>
                     </div>
                 </div>
                 
@@ -792,22 +809,39 @@
                     <p class="text-sm font-medium text-gray-800 mb-3">Planting Material Options</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="flex items-center">
-                            <input type="checkbox" id="edit_crop_supports_seed" name="supports_seed_material" value="1"
+                            <input type="checkbox" id="edit_crop_supports_seed" name="supports_seed_material" value="1" onchange="togglePlantingMaterialInputs('edit')"
                                    class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
                             <span class="ml-2 text-sm text-gray-700">Enable Seed</span>
                         </label>
                         <label class="flex items-center">
-                            <input type="checkbox" id="edit_crop_supports_seedling" name="supports_seedling_material" value="1" onchange="toggleSeedlingDaysInput('edit')"
+                            <input type="checkbox" id="edit_crop_supports_seedling" name="supports_seedling_material" value="1" onchange="togglePlantingMaterialInputs('edit')"
                                    class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
                             <span class="ml-2 text-sm text-gray-700">Enable Seedling</span>
                         </label>
                     </div>
+                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="edit_crop_days_to_harvest_seed" class="block text-sm font-medium text-gray-700 mb-1">Days to Harvest when planted from Seed (Optional)</label>
+                            <input type="number" id="edit_crop_days_to_harvest_seed" name="days_to_harvest_seed" min="1" max="3650"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                   placeholder="e.g. 118">
+                            <p class="text-xs text-gray-500 mt-1">Optional: total days from sowing (seed) until harvest. If left empty the system will compute as base + seedling nursery days.</p>
+                        </div>
+                        <div>
+                            <label for="edit_crop_days_to_harvest_seedling" class="block text-sm font-medium text-gray-700 mb-1">Days to Harvest when planted from Seedling (Optional)</label>
+                            <input type="number" id="edit_crop_days_to_harvest_seedling" name="days_to_harvest_seedling" min="1" max="3650"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                   placeholder="e.g. 90">
+                            <p class="text-xs text-gray-500 mt-1">Optional: total days from transplanting (seedling) until harvest. Falls back to base days if empty.</p>
+                        </div>
+                    </div>
+
                     <div class="mt-3">
                         <label for="edit_crop_seedling_days" class="block text-sm font-medium text-gray-700 mb-1">Seedling Stage Days</label>
                         <input type="number" id="edit_crop_seedling_days" name="seedling_days" min="1" max="365"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:text-gray-400"
                                placeholder="Required when Seedling is enabled">
-                        <p class="text-xs text-gray-500 mt-1">Used to adjust harvest timing when the crop is planted from seed instead of seedling.</p>
+                        <p class="text-xs text-gray-500 mt-1">Used to adjust harvest timing when the crop is planted from seed instead of seedling. If you provide total-days values above, this nursery-days field is optional.</p>
                     </div>
                 </div>
                 
@@ -963,26 +997,39 @@
     </div>
 
     <script>
-        function toggleSeedlingDaysInput(mode) {
-            const checkboxId = mode === 'edit' ? 'edit_crop_supports_seedling' : 'crop_supports_seedling';
-            const inputId = mode === 'edit' ? 'edit_crop_seedling_days' : 'crop_seedling_days';
-            const seedlingCheckbox = document.getElementById(checkboxId);
-            const seedlingDaysInput = document.getElementById(inputId);
+        function togglePlantingMaterialInputs(mode) {
+            const seedCheckboxId = mode === 'edit' ? 'edit_crop_supports_seed' : 'crop_supports_seed';
+            const seedlingCheckboxId = mode === 'edit' ? 'edit_crop_supports_seedling' : 'crop_supports_seedling';
 
-            if (!seedlingCheckbox || !seedlingDaysInput) {
-                return;
+            const seedTotalId = mode === 'edit' ? 'edit_crop_days_to_harvest_seed' : 'crop_days_to_harvest_seed';
+            const seedlingTotalId = mode === 'edit' ? 'edit_crop_days_to_harvest_seedling' : 'crop_days_to_harvest_seedling';
+            const seedlingDaysId = mode === 'edit' ? 'edit_crop_seedling_days' : 'crop_seedling_days';
+
+            const seedCheckbox = document.getElementById(seedCheckboxId);
+            const seedlingCheckbox = document.getElementById(seedlingCheckboxId);
+            const seedTotalInput = document.getElementById(seedTotalId);
+            const seedlingTotalInput = document.getElementById(seedlingTotalId);
+            const seedlingDaysInput = document.getElementById(seedlingDaysId);
+
+            if (seedTotalInput) {
+                seedTotalInput.disabled = seedCheckbox ? !seedCheckbox.checked : false;
+                if (seedTotalInput.disabled) seedTotalInput.value = '';
             }
 
-            seedlingDaysInput.disabled = !seedlingCheckbox.checked;
+            if (seedlingTotalInput) {
+                seedlingTotalInput.disabled = seedlingCheckbox ? !seedlingCheckbox.checked : true;
+                if (seedlingTotalInput.disabled) seedlingTotalInput.value = '';
+            }
 
-            if (!seedlingCheckbox.checked) {
-                seedlingDaysInput.value = '';
+            if (seedlingDaysInput) {
+                seedlingDaysInput.disabled = seedlingCheckbox ? !seedlingCheckbox.checked : true;
+                if (seedlingDaysInput.disabled) seedlingDaysInput.value = '';
             }
         }
 
         // Crop Type Modal Functions
         function openAddCropTypeModal() {
-            toggleSeedlingDaysInput('add');
+            togglePlantingMaterialInputs('add');
             document.getElementById('addCropTypeModal').classList.remove('hidden');
         }
 
@@ -997,13 +1044,15 @@
             document.getElementById('edit_crop_category').value = cropType.category || '';
             document.getElementById('edit_crop_description').value = cropType.description || '';
             document.getElementById('edit_crop_days_to_harvest').value = cropType.days_to_harvest ?? cropType.days_to_harvest_value ?? '';
+            document.getElementById('edit_crop_days_to_harvest_seed').value = cropType.days_to_harvest_seed ?? cropType.days_to_harvest_seed_value ?? '';
+            document.getElementById('edit_crop_days_to_harvest_seedling').value = cropType.days_to_harvest_seedling ?? cropType.days_to_harvest_seedling_value ?? '';
             document.getElementById('edit_crop_average_yield').value = cropType.average_yield_per_hectare ?? cropType.average_yield_value ?? '';
             document.getElementById('edit_crop_supports_seed').checked = cropType.supports_seed_material ?? true;
             document.getElementById('edit_crop_supports_seedling').checked = cropType.supports_seedling_material ?? false;
             document.getElementById('edit_crop_seedling_days').value = cropType.seedling_days ?? cropType.seedling_days_value ?? '';
             document.getElementById('edit_crop_is_active').checked = cropType.is_active;
             document.getElementById('edit_remove_image').checked = false;
-            toggleSeedlingDaysInput('edit');
+            togglePlantingMaterialInputs('edit');
             
             // Handle image display
             const imageContainer = document.getElementById('edit_current_image_container');

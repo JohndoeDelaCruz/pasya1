@@ -200,6 +200,8 @@ class CropManagementController extends Controller
             'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'days_to_harvest' => 'nullable|integer|min:1|max:3650',
+            'days_to_harvest_seed' => 'nullable|integer|min:1|max:3650',
+            'days_to_harvest_seedling' => 'nullable|integer|min:1|max:3650',
             'average_yield_per_hectare' => 'nullable|numeric|min:0|max:10000',
             'seedling_days' => 'nullable|integer|min:1|max:365',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -224,11 +226,19 @@ class CropManagementController extends Controller
         }
 
         if ($validated['supports_seedling_material'] && empty($validated['seedling_days'])) {
-            return back()->withInput()->with('error', 'Seedling days is required when Seedling is enabled.');
+            // Require either the seedling nursery days or an explicit per-material harvest value
+            if (empty($validated['days_to_harvest_seed']) && empty($validated['days_to_harvest_seedling'])) {
+                return back()->withInput()->with('error', 'Seedling days or per-material harvest days are required when Seedling is enabled.');
+            }
         }
 
         if (!$validated['supports_seedling_material']) {
             $validated['seedling_days'] = null;
+            $validated['days_to_harvest_seedling'] = null;
+        }
+
+        if (!$validated['supports_seed_material']) {
+            $validated['days_to_harvest_seed'] = null;
         }
 
         // Handle image upload
@@ -262,6 +272,8 @@ class CropManagementController extends Controller
             'category' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'days_to_harvest' => 'nullable|integer|min:1|max:3650',
+            'days_to_harvest_seed' => 'nullable|integer|min:1|max:3650',
+            'days_to_harvest_seedling' => 'nullable|integer|min:1|max:3650',
             'average_yield_per_hectare' => 'nullable|numeric|min:0|max:10000',
             'seedling_days' => 'nullable|integer|min:1|max:365',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
@@ -279,11 +291,18 @@ class CropManagementController extends Controller
         }
 
         if ($validated['supports_seedling_material'] && empty($validated['seedling_days'])) {
-            return back()->withInput()->with('error', 'Seedling days is required when Seedling is enabled.');
+            if (empty($validated['days_to_harvest_seed']) && empty($validated['days_to_harvest_seedling'])) {
+                return back()->withInput()->with('error', 'Seedling days or per-material harvest days are required when Seedling is enabled.');
+            }
         }
 
         if (!$validated['supports_seedling_material']) {
             $validated['seedling_days'] = null;
+            $validated['days_to_harvest_seedling'] = null;
+        }
+
+        if (!$validated['supports_seed_material']) {
+            $validated['days_to_harvest_seed'] = null;
         }
 
         // Handle image upload

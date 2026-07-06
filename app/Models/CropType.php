@@ -37,6 +37,8 @@ class CropType extends Model
         'description',
         'image',
         'days_to_harvest',
+        'days_to_harvest_seed',
+        'days_to_harvest_seedling',
         'average_yield_per_hectare',
         'seedling_days',
         'supports_seed_material',
@@ -47,6 +49,8 @@ class CropType extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'days_to_harvest' => 'integer',
+        'days_to_harvest_seed' => 'integer',
+        'days_to_harvest_seedling' => 'integer',
         'average_yield_per_hectare' => 'decimal:2',
         'seedling_days' => 'integer',
         'supports_seed_material' => 'boolean',
@@ -55,6 +59,8 @@ class CropType extends Model
 
     protected $appends = [
         'days_to_harvest_value',
+        'days_to_harvest_seed_value',
+        'days_to_harvest_seedling_value',
         'average_yield_value',
         'seedling_days_value',
         'supports_seed_material',
@@ -220,6 +226,32 @@ class CropType extends Model
         return self::DEFAULT_SEEDLING_STAGE_DAYS[$cropKey] ?? 0;
     }
 
+    /**
+     * Get the total days-to-harvest when planted from seed (admin-configurable or fallback).
+     */
+    public function getDaysToHarvestSeedValueAttribute(): int
+    {
+        if (array_key_exists('days_to_harvest_seed', $this->attributes) && $this->days_to_harvest_seed !== null) {
+            return (int) $this->days_to_harvest_seed;
+        }
+
+        // Fallback to base transplant-to-harvest + seedling nursery days (legacy behavior)
+        return $this->days_to_harvest_value + $this->seedling_days_value;
+    }
+
+    /**
+     * Get the total days-to-harvest when planted from seedling (admin-configurable or fallback).
+     */
+    public function getDaysToHarvestSeedlingValueAttribute(): int
+    {
+        if (array_key_exists('days_to_harvest_seedling', $this->attributes) && $this->days_to_harvest_seedling !== null) {
+            return (int) $this->days_to_harvest_seedling;
+        }
+
+        // Fallback to base days (transplant-to-harvest)
+        return $this->days_to_harvest_value;
+    }
+
     public function getSupportsSeedMaterialAttribute(): bool
     {
         $rawValue = $this->getNullableRawBooleanAttribute('supports_seed_material');
@@ -278,14 +310,31 @@ class CropType extends Model
      */
     public function getDaysToHarvestForMaterial(?string $plantingMaterialType = null): int
     {
-        $daysToHarvest = $this->days_to_harvest_value;
         $materialType = strtoupper((string) ($plantingMaterialType ?: $this->default_planting_material_type));
 
-        if ($materialType === 'SEED' && $this->supports_seedling_material) {
-            return $daysToHarvest + $this->seedling_days_value;
+        if ($materialType === 'SEED') {
+            // Prefer explicit per-material total if set
+            if (array_key_exists('days_to_harvest_seed', $this->attributes) && $this->days_to_harvest_seed !== null) {
+                return (int) $this->days_to_harvest_seed;
+            }
+
+            // Legacy: base + seedling nursery days
+            if ($this->supports_seedling_material) {
+                return $this->days_to_harvest_value + $this->seedling_days_value;
+            }
+
+            return $this->days_to_harvest_value;
         }
 
-        return $daysToHarvest;
+        if ($materialType === 'SEEDLING') {
+            if (array_key_exists('days_to_harvest_seedling', $this->attributes) && $this->days_to_harvest_seedling !== null) {
+                return (int) $this->days_to_harvest_seedling;
+            }
+
+            return $this->days_to_harvest_value;
+        }
+
+        return $this->days_to_harvest_value;
     }
 
     /**
