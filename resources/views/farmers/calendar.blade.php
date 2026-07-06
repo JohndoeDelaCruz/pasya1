@@ -1463,8 +1463,7 @@
                     },
 
                     daysToHarvestDisplay() {
-                        // Provide a clear breakdown: base days (transplant-to-harvest) and
-                        // seedling days (if planting from seed). Uses selected crop metadata.
+                        // Return only the total days to harvest (no breakdown).
                         const selectedCrop = this.selectedCropType;
 
                         // Fallback to API preview if nothing else available
@@ -1478,18 +1477,22 @@
                         const supportsSeedling = (selectedCrop.supports_seedling_material ?? seedling > 0) && seedling > 0;
                         const plantingType = this.cropPlanForm.planting_material_type || (selectedCrop.default_planting_material_type || 'SEED');
 
-                        if (plantingType === 'SEED' && supportsSeedling) {
-                            const total = base + seedling;
-                            return `${total} days (${base} + ${seedling} seedling days)`;
+                        let total = base;
+                        if (plantingType === 'SEED') {
+                            if (selectedCrop.days_to_harvest_seed !== undefined && selectedCrop.days_to_harvest_seed !== null && selectedCrop.days_to_harvest_seed !== '') {
+                                total = Number(selectedCrop.days_to_harvest_seed);
+                            } else if (supportsSeedling) {
+                                total = base + seedling;
+                            }
+                        } else if (plantingType === 'SEEDLING') {
+                            if (selectedCrop.days_to_harvest_seedling !== undefined && selectedCrop.days_to_harvest_seedling !== null && selectedCrop.days_to_harvest_seedling !== '') {
+                                total = Number(selectedCrop.days_to_harvest_seedling);
+                            } else {
+                                total = base;
+                            }
                         }
 
-                        // If predictionPreview differs from base, show preview and note base
-                        const preview = Number(this.predictionPreview.days_to_harvest ?? base);
-                        if (preview !== base) {
-                            return `${preview} days (${base} base)`;
-                        }
-
-                        return `${base} days`;
+                        return `${total} days`;
                     },
 
                     getValidationBadgeClass(status) {
