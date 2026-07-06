@@ -730,7 +730,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Planting Date</label>
                                 <input type="date" x-model="cropPlanForm.planting_date" @change="calculatePreview"
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                                    :max="today" required>
+                                    required>
                             </div>
 
                             <!-- Area in square meters -->
@@ -1219,7 +1219,6 @@
                     get canSubmitCropPlan() {
                         return this.cropPlanForm.crop_type_id &&
                             this.cropPlanForm.planting_date &&
-                            this.cropPlanForm.planting_date <= this.today &&
                             this.cropPlanAreaHectaresForSubmission > 0 &&
                             this.showPredictionPreview;
                     },
