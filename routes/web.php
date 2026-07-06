@@ -228,6 +228,7 @@ Route::middleware(['auth', 'verified', 'active_user', 'role:lgu_validator'])
     ->name('lgu.')
     ->group(function () {
         Route::get('/dashboard', [LguDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/records', [LguDashboardController::class, 'records'])->name('records');
         Route::post('/crop-plans/{cropPlan}/approve', [LguDashboardController::class, 'approveCropPlan'])->name('crop-plans.approve');
         Route::post('/crop-plans/{cropPlan}/reject', [LguDashboardController::class, 'rejectCropPlan'])->name('crop-plans.reject');
         Route::post('/damage-reports/{damageReport}/approve', [LguDashboardController::class, 'approveDamageReport'])->name('damage-reports.approve');

@@ -98,6 +98,90 @@ class LguDashboardController extends Controller
         ]);
     }
 
+    public function records(Request $request)
+    {
+        $validated = $request->validate([
+            'status' => ['nullable', Rule::in([
+                CropPlan::VALIDATION_APPROVED,
+                CropPlan::VALIDATION_REJECTED,
+                'all',
+            ])],
+            'type' => ['nullable', Rule::in(['all', 'crop_plans', 'damage_reports', 'harvest_reports'])],
+            'search' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $validator = Auth::guard('web')->user();
+        $municipality = $validator->normalizedMunicipality();
+        $barangay = $validator->normalizedBarangay();
+        $locationNames = $this->validatorLocationNames();
+        $type = $validated['type'] ?? 'all';
+        $status = $validated['status'] ?? 'all';
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $statuses = match ($status) {
+            CropPlan::VALIDATION_APPROVED => [CropPlan::VALIDATION_APPROVED],
+            CropPlan::VALIDATION_REJECTED => [CropPlan::VALIDATION_REJECTED],
+            default => [CropPlan::VALIDATION_APPROVED, CropPlan::VALIDATION_REJECTED],
+        };
+
+        $cropPlansQuery = CropPlan::query()
+            ->with(['farmer', 'cropType', 'lguValidator'])
+            ->whereIn('municipality', $locationNames)
+            ->whereIn('lgu_validation_status', $statuses)
+            ->when($search !== '', fn ($query) => $this->applyCropPlanSearch($query, $search))
+            ->latest('lgu_validated_at');
+
+        $damageReportsQuery = CropPlanDamageReport::query()
+            ->with(['farmer', 'cropPlan.cropType', 'lguValidator'])
+            ->whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))
+            ->whereIn('lgu_validation_status', $statuses)
+            ->when($search !== '', fn ($query) => $this->applyDamageReportSearch($query, $search))
+            ->latest('lgu_validated_at');
+
+        $harvestReportsQuery = CropPlanHarvestReport::query()
+            ->with(['farmer', 'cropPlan.cropType', 'lguValidator'])
+            ->whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))
+            ->whereIn('lgu_validation_status', $statuses)
+            ->when($search !== '', fn ($query) => $this->applyHarvestReportSearch($query, $search))
+            ->latest('lgu_validated_at');
+
+        $cropPlans = in_array($type, ['all', 'crop_plans'], true)
+            ? $cropPlansQuery->paginate(10, ['*'], 'crop_plan_page')->withQueryString()
+            : collect();
+
+        $damageReports = in_array($type, ['all', 'damage_reports'], true)
+            ? $damageReportsQuery->paginate(10, ['*'], 'damage_report_page')->withQueryString()
+            : collect();
+
+        $harvestReports = in_array($type, ['all', 'harvest_reports'], true)
+            ? $harvestReportsQuery->paginate(10, ['*'], 'harvest_report_page')->withQueryString()
+            : collect();
+
+        $stats = [
+            'crop_plans_approved' => CropPlan::whereIn('municipality', $locationNames)->where('lgu_validation_status', CropPlan::VALIDATION_APPROVED)->count(),
+            'crop_plans_rejected' => CropPlan::whereIn('municipality', $locationNames)->where('lgu_validation_status', CropPlan::VALIDATION_REJECTED)->count(),
+            'damage_approved' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_APPROVED)->count(),
+            'damage_rejected' => CropPlanDamageReport::whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))->where('lgu_validation_status', CropPlanDamageReport::VALIDATION_REJECTED)->count(),
+            'harvest_approved' => CropPlanHarvestReport::whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))->where('lgu_validation_status', CropPlanHarvestReport::VALIDATION_APPROVED)->count(),
+            'harvest_rejected' => CropPlanHarvestReport::whereHas('cropPlan', fn ($query) => $query->whereIn('municipality', $locationNames))->where('lgu_validation_status', CropPlanHarvestReport::VALIDATION_REJECTED)->count(),
+        ];
+
+        return view('lgu.records', [
+            'validator' => $validator,
+            'municipality' => $municipality,
+            'barangay' => $barangay,
+            'cropPlans' => $cropPlans,
+            'damageReports' => $damageReports,
+            'harvestReports' => $harvestReports,
+            'stats' => $stats,
+            'filters' => [
+                'status' => $status,
+                'type' => $type,
+                'search' => $search,
+            ],
+        ]);
+    }
+
     public function approveCropPlan(Request $request, CropPlan $cropPlan)
     {
         $this->ensureCropPlanInMunicipality($cropPlan);

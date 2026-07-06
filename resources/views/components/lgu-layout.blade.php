@@ -54,6 +54,12 @@
                         </svg>
                         <span class="font-medium">Validation Queue</span>
                     </a>
+                    <a href="{{ route('lgu.records') }}" class="mt-2 flex items-center gap-3 rounded-lg px-4 py-3 text-white hover:bg-green-700 {{ request()->routeIs('lgu.records') ? 'bg-green-700' : '' }}">
+                        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7.414A2 2 0 0016.586 6L13 2.414A2 2 0 0011.586 2H4zM8 7a1 1 0 011-1h6a1 1 0 011 1v2H8V7z"/>
+                        </svg>
+                        <span class="font-medium">Records</span>
+                    </a>
                 </nav>
 
                 <div class="border-t border-green-700 p-4">
