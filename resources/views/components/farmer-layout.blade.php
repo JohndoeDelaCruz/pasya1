@@ -648,5 +648,69 @@
             };
         }
     </script>
+    <script>
+        (function(){
+            if (!window.pasya) window.pasya = {};
+
+            // Convenience helpers other scripts can call
+            window.pasya.lockBody = function(){
+                document.body.classList.add('overflow-hidden');
+                try { document.body.style.overflow = 'hidden'; } catch(e) {}
+            };
+
+            window.pasya.unlockBody = function(){
+                document.body.classList.remove('overflow-hidden');
+                try { document.body.style.overflow = ''; } catch(e) {}
+            };
+
+            // Keep both approaches (class vs style) in sync to avoid lingering locks
+            let pasyaSyncingBodyOverflow = false;
+
+            function syncFromStyle() {
+                if (pasyaSyncingBodyOverflow) return;
+                pasyaSyncingBodyOverflow = true;
+                try {
+                    if (document.body.style.overflow && document.body.style.overflow !== '') {
+                        if (!document.body.classList.contains('overflow-hidden')) document.body.classList.add('overflow-hidden');
+                    } else {
+                        if (document.body.classList.contains('overflow-hidden')) document.body.classList.remove('overflow-hidden');
+                    }
+                } finally { pasyaSyncingBodyOverflow = false; }
+            }
+
+            function syncFromClass() {
+                if (pasyaSyncingBodyOverflow) return;
+                pasyaSyncingBodyOverflow = true;
+                try {
+                    if (document.body.classList.contains('overflow-hidden')) {
+                        if (document.body.style.overflow !== 'hidden') document.body.style.overflow = 'hidden';
+                    } else {
+                        if (document.body.style.overflow !== '') document.body.style.overflow = '';
+                    }
+                } finally { pasyaSyncingBodyOverflow = false; }
+            }
+
+            const observer = new MutationObserver(mutations => {
+                for (const mutation of mutations) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        syncFromStyle();
+                    }
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        syncFromClass();
+                    }
+                }
+            });
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    syncFromStyle();
+                    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+                });
+            } else {
+                syncFromStyle();
+                observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+            }
+        })();
+    </script>
 </body>
 </html>
