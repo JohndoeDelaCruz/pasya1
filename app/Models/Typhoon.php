@@ -10,6 +10,8 @@ class Typhoon extends Model
 
     public static function latestFive(): \Illuminate\Database\Eloquent\Collection
     {
-        return static::orderByDesc('id')->limit(5)->get();
+        // Return typhoon names ordered by newest first.
+        // Kept method name for backwards compatibility but removed the hard limit.
+        return static::orderByDesc('id')->get();
     }
 }

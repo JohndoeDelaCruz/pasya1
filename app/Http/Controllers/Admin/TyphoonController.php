@@ -14,10 +14,7 @@ class TyphoonController extends Controller
             'name' => 'required|string|max:100',
         ]);
 
-        if (Typhoon::count() >= 5) {
-            return back()->withErrors(['name' => 'Maximum of 5 typhoon names allowed. Remove one before adding.']);
-        }
-
+        // No limit on typhoon names anymore — allow adding as many as needed.
         Typhoon::create(['name' => $request->input('name')]);
 
         return back()->with('typhoon_success', 'Typhoon name added.');

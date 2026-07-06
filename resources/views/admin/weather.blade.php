@@ -192,7 +192,7 @@
         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div class="border-b border-gray-100 px-6 py-4">
                 <h2 class="text-base font-semibold text-gray-800">Typhoon Names for Damage Reports</h2>
-                <p class="mt-1 text-xs text-gray-500">Manage up to 5 typhoon names. Farmers can select one when reporting typhoon damage. Add the latest typhoon first.</p>
+                <p class="mt-1 text-xs text-gray-500">Manage typhoon names. Farmers can select one when reporting typhoon damage. Add the latest typhoon first.</p>
             </div>
 
             <div class="p-6 space-y-4">
@@ -232,20 +232,16 @@
                 @endif
 
                 <!-- Add new typhoon -->
-                @if($typhoons->count() < 5)
-                    <form method="POST" action="{{ route('admin.typhoons.store') }}" class="flex gap-2">
-                        @csrf
-                        <input type="text" name="name" placeholder="e.g., Typhoon Egay" maxlength="100" required
-                            class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500"
-                            value="{{ old('name') }}">
-                        <button type="submit"
-                            class="shrink-0 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700">
-                            Add
-                        </button>
-                    </form>
-                @else
-                    <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">Maximum of 5 typhoon names reached. Remove one to add another.</p>
-                @endif
+                <form method="POST" action="{{ route('admin.typhoons.store') }}" class="flex gap-2">
+                    @csrf
+                    <input type="text" name="name" placeholder="e.g., Typhoon Egay" maxlength="100" required
+                        class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500"
+                        value="{{ old('name') }}">
+                    <button type="submit"
+                        class="shrink-0 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700">
+                        Add
+                    </button>
+                </form>
             </div>
         </div>
 
