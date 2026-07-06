@@ -826,7 +826,7 @@
                             <div class="mt-3 bg-white rounded-lg p-3 shadow-sm">
                                 <p class="text-xs text-gray-500 mb-1">Days to Harvest</p>
                                 <p class="text-base font-semibold text-gray-800"
-                                    x-text="(predictionPreview.days_to_harvest || 0) + ' days'"></p>
+                                    x-text="daysToHarvestDisplay()"></p>
                             </div>
                             <p x-show="predictionPreview.productivity_mt_ha !== null && predictionPreview.productivity_mt_ha !== undefined"
                                 class="text-xs text-gray-500 mt-2 text-center">
@@ -1460,6 +1460,36 @@
                     formatSquareMeters(value) {
                         const numericValue = Number(value || 0);
                         return `${Math.round(numericValue).toLocaleString()} sqm`;
+                    },
+
+                    daysToHarvestDisplay() {
+                        // Provide a clear breakdown: base days (transplant-to-harvest) and
+                        // seedling days (if planting from seed). Uses selected crop metadata.
+                        const selectedCrop = this.selectedCropType;
+
+                        // Fallback to API preview if nothing else available
+                        if (!selectedCrop) {
+                            const pv = Number(this.predictionPreview.days_to_harvest || 0);
+                            return `${pv} days`;
+                        }
+
+                        const base = Number(selectedCrop.days_to_harvest ?? selectedCrop.days_to_harvest_value ?? 75);
+                        const seedling = Number(selectedCrop.seedling_days_value ?? 0);
+                        const supportsSeedling = (selectedCrop.supports_seedling_material ?? seedling > 0) && seedling > 0;
+                        const plantingType = this.cropPlanForm.planting_material_type || (selectedCrop.default_planting_material_type || 'SEED');
+
+                        if (plantingType === 'SEED' && supportsSeedling) {
+                            const total = base + seedling;
+                            return `${total} days (${base} + ${seedling} seedling days)`;
+                        }
+
+                        // If predictionPreview differs from base, show preview and note base
+                        const preview = Number(this.predictionPreview.days_to_harvest ?? base);
+                        if (preview !== base) {
+                            return `${preview} days (${base} base)`;
+                        }
+
+                        return `${base} days`;
                     },
 
                     getValidationBadgeClass(status) {

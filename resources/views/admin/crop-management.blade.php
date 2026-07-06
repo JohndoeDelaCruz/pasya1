@@ -675,7 +675,7 @@
                         <input type="number" id="crop_days_to_harvest" name="days_to_harvest" min="1" max="3650"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                placeholder="e.g. 90">
-                        <p class="mt-1 text-xs text-gray-500">Fallback planning value used only when no crop-specific value is set.</p>
+                        <p class="mt-1 text-xs text-gray-500">Base days from transplant to harvest. When farmers select "Seed" as planting material, seedling stage days (if enabled) are added to compute the total days to harvest.</p>
                     </div>
                     <div>
                         <label for="crop_average_yield" class="block text-sm font-medium text-gray-700 mb-1">Average Yield (MT/ha) (Optional)</label>
@@ -777,7 +777,7 @@
                         <input type="number" id="edit_crop_days_to_harvest" name="days_to_harvest" min="1" max="3650"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                placeholder="e.g. 90">
-                        <p class="mt-1 text-xs text-gray-500">Fallback planning value used only when no crop-specific value is set.</p>
+                        <p class="mt-1 text-xs text-gray-500">Base days from transplant to harvest. When farmers select "Seed" as planting material, seedling stage days (if enabled) are added to compute the total days to harvest.</p>
                     </div>
                     <div>
                         <label for="edit_crop_average_yield" class="block text-sm font-medium text-gray-700 mb-1">Average Yield (MT/ha) (Optional)</label>
