@@ -243,7 +243,10 @@
                                         <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $badgeClass($damageReport->lgu_validation_status) }}">{{ $damageReport->lgu_validation_status_label }}</span>
                                     </div>
                                     <p class="mt-1 text-sm text-gray-600">{{ $damageReport->farmer?->full_name ?? 'Farmer unavailable' }} | {{ $damageReport->farmer?->farmer_id ?? 'N/A' }}</p>
-                                    <p class="mt-2 text-sm text-gray-700">{{ number_format((float) $damageReport->damaged_area_hectares, 2) }} ha affected by {{ $damageReport->damage_cause_label }}</p>
+                                    <p class="mt-2 text-sm text-gray-700">{{ number_format((float) $damageReport->damaged_area_hectares, 2) }} ha affected by {{ $damageReport->damage_cause_label }}@if($damageReport->typhoon_name && $damageReport->damage_cause === 'typhoon') ({{ $damageReport->typhoon_name }})@endif</p>
+                                    <p class="mt-1 text-xs font-medium {{ ($damageReport->damage_type ?? 'partial') === 'total' ? 'text-red-600' : 'text-orange-600' }}">
+                                        {{ $damageReport->damage_type_label }} — {{ ($damageReport->damage_type ?? 'partial') === 'total' ? 'Cannot be harvested' : 'Harvest still possible' }}
+                                    </p>
                                     <p class="mt-1 text-xs text-gray-500">Occurred {{ $damageReport->damage_occurred_on?->format('M d, Y') }} | Estimated loss {{ number_format((float) $damageReport->estimated_production_loss_mt, 2) }} MT</p>
                                     <p class="mt-2 text-xs text-gray-500">{{ $damageReport->damage_notes ?: 'No farmer notes' }}</p>
                                     @if($damageReport->lgu_validation_notes)

@@ -26,6 +26,8 @@ class Farmer extends Authenticatable
         'email',
         'mobile_number',
         'password',
+        'otp_code',
+        'otp_expires_at',
         'created_by',
     ];
 
@@ -38,6 +40,7 @@ class Farmer extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'otp_expires_at' => 'datetime',
         ];
     }
 

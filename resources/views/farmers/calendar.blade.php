@@ -730,7 +730,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Planting Date</label>
                                 <input type="date" x-model="cropPlanForm.planting_date" @change="calculatePreview"
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                                    required>
+                                    :max="today" required>
                             </div>
 
                             <!-- Area in square meters -->
@@ -945,6 +945,41 @@
                             </select>
                         </div>
 
+                        <div x-show="damageReportForm.damage_cause === 'typhoon' && typhoonNames.length > 0" x-cloak>
+                            <label class="mb-1 block text-sm font-medium text-gray-700">Typhoon Name</label>
+                            <select x-model="damageReportForm.typhoon_name"
+                                class="w-full rounded-xl border border-gray-300 px-4 py-2.5 transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500">
+                                <option value="">Select typhoon...</option>
+                                <template x-for="name in typhoonNames" :key="name">
+                                    <option :value="name" x-text="name"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-2 block text-sm font-medium text-gray-700">Damage Severity</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label :class="damageReportForm.damage_type === 'partial' ? 'border-orange-500 bg-orange-50 ring-2 ring-orange-500' : 'border-gray-300 bg-white hover:border-orange-300'"
+                                    class="flex cursor-pointer flex-col items-center rounded-xl border p-3 text-center transition">
+                                    <input type="radio" x-model="damageReportForm.damage_type" value="partial" class="sr-only">
+                                    <svg class="mb-1.5 h-6 w-6" :class="damageReportForm.damage_type === 'partial' ? 'text-orange-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold" :class="damageReportForm.damage_type === 'partial' ? 'text-orange-700' : 'text-gray-700'">Partially Damaged</span>
+                                    <span class="mt-0.5 text-xs" :class="damageReportForm.damage_type === 'partial' ? 'text-orange-600' : 'text-gray-500'">Can still be harvested</span>
+                                </label>
+                                <label :class="damageReportForm.damage_type === 'total' ? 'border-red-500 bg-red-50 ring-2 ring-red-500' : 'border-gray-300 bg-white hover:border-red-300'"
+                                    class="flex cursor-pointer flex-col items-center rounded-xl border p-3 text-center transition">
+                                    <input type="radio" x-model="damageReportForm.damage_type" value="total" class="sr-only">
+                                    <svg class="mb-1.5 h-6 w-6" :class="damageReportForm.damage_type === 'total' ? 'text-red-600' : 'text-gray-400'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold" :class="damageReportForm.damage_type === 'total' ? 'text-red-700' : 'text-gray-700'">Totally Damaged</span>
+                                    <span class="mt-0.5 text-xs" :class="damageReportForm.damage_type === 'total' ? 'text-red-600' : 'text-gray-500'">Cannot be harvested</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <div>
                             <label class="mb-1 block text-sm font-medium text-gray-700">Notes</label>
                             <textarea x-model="damageReportForm.damage_notes" rows="3"
@@ -1149,6 +1184,8 @@
                         damaged_area_sqm: '',
                         damage_cause: '',
                         damage_cause_label: '',
+                        typhoon_name: '',
+                        damage_type: 'partial',
                         damage_notes: '',
                         damage_occurred_on: todayStr,
                         damage_occurred_on_formatted: '',
@@ -1174,12 +1211,15 @@
 
                     damageCauseOptions: @json(\App\Models\CropPlan::DAMAGE_CAUSE_LABELS),
 
+                    typhoonNames: @json($typhoons ?? []),
+
                     // Events from database - includes crop plans
                     allEvents: @json($events ?? []),
 
                     get canSubmitCropPlan() {
                         return this.cropPlanForm.crop_type_id &&
                             this.cropPlanForm.planting_date &&
+                            this.cropPlanForm.planting_date <= this.today &&
                             this.cropPlanAreaHectaresForSubmission > 0 &&
                             this.showPredictionPreview;
                     },
@@ -1507,6 +1547,8 @@
                                 : (event.has_damage_report ? this.hectaresToSquareMeters(event.damaged_area_hectares || 0) : ''),
                             damage_cause: latestDamageReport?.damage_cause || event.damage_cause || '',
                             damage_cause_label: latestDamageReport?.damage_cause_label || event.damage_cause_label || '',
+                            damage_type: latestDamageReport?.damage_type || event.damage_type || 'partial',
+                            typhoon_name: latestDamageReport?.typhoon_name || event.typhoon_name || '',
                             damage_notes: latestDamageReport?.damage_notes || event.damage_notes || '',
                             damage_occurred_on: latestDamageReport?.damage_occurred_on || event.damage_occurred_on || this.today,
                             damage_occurred_on_formatted: latestDamageReport?.damage_occurred_on_formatted || event.damage_occurred_on_formatted || '',
@@ -1609,6 +1651,8 @@
                                 body: JSON.stringify({
                                     damaged_area_hectares: this.damageAreaHectaresForSubmission,
                                     damage_cause: this.damageReportForm.damage_cause,
+                                    typhoon_name: this.damageReportForm.damage_cause === 'typhoon' ? (this.damageReportForm.typhoon_name || null) : null,
+                                    damage_type: this.damageReportForm.damage_type || 'partial',
                                     damage_occurred_on: this.damageReportForm.damage_occurred_on,
                                     damage_notes: this.damageReportForm.damage_notes
                                 })

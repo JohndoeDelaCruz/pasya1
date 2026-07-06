@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\MapController;
 use App\Http\Controllers\Admin\WeatherController as AdminWeatherController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\LguValidatorController;
+use App\Http\Controllers\Admin\TyphoonController;
 use App\Http\Controllers\Farmer\FarmerDashboardController;
 use App\Http\Controllers\Farmer\FarmerMapController;
 use App\Http\Controllers\Lgu\LguDashboardController;
@@ -143,6 +144,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Weather Monitoring
     Route::get('/weather', [AdminWeatherController::class, 'index'])->name('weather');
+    Route::post('/typhoons', [TyphoonController::class, 'store'])->name('typhoons.store');
+    Route::delete('/typhoons/{typhoon}', [TyphoonController::class, 'destroy'])->name('typhoons.destroy');
     
     // Farmer Account Management Routes
     Route::get('/farmers', [FarmerController::class, 'index'])->name('farmers.index');

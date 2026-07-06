@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Municipality;
+use App\Models\Typhoon;
 
 class WeatherController extends Controller
 {
@@ -15,6 +16,8 @@ class WeatherController extends Controller
             ->map(fn($name) => ucwords(strtolower($name)))
             ->values();
 
-        return view('admin.weather', compact('municipalities'));
+        $typhoons = Typhoon::latestFive();
+
+        return view('admin.weather', compact('municipalities', 'typhoons'));
     }
 }

@@ -15,11 +15,21 @@ class CropPlanDamageReport extends Model
     public const VALIDATION_APPROVED = 'approved';
     public const VALIDATION_REJECTED = 'rejected';
 
+    public const DAMAGE_TYPE_TOTAL = 'total';
+    public const DAMAGE_TYPE_PARTIAL = 'partial';
+
+    public const DAMAGE_TYPE_LABELS = [
+        self::DAMAGE_TYPE_TOTAL => 'Totally Damaged',
+        self::DAMAGE_TYPE_PARTIAL => 'Partially Damaged',
+    ];
+
     protected $fillable = [
         'crop_plan_id',
         'farmer_id',
         'damaged_area_hectares',
         'damage_cause',
+        'damage_type',
+        'typhoon_name',
         'damage_occurred_on',
         'damage_notes',
         'lgu_validation_status',
@@ -60,6 +70,11 @@ class CropPlanDamageReport extends Model
             ?? Str::headline(str_replace('_', ' ', (string) $this->damage_cause));
     }
 
+    public function getDamageTypeLabelAttribute(): string
+    {
+        return self::DAMAGE_TYPE_LABELS[$this->damage_type] ?? Str::headline((string) $this->damage_type);
+    }
+
     public function getLguValidationStatusLabelAttribute(): string
     {
         return CropPlan::VALIDATION_STATUS_LABELS[$this->lgu_validation_status]
@@ -88,6 +103,9 @@ class CropPlanDamageReport extends Model
             'damaged_area_hectares' => (float) $this->damaged_area_hectares,
             'damage_cause' => $this->damage_cause,
             'damage_cause_label' => $this->damage_cause_label,
+            'typhoon_name' => $this->typhoon_name,
+            'damage_type' => $this->damage_type ?? self::DAMAGE_TYPE_PARTIAL,
+            'damage_type_label' => $this->damage_type_label,
             'damage_notes' => $this->damage_notes,
             'damage_occurred_on' => $this->damage_occurred_on?->format('Y-m-d'),
             'damage_occurred_on_formatted' => $this->damage_occurred_on?->format('M d, Y'),

@@ -187,6 +187,68 @@
                 </template>
             </div>
         </div>
+
+        <!-- Typhoon Name Management -->
+        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <div class="border-b border-gray-100 px-6 py-4">
+                <h2 class="text-base font-semibold text-gray-800">Typhoon Names for Damage Reports</h2>
+                <p class="mt-1 text-xs text-gray-500">Manage up to 5 typhoon names. Farmers can select one when reporting typhoon damage. Add the latest typhoon first.</p>
+            </div>
+
+            <div class="p-6 space-y-4">
+                @if(session('typhoon_success'))
+                    <div class="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+                        {{ session('typhoon_success') }}
+                    </div>
+                @endif
+
+                @if($errors->has('name'))
+                    <div class="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                        {{ $errors->first('name') }}
+                    </div>
+                @endif
+
+                <!-- Existing typhoon list -->
+                @if($typhoons->isNotEmpty())
+                    <ul class="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden">
+                        @foreach($typhoons as $typhoon)
+                            <li class="flex items-center justify-between gap-3 px-4 py-3 bg-white">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <svg class="h-4 w-4 shrink-0 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                                    </svg>
+                                    <span class="text-sm font-medium text-gray-800 truncate">{{ $typhoon->name }}</span>
+                                </div>
+                                <form method="POST" action="{{ route('admin.typhoons.destroy', $typhoon) }}" onsubmit="return confirm('Remove typhoon \'{{ $typhoon->name }}\'?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition">Remove</button>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-sm text-gray-400 italic">No typhoon names added yet.</p>
+                @endif
+
+                <!-- Add new typhoon -->
+                @if($typhoons->count() < 5)
+                    <form method="POST" action="{{ route('admin.typhoons.store') }}" class="flex gap-2">
+                        @csrf
+                        <input type="text" name="name" placeholder="e.g., Typhoon Egay" maxlength="100" required
+                            class="flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500"
+                            value="{{ old('name') }}">
+                        <button type="submit"
+                            class="shrink-0 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700">
+                            Add
+                        </button>
+                    </form>
+                @else
+                    <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">Maximum of 5 typhoon names reached. Remove one to add another.</p>
+                @endif
+            </div>
+        </div>
+
     </div>
 
     @push('scripts')

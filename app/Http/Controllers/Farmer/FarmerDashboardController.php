@@ -12,6 +12,7 @@ use App\Models\CropPlanHarvestReport;
 use App\Models\Crop;
 use App\Models\CropPrice;
 use App\Models\FarmerNotification;
+use App\Models\Typhoon;
 use App\Services\MLApiService;
 use App\Services\PredictionService;
 use Illuminate\Http\Request;
@@ -103,7 +104,9 @@ class FarmerDashboardController extends Controller
             ->orderBy('planting_date')
             ->get();
 
-        return view('farmers.calendar', compact('announcements', 'events', 'cropTypes', 'cropPlans'));
+        $typhoons = Typhoon::latestFive()->pluck('name');
+
+        return view('farmers.calendar', compact('announcements', 'events', 'cropTypes', 'cropPlans', 'typhoons'));
     }
 
     /**
@@ -1229,6 +1232,8 @@ class FarmerDashboardController extends Controller
         $validated = $request->validate([
             'damaged_area_hectares' => 'required|numeric|min:0.0001|max:' . $plantedArea,
             'damage_cause' => 'required|string|in:' . implode(',', array_keys(CropPlan::DAMAGE_CAUSE_LABELS)),
+            'damage_type' => 'required|string|in:total,partial',
+            'typhoon_name' => 'nullable|string|max:100|required_if:damage_cause,typhoon',
             'damage_occurred_on' => [
                 'required',
                 'date',
@@ -1238,6 +1243,7 @@ class FarmerDashboardController extends Controller
         ], [
             'damaged_area_hectares.min' => 'Damaged area must be at least 1 square meter.',
             'damaged_area_hectares.max' => 'Damaged area cannot exceed the planted area of ' . number_format($plantedArea * 10000, 0) . ' square meters.',
+            'typhoon_name.required_if' => 'Please select a typhoon name.',
         ]);
 
         $damageReport = $cropPlan->damageReports()
@@ -1257,6 +1263,8 @@ class FarmerDashboardController extends Controller
             $damageReport->update([
                 'damaged_area_hectares' => $validated['damaged_area_hectares'],
                 'damage_cause' => $validated['damage_cause'],
+                'damage_type' => $validated['damage_type'],
+                'typhoon_name' => $validated['damage_cause'] === 'typhoon' ? ($validated['typhoon_name'] ?? null) : null,
                 'damage_notes' => $validated['damage_notes'] ?? null,
                 'damage_occurred_on' => $validated['damage_occurred_on'],
                 'lgu_validation_status' => CropPlanDamageReport::VALIDATION_PENDING,
@@ -1273,6 +1281,8 @@ class FarmerDashboardController extends Controller
                 'farmer_id' => $farmer->id,
                 'damaged_area_hectares' => $validated['damaged_area_hectares'],
                 'damage_cause' => $validated['damage_cause'],
+                'damage_type' => $validated['damage_type'],
+                'typhoon_name' => $validated['damage_cause'] === 'typhoon' ? ($validated['typhoon_name'] ?? null) : null,
                 'damage_notes' => $validated['damage_notes'] ?? null,
                 'damage_occurred_on' => $validated['damage_occurred_on'],
                 'lgu_validation_status' => CropPlanDamageReport::VALIDATION_PENDING,

@@ -26,8 +26,8 @@ return new class extends Migration
             $table->timestamp('applied_at')->nullable();
             $table->timestamps();
 
-            $table->index(['crop_plan_id', 'lgu_validation_status']);
-            $table->index(['farmer_id', 'lgu_validation_status']);
+            $table->index(['crop_plan_id', 'lgu_validation_status'], 'cpdr_crop_plan_status_idx');
+            $table->index(['farmer_id', 'lgu_validation_status'], 'cpdr_farmer_status_idx');
         });
 
         DB::table('crop_plans')
