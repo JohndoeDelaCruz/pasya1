@@ -1027,9 +1027,12 @@ class DataAnalyticsController extends Controller
             'total_actual_harvest' => (float) $records->sum(fn ($record) => (float) ($record->actual_harvest_production_mt ?? 0)),
             'total_harvest_variance' => (float) $records->sum(fn ($record) => (float) ($record->actual_harvest_variance_mt ?? 0)),
             'total_production_loss' => (float) $records->sum(fn ($record) => (float) $record->production_loss_mt),
-            'planted_records' => $records->where('planting_report_status', 'planted')->count(),
-            'planned_records' => $records->where('planting_report_status', 'planted')->count(),
-            'damaged_records' => $records->where('planting_report_status', 'damaged')->count(),
+            // Records considered planted: status is either 'planned' or 'planted' and no damage reported
+            'planted_records' => $records->filter(fn ($record) => in_array($record->status, ['planned', 'planted'], true) && ! $record->has_damage_report)->count(),
+            // Records that are specifically in the 'planned' state
+            'planned_records' => $records->where('status', 'planned')->count(),
+            // Records with damage reported
+            'damaged_records' => $records->filter(fn ($record) => $record->has_damage_report)->count(),
             'actual_harvest_records' => $records->filter(fn ($record) => $record->actual_harvest_production_mt !== null)->count(),
             'crop_distribution' => $cropDistribution,
         ];
