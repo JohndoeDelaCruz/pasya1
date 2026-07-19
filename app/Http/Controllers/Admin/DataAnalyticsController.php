@@ -969,7 +969,20 @@ class DataAnalyticsController extends Controller
                 $query->where('lgu_validation_status', $status);
             })
             ->when($filters['municipality'] ?? null, function ($query, $municipality) {
-                $query->where('municipality', $municipality);
+                $aliases = Municipality::queryAliasesFor($municipality);
+
+                if (empty($aliases)) {
+                    return;
+                }
+
+                $compacted = array_map(function ($name) {
+                    return strtoupper(str_replace([' ', '_', '-'], '', (string) $name));
+                }, $aliases);
+
+                $placeholders = implode(',', array_fill(0, count($compacted), '?'));
+
+                // Normalize municipality in SQL by removing spaces, underscores and dashes, then compare
+                $query->whereRaw("REPLACE(REPLACE(REPLACE(UPPER(municipality), ' ', ''), '_', ''), '-', '') IN ($placeholders)", $compacted);
             })
             ->when($filters['crop_type'] ?? null, function ($query, $cropType) {
                 $query->where('crop_name', $cropType);
@@ -1048,9 +1061,12 @@ class DataAnalyticsController extends Controller
     {
         return CropPlan::query()
             ->whereNotNull('municipality')
-            ->distinct()
-            ->orderBy('municipality')
-            ->pluck('municipality');
+            ->pluck('municipality')
+            ->map(fn ($m) => Municipality::normalizeLocationName($m) ?? $m)
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
     }
 
     private function getPlantingReportStatuses(): array
