@@ -17,9 +17,18 @@
         $actualHarvestRecords = (int) ($summary['actual_harvest_records'] ?? 0);
         $totalProductionLoss = min((float) ($summary['total_production_loss'] ?? 0), max($totalOriginalProduction, 0));
         $percentOf = fn ($value, $total) => $total > 0 ? min(100, round(((float) $value / (float) $total) * 100, 1)) : 0;
+        $otherRecords = max(0, $totalRecords - $plantedRecords - $damagedRecords);
+        $statusLabels = ['Planted', 'Damaged'];
+        $statusValues = [$plantedRecords, $damagedRecords];
+
+        if ($otherRecords > 0) {
+            $statusLabels[] = 'Other';
+            $statusValues[] = $otherRecords;
+        }
+
         $statusChartData = [
-            'labels' => ['Planted', 'Damaged'],
-            'values' => [$plantedRecords, $damagedRecords],
+            'labels' => $statusLabels,
+            'values' => $statusValues,
         ];
         $cropDistribution = collect($summary['crop_distribution'] ?? []);
         $topCropDistribution = $cropDistribution->take(4)->values();
@@ -95,6 +104,18 @@
                                     <p class="text-[11px] text-gray-500">{{ $percentOf($damagedRecords, $totalRecords) }}%</p>
                                 </div>
                             </div>
+                            @if($otherRecords > 0)
+                            <div class="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-gray-400"></span>
+                                    <span class="text-sm font-medium text-gray-700">Other</span>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-gray-900">{{ number_format($otherRecords) }}</p>
+                                    <p class="text-[11px] text-gray-500">{{ $percentOf($otherRecords, $totalRecords) }}%</p>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </section>
@@ -611,7 +632,8 @@
                 const hasData = values.some(value => value > 0);
                 const chartValues = hasData ? values : [1];
                 const chartLabels = hasData ? labels : ['No records'];
-                const chartColors = hasData ? ['#10b981', '#fb923c'] : ['#e5e7eb'];
+                const baseColors = ['#10b981', '#fb923c', '#6b7280'];
+                const chartColors = hasData ? baseColors.slice(0, chartValues.length) : ['#e5e7eb'];
 
                 plantingStatusChart = new Chart(canvas, {
                     type: 'doughnut',
