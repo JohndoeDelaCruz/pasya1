@@ -1059,14 +1059,37 @@ class DataAnalyticsController extends Controller
 
     private function getPlantingReportMunicipalities()
     {
-        return CropPlan::query()
+        $raw = CropPlan::query()
             ->whereNotNull('municipality')
+            ->distinct()
             ->pluck('municipality')
-            ->map(fn ($m) => Municipality::normalizeLocationName($m) ?? $m)
             ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+            ->map(fn ($m) => Municipality::normalizeLocationName($m) ?? null)
+            ->filter()
+            ->values()
+            ->all();
+
+        $mapped = collect();
+
+        foreach ($raw as $name) {
+            // If the value is already a known municipality, keep it
+            if (in_array($name, Municipality::BENGUET_MUNICIPALITIES, true)) {
+                $mapped->push($name);
+                continue;
+            }
+
+            // Otherwise try to locate it in the barangays map and map to its municipality
+            foreach (Municipality::BENGUET_BARANGAYS_BY_MUNICIPALITY as $mun => $barangays) {
+                if (in_array($name, $barangays, true)) {
+                    $mapped->push($mun);
+                    continue 2;
+                }
+            }
+
+            // If not found, skip it (we don't want barangays or unknown values in the municipality dropdown)
+        }
+
+        return $mapped->unique()->sort()->values();
     }
 
     private function getPlantingReportStatuses(): array
