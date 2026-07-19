@@ -101,6 +101,7 @@
                         </a>
                     </div>
 
+                    @if(config('features.alpha'))
                     <div class="px-4 mb-6">
                         <a href="{{ route('admin.crop-trends-alpha') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.crop-trends-alpha') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -109,6 +110,7 @@
                             <span class="font-medium leading-tight">Crop Trends & Patterns (Alpha Test)</span>
                         </a>
                     </div>
+                    @endif
 
                     <div class="px-4 mb-6">
                         <a href="{{ route('admin.map') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.map') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
