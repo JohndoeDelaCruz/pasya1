@@ -5,8 +5,6 @@
         $hasRecords = $plantingRecords->total() > 0;
         $exportFilters = collect($filters)->filter(fn ($value) => filled($value))->all();
         $totalRecords = (int) ($summary['total_records'] ?? 0);
-        $plantedRecords = (int) ($summary['planted_records'] ?? $summary['planned_records'] ?? 0);
-        $damagedRecords = (int) ($summary['damaged_records'] ?? 0);
         $totalArea = (float) ($summary['total_area'] ?? 0);
         $damagedArea = min((float) ($summary['total_damaged_area'] ?? 0), $totalArea);
         $productiveArea = max(0, $totalArea - $damagedArea);
@@ -17,14 +15,15 @@
         $actualHarvestRecords = (int) ($summary['actual_harvest_records'] ?? 0);
         $totalProductionLoss = min((float) ($summary['total_production_loss'] ?? 0), max($totalOriginalProduction, 0));
         $percentOf = fn ($value, $total) => $total > 0 ? min(100, round(((float) $value / (float) $total) * 100, 1)) : 0;
-        $otherRecords = max(0, $totalRecords - $plantedRecords - $damagedRecords);
-        $statusLabels = ['Planted', 'Damaged'];
-        $statusValues = [$plantedRecords, $damagedRecords];
 
-        if ($otherRecords > 0) {
-            $statusLabels[] = 'Other';
-            $statusValues[] = $otherRecords;
-        }
+        // Status counts: use the controller-provided order ($statuses) and include any unexpected statuses
+        $statusCounts = collect($summary['status_counts'] ?? [])->mapWithKeys(fn($v, $k) => [strtolower((string) $k) => (int) $v]);
+        $orderedStatuses = collect($statuses ?? [])->map(fn($s) => strtolower((string) $s))->values();
+        $extraStatuses = collect($statusCounts->keys())->diff($orderedStatuses);
+        $allStatuses = $orderedStatuses->concat($extraStatuses)->unique()->values();
+
+        $statusLabels = $allStatuses->map(fn($s) => ucwords(str_replace('_', ' ', $s)))->all();
+        $statusValues = $allStatuses->map(fn($s) => (int) ($statusCounts[$s] ?? 0))->all();
 
         $statusChartData = [
             'labels' => $statusLabels,
@@ -84,38 +83,32 @@
                         </div>
 
                         <div class="space-y-3">
-                            <div class="flex items-center justify-between gap-3 rounded-xl bg-emerald-50 px-3 py-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                                    <span class="text-sm font-medium text-gray-700">Planted</span>
+                            @php
+                                $statusColorClasses = [
+                                    'planted' => ['bg' => 'bg-emerald-50', 'dot' => 'bg-emerald-500'],
+                                    'growing' => ['bg' => 'bg-sky-50', 'dot' => 'bg-sky-500'],
+                                    'damaged' => ['bg' => 'bg-orange-50', 'dot' => 'bg-orange-400'],
+                                    'harvested' => ['bg' => 'bg-blue-50', 'dot' => 'bg-blue-500'],
+                                    'cancelled' => ['bg' => 'bg-gray-50', 'dot' => 'bg-gray-400'],
+                                ];
+                            @endphp
+
+                            @foreach($allStatuses as $status)
+                                @php
+                                    $count = (int) ($statusCounts[$status] ?? 0);
+                                    $classes = $statusColorClasses[$status] ?? ['bg' => 'bg-gray-50', 'dot' => 'bg-gray-400'];
+                                @endphp
+                                <div class="flex items-center justify-between gap-3 rounded-xl {{ $classes['bg'] }} px-3 py-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full {{ $classes['dot'] }}"></span>
+                                        <span class="text-sm font-medium text-gray-700">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-bold text-gray-900">{{ number_format($count) }}</p>
+                                        <p class="text-[11px] text-gray-500">{{ $percentOf($count, $totalRecords) }}%</p>
+                                    </div>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-bold text-gray-900">{{ number_format($plantedRecords) }}</p>
-                                    <p class="text-[11px] text-gray-500">{{ $percentOf($plantedRecords, $totalRecords) }}%</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between gap-3 rounded-xl bg-orange-50 px-3 py-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full bg-orange-400"></span>
-                                    <span class="text-sm font-medium text-gray-700">Damaged</span>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-bold text-gray-900">{{ number_format($damagedRecords) }}</p>
-                                    <p class="text-[11px] text-gray-500">{{ $percentOf($damagedRecords, $totalRecords) }}%</p>
-                                </div>
-                            </div>
-                            @if($otherRecords > 0)
-                            <div class="flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3 py-2">
-                                <div class="flex items-center gap-2">
-                                    <span class="h-2.5 w-2.5 rounded-full bg-gray-400"></span>
-                                    <span class="text-sm font-medium text-gray-700">Other</span>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-bold text-gray-900">{{ number_format($otherRecords) }}</p>
-                                    <p class="text-[11px] text-gray-500">{{ $percentOf($otherRecords, $totalRecords) }}%</p>
-                                </div>
-                            </div>
-                            @endif
+                            @endforeach
                         </div>
                     </div>
                 </section>
@@ -632,7 +625,7 @@
                 const hasData = values.some(value => value > 0);
                 const chartValues = hasData ? values : [1];
                 const chartLabels = hasData ? labels : ['No records'];
-                const baseColors = ['#10b981', '#fb923c', '#6b7280'];
+                const baseColors = ['#10b981', '#0ea5e9', '#fb923c', '#3b82f6', '#9ca3af', '#8b5cf6', '#f59e0b'];
                 const chartColors = hasData ? baseColors.slice(0, chartValues.length) : ['#e5e7eb'];
 
                 plantingStatusChart = new Chart(canvas, {

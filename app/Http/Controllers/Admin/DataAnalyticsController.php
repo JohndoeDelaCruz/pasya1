@@ -1016,6 +1016,11 @@ class DataAnalyticsController extends Controller
             ->values()
             ->all();
 
+        $statusCounts = $records
+            ->map(fn ($record) => strtolower((string) ($record->planting_report_status ?? 'unspecified')))
+            ->countBy()
+            ->toArray();
+
         return [
             'total_records' => $records->count(),
             'total_area' => (float) $records->sum(fn ($record) => (float) $record->area_hectares),
@@ -1035,6 +1040,7 @@ class DataAnalyticsController extends Controller
             'damaged_records' => $records->filter(fn ($record) => $record->has_damage_report)->count(),
             'actual_harvest_records' => $records->filter(fn ($record) => $record->actual_harvest_production_mt !== null)->count(),
             'crop_distribution' => $cropDistribution,
+            'status_counts' => $statusCounts,
         ];
     }
 
