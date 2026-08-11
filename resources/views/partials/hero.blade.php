@@ -54,7 +54,7 @@
             <div class="max-w-3xl reveal-up is-visible" data-reveal-distance="lg">
                 <p class="mb-5 text-sm font-bold uppercase tracking-[0.18em] text-green-200">Plan locally. Decide with context.</p>
                 <h1 class="text-4xl font-bold leading-[1.04] tracking-[-0.04em] text-white sm:text-5xl md:text-6xl lg:text-7xl" style="--reveal-delay: 80ms">
-                    Better crop decisions, from planning to harvest.
+                    PASYA: Predictive Analytics for Yield Advancement
                 </h1>
                 <p class="mt-6 max-w-2xl text-base font-medium leading-7 text-gray-100 sm:text-xl sm:leading-8" style="--reveal-delay: 160ms">
                     PASYA connects Benguet farmers, local validators, and agricultural decision-makers through one accountable crop-planning workflow.
