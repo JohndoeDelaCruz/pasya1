@@ -2,88 +2,52 @@
     <x-slot name="title">Home</x-slot>
 
     <div class="farmer-home min-h-full" x-data="{ ...dashboardModals(), ...dashboardWeather() }" x-init="initWeather()">
-        <!-- Welcome Header -->
-        <div class="farmer-welcome-card relative overflow-hidden px-5 py-5 sm:px-7 sm:py-7 mb-4 sm:mb-6 rounded-2xl mx-3 sm:mx-6 mt-3 sm:mt-6">
-            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <!-- Workspace Header -->
+        <div class="mx-3 mt-3 border-b border-gray-200 px-1 pb-3 sm:mx-6 sm:mt-5 sm:px-0">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="pasya-text-safe">
                     @php
                         $hour = now()->hour;
                         $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
                     @endphp
-                    <p class="farmer-eyebrow text-sm font-semibold mb-1">{{ $greeting }}</p>
-                    <h1 class="break-words text-2xl sm:text-3xl font-semibold tracking-tight mb-3">{{ Auth::guard('farmer')->user()->full_name }}</h1>
-                    <div class="flex flex-wrap items-center gap-2 sm:gap-4">
-                        <div class="farmer-location-chip flex items-center space-x-2 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
+                    <h1 class="break-words text-xl font-semibold tracking-tight text-gray-950 sm:text-2xl">{{ $greeting }}, {{ Auth::guard('farmer')->user()->full_name }}</h1>
+                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                        <div class="flex items-center space-x-1.5">
                             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="text-xs sm:text-sm font-medium">{{ Auth::guard('farmer')->user()->municipality ?? 'Buguias' }}, Benguet</span>
+                            <span>{{ Auth::guard('farmer')->user()->municipality ?? 'Buguias' }}, Benguet</span>
                         </div>
-                        <div class="farmer-location-chip hidden sm:flex items-center space-x-2 rounded-full px-3 py-1.5">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="text-sm font-medium">{{ now()->format('g:i A') }}</span>
-                        </div>
+                        <span aria-hidden="true">&bull;</span>
+                        <span>{{ now()->format('D, M j') }}</span>
                     </div>
                 </div>
-                <div class="text-left md:text-right">
-                    <div class="farmer-date-card inline-flex flex-col items-start md:items-end rounded-xl px-3 py-2 sm:px-4 sm:py-3">
-                        <span class="farmer-date-label text-xs font-semibold uppercase tracking-wider">Today</span>
-                        <span class="text-lg sm:text-2xl font-semibold text-gray-900">{{ now()->format('l') }}</span>
-                        <span class="text-xs sm:text-sm">{{ now()->format('F d, Y') }}</span>
-                    </div>
+                <div class="flex gap-2">
+                    <a href="{{ route('farmers.harvest-history') }}" class="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">My crops</a>
+                    <a href="{{ route('farmers.calendar') }}" class="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800 sm:flex-none">Create crop plan</a>
                 </div>
             </div>
         </div>
 
-        <div class="px-3 sm:px-6 pb-4 sm:pb-6">
+        <div class="flex flex-col px-3 pb-4 sm:px-6 sm:pb-6">
             <!-- Quick Stats Row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <div class="farmer-summary-card bg-white rounded-xl p-4 border border-gray-100">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider">Events</p>
-                            <p class="text-lg font-bold text-gray-800">{{ $stats['events_count'] ?? 0 }} This Month</p>
-                        </div>
-                    </div>
+            <div class="order-1 my-3 flex flex-wrap divide-x divide-gray-200 rounded-xl border border-gray-200 bg-white px-1 py-2 sm:my-4">
+                <div class="px-3 py-1 sm:px-5">
+                    <span class="text-lg font-semibold text-gray-950">{{ $stats['events_count'] ?? 0 }}</span>
+                    <span class="ml-1 text-xs text-gray-500">events this month</span>
                 </div>
-                <div class="farmer-summary-card bg-white rounded-xl p-4 border border-gray-100">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"/>
-                                <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider">Crops</p>
-                            <p class="text-lg font-bold text-gray-800">{{ $stats['active_crops'] ?? 0 }} Active</p>
-                        </div>
-                    </div>
+                <div class="px-3 py-1 sm:px-5">
+                    <span class="text-lg font-semibold text-gray-950">{{ $stats['active_crops'] ?? 0 }}</span>
+                    <span class="ml-1 text-xs text-gray-500">active crops</span>
                 </div>
-                <div class="farmer-summary-card bg-white rounded-xl p-4 border border-gray-100">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"/>
-                            </svg>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-xs text-gray-500 uppercase tracking-wider">Announcements</p>
-                            <p class="text-lg font-bold text-gray-800">{{ isset($announcements) ? $announcements->count() : 0 }} New</p>
-                        </div>
-                    </div>
+                <div class="px-3 py-1 sm:px-5">
+                    <span class="text-lg font-semibold text-gray-950">{{ isset($announcements) ? $announcements->count() : 0 }}</span>
+                    <span class="ml-1 text-xs text-gray-500">announcements</span>
                 </div>
             </div>
 
             <!-- Weather Widget -->
-            <div class="mb-6">
+            <div class="order-3 mt-6">
                 <div class="farmer-weather-card bg-white rounded-2xl border border-gray-100 overflow-hidden">
                     <!-- Weather Loading State -->
                     <div x-show="weatherLoading && !weatherData" class="px-6 py-8 text-center">
@@ -194,7 +158,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="order-2 grid grid-cols-1 gap-6 lg:grid-cols-3">
                 <!-- Calendar Section (Left - Takes 2 columns) -->
                 <div class="lg:col-span-2 space-y-6">
                     <!-- Calendar Card -->

@@ -26,49 +26,28 @@
             }
         }
     }, 100)">
-        <div class="admin-pwa-compact space-y-3 sm:space-y-5 lg:space-y-6 admin-dashboard-shell dashboard-reduced-motion">
+        <div class="admin-pwa-compact space-y-3 sm:space-y-4 admin-dashboard-shell dashboard-reduced-motion">
         <!-- Page Header -->
-        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 xl:flex-row xl:items-end xl:justify-between">
-            <div class="pasya-text-safe max-w-3xl">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500 sm:text-xs sm:tracking-[0.18em]">Operations intelligence</p>
-                <h1 class="mt-1 text-xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Data & Analytics</h1>
-                <p class="mt-1.5 text-xs leading-5 text-gray-600 sm:mt-2 sm:text-sm lg:text-base">
-                    Review imported production records, compare municipalities, and use model forecasts as planning support.
-                </p>
+        <div class="admin-feature-page-header flex flex-col gap-3 border-b border-gray-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="pasya-text-safe">
+                <h1 class="text-xl font-semibold tracking-tight text-gray-950 sm:text-2xl">Production overview</h1>
+                <p class="mt-1 text-xs text-gray-500">Imported production records <span aria-hidden="true">&bull;</span> forecasts are planning estimates</p>
             </div>
 
             <div class="pasya-button-row admin-mobile-button-row">
                 <a href="{{ route('admin.planting-report') }}"
-                   class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 sm:flex-none">
-                    Open official reports
+                   class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 sm:flex-none">
+                    Reports
                 </a>
                 <button onclick="document.getElementById('predictions-section')?.scrollIntoView({ behavior: 'smooth' })"
-                        class="inline-flex flex-1 items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-800 sm:flex-none">
-                    View model forecasts
+                        class="inline-flex flex-1 items-center justify-center rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800 sm:flex-none">
+                    Forecasts
                 </button>
             </div>
         </div>
 
-        <section class="admin-feature-data-context grid gap-3 sm:grid-cols-3" aria-label="Data context">
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Primary source</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">Imported production records</p>
-                <p class="mt-1 text-xs leading-5 text-gray-500">Filtered totals and rankings on this page come from the managed crop dataset.</p>
-            </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Official actuals</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">Verified harvest reports only</p>
-                <p class="mt-1 text-xs leading-5 text-gray-500">Pending review and needs-correction submissions stay outside official reporting.</p>
-            </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Decision rule</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">Forecasts are planning estimates</p>
-                <p class="mt-1 text-xs leading-5 text-gray-500">Confirm model output against verified actual harvest before operational use.</p>
-            </div>
-        </section>
-
         <!-- Filter Bar -->
-        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-feature-filter-bar admin-section-card p-3 sm:p-4">
+        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-feature-filter-bar admin-section-card p-2.5 sm:p-3">
             <div class="admin-mobile-filter-grid">
                 <div class="admin-mobile-filter-label flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,23 +117,24 @@
             @endif
         </form>
 
-        <nav class="admin-feature-entry-points grid gap-3 sm:grid-cols-3" aria-label="Analytics workspaces">
-            <a href="{{ route('admin.crop-data.index') }}" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:bg-gray-50">
-                <p class="text-sm font-semibold text-gray-900">Manage production data</p>
-                <p class="mt-1 text-xs leading-5 text-gray-500">Import, correct, archive, and inspect source records.</p>
-                <span class="mt-3 inline-flex text-xs font-semibold text-green-700">Open records <span aria-hidden="true" class="ml-1">&rarr;</span></span>
-            </a>
-            <a href="{{ route('admin.crop-trends') }}" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:bg-gray-50">
-                <p class="text-sm font-semibold text-gray-900">Explore trends</p>
-                <p class="mt-1 text-xs leading-5 text-gray-500">Compare historical patterns with model-generated forecasts.</p>
-                <span class="mt-3 inline-flex text-xs font-semibold text-green-700">Open trends <span aria-hidden="true" class="ml-1">&rarr;</span></span>
-            </a>
-            <a href="{{ route('admin.planting-report') }}" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:bg-gray-50">
-                <p class="text-sm font-semibold text-gray-900">Review reporting</p>
-                <p class="mt-1 text-xs leading-5 text-gray-500">Inspect crop plans, verified actual harvest, damage, and exportable reports.</p>
-                <span class="mt-3 inline-flex text-xs font-semibold text-green-700">Open reports <span aria-hidden="true" class="ml-1">&rarr;</span></span>
-            </a>
-        </nav>
+        <section class="grid grid-cols-2 overflow-hidden rounded-xl border border-gray-200 bg-white sm:grid-cols-4" aria-label="Key production metrics">
+            <div class="border-b border-r border-gray-200 p-3 sm:border-b-0 sm:p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Area</p>
+                <p class="mt-1 text-xl font-semibold text-gray-950">{{ number_format($totalAreaHarvested ?? 0, 0) }} <span class="text-xs font-medium text-gray-500">ha</span></p>
+            </div>
+            <div class="border-b border-gray-200 p-3 sm:border-b-0 sm:border-r sm:p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Average yield</p>
+                <p class="mt-1 text-xl font-semibold text-gray-950">{{ number_format($averageYield ?? 0, 2) }} <span class="text-xs font-medium text-gray-500">MT/ha</span></p>
+            </div>
+            <div class="border-r border-gray-200 p-3 sm:p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Top crop</p>
+                <p class="mt-1 truncate text-base font-semibold text-gray-950">{{ isset($topCrops) && $topCrops->isNotEmpty() ? ucwords(strtolower($topCrops->first()->crop)) : 'No data' }}</p>
+            </div>
+            <div class="p-3 sm:p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Leading municipality</p>
+                <p class="mt-1 truncate text-base font-semibold text-gray-950">{{ isset($topMunicipality) ? ucwords(strtolower($topMunicipality->municipality)) : 'No data' }}</p>
+            </div>
+        </section>
 
         <!-- Crop Production Chart -->
         <div class="admin-section-card p-3 sm:p-5 lg:p-6">
@@ -335,58 +315,6 @@
 
         <!-- Overlay for side panel -->
         <div id="chart-panel-overlay" onclick="closeChartDetailsPanel()" class="fixed inset-0 bg-black bg-opacity-30 z-[1999] hidden"></div>
-
-        <!-- Key Metrics -->
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6">
-            <!-- Total Area Planted/Harvested -->
-            <div class="admin-section-card p-3 sm:p-5 lg:p-6">
-                <div class="mb-3 flex items-start justify-between gap-3">
-                    <div>
-                        <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-600">Total Area Planted and Harvested</h3>
-                        <p class="text-sm text-gray-600 mt-1">Combined planted and harvested footprint.</p>
-                    </div>
-                    <div class="admin-kpi-icon">
-                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="admin-kpi-value">{{ number_format($totalAreaHarvested ?? 0, 0) }} <span class="text-xl font-semibold text-gray-500">ha</span></div>
-                <div class="admin-kpi-meta mt-2 flex items-center gap-1.5">
-                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                    </svg>
-                    <span>Updated {{ $lastUpdate->format('F Y') ?? 'July 2025' }}</span>
-                </div>
-            </div>
-
-            <!-- Average Yield -->
-            <div class="admin-section-card p-3 sm:p-5 lg:p-6">
-                <div class="mb-3 flex items-start justify-between gap-3">
-                    <div>
-                        <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-600">Average Yield</h3>
-                        <p class="text-sm text-gray-600 mt-1">Average output per hectare across selected records.</p>
-                    </div>
-                    <div class="admin-kpi-icon">
-                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                        </svg>
-                    </div>
-                </div>
-                <div class="admin-kpi-value">{{ number_format($averageYield ?? 0, 2) }} <span class="text-xl font-semibold text-gray-500">mt/ha</span></div>
-                <div class="admin-kpi-meta mt-2 flex items-center gap-1.5">
-                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-                    </svg>
-                    <span>Updated {{ $lastUpdate->format('F Y') ?? 'July 2025' }}</span>
-                </div>
-                <div class="mt-4 flex gap-2">
-                    <a href="{{ route('admin.crop-data.index') }}" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors text-center">
-                        View All Data
-                    </a>
-                </div>
-            </div>
-        </div>
 
         <!-- Summary and Announcements -->
         <div class="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-6">

@@ -1893,6 +1893,29 @@ body.pasya-workspace table tbody tr:hover {
     background: var(--pasya-canvas) !important;
 }
 
+/* Enterprise workspace density: headers orient; data and controls lead. */
+.admin-feature-page-header {
+    gap: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+}
+
+.admin-feature-page-header h1 {
+    margin-top: 0 !important;
+    font-size: clamp(1.25rem, 1.8vw, 1.5rem) !important;
+    line-height: 1.25 !important;
+}
+
+.admin-feature-page-header h1 + p {
+    margin-top: 0.25rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1.25rem !important;
+    color: var(--pasya-ink-secondary) !important;
+}
+
+.admin-feature-page-header > div > p:first-child[class*="uppercase"] {
+    display: none;
+}
+
 .farmer-welcome-card {
     color: var(--pasya-ink) !important;
     background: var(--pasya-surface) !important;

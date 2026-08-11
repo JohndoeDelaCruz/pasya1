@@ -1,26 +1,25 @@
 <x-admin-layout>
     <x-slot name="title">Account Management</x-slot>
 
-    <div class="admin-feature-farmer-accounts space-y-5 p-3 sm:p-6">
+    <div class="admin-feature-farmer-accounts space-y-4 p-3 sm:p-5">
         {{-- Header --}}
-        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 xl:flex-row xl:items-end xl:justify-between">
-            <div class="max-w-2xl">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Access administration</p>
-                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Farmer accounts</h1>
-                <p class="mt-2 text-sm leading-6 text-gray-600">Create identities, maintain contact and municipality data, or archive access when an account should no longer sign in.</p>
+        <div class="admin-feature-page-header flex flex-col gap-3 border-b border-gray-200 pb-3 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+                <h1 class="text-xl font-semibold tracking-tight text-gray-950 sm:text-2xl">Farmer accounts</h1>
+                <p class="mt-1 text-xs text-gray-500">Search, create, import, and manage access</p>
             </div>
-            <div class="flex flex-col sm:flex-row gap-3 self-start sm:self-auto">
+            <div class="flex flex-wrap gap-2 self-start xl:self-auto">
                 <a href="{{ route('admin.farmers.archived') }}"
-                   class="inline-flex min-h-11 items-center justify-center self-start rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 sm:self-auto">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                     </svg>
-                    <span>Archived Accounts</span>
+                    <span>Archived</span>
                     @if($stats['archived_farmers'] > 0)
                         <span class="ml-2 rounded-full bg-amber-700 px-2 py-0.5 text-xs font-bold text-white">{{ number_format($stats['archived_farmers']) }}</span>
                     @endif
                 </a>
-                <form method="POST" action="{{ route('admin.farmers.import') }}" enctype="multipart/form-data" class="self-start sm:self-auto">
+                <form method="POST" action="{{ route('admin.farmers.import') }}" enctype="multipart/form-data">
                     @csrf
                     <input type="file"
                            id="farmers_file"
@@ -30,27 +29,22 @@
                            class="sr-only"
                            onchange="this.form.submit()">
                     <label for="farmers_file"
-                           class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           class="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l4 4m-4-4L8 8"/>
                         </svg>
                         <span>Import Excel</span>
                     </label>
                 </form>
                 <a href="{{ route('admin.farmers.create') }}" 
-                   class="inline-flex min-h-11 items-center self-start rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 sm:self-auto">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="inline-flex min-h-10 items-center rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-gray-800">
+                    <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     <span class="hidden sm:inline">Create Farmer Account</span>
                     <span class="sm:hidden">New Farmer</span>
                 </a>
             </div>
-        </div>
-
-        <div class="admin-feature-consequence-note rounded-xl border border-gray-200 bg-gray-50 p-4">
-            <p class="text-sm font-semibold text-gray-900">Account changes affect sign-in and record ownership</p>
-            <p class="mt-1 text-xs leading-5 text-gray-600">Verify the farmer ID and municipality before saving. Archiving disables sign-in but keeps the account recoverable.</p>
         </div>
 
         {{-- Success Message --}}
@@ -69,53 +63,24 @@
             </div>
         @endif
 
-        {{-- Stats Cards --}}
-        <div class="admin-feature-account-summary grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Total Farmers</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ number_format($stats['total_farmers']) }}</p>
-                    </div>
-                    <div class="bg-blue-100 rounded-full p-3">
-                        <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-                        </svg>
-                    </div>
-                </div>
+        {{-- Compact account summary --}}
+        <div class="admin-feature-account-summary flex flex-wrap divide-x divide-gray-200 rounded-xl border border-gray-200 bg-white px-1 py-2">
+            <div class="px-3 py-1 sm:px-5">
+                <span class="text-lg font-semibold text-gray-950">{{ number_format($stats['total_farmers']) }}</span>
+                <span class="ml-1 text-xs text-gray-500">farmers</span>
             </div>
-
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Municipalities</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ number_format($stats['total_municipalities']) }}</p>
-                    </div>
-                    <div class="bg-green-100 rounded-full p-3">
-                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                </div>
+            <div class="px-3 py-1 sm:px-5">
+                <span class="text-lg font-semibold text-gray-950">{{ number_format($stats['total_municipalities']) }}</span>
+                <span class="ml-1 text-xs text-gray-500">municipalities</span>
             </div>
-
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Cooperatives</p>
-                        <p class="text-2xl font-bold text-gray-800">{{ number_format($stats['total_cooperatives']) }}</p>
-                    </div>
-                    <div class="bg-yellow-100 rounded-full p-3">
-                        <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
-                        </svg>
-                    </div>
-                </div>
+            <div class="px-3 py-1 sm:px-5">
+                <span class="text-lg font-semibold text-gray-950">{{ number_format($stats['total_cooperatives']) }}</span>
+                <span class="ml-1 text-xs text-gray-500">FCAs</span>
             </div>
         </div>
 
         {{-- Filters --}}
-        <div class="admin-feature-account-filters rounded-xl border border-gray-200 bg-white p-4">
+        <div class="admin-feature-account-filters rounded-xl border border-gray-200 bg-white p-3">
             <form method="GET" action="{{ route('admin.farmers.index') }}" class="flex flex-wrap gap-3 items-end" data-auto-filter-form>
                 @if(request()->boolean('no_ids'))
                     <input type="hidden" name="no_ids" value="1">

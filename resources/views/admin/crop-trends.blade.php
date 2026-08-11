@@ -7,49 +7,35 @@
     </style>
     @endpush
 
-    <div class="admin-feature-trends space-y-5" x-data="cropTrends()">
+    <div class="admin-feature-trends space-y-4" x-data="cropTrends()">
         <!-- Page Header -->
-        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
-            <div class="pasya-text-safe max-w-2xl">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Planning analysis</p>
-                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Crop trends & forecasts</h1>
-                <p class="mt-2 text-sm leading-6 text-gray-600">Compare historical production patterns with model estimates for a selected crop, municipality, and farm type.</p>
+        <div class="admin-feature-page-header flex flex-col gap-3 border-b border-gray-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="pasya-text-safe">
+                <h1 class="text-xl font-semibold tracking-tight text-gray-950 sm:text-2xl">Crop trends</h1>
+                <p class="mt-1 text-xs text-gray-500">Observed production and model estimates <span aria-hidden="true">&bull;</span> Metric tons (MT)</p>
             </div>
             
-            <!-- ML API Status Indicator -->
             <div class="flex flex-wrap items-center gap-2">
                 @if($mlApiHealthy)
-                    <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center gap-2 text-xs font-medium text-green-700">
                         <div class="h-2 w-2 rounded-full bg-green-500"></div>
-                        <span class="text-xs font-medium text-green-700">Forecast service available</span>
+                        <span>Forecast available</span>
                     </div>
                 @else
-                    <div class="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div class="flex items-center gap-2 text-xs font-medium text-yellow-700">
                         <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <span class="text-xs font-medium text-yellow-700">Historical baseline only</span>
+                        <span>Historical only</span>
                     </div>
                 @endif
+                <button type="button" @click="$dispatch('open-modal', 'prediction-modal')" class="rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800">
+                    Configure forecast
+                </button>
             </div>
         </div>
 
-        <section class="admin-feature-forecast-context grid gap-3 sm:grid-cols-3" aria-label="Forecast context">
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Observed source</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">Imported production records</p>
-            </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Output status</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">Planning estimate, not official actual</p>
-            </div>
-            <div class="rounded-xl border border-gray-200 bg-white p-4">
-                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Reporting unit</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">Metric tons (MT)</p>
-            </div>
-        </section>
-
         <!-- Crop Production Forecasting Chart -->
-        <div class="admin-feature-forecast-card pasya-card-safe rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
-            <div class="pasya-action-row-between mb-5">
+        <div class="admin-feature-forecast-card pasya-card-safe rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+            <div class="pasya-action-row-between mb-3">
                 <div class="pasya-text-safe">
                     <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,20 +55,20 @@
                 </div>
                 
                 <!-- Legend -->
-                <div class="flex flex-wrap items-center gap-2 sm:gap-4">
-                    <div class="flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2">
                         <svg width="24" height="10" class="flex-shrink-0">
                             <line x1="0" y1="5" x2="24" y2="5" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3"/>
                             <circle cx="12" cy="5" r="3" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/>
                         </svg>
-                        <span class="text-xs font-medium text-blue-700">Observed historical</span>
+                        <span class="text-xs font-medium text-gray-600">Observed</span>
                     </div>
-                    <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center gap-2">
                         <svg width="24" height="10" class="flex-shrink-0">
                             <line x1="0" y1="5" x2="24" y2="5" stroke="#16a34a" stroke-width="3"/>
                             <circle cx="12" cy="5" r="3.5" fill="#16a34a" stroke="#fff" stroke-width="1.5"/>
                         </svg>
-                        <span class="text-xs font-medium text-green-700">Model estimate</span>
+                        <span class="text-xs font-medium text-gray-600">Estimate</span>
                     </div>
                 </div>
             </div>
@@ -188,13 +174,6 @@
                     </ol>
                 </div>
             </div>
-        </div>
-
-        <!-- Predict More Button -->
-        <div class="flex justify-end">
-            <button type="button" @click="$dispatch('open-modal', 'prediction-modal')" class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-800">
-                Configure forecast
-            </button>
         </div>
 
         <!-- Prediction Modal -->

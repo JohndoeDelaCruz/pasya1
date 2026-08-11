@@ -48,16 +48,11 @@
     @endphp
 
     <div class="min-h-full bg-gray-50">
-        <div class="admin-feature-reporting space-y-5 p-3 sm:p-6">
-            <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 xl:flex-row xl:items-end xl:justify-between">
-                <div class="pasya-text-safe max-w-3xl">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Official reporting workspace</p>
-                    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Crop plans & harvest reporting</h1>
-                    <p class="mt-2 text-sm leading-6 text-gray-600">Review crop plans, expected harvest, verified actual harvest, and damage adjustments in one exportable report.</p>
-                </div>
-                <div class="flex flex-wrap gap-2 text-xs">
-                    <span class="rounded-full border border-green-200 bg-green-50 px-3 py-1.5 font-semibold text-green-800">Verified = official</span>
-                    <span class="rounded-full border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-600">Pending and needs correction excluded by default</span>
+        <div class="admin-feature-reporting space-y-4 p-3 sm:p-5">
+            <div class="admin-feature-page-header flex flex-col gap-2 border-b border-gray-200 pb-3 sm:flex-row sm:items-center sm:justify-between">
+                <div class="pasya-text-safe">
+                    <h1 class="text-xl font-semibold tracking-tight text-gray-950 sm:text-2xl">Planting records</h1>
+                    <p class="mt-1 text-xs text-gray-500">Verified records are official <span aria-hidden="true">&bull;</span> pending and correction records are excluded by default</p>
                 </div>
             </div>
 
@@ -67,8 +62,8 @@
                 </div>
             @endif
 
-            <div class="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-12" data-summary-cards>
-                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-4">
+            <div class="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4" data-summary-cards>
+                <section class="order-2 col-span-2 rounded-xl border border-gray-200 bg-white p-4 lg:order-2">
                     <div class="flex items-start justify-between gap-4">
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Record Status</p>
@@ -79,8 +74,8 @@
                         </span>
                     </div>
 
-                    <div class="mt-4 grid gap-4 sm:grid-cols-[minmax(0,12rem)_1fr] sm:items-center">
-                        <div class="relative mx-auto h-44 w-44">
+                    <div class="mt-3 grid min-w-0 gap-3 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-center">
+                        <div class="relative mx-auto h-32 w-32 sm:h-36 sm:w-36">
                             <canvas
                                 id="planting-status-chart"
                                 data-planting-status-chart
@@ -94,7 +89,7 @@
                             </div>
                         </div>
 
-                        <div class="space-y-3">
+                        <div class="min-w-0 space-y-1.5">
                             @php
                                 $statusColorClasses = [
                                     'planted' => ['bg' => 'bg-emerald-50', 'dot' => 'bg-emerald-500'],
@@ -110,7 +105,7 @@
                                     $count = (int) ($statusCounts[$status] ?? 0);
                                     $classes = $statusColorClasses[$status] ?? ['bg' => 'bg-gray-50', 'dot' => 'bg-gray-400'];
                                 @endphp
-                                <div class="flex items-center justify-between gap-3 rounded-xl {{ $classes['bg'] }} px-3 py-2">
+                                <div class="flex min-w-0 items-center justify-between gap-2 rounded-lg {{ $classes['bg'] }} px-2.5 py-1.5">
                                     <div class="flex items-center gap-2">
                                         <span class="h-2.5 w-2.5 rounded-full {{ $classes['dot'] }}"></span>
                                         <span class="text-sm font-medium text-gray-700">{{ ucwords(str_replace('_', ' ', $status)) }}</span>
@@ -125,8 +120,8 @@
                     </div>
                 </section>
 
-                <section class="grid gap-4 md:grid-cols-2 xl:col-span-4 xl:grid-cols-1">
-                    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                <section class="contents">
+                    <div class="order-1 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 lg:col-span-2">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Total Area Planted</p>
@@ -135,17 +130,17 @@
                                     <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">ha</p>
                                 </div>
                             </div>
-                            <span class="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                            <span class="hidden rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 sm:inline-flex">
                                 {{ $percentOf($productiveArea, $totalArea) }}% area planted
                             </span>
                         </div>
 
-                        <div class="mt-5">
+                        <div class="mt-3">
                             <div class="flex h-3 overflow-hidden rounded-full bg-gray-100" aria-hidden="true">
                                 <span class="bg-emerald-500" style="width: {{ $percentOf($productiveArea, $totalArea) }}%"></span>
                                 <span class="bg-orange-400" style="width: {{ $percentOf($damagedArea, $totalArea) }}%"></span>
                             </div>
-                            <div class="mt-4 grid grid-cols-2 gap-3">
+                            <div class="mt-3 hidden grid-cols-2 gap-2 sm:grid">
                                 <div class="rounded-xl bg-emerald-50 px-3 py-2">
                                     <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Area Planted</p>
                                     <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($productiveArea, 2) }} ha</p>
@@ -158,7 +153,7 @@
                         </div>
                     </div>
 
-                    <div class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+                    <div class="order-1 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 lg:col-span-2">
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Predicted Harvest</p>
@@ -167,13 +162,13 @@
                                     <p class="text-[11px] font-medium uppercase tracking-wide text-gray-500">MT</p>
                                 </div>
                             </div>
-                            <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                            <span class="hidden rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 sm:inline-flex">
                                 {{ number_format($actualHarvestRecords) }} actual
                             </span>
                         </div>
 
-                        <div class="mt-5">
-                            <div class="grid grid-cols-2 gap-3">
+                        <div class="mt-3">
+                            <div class="hidden grid-cols-2 gap-2 sm:grid">
                                 <div class="rounded-xl bg-emerald-50 px-3 py-2">
                                     <p class="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">Predicted</p>
                                     <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($totalAdjustedProduction, 2) }} MT</p>
@@ -183,7 +178,8 @@
                                     <p class="mt-1 text-sm font-bold text-gray-900">{{ number_format($totalActualHarvest, 2) }} MT</p>
                                 </div>
                             </div>
-                            <p class="mt-3 text-xs text-gray-500">
+                            <p class="text-xs text-gray-500 sm:hidden">Verified actual: <span class="font-semibold text-gray-800">{{ number_format($totalActualHarvest, 2) }} MT</span></p>
+                            <p class="mt-2 hidden text-xs text-gray-500 sm:block">
                                 Original estimate: {{ number_format($totalOriginalProduction, 2) }} MT.
                                 Damage loss: {{ number_format($totalProductionLoss, 2) }} MT.
                                 Actual variance: {{ number_format($totalHarvestVariance, 2) }} MT.
@@ -192,7 +188,7 @@
                     </div>
                 </section>
 
-                <section class="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5 xl:col-span-4">
+                <section class="order-3 col-span-2 min-w-0 rounded-xl border border-gray-200 bg-white p-4">
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Crops Planted</p>
@@ -203,8 +199,8 @@
                         </span>
                     </div>
 
-                    <div class="mt-4 grid gap-4 sm:grid-cols-[minmax(0,10rem)_1fr] sm:items-center">
-                        <div class="relative mx-auto h-40 w-40">
+                    <div class="mt-3 grid min-w-0 gap-3 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-center">
+                        <div class="relative mx-auto h-32 w-32 sm:h-36 sm:w-36">
                             <canvas
                                 id="planting-crop-chart"
                                 data-planting-crop-chart
@@ -218,14 +214,14 @@
                             </div>
                         </div>
 
-                        <div class="space-y-2">
+                        <div class="min-w-0 space-y-1.5">
                             @forelse ($visibleCropDistribution as $crop)
                                 @php
                                     $cropRecords = (int) ($crop['records'] ?? 0);
                                     $cropArea = (float) ($crop['area'] ?? 0);
                                     $cropProduction = (float) ($crop['production'] ?? 0);
                                 @endphp
-                                <div class="rounded-xl bg-gray-50 px-3 py-2">
+                                <div class="min-w-0 rounded-lg bg-gray-50 px-2.5 py-1.5">
                                     <div class="flex items-center justify-between gap-3">
                                         <p class="min-w-0 truncate text-sm font-semibold text-gray-800">{{ $crop['label'] }}</p>
                                         <p class="shrink-0 text-sm font-bold text-gray-900">{{ number_format($cropRecords) }}</p>
