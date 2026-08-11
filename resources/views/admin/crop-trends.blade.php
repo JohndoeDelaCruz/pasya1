@@ -7,36 +7,55 @@
     </style>
     @endpush
 
-    <div class="space-y-6" x-data="cropTrends()">
+    <div class="admin-feature-trends space-y-5" x-data="cropTrends()">
         <!-- Page Header -->
-        <div class="pasya-action-row-between">
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+            <div class="pasya-text-safe max-w-2xl">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Planning analysis</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Crop trends & forecasts</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">Compare historical production patterns with model estimates for a selected crop, municipality, and farm type.</p>
+            </div>
             
             <!-- ML API Status Indicator -->
             <div class="flex flex-wrap items-center gap-2">
                 @if($mlApiHealthy)
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-medium text-green-700">ML Predictions Active</span>
+                        <div class="h-2 w-2 rounded-full bg-green-500"></div>
+                        <span class="text-xs font-medium text-green-700">Forecast service available</span>
                     </div>
                 @else
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <span class="text-xs font-medium text-yellow-700">Using Historical Data</span>
+                        <span class="text-xs font-medium text-yellow-700">Historical baseline only</span>
                     </div>
                 @endif
             </div>
         </div>
 
+        <section class="admin-feature-forecast-context grid gap-3 sm:grid-cols-3" aria-label="Forecast context">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Observed source</p>
+                <p class="mt-1 text-sm font-semibold text-gray-900">Imported production records</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Output status</p>
+                <p class="mt-1 text-sm font-semibold text-gray-900">Planning estimate, not official actual</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Reporting unit</p>
+                <p class="mt-1 text-sm font-semibold text-gray-900">Metric tons (MT)</p>
+            </div>
+        </section>
+
         <!-- Crop Production Forecasting Chart -->
-        <div class="pasya-card-safe bg-white rounded-xl shadow-md p-4 sm:p-6">
+        <div class="admin-feature-forecast-card pasya-card-safe rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
             <div class="pasya-action-row-between mb-5">
                 <div class="pasya-text-safe">
                     <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Crop Production Forecasting
+                        Production outlook
                     </h2>
                     <p class="text-sm text-gray-500 mt-1">
                         <span class="font-medium text-gray-700">{{ $selectedCrop }}</span>
@@ -56,14 +75,14 @@
                             <line x1="0" y1="5" x2="24" y2="5" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="5,3"/>
                             <circle cx="12" cy="5" r="3" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/>
                         </svg>
-                        <span class="text-xs font-medium text-blue-700">Historical</span>
+                        <span class="text-xs font-medium text-blue-700">Observed historical</span>
                     </div>
                     <div class="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-lg">
                         <svg width="24" height="10" class="flex-shrink-0">
                             <line x1="0" y1="5" x2="24" y2="5" stroke="#16a34a" stroke-width="3"/>
                             <circle cx="12" cy="5" r="3.5" fill="#16a34a" stroke="#fff" stroke-width="1.5"/>
                         </svg>
-                        <span class="text-xs font-medium text-green-700">Predicted</span>
+                        <span class="text-xs font-medium text-green-700">Model estimate</span>
                     </div>
                 </div>
             </div>
@@ -78,9 +97,9 @@
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                     </svg>
-                    <span>Historical = avg of yearly totals</span>
+                    <span>Observed historical = average of yearly totals</span>
                     @if($mlApiHealthy)
-                        <span class="ml-2 text-green-600 font-medium">&bull; ML-powered predictions</span>
+                        <span class="ml-2 font-medium text-green-700">&bull; Model estimate available</span>
                     @endif
                 </div>
             </div>
@@ -89,11 +108,11 @@
         <!-- Summary Statistics -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Monthly Production Chart (spans 2 cols) -->
-            <div class="pasya-card-safe lg:col-span-2 bg-white rounded-xl shadow-md p-4 sm:p-6">
+            <div class="pasya-card-safe rounded-xl border border-gray-200 bg-white p-4 sm:p-6 lg:col-span-2">
                 <div class="pasya-action-row-between mb-4">
                     <div class="pasya-text-safe">
                         <h3 class="text-lg font-semibold text-gray-800">Average Monthly Production</h3>
-                        <p class="text-sm text-gray-500">{{ $selectedCrop }} • {{ $selectedMunicipality }} • Production in Metric Tons (mt)</p>
+                        <p class="text-sm text-gray-500">{{ $selectedCrop }} • {{ $selectedMunicipality }} • Production in metric tons (MT)</p>
                     </div>
                 </div>
                 <div class="pasya-chart-frame h-[220px] sm:h-[240px]">
@@ -104,7 +123,7 @@
             <!-- Top Stats Column -->
             <div class="space-y-6">
                 <!-- Top 3 Most Productive Years -->
-                <div class="bg-white rounded-xl shadow-md p-5">
+                <div class="rounded-xl border border-gray-200 bg-white p-5">
                     <h5 class="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
                         <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
@@ -124,7 +143,7 @@
                                         <span class="w-5 h-5 flex items-center justify-center rounded-full {{ $colors[$index] ?? 'bg-gray-300' }} text-white text-xs font-bold">{{ $index + 1 }}</span>
                                         <span class="font-semibold text-gray-800">{{ $item['year'] }}</span>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-600">{{ number_format($item['production'], 0) }} mt</span>
+                                    <span class="text-sm font-medium text-gray-600">{{ number_format($item['production'], 0) }} MT</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-1.5">
                                     <div class="{{ $colors[$index] ?? 'bg-gray-300' }} h-1.5 rounded-full" style="width: {{ $pct }}%"></div>
@@ -137,7 +156,7 @@
                 </div>
 
                 <!-- Top 3 Most Productive Crops -->
-                <div class="bg-white rounded-xl shadow-md p-5">
+                <div class="rounded-xl border border-gray-200 bg-white p-5">
                     <h5 class="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
                         <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
@@ -157,7 +176,7 @@
                                         <span class="w-5 h-5 flex items-center justify-center rounded-full {{ $cropColors[$index] ?? 'bg-gray-300' }} text-white text-xs font-bold">{{ $index + 1 }}</span>
                                         <span class="font-semibold text-gray-800">{{ $item['crop'] }}</span>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-600">{{ number_format($item['production'], 0) }} mt</span>
+                                    <span class="text-sm font-medium text-gray-600">{{ number_format($item['production'], 0) }} MT</span>
                                 </div>
                                 <div class="w-full bg-gray-100 rounded-full h-1.5">
                                     <div class="{{ $cropColors[$index] ?? 'bg-gray-300' }} h-1.5 rounded-full" style="width: {{ $cropPct }}%"></div>
@@ -173,8 +192,8 @@
 
         <!-- Predict More Button -->
         <div class="flex justify-end">
-            <button type="button" @click="$dispatch('open-modal', 'prediction-modal')" class="px-6 py-2.5 bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold rounded-lg transition-colors shadow-sm">
-                Predict More
+            <button type="button" @click="$dispatch('open-modal', 'prediction-modal')" class="rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-800">
+                Configure forecast
             </button>
         </div>
 
@@ -212,7 +231,8 @@
                     
                     <!-- Modal Header -->
                     <div class="mb-6">
-                        <h3 class="text-xl font-bold text-gray-800">Prediction</h3>
+                        <h3 class="text-xl font-semibold text-gray-900">Configure forecast</h3>
+                        <p class="mt-1 text-sm text-gray-500">Choose the crop, location, farm type, and period for a planning estimate.</p>
                     </div>
 
                     <!-- Validation Errors -->
@@ -318,7 +338,7 @@
                                 </div>
                             </div>
                             <input type="number" name="year_to" required min="2000" max="{{ $maxHistoricalYear + 3 }}" value="{{ date('Y') }}" placeholder="Year" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent mt-2">
-                            <p class="text-xs text-amber-600 mt-1">Predictions beyond {{ $maxHistoricalYear }} are limited to 3 years for accuracy.</p>
+                            <p class="mt-1 text-xs text-amber-700">Forecast years are limited to {{ $maxHistoricalYear + 3 }} to keep the estimate within the supported horizon.</p>
                         </div>
 
                         <!-- Crop -->
@@ -341,14 +361,14 @@
                             <button type="button" @click="show = false" class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium" :disabled="submitting">
                                 Cancel
                             </button>
-                            <button type="submit" class="px-6 py-2 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-400 disabled:cursor-not-allowed text-gray-800 font-semibold rounded-md transition-colors flex items-center gap-2" :disabled="submitting">
+                            <button type="submit" class="flex items-center gap-2 rounded-md bg-gray-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400" :disabled="submitting">
                                 <span x-show="submitting">
                                     <svg class="animate-spin h-5 w-5 text-gray-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
                                 </span>
-                                <span x-text="submitting ? 'Processing...' : 'Submit'">Submit</span>
+                                <span x-text="submitting ? 'Generating...' : 'Generate forecast'">Generate forecast</span>
                             </button>
                         </div>
                     </form>
@@ -416,7 +436,7 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Historical Production (mt)',
+                                    label: 'Observed historical production (MT)',
                                     data: historical,
                                     borderColor: 'rgb(59, 130, 246)',
                                     backgroundColor: 'rgba(59, 130, 246, 0.06)',
@@ -432,7 +452,7 @@
                                     pointBorderWidth: 2
                                 },
                                 {
-                                    label: 'Predicted Production (mt)',
+                                    label: 'Model estimate (MT)',
                                     data: predicted,
                                     borderColor: 'rgb(22, 163, 74)',
                                     backgroundColor: gradient,
@@ -479,7 +499,7 @@
                                         },
                                         label: function(context) {
                                             const icon = context.datasetIndex === 0 ? '◆' : '●';
-                                            return icon + ' ' + context.dataset.label.replace(' (mt)', '') + ': ' + context.parsed.y.toFixed(2) + ' mt';
+                                            return icon + ' ' + context.dataset.label.replace(' (MT)', '') + ': ' + context.parsed.y.toFixed(2) + ' MT';
                                         },
                                         afterBody: function(items) {
                                             if (items.length >= 2) {
@@ -489,7 +509,7 @@
                                                     const diff = pred - hist;
                                                     const pct = hist !== 0 ? ((diff / hist) * 100).toFixed(1) : 'N/A';
                                                     const arrow = diff >= 0 ? '▲' : '▼';
-                                                    return ['', arrow + ' Difference: ' + diff.toFixed(2) + ' mt (' + pct + '%)'];
+                                                    return ['', arrow + ' Difference: ' + diff.toFixed(2) + ' MT (' + pct + '%)'];
                                                 }
                                             }
                                             return [];
@@ -502,7 +522,7 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Production (mt)',
+                                        text: 'Production (MT)',
                                         font: { size: 11, weight: 'bold' },
                                         color: '#6b7280'
                                     },
@@ -562,7 +582,7 @@
                             labels: monthLabels,
                             datasets: [
                                 {
-                                    label: 'Avg Production (mt)',
+                                    label: 'Average production (MT)',
                                     data: productionData,
                                     backgroundColor: barColors.slice(0, productionData.length),
                                     borderColor: barBorders.slice(0, productionData.length),
@@ -597,7 +617,7 @@
                                     bodyFont: { size: 11 },
                                     callbacks: {
                                         label: function(context) {
-                                            return context.parsed.y.toFixed(2) + ' mt';
+                                            return context.parsed.y.toFixed(2) + ' MT';
                                         }
                                     }
                                 }
@@ -607,7 +627,7 @@
                                     beginAtZero: true,
                                     title: {
                                         display: true,
-                                        text: 'Production (mt)',
+                                        text: 'Production (MT)',
                                         font: {
                                             size: 11,
                                             weight: 'bold'

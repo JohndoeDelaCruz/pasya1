@@ -1,64 +1,73 @@
 <x-admin-layout>
     <x-slot name="title">Crop Data Management</x-slot>
 
-    <div class="p-3 sm:p-6">
+    <div class="admin-feature-production-data space-y-5 p-3 sm:p-6">
         {{-- Header --}}
-        <div class="crop-data-page-header flex justify-between items-center mb-6">
-            <div class="pasya-text-safe">
-                <h1 class="text-2xl font-bold text-gray-800 mb-2">Crop Data Management</h1>
-                <p class="text-gray-600">View and manage imported crop data</p>
+        <div class="crop-data-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 xl:flex-row xl:items-end xl:justify-between">
+            <div class="pasya-text-safe max-w-2xl">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Source data</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Production records</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">Maintain the imported records that power production totals, municipality comparisons, and model forecasts.</p>
             </div>
-            <div class="crop-data-actions flex gap-3 flex-wrap">
+            <div class="crop-data-actions flex flex-wrap gap-2">
                 @php $archivedCount = \App\Models\Crop::onlyTrashed()->count(); @endphp
                 @if($archivedCount > 0)
                 <a href="{{ route('admin.crop-data.archived') }}"
-                   class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                   class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                     </svg>
-                    View Archived
-                    <span class="ml-2 bg-white text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full">{{ number_format($archivedCount) }}</span>
+                    Archived
+                    <span class="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600">{{ number_format($archivedCount) }}</span>
                 </a>
                 @else
                 <a href="{{ route('admin.crop-data.archived') }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                   class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                     </svg>
-                    View Archived
+                    Archived
                 </a>
                 @endif
                 <button onclick="openAddSingleDataModal()" 
-                   class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                   class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Add Single Data
+                    Add one record
                 </button>
                 <a href="{{ route('admin.crop-data.upload') }}" 
-                   class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                   class="inline-flex items-center rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-gray-800">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
-                    Import Data
+                    Import file
                 </a>
                 <a href="{{ route('admin.crop-statistics') }}" 
-                   class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                   class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
-                    Statistics
+                    Dataset summary
                 </a>
                 @if($stats['total_records'] > 0)
                 <button onclick="confirmDeleteAll()" 
-                   class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center">
+                   class="inline-flex items-center rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                     </svg>
-                    Archive All Data
+                    Archive all
                 </button>
                 @endif
             </div>
+        </div>
+
+        <div class="admin-feature-source-note flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold text-gray-900">Imported dataset</p>
+                <p class="mt-1 text-xs leading-5 text-gray-600">These administrative records are distinct from farmer harvest reports. Only LGU/DA-verified harvest reports count as official reported actuals.</p>
+            </div>
+            <a href="{{ route('admin.planting-report') }}" class="shrink-0 text-sm font-semibold text-green-700 hover:text-green-800">Review verified reporting &rarr;</a>
         </div>
 
         {{-- Success Message --}}
@@ -69,57 +78,57 @@
         @endif
 
         {{-- Stats Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
+        <div class="admin-feature-summary-grid grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Total Records</p>
                         <p class="text-2xl font-bold text-gray-800">{{ number_format($stats['total_records']) }}</p>
                     </div>
-                    <div class="bg-blue-100 rounded-full p-3">
-                        <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="rounded-lg bg-gray-100 p-2.5">
+                        <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"></path>
                         </svg>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Municipalities</p>
                         <p class="text-2xl font-bold text-gray-800">{{ $stats['total_municipalities'] }}</p>
                     </div>
-                    <div class="bg-green-100 rounded-full p-3">
-                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="rounded-lg bg-gray-100 p-2.5">
+                        <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                         </svg>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Crop Types</p>
                         <p class="text-2xl font-bold text-gray-800">{{ $stats['total_crops'] }}</p>
                     </div>
-                    <div class="bg-yellow-100 rounded-full p-3">
-                        <svg class="w-6 h-6 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="rounded-lg bg-gray-100 p-2.5">
+                        <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-.5a1.5 1.5 0 000 3h.5a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 00-1-1h-.5a1.5 1.5 0 010-3H4a1 1 0 001-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z"/>
                         </svg>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Years Covered</p>
                         <p class="text-2xl font-bold text-gray-800">{{ $stats['years_covered']->first() ?? 'N/A' }} - {{ $stats['years_covered']->last() ?? 'N/A' }}</p>
                     </div>
-                    <div class="bg-purple-100 rounded-full p-3">
-                        <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                    <div class="rounded-lg bg-gray-100 p-2.5">
+                        <svg class="h-5 w-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                         </svg>
                     </div>
@@ -128,7 +137,7 @@
         </div>
 
         {{-- Filters --}}
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="admin-feature-record-filters rounded-xl border border-gray-200 bg-white p-4">
             <form method="GET" action="{{ route('admin.crop-data.index') }}" class="pasya-form-grid">
                 {{-- Search Input --}}
                 <div class="flex-1 min-w-[200px]">
@@ -137,21 +146,21 @@
                            id="search" 
                            name="search" 
                            value="{{ request('search') }}"
-                           placeholder="Enter search item..."
+                           placeholder="Crop, municipality, year, or month"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
                 </div>
 
                 {{-- View Dropdown --}}
                 <div class="min-w-[150px]">
-                    <label for="view" class="block text-sm font-medium text-gray-700 mb-1">View</label>
+                    <label for="view" class="block text-sm font-medium text-gray-700 mb-1">Sort order</label>
                     <select id="view" 
                             name="view"
                             class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                        <option value="">All Views</option>
+                        <option value="">Default order</option>
                         <option value="recent" {{ request('view') == 'recent' ? 'selected' : '' }}>Recent</option>
                         <option value="oldest" {{ request('view') == 'oldest' ? 'selected' : '' }}>Oldest</option>
-                        <option value="high_production" {{ request('view') == 'high_production' ? 'selected' : '' }}>High Production</option>
-                        <option value="low_production" {{ request('view') == 'low_production' ? 'selected' : '' }}>Low Production</option>
+                        <option value="high_production" {{ request('view') == 'high_production' ? 'selected' : '' }}>Highest production</option>
+                        <option value="low_production" {{ request('view') == 'low_production' ? 'selected' : '' }}>Lowest production</option>
                     </select>
                 </div>
 
@@ -212,7 +221,7 @@
         </div>
 
         {{-- Data Table --}}
-        <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="admin-feature-record-table overflow-hidden rounded-xl border border-gray-200 bg-white">
             <div class="pasya-scroll-table overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -223,8 +232,8 @@
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
                             <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Area Harvested (ha)</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Production (mt)</th>
-                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity (mt/ha)</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Production (MT)</th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity (MT/ha)</th>
                             <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -382,7 +391,7 @@
                     </div>
                     
                     <div>
-                        <label for="production" class="block text-sm font-semibold text-gray-900 mb-2">Production (mt)*</label>
+                        <label for="production" class="block text-sm font-semibold text-gray-900 mb-2">Production (MT)*</label>
                         <input type="number" id="production" name="production" step="0.01" min="0" required
                                placeholder="Enter a number"
                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">
@@ -392,7 +401,7 @@
                 {{-- Fourth Row --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <label for="productivity" class="block text-sm font-semibold text-gray-900 mb-2">Productivity (mt/ha)</label>
+                        <label for="productivity" class="block text-sm font-semibold text-gray-900 mb-2">Productivity (MT/ha)</label>
                         <input type="number" id="productivity" name="productivity" step="0.01" min="0"
                                placeholder="Enter a number"
                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50">

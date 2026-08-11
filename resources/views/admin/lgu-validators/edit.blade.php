@@ -3,12 +3,13 @@
 
     <div class="min-h-full bg-gray-50">
         <div class="p-3 sm:p-6">
-            <div class="mb-5">
-                <h1 class="text-2xl font-bold text-gray-900">Edit LGU Validator</h1>
-                <p class="mt-1 text-sm text-gray-500">Update account access, municipality assignment, and optional barangay scope.</p>
+            <div class="admin-feature-page-header mb-5 border-b border-gray-200 pb-5">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Review access</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Edit LGU validator</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">Changing geographic scope changes which crop plans and harvest reports this account can review.</p>
             </div>
 
-            <form method="POST" action="{{ route('admin.lgu-validators.update', $validator) }}" class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm sm:p-6">
+            <form method="POST" action="{{ route('admin.lgu-validators.update', $validator) }}" class="rounded-xl border border-gray-200 bg-white p-4 sm:p-6 [&_input:not([type=checkbox])]:min-h-11 [&_select]:min-h-11">
                 @method('PUT')
                 @include('admin.lgu-validators._form', ['submitLabel' => 'Save Changes'])
             </form>

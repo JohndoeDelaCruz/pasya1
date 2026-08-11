@@ -1,7 +1,7 @@
 <x-admin-layout>
     <x-slot name="title">Data & Analytics</x-slot>
 
-    <div class="admin-pwa-compact space-y-3 sm:space-y-5 lg:space-y-6 admin-dashboard-shell dashboard-reduced-motion" x-data="{
+    <div x-data="{
         showMunicipalityModal: false,
         selectedMunicipality: '{{ $filterMunicipality ?? '' }}',
         openMunicipalityModal(municipality) {
@@ -26,30 +26,49 @@
             }
         }
     }, 100)">
+        <div class="admin-pwa-compact space-y-3 sm:space-y-5 lg:space-y-6 admin-dashboard-shell dashboard-reduced-motion">
         <!-- Page Header -->
-        <div class="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 xl:flex-row xl:items-end xl:justify-between">
             <div class="pasya-text-safe max-w-3xl">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-green-700 sm:text-xs sm:tracking-[0.18em]">Admin Dashboard</p>
-                <h1 class="mt-0.5 text-xl font-bold text-gray-900 sm:mt-1 sm:text-3xl lg:text-4xl">Data & Analytics</h1>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500 sm:text-xs sm:tracking-[0.18em]">Operations intelligence</p>
+                <h1 class="mt-1 text-xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Data & Analytics</h1>
                 <p class="mt-1.5 text-xs leading-5 text-gray-600 sm:mt-2 sm:text-sm lg:text-base">
-                    Monitor crop production performance, track municipality trends, and review AI forecasts from one workspace.
+                    Review imported production records, compare municipalities, and use model forecasts as planning support.
                 </p>
             </div>
 
             <div class="pasya-button-row admin-mobile-button-row">
-                <button type="button" disabled title="Report export is not available yet"
-                        class="inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 font-semibold text-gray-400 sm:flex-none">
-                    Export coming soon
-                </button>
+                <a href="{{ route('admin.planting-report') }}"
+                   class="inline-flex flex-1 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 sm:flex-none">
+                    Open official reports
+                </a>
                 <button onclick="document.getElementById('predictions-section')?.scrollIntoView({ behavior: 'smooth' })"
-                        class="inline-flex flex-1 items-center justify-center px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold rounded-lg transition-colors border border-emerald-200 sm:flex-none">
-                    View AI Predictions
+                        class="inline-flex flex-1 items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-gray-800 sm:flex-none">
+                    View model forecasts
                 </button>
             </div>
         </div>
 
+        <section class="admin-feature-data-context grid gap-3 sm:grid-cols-3" aria-label="Data context">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Primary source</p>
+                <p class="mt-1 text-sm font-semibold text-gray-900">Imported production records</p>
+                <p class="mt-1 text-xs leading-5 text-gray-500">Filtered totals and rankings on this page come from the managed crop dataset.</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Official actuals</p>
+                <p class="mt-1 text-sm font-semibold text-gray-900">Verified harvest reports only</p>
+                <p class="mt-1 text-xs leading-5 text-gray-500">Pending review and needs-correction submissions stay outside official reporting.</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Decision rule</p>
+                <p class="mt-1 text-sm font-semibold text-gray-900">Forecasts are planning estimates</p>
+                <p class="mt-1 text-xs leading-5 text-gray-500">Confirm model output against verified actual harvest before operational use.</p>
+            </div>
+        </section>
+
         <!-- Filter Bar -->
-        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-section-card p-3 sm:p-4">
+        <form method="GET" action="{{ route('admin.dashboard') }}" id="filterForm" class="admin-feature-filter-bar admin-section-card p-3 sm:p-4">
             <div class="admin-mobile-filter-grid">
                 <div class="admin-mobile-filter-label flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,6 +137,24 @@
                 </div>
             @endif
         </form>
+
+        <nav class="admin-feature-entry-points grid gap-3 sm:grid-cols-3" aria-label="Analytics workspaces">
+            <a href="{{ route('admin.crop-data.index') }}" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:bg-gray-50">
+                <p class="text-sm font-semibold text-gray-900">Manage production data</p>
+                <p class="mt-1 text-xs leading-5 text-gray-500">Import, correct, archive, and inspect source records.</p>
+                <span class="mt-3 inline-flex text-xs font-semibold text-green-700">Open records <span aria-hidden="true" class="ml-1">&rarr;</span></span>
+            </a>
+            <a href="{{ route('admin.crop-trends') }}" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:bg-gray-50">
+                <p class="text-sm font-semibold text-gray-900">Explore trends</p>
+                <p class="mt-1 text-xs leading-5 text-gray-500">Compare historical patterns with model-generated forecasts.</p>
+                <span class="mt-3 inline-flex text-xs font-semibold text-green-700">Open trends <span aria-hidden="true" class="ml-1">&rarr;</span></span>
+            </a>
+            <a href="{{ route('admin.planting-report') }}" class="group rounded-xl border border-gray-200 bg-white p-4 transition hover:border-gray-300 hover:bg-gray-50">
+                <p class="text-sm font-semibold text-gray-900">Review reporting</p>
+                <p class="mt-1 text-xs leading-5 text-gray-500">Inspect crop plans, verified actual harvest, damage, and exportable reports.</p>
+                <span class="mt-3 inline-flex text-xs font-semibold text-green-700">Open reports <span aria-hidden="true" class="ml-1">&rarr;</span></span>
+            </a>
+        </nav>
 
         <!-- Crop Production Chart -->
         <div class="admin-section-card p-3 sm:p-5 lg:p-6">
@@ -516,13 +553,13 @@
                             </svg>
                         </div>
                         <div class="min-w-0">
-                            <h2 class="admin-section-title">AI Production Predictions</h2>
-                            <p class="admin-section-subtitle">Machine learning forecasts based on historical production patterns.</p>
+                            <h2 class="admin-section-title">Model production forecasts</h2>
+                            <p class="admin-section-subtitle">Planning estimates generated from historical records; not verified actual harvest.</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="admin-chip bg-green-600 text-white">
-                            {{ $predictions['count'] }} Predictions
+                            {{ $predictions['count'] }} forecast estimates
                         </span>
                     </div>
                 </div>
@@ -623,8 +660,8 @@
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                         </svg>
                         <div class="text-sm">
-                            <p class="font-semibold text-blue-900 mb-1">About these predictions</p>
-                            <p class="text-blue-800">These predictions are generated by our machine learning model trained on historical crop production data. Predictions are based on municipality, crop type, season, and historical farming patterns.</p>
+                            <p class="font-semibold text-blue-900 mb-1">About these forecasts</p>
+                            <p class="text-blue-800">These planning estimates are generated by a machine learning model trained on historical crop production data. Validate them against verified actual harvest before making official reporting or allocation decisions.</p>
                         </div>
                     </div>
                     </div>
@@ -635,7 +672,7 @@
                 @endif
             </div>
         @endif
-    </div>
+        </div>
 
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -1412,6 +1449,8 @@
                 </div>
             </div>
         </div>
+    </div>
+
     </div>
 
     <style>

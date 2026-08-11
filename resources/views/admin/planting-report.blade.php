@@ -48,7 +48,19 @@
     @endphp
 
     <div class="min-h-full bg-gray-50">
-        <div class="p-3 sm:p-6">
+        <div class="admin-feature-reporting space-y-5 p-3 sm:p-6">
+            <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 xl:flex-row xl:items-end xl:justify-between">
+                <div class="pasya-text-safe max-w-3xl">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Official reporting workspace</p>
+                    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Crop plans & harvest reporting</h1>
+                    <p class="mt-2 text-sm leading-6 text-gray-600">Review crop plans, expected harvest, verified actual harvest, and damage adjustments in one exportable report.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 text-xs">
+                    <span class="rounded-full border border-green-200 bg-green-50 px-3 py-1.5 font-semibold text-green-800">Verified = official</span>
+                    <span class="rounded-full border border-gray-200 bg-white px-3 py-1.5 font-medium text-gray-600">Pending and needs correction excluded by default</span>
+                </div>
+            </div>
+
             @if(session('error'))
                 <div class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
                     {{ session('error') }}
@@ -318,15 +330,23 @@
                     </div>
 
                     <div>
-                        <label for="validation_status" class="block text-sm font-medium text-gray-700 mb-1">LGU Validation</label>
+                        <label for="validation_status" class="block text-sm font-medium text-gray-700 mb-1">Review status</label>
                         <select
                             id="validation_status"
                             name="validation_status"
                             class="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-900 focus:border-green-500 focus:ring-green-500"
                         >
                             @foreach ($validationStatuses as $value => $label)
+                                @php
+                                    $reviewLabel = match ($value) {
+                                        'approved' => 'Verified',
+                                        'pending' => 'Pending review',
+                                        'rejected' => 'Needs correction',
+                                        default => 'All review statuses',
+                                    };
+                                @endphp
                                 <option value="{{ $value }}" @selected(($filters['validation_status'] ?? 'approved') === $value)>
-                                    {{ $label }}
+                                    {{ $reviewLabel }}
                                 </option>
                             @endforeach
                         </select>
@@ -429,7 +449,7 @@
                 <div class="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div class="pasya-text-safe">
                         <h2 class="text-lg font-semibold text-gray-900">Planting Records</h2>
-                        <p class="text-sm text-gray-500">Defaults to LGU-approved crop plans submitted from the farmer calendar.</p>
+                        <p class="text-sm text-gray-500">Defaults to Verified crop plans submitted through the farmer Crop Planner.</p>
                     </div>
                     <p class="text-sm text-gray-500">{{ $plantingRecords->total() }} record{{ $plantingRecords->total() === 1 ? '' : 's' }}</p>
                 </div>
@@ -441,8 +461,8 @@
                                 <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9.414A2 2 0 0013.414 8L9 3.586A2 2 0 007.586 3H4zm5 1.414L12.586 8H10a1 1 0 01-1-1V4.414zM6 10a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd"/>
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900">No planting records found</h3>
-                        <p class="mt-1 text-sm text-gray-500">Farmer calendar submissions will appear here once crop plans are added.</p>
+                        <h3 class="text-lg font-semibold text-gray-900">No crop plans found</h3>
+                        <p class="mt-1 text-sm text-gray-500">Farmer Crop Planner submissions will appear here when they match this review status and filter set.</p>
                     </div>
                 @else
                     <div class="pasya-scroll-table overflow-x-auto">

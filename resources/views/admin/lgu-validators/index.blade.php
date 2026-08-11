@@ -12,21 +12,27 @@
     @endphp
 
     <div class="min-h-full bg-gray-50">
-        <div class="p-3 sm:p-6 space-y-5">
+        <div class="admin-feature-validator-accounts space-y-5 p-3 sm:p-6">
             @if(session('success'))
                 <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
                     {{ session('success') }}
                 </div>
             @endif
 
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900">LGU Validators</h1>
-                    <p class="mt-1 text-sm text-gray-500">Create and manage municipality or barangay-scoped LGU validator staff accounts.</p>
+            <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                <div class="max-w-2xl">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Review access</p>
+                    <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">LGU validator accounts</h1>
+                    <p class="mt-2 text-sm leading-6 text-gray-600">Assign staff access to crop plan, damage, and harvest review queues by municipality or barangay.</p>
                 </div>
-                <a href="{{ route('admin.lgu-validators.create') }}" class="inline-flex items-center justify-center rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
-                    Add Validator
+                <a href="{{ route('admin.lgu-validators.create') }}" class="inline-flex min-h-11 items-center justify-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800">
+                    Add validator
                 </a>
+            </div>
+
+            <div class="admin-feature-consequence-note rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <p class="text-sm font-semibold text-gray-900">Scope controls which records staff can review</p>
+                <p class="mt-1 text-xs leading-5 text-gray-600">Only Verified decisions enter official reporting. Deactivating an account removes its review access without deleting its prior decisions.</p>
             </div>
 
             <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -52,7 +58,7 @@
                 </div>
             </div>
 
-            <form method="GET" action="{{ route('admin.lgu-validators.index') }}" class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm" data-lgu-validator-filter-form>
+            <form method="GET" action="{{ route('admin.lgu-validators.index') }}" class="rounded-xl border border-gray-200 bg-white p-4 [&_input]:min-h-11 [&_select]:min-h-11" data-lgu-validator-filter-form>
                 <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
                     <div class="xl:col-span-2">
                         <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
@@ -85,13 +91,13 @@
                         </select>
                     </div>
                     <div class="flex flex-wrap items-end gap-2">
-                        <button class="inline-flex flex-1 items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 sm:flex-none">Filter</button>
-                        <a href="{{ route('admin.lgu-validators.index') }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">Reset</a>
+                        <button class="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 sm:flex-none">Filter</button>
+                        <a href="{{ route('admin.lgu-validators.index') }}" class="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">Reset</a>
                     </div>
                 </div>
             </form>
 
-            <div class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+            <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
                 <div class="hidden overflow-x-auto md:block">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">

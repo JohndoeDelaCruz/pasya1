@@ -1,16 +1,17 @@
 <x-admin-layout>
     <x-slot name="title">Account Management</x-slot>
 
-    <div class="p-3 sm:p-6">
+    <div class="admin-feature-farmer-accounts space-y-5 p-3 sm:p-6">
         {{-- Header --}}
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-            <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">Farmer Account Management</h1>
-                <p class="text-sm text-gray-600">Create and manage farmer accounts</p>
+        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 xl:flex-row xl:items-end xl:justify-between">
+            <div class="max-w-2xl">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Access administration</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Farmer accounts</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">Create identities, maintain contact and municipality data, or archive access when an account should no longer sign in.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3 self-start sm:self-auto">
                 <a href="{{ route('admin.farmers.archived') }}"
-                   class="bg-amber-100 hover:bg-amber-200 text-amber-800 font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center self-start sm:self-auto">
+                   class="inline-flex min-h-11 items-center justify-center self-start rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 sm:self-auto">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                     </svg>
@@ -29,15 +30,15 @@
                            class="sr-only"
                            onchange="this.form.submit()">
                     <label for="farmers_file"
-                           class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center cursor-pointer">
+                           class="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0-12l4 4m-4-4L8 8"/>
                         </svg>
-                        <span>Import Farmers</span>
+                        <span>Import Excel</span>
                     </label>
                 </form>
                 <a href="{{ route('admin.farmers.create') }}" 
-                   class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center self-start sm:self-auto">
+                   class="inline-flex min-h-11 items-center self-start rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800 sm:self-auto">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -45,6 +46,11 @@
                     <span class="sm:hidden">New Farmer</span>
                 </a>
             </div>
+        </div>
+
+        <div class="admin-feature-consequence-note rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <p class="text-sm font-semibold text-gray-900">Account changes affect sign-in and record ownership</p>
+            <p class="mt-1 text-xs leading-5 text-gray-600">Verify the farmer ID and municipality before saving. Archiving disables sign-in but keeps the account recoverable.</p>
         </div>
 
         {{-- Success Message --}}
@@ -64,8 +70,8 @@
         @endif
 
         {{-- Stats Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white rounded-lg shadow p-4">
+        <div class="admin-feature-account-summary grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Total Farmers</p>
@@ -79,7 +85,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Municipalities</p>
@@ -93,7 +99,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-lg shadow p-4">
+            <div class="rounded-xl border border-gray-200 bg-white p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-600">Cooperatives</p>
@@ -109,7 +115,7 @@
         </div>
 
         {{-- Filters --}}
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="admin-feature-account-filters rounded-xl border border-gray-200 bg-white p-4">
             <form method="GET" action="{{ route('admin.farmers.index') }}" class="flex flex-wrap gap-3 items-end" data-auto-filter-form>
                 @if(request()->boolean('no_ids'))
                     <input type="hidden" name="no_ids" value="1">
@@ -123,7 +129,7 @@
                            name="search" 
                            value="{{ request('search') }}"
                            placeholder="Search by ID, name, municipality..."
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                           class="min-h-11 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500">
                 </div>
 
                 {{-- Municipality Filter --}}
@@ -131,7 +137,7 @@
                     <label for="municipality" class="block text-sm font-medium text-gray-700 mb-1">Municipality</label>
                     <select id="municipality" 
                             name="municipality"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            class="min-h-11 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500">
                         <option value="">All Municipalities</option>
                         @foreach($municipalities as $municipality)
                             <option value="{{ $municipality }}" {{ request('municipality') == $municipality ? 'selected' : '' }}>
@@ -146,7 +152,7 @@
                     <label for="cooperative" class="block text-sm font-medium text-gray-700 mb-1">FCA</label>
                     <select id="cooperative"
                             name="cooperative"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            class="min-h-11 w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-green-500">
                         <option value="">All FCAs</option>
                         @foreach($cooperatives as $cooperative)
                             <option value="{{ $cooperative }}" {{ request('cooperative') == $cooperative ? 'selected' : '' }}>
@@ -160,7 +166,7 @@
                     {{-- Filter Button --}}
                     <div>
                         <button type="submit"
-                                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition flex items-center">
+                                class="inline-flex min-h-11 items-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                             </svg>
@@ -171,11 +177,11 @@
                     {{-- No IDs Button --}}
                     <div>
                         <a href="{{ route('admin.farmers.index', ['no_ids' => 1]) }}"
-                           class="{{ request()->boolean('no_ids') ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-50 hover:bg-red-100 text-red-700' }} font-semibold py-2 px-5 rounded-lg transition flex items-center">
+                           class="inline-flex min-h-11 items-center rounded-lg px-5 py-2.5 text-sm font-semibold transition {{ request()->boolean('no_ids') ? 'bg-red-700 text-white hover:bg-red-800' : 'border border-red-200 bg-white text-red-700 hover:bg-red-50' }}">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636L5.636 18.364M12 9v4m0 4h.01M12 3a9 9 0 110 18 9 9 0 010-18z"/>
                             </svg>
-                            No IDs
+                            Missing farmer IDs
                         </a>
                     </div>
 
@@ -183,7 +189,7 @@
                     @if(request()->hasAny(['search', 'municipality', 'cooperative', 'no_ids']))
                         <div>
                             <a href="{{ route('admin.farmers.index') }}"
-                               class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition flex items-center">
+                               class="inline-flex min-h-11 items-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -196,9 +202,9 @@
         </div>
 
         {{-- Farmers Table --}}
-        <div class="bg-white rounded-lg shadow overflow-hidden" data-farmer-results aria-live="polite">
+        <div class="admin-feature-account-table overflow-hidden rounded-xl border border-gray-200 bg-white" data-farmer-results aria-live="polite">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-[980px] w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer ID</th>

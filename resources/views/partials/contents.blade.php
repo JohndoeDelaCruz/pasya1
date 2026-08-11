@@ -1,43 +1,53 @@
-<section id="work_with_us" class="relative overflow-hidden bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('images/farmers_harvesting.png') }}');">
-    <div class="absolute inset-0 bg-green-950/80"></div>
-    <div class="absolute inset-0 bg-[radial-gradient(ellipse_65%_50%_at_50%_20%,rgba(34,197,94,0.24)_0%,rgba(0,0,0,0)_70%)]"></div>
+<section id="work_with_us" class="bg-[#f5f5f7] px-4 py-16 sm:px-6 lg:py-24">
+    <div class="mx-auto max-w-screen-xl">
+        <div class="max-w-3xl reveal-up" data-reveal-distance="sm">
+            <p class="text-sm font-bold uppercase tracking-[0.16em] text-green-700">Built around the work</p>
+            <h2 class="mt-3 text-3xl font-bold tracking-[-0.03em] text-gray-950 sm:text-4xl lg:text-5xl">
+                The right information, for the next decision.
+            </h2>
+            <p class="mt-5 max-w-2xl text-base leading-7 text-gray-600 sm:text-lg">
+                Each role sees the work it needs to complete—without losing the review history that makes agricultural records useful and accountable.
+            </p>
+        </div>
 
-    <div class="relative z-10 mx-auto max-w-screen-xl px-4 py-16 text-center sm:py-20 lg:py-24">
-        <p class="mb-5 text-base font-extrabold text-green-100 sm:text-lg lg:text-2xl max-w-2xl mx-auto reveal-up" style="--reveal-delay: 0ms" data-reveal-distance="sm">Ready to Cultivate the Future of Farming in Benguet?</p>
-        <h1 class="mb-8 text-2xl font-extrabold tracking-tight leading-tight text-white sm:text-3xl md:text-4xl lg:text-5xl reveal-up" style="--reveal-delay: 90ms">Join hundreds of farmers and experts already using PASYA to make smarter decisions</h1>
-        <form class="w-full max-w-xl mx-auto reveal-up" method="POST" action="#" style="--reveal-delay: 180ms" data-reveal-distance="sm">
-            @csrf
-            <label for="default-email" class="mb-2 text-sm font-medium text-gray-900 sr-only">Email sign-up</label>
-            <div class="relative">
-                <div class="absolute inset-y-0 rtl:inset-x-0 start-0 flex items-center ps-5 pointer-events-none">
-                    <svg class="w-4 h-4 text-green-700" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 16">
-                        <path d="m10.036 8.278 9.258-7.79A1.979 1.979 0 0 0 18 0H2A1.987 1.987 0 0 0 .641.541l9.395 7.737Z"/>
-                        <path d="M11.241 9.817c-.36.275-.801.425-1.255.427-.428 0-.845-.138-1.187-.395L0 2.6V14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2.5l-8.759 7.317Z"/>
-                    </svg>
+        <div class="mt-10 grid gap-5 md:grid-cols-3">
+            <article class="rounded-2xl border border-black/10 bg-white p-7 reveal-up" style="--reveal-delay: 0ms">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                    <svg class="h-6 w-6" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M7 3v3m10-3v3M4.5 9.5h15M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/><path stroke-linecap="round" d="M8 13h3m2 0h3m-8 3h3"/></svg>
                 </div>
-                <input type="email" id="default-email" name="email" class="block w-full rounded-full border border-white/80 bg-white py-4 pe-36 ps-12 text-sm text-gray-900 shadow-lg focus:border-green-500 focus:ring-4 focus:ring-green-200" placeholder="Enter your email here..." required />
-                <button type="submit" class="absolute end-2 bottom-2 rounded-full bg-green-500 px-5 py-2 text-sm font-medium text-white hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-200">Subscribe</button>
+                <h3 class="mt-5 text-xl font-bold text-gray-950">Plan the crop cycle</h3>
+                <p class="mt-2 leading-7 text-gray-600">Record planting details, see expected milestones, and keep revision notes with the plan.</p>
+            </article>
+
+            <article class="rounded-2xl border border-black/10 bg-white p-7 reveal-up" style="--reveal-delay: 100ms">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                    <svg class="h-6 w-6" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="m8 12 2.5 2.5L16.5 8.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 3.5 19 6v5.5c0 4.3-2.9 7.6-7 9-4.1-1.4-7-4.7-7-9V6l7-2.5Z"/></svg>
+                </div>
+                <h3 class="mt-5 text-xl font-bold text-gray-950">Review with context</h3>
+                <p class="mt-2 leading-7 text-gray-600">LGU validators can trace who submitted a record, what changed, and what still needs correction.</p>
+            </article>
+
+            <article class="rounded-2xl border border-black/10 bg-white p-7 reveal-up" style="--reveal-delay: 200ms">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                    <svg class="h-6 w-6" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M5 19V9m7 10V5m7 14v-7"/><path stroke-linecap="round" d="M3 21h18"/></svg>
+                </div>
+                <h3 class="mt-5 text-xl font-bold text-gray-950">Understand production</h3>
+                <p class="mt-2 leading-7 text-gray-600">DA teams can compare validated submissions with historical patterns before acting or reporting.</p>
+            </article>
+        </div>
+
+        <div class="mt-10 flex flex-col justify-between gap-6 rounded-2xl bg-green-800 p-7 text-white sm:flex-row sm:items-center sm:p-9 reveal-up">
+            <div>
+                <h3 class="text-2xl font-bold tracking-tight">Ready to use PASYA?</h3>
+                <p class="mt-2 max-w-2xl leading-7 text-green-100">Create a farmer account, sign in to your assigned workspace, or install the mobile app.</p>
             </div>
-        </form>
-
-        {{-- Feature Cards with Glassmorphism --}}
-        <div class="mx-auto max-w-screen-xl px-0 pt-10 pb-4 sm:pb-0">
-            <div class="grid gap-6 text-center md:grid-cols-3">
-                <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 0ms">
-                    <img class="mx-auto mb-5 h-40 w-40  object-contain" src="{{ asset('images/realtimebg.png') }}" alt="Real-Time Insights Icon"/>
-                    <h2 class="mb-3 text-2xl font-semibold text-white">Real-Time Insights</h2>
-                    <p class="text-base leading-7 text-green-50">Get instant updates on crop conditions and market trends</p>
-                </div>
-                <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 100ms">
-                    <img class="mx-auto mb-5 h-40 w-40  object-contain" src="{{ asset('images/analyticsbg.png') }}" alt="Advanced Analytics Icon"/>
-                    <h2 class="mb-3 text-2xl font-semibold text-white">Advanced Analytics</h2>
-                    <p class="text-base leading-7 text-green-50">Make data-driven decisions with our powerful tools</p>
-                </div>
-                <div class="rounded-2xl border border-white/20 bg-white/15 p-6 shadow-lg backdrop-blur-md reveal-up transition hover:-translate-y-1 hover:bg-white/20" style="--reveal-delay: 200ms">
-                    <img class="mx-auto mb-5 h-40 w-40  object-contain" src="{{ asset('images/supportbg.png') }}" alt="Expert Support Icon"/>
-                    <h2 class="mb-3 text-2xl font-semibold text-white">Expert Support</h2>
-                    <p class="text-base leading-7 text-green-50">Access our team of agricultural specialists 24/7</p>
-                </div>
+            <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                @if (auth()->guard('web')->check() || auth()->guard('farmer')->check())
+                    <a href="{{ auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard') }}" class="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-5 text-sm font-bold text-green-900 hover:bg-green-50 focus:outline-none focus:ring-4 focus:ring-green-400">Open dashboard</a>
+                @else
+                    <a href="{{ route('register') }}" class="inline-flex min-h-12 items-center justify-center rounded-xl bg-white px-5 text-sm font-bold text-green-900 hover:bg-green-50 focus:outline-none focus:ring-4 focus:ring-green-400">Create account</a>
+                    <a href="{{ route('login') }}" class="inline-flex min-h-12 items-center justify-center rounded-xl border border-white/30 px-5 text-sm font-bold text-white hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-green-400">Log in</a>
+                @endif
             </div>
         </div>
     </div>

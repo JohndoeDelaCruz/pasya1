@@ -1,23 +1,24 @@
 <x-admin-layout>
     <x-slot name="title">Create Farmer Account</x-slot>
 
-    <div class="p-6">
+    <div class="admin-feature-account-editor p-3 sm:p-6">
         <div class="max-w-4xl mx-auto">
             {{-- Header --}}
-            <div class="mb-6">
-                <a href="{{ route('admin.farmers.index') }}" class="text-green-600 hover:text-green-700 font-medium mb-4 inline-flex items-center">
+            <div class="admin-feature-page-header mb-5 border-b border-gray-200 pb-5">
+                <a href="{{ route('admin.farmers.index') }}" class="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-gray-600 hover:text-gray-900">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
-                    Back to Accounts
+                    Back to farmer accounts
                 </a>
-                <h1 class="text-2xl font-bold text-gray-800 mt-2">Create Single Farmer Account</h1>
-                <p class="text-gray-600">All required fields are marked with *</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Access administration</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Create farmer account</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">This creates an active sign-in identity linked to the farmer ID and municipality below.</p>
             </div>
 
             {{-- Form --}}
-            <div class="bg-white rounded-lg shadow p-6">
-                <form method="POST" action="{{ route('admin.farmers.store') }}">
+            <div class="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
+                <form method="POST" action="{{ route('admin.farmers.store') }}" class="[&_input:not([type=checkbox])]:min-h-11 [&_select]:min-h-11">
                     @csrf
 
                     {{-- Name Fields --}}
@@ -227,11 +228,11 @@
                     {{-- Submit Button --}}
                     <div class="flex gap-3">
                         <button type="submit" 
-                                class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-6 rounded-lg transition">
-                            Submit
+                                class="inline-flex min-h-11 items-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
+                            Create account
                         </button>
                         <a href="{{ route('admin.farmers.index') }}" 
-                           class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded-lg transition">
+                           class="inline-flex min-h-11 items-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
                             Cancel
                         </a>
                     </div>

@@ -65,7 +65,7 @@
                         <input type="hidden" name="login_mode" value="{{ $initialLoginMode }}" :value="loginMode">
 
                         <div>
-                            <label for="email" class="block text-sm font-semibold text-gray-800" x-text="staffMode ? 'Email or username' : 'Farmer ID (RSBSA)'">Farmer ID (RSBSA)</label>
+                            <label for="email" class="block text-sm font-semibold text-gray-800" x-text="staffMode ? 'Email or username' : 'Farmer ID'">Farmer ID</label>
                             <input id="email" type="text" name="email" value="{{ old('email') }}"
                                    :placeholder="staffMode ? 'Enter your staff email or username' : 'Enter your farmer ID'"
                                    required autofocus autocomplete="username"

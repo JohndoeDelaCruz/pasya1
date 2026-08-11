@@ -71,7 +71,7 @@
                 <nav class="mobile-scroll-area flex-1 overflow-y-auto py-4 farmer-sidebar-scrollbar" @click="if ($event.target.closest('a')) sidebarOpen = false">
                     <!-- Dashboard Section -->
                     <div class="px-4 mb-6">
-                        <h4 class="text-xs font-semibold text-green-200 uppercase tracking-wider mb-2">Dashboard</h4>
+                        <h4 class="text-xs font-semibold text-green-200 uppercase tracking-wider mb-2">Workspace</h4>
                         <a href="{{ route('farmers.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('farmers.dashboard') ? 'bg-green-600' : '' }} text-white hover:bg-green-600 transition-colors">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
@@ -82,7 +82,7 @@
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="font-medium">Interactive Map</span>
+                            <span class="font-medium">Farm Map</span>
                         </a>
 
                     </div>
@@ -110,12 +110,12 @@
 
                     <!-- Crop Management Section -->
                     <div class="px-4 mb-6">
-                        <h4 class="text-xs font-semibold text-green-200 uppercase tracking-wider mb-2">Crop Management</h4>
+                        <h4 class="text-xs font-semibold text-green-200 uppercase tracking-wider mb-2">My Farm</h4>
                         <a href="{{ route('farmers.harvest-history') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('farmers.harvest-history') ? 'bg-green-600' : '' }} text-white hover:bg-green-600 transition-colors mb-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="font-medium">My Crops & Harvests</span>
+                            <span class="font-medium">My Crops</span>
                         </a>
                     </div>
                 </nav>
@@ -126,7 +126,7 @@
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
                         </svg>
-                        <span class="font-medium">Help</span>
+                        <span class="font-medium">Help &amp; Guidance</span>
                     </a>
                 </div>
 

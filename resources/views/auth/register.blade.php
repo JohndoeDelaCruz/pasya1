@@ -10,10 +10,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
-    <title>Register - Benguet Agriculture</title>
+    <title>Create Farmer Account | PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="pasya-auth-shell bg-gray-100 min-h-screen flex items-center justify-center p-2 sm:p-4 overflow-x-hidden">
+<body class="pasya-auth-shell min-h-screen overflow-x-hidden bg-gray-50 text-gray-950 antialiased">
     @include('partials.page-loader')
 
     @php
@@ -22,104 +22,134 @@
         elseif ($errors->hasAny(['municipality', 'cooperative'])) $initStep = 3;
     @endphp
 
-    <div
+    <main
         x-data="{
             step: {{ $initStep }},
+            stepLabels: ['Name', 'Contact', 'Farm'],
             form: {
-                first_name:    '{{ old('first_name') }}',
-                middle_name:   '{{ old('middle_name') }}',
-                last_name:     '{{ old('last_name') }}',
-                suffix:        '{{ old('suffix') }}',
-                mobile_number: '{{ old('mobile_number') }}',
-                email:         '{{ old('email') }}',
-                municipality:  '{{ old('municipality') }}',
-                cooperative:   '{{ old('cooperative', 'none') }}',
+                first_name: @js(old('first_name')),
+                middle_name: @js(old('middle_name')),
+                last_name: @js(old('last_name')),
+                suffix: @js(old('suffix')),
+                mobile_number: @js(old('mobile_number')),
+                email: @js(old('email')),
+                municipality: @js(old('municipality')),
+                cooperative: @js(old('cooperative', 'none')),
             },
             get fullName() {
                 const parts = [this.form.first_name, this.form.middle_name, this.form.last_name].filter(Boolean);
-                const name  = parts.join(' ');
+                const name = parts.join(' ');
                 return name + (this.form.suffix ? ', ' + this.form.suffix : '');
             },
             canProceedStep1() {
-                return this.form.first_name.trim() !== '' && this.form.last_name.trim() !== '';
+                return (this.form.first_name || '').trim() !== '' && (this.form.last_name || '').trim() !== '';
             },
             canProceedStep2() {
-                return this.form.mobile_number.trim() !== '' && this.form.email.trim() !== '';
+                return (this.form.mobile_number || '').trim() !== '' && (this.form.email || '').trim() !== '';
             },
         }"
-        class="w-full max-w-6xl bg-white rounded-xl sm:rounded-3xl shadow-2xl overflow-hidden"
+        class="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8"
     >
-        <div class="grid grid-cols-1 lg:grid-cols-2">
+        <header class="mb-6 flex items-center justify-between gap-4 sm:mb-8">
+            <a href="{{ route('login') }}" class="inline-flex items-center gap-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2" aria-label="PASYA sign in">
+                <img src="{{ asset('images/PASYA.png') }}" alt="" class="h-11 w-11 object-contain sm:h-12 sm:w-12">
+                <div>
+                    <p class="text-base font-semibold tracking-tight text-gray-950">PASYA</p>
+                    <p class="text-xs text-gray-500">Benguet agriculture</p>
+                </div>
+            </a>
+            <p class="hidden text-sm text-gray-600 sm:block">
+                Already registered?
+                <a href="{{ route('login') }}" class="ml-1 font-semibold text-green-700 hover:text-green-800">Sign in</a>
+            </p>
+        </header>
 
-            {{-- Left panel: form --}}
-            <div class="bg-green-700 p-4 sm:p-8 md:p-10 flex flex-col justify-center">
+        <div class="grid overflow-hidden rounded-2xl border border-black/10 bg-white shadow-xl lg:grid-cols-[minmax(18rem,0.78fr)_minmax(0,1.22fr)]">
+            <aside class="order-2 border-t border-gray-200 bg-gray-50 p-6 sm:p-8 lg:order-1 lg:border-r lg:border-t-0 lg:p-10">
+                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-green-700">Farmer registration</p>
+                <h1 class="mt-3 text-3xl font-semibold tracking-[-0.03em] text-gray-950 sm:text-4xl">Create your PASYA account</h1>
+                <p class="mt-4 text-sm leading-6 text-gray-600">
+                    Enter your name, contact details, and farm municipality. Registration has three short steps.
+                </p>
 
-                {{-- Header --}}
-                <div class="mb-6">
-                    <h1 class="text-3xl sm:text-4xl font-bold text-yellow-400 text-center">Create Account</h1>
-                    <p class="text-center text-green-100 text-sm mt-1">Farmer Registration &mdash; Benguet Agriculture</p>
+                <div class="mt-8 rounded-xl border border-green-200 bg-green-50 p-4">
+                    <h2 class="text-sm font-semibold text-green-900">What happens after registration</h2>
+                    <ol class="mt-3 space-y-3 text-sm leading-5 text-green-900">
+                        <li class="flex gap-3"><span class="font-semibold text-green-700">1</span><span>PASYA creates your account immediately.</span></li>
+                        <li class="flex gap-3"><span class="font-semibold text-green-700">2</span><span>A unique Farmer ID is generated for you.</span></li>
+                        <li class="flex gap-3"><span class="font-semibold text-green-700">3</span><span>You are signed in and taken to the farmer dashboard.</span></li>
+                    </ol>
                 </div>
 
-                {{-- Step indicator --}}
-                <div class="flex items-center justify-center gap-2 mb-7">
+                <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                    <p class="text-sm font-semibold text-amber-900">Save your Farmer ID</p>
+                    <p class="mt-1 text-xs leading-5 text-amber-800">It appears in the account menu after registration and is used for future farmer sign-in. You do not enter or choose it on this form.</p>
+                </div>
+
+                <div class="mt-6 text-sm text-gray-600">
+                    <p class="font-semibold text-gray-800">Your account includes</p>
+                    <p class="mt-2 leading-6">Crop Planner, My Crops, Price Watch, weather information, and farmer notifications.</p>
+                </div>
+            </aside>
+
+            <section class="order-1 p-5 sm:p-8 lg:order-2 lg:p-10" aria-labelledby="registration-form-heading">
+                <div class="flex flex-col gap-4 border-b border-gray-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-green-700">Step <span x-text="step"></span> of 3</p>
+                        <h2 id="registration-form-heading" class="mt-1 text-2xl font-semibold tracking-tight text-gray-950">Account details</h2>
+                    </div>
+                    <a href="{{ route('login') }}" class="text-sm font-semibold text-green-700 hover:text-green-800 sm:hidden">Sign in instead</a>
+                </div>
+
+                <ol class="my-6 grid grid-cols-3 gap-2" aria-label="Registration progress">
                     <template x-for="n in 3" :key="n">
-                        <div class="flex items-center gap-2">
-                            <div
-                                class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-200"
-                                :class="step === n ? 'bg-yellow-400 text-black' : (step > n ? 'bg-green-400 text-white' : 'bg-green-600 text-green-300 border border-green-500')"
-                                x-text="step > n ? '✓' : n"
-                            ></div>
-                            <div x-show="n < 3" class="w-8 h-0.5" :class="step > n ? 'bg-green-400' : 'bg-green-600'"></div>
-                        </div>
+                        <li class="min-w-0" :aria-current="step === n ? 'step' : null">
+                            <div class="h-1.5 rounded-full transition-colors" :class="step >= n ? 'bg-green-700' : 'bg-gray-200'"></div>
+                            <div class="mt-2 flex items-center gap-2">
+                                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold" :class="step >= n ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'" x-text="step > n ? '✓' : n"></span>
+                                <span class="truncate text-xs font-medium" :class="step === n ? 'text-gray-900' : 'text-gray-500'" x-text="stepLabels[n - 1]"></span>
+                            </div>
+                        </li>
                     </template>
-                </div>
+                </ol>
 
                 <form method="POST" action="{{ route('register', absolute: false) }}">
                     @csrf
 
-                    {{-- Hidden fields so all values are submitted on final step --}}
-                    <input type="hidden" name="first_name"    x-bind:value="form.first_name">
-                    <input type="hidden" name="middle_name"   x-bind:value="form.middle_name">
-                    <input type="hidden" name="last_name"     x-bind:value="form.last_name">
-                    <input type="hidden" name="suffix"        x-bind:value="form.suffix">
+                    <input type="hidden" name="first_name" x-bind:value="form.first_name">
+                    <input type="hidden" name="middle_name" x-bind:value="form.middle_name">
+                    <input type="hidden" name="last_name" x-bind:value="form.last_name">
+                    <input type="hidden" name="suffix" x-bind:value="form.suffix">
                     <input type="hidden" name="mobile_number" x-bind:value="form.mobile_number">
-                    <input type="hidden" name="email"         x-bind:value="form.email">
-                    <input type="hidden" name="municipality"  x-bind:value="form.municipality">
-                    <input type="hidden" name="cooperative"   x-bind:value="form.cooperative">
+                    <input type="hidden" name="email" x-bind:value="form.email">
+                    <input type="hidden" name="municipality" x-bind:value="form.municipality">
+                    <input type="hidden" name="cooperative" x-bind:value="form.cooperative">
 
-                    {{-- Step 1: Personal Info --}}
-                    <div x-show="step === 1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
-                        <p class="text-yellow-300 text-sm font-semibold uppercase tracking-wide mb-1">Step 1 — Personal Information</p>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-yellow-400 text-sm font-medium mb-1">First Name <span class="text-red-300">*</span></label>
-                                <input type="text" x-model="form.first_name" placeholder="e.g. Juan"
-                                    class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors uppercase"
-                                    autocomplete="given-name">
-                                @error('first_name') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-yellow-400 text-sm font-medium mb-1">Last Name <span class="text-red-300">*</span></label>
-                                <input type="text" x-model="form.last_name" placeholder="e.g. Dela Cruz"
-                                    class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors uppercase"
-                                    autocomplete="family-name">
-                                @error('last_name') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
-                            </div>
+                    <div x-show="step === 1" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-5">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-950">Your legal name</h3>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Enter your name as it appears on your official records.</p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid gap-4 sm:grid-cols-2">
                             <div>
-                                <label class="block text-yellow-400 text-sm font-medium mb-1">Middle Name <span class="text-green-300 font-normal">(optional)</span></label>
-                                <input type="text" x-model="form.middle_name" placeholder="e.g. Santos"
-                                    class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors uppercase"
-                                    autocomplete="additional-name">
-                                @error('middle_name') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
+                                <label for="first_name" class="block text-sm font-semibold text-gray-800">First name <span class="text-red-600" aria-hidden="true">*</span><span class="sr-only"> required</span></label>
+                                <input id="first_name" type="text" x-model="form.first_name" placeholder="Juan" aria-required="true" autocomplete="given-name" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm uppercase text-gray-950 placeholder:text-gray-400 focus:border-green-600 focus:ring-green-600">
+                                @error('first_name') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
                             </div>
                             <div>
-                                <label class="block text-yellow-400 text-sm font-medium mb-1">Suffix <span class="text-green-300 font-normal">(optional)</span></label>
-                                <select x-model="form.suffix"
-                                    class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors">
+                                <label for="last_name" class="block text-sm font-semibold text-gray-800">Last name <span class="text-red-600" aria-hidden="true">*</span><span class="sr-only"> required</span></label>
+                                <input id="last_name" type="text" x-model="form.last_name" placeholder="Dela Cruz" aria-required="true" autocomplete="family-name" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm uppercase text-gray-950 placeholder:text-gray-400 focus:border-green-600 focus:ring-green-600">
+                                @error('last_name') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label for="middle_name" class="block text-sm font-semibold text-gray-800">Middle name <span class="font-normal text-gray-500">(optional)</span></label>
+                                <input id="middle_name" type="text" x-model="form.middle_name" placeholder="Santos" autocomplete="additional-name" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm uppercase text-gray-950 placeholder:text-gray-400 focus:border-green-600 focus:ring-green-600">
+                                @error('middle_name') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
+                            </div>
+                            <div>
+                                <label for="suffix" class="block text-sm font-semibold text-gray-800">Suffix <span class="font-normal text-gray-500">(optional)</span></label>
+                                <select id="suffix" x-model="form.suffix" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-950 focus:border-green-600 focus:ring-green-600">
                                     <option value="">None</option>
                                     <option value="Jr.">Jr.</option>
                                     <option value="Sr.">Sr.</option>
@@ -127,73 +157,65 @@
                                     <option value="III">III</option>
                                     <option value="IV">IV</option>
                                 </select>
-                                @error('suffix') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
+                                @error('suffix') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
                             </div>
                         </div>
 
-                        <div class="pt-2 flex justify-end">
-                            <button type="button" @click="canProceedStep1() && (step = 2)"
-                                :class="canProceedStep1() ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : 'bg-green-500 text-green-300 cursor-not-allowed'"
-                                class="px-8 py-2.5 rounded-full font-bold text-sm transition-colors duration-200 shadow-lg">
-                                Next &rarr;
-                            </button>
+                        <div class="flex justify-end border-t border-gray-100 pt-5">
+                            <button type="button" @click="canProceedStep1() && (step = 2)" :disabled="!canProceedStep1()" class="inline-flex w-full items-center justify-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-gray-300 sm:w-auto">Continue to contact</button>
                         </div>
                     </div>
 
-                    {{-- Step 2: Contact Details --}}
-                    <div x-show="step === 2" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
-                        <p class="text-yellow-300 text-sm font-semibold uppercase tracking-wide mb-1">Step 2 — Contact Details</p>
-
+                    <div x-show="step === 2" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-5">
                         <div>
-                            <label class="block text-yellow-400 text-sm font-medium mb-1">Mobile Number <span class="text-red-300">*</span></label>
-                            <input type="tel" x-model="form.mobile_number" placeholder="e.g. 09171234567"
-                                class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors"
-                                autocomplete="tel">
-                            @error('mobile_number') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
+                            <h3 class="text-lg font-semibold text-gray-950">Contact details</h3>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Both fields are required for your farmer account record.</p>
                         </div>
 
                         <div>
-                            <label class="block text-yellow-400 text-sm font-medium mb-1">Email Address <span class="text-red-300">*</span></label>
-                            <input type="email" x-model="form.email" placeholder="e.g. juan@email.com"
-                                class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white placeholder-green-300 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors"
-                                autocomplete="email">
-                            @error('email') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
-                            <p class="mt-1.5 text-xs text-green-200">Used to send your login verification code (OTP).</p>
+                            <label for="mobile_number" class="block text-sm font-semibold text-gray-800">Mobile number <span class="text-red-600" aria-hidden="true">*</span><span class="sr-only"> required</span></label>
+                            <input id="mobile_number" type="tel" x-model="form.mobile_number" placeholder="09171234567" aria-required="true" autocomplete="tel" inputmode="tel" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-950 placeholder:text-gray-400 focus:border-green-600 focus:ring-green-600">
+                            @error('mobile_number') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="pt-2 flex justify-between">
-                            <button type="button" @click="step = 1"
-                                class="px-6 py-2.5 rounded-full font-bold text-sm bg-green-600 hover:bg-green-500 text-white transition-colors duration-200">
-                                &larr; Back
-                            </button>
-                            <button type="button" @click="canProceedStep2() && (step = 3)"
-                                :class="canProceedStep2() ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : 'bg-green-500 text-green-300 cursor-not-allowed'"
-                                class="px-8 py-2.5 rounded-full font-bold text-sm transition-colors duration-200 shadow-lg">
-                                Next &rarr;
-                            </button>
+                        <div>
+                            <label for="email" class="block text-sm font-semibold text-gray-800">Email address <span class="text-red-600" aria-hidden="true">*</span><span class="sr-only"> required</span></label>
+                            <input id="email" type="email" x-model="form.email" placeholder="juan@example.com" aria-required="true" autocomplete="email" inputmode="email" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-950 placeholder:text-gray-400 focus:border-green-600 focus:ring-green-600">
+                            @error('email') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
+                            <p class="mt-1.5 text-xs leading-5 text-gray-500">Each farmer account must use a unique email address.</p>
+                        </div>
+
+                        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
+                            <span class="font-semibold">Name entered:</span>
+                            <span x-text="fullName || 'Not provided'"></span>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-between">
+                            <button type="button" @click="step = 1" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">Back to name</button>
+                            <button type="button" @click="canProceedStep2() && (step = 3)" :disabled="!canProceedStep2()" class="inline-flex items-center justify-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-gray-300">Continue to farm</button>
                         </div>
                     </div>
 
-                    {{-- Step 3: Farm Details --}}
-                    <div x-show="step === 3" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-4">
-                        <p class="text-yellow-300 text-sm font-semibold uppercase tracking-wide mb-1">Step 3 — Farm Details</p>
+                    <div x-show="step === 3" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-x-2" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-5">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-950">Farm details</h3>
+                            <p class="mt-1 text-sm leading-6 text-gray-600">Choose the municipality where your farm is located. Cooperative membership is optional.</p>
+                        </div>
 
                         <div>
-                            <label class="block text-yellow-400 text-sm font-medium mb-1">Municipality <span class="text-red-300">*</span></label>
-                            <select x-model="form.municipality"
-                                class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors">
+                            <label for="municipality" class="block text-sm font-semibold text-gray-800">Municipality <span class="text-red-600" aria-hidden="true">*</span><span class="sr-only"> required</span></label>
+                            <select id="municipality" x-model="form.municipality" aria-required="true" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-950 focus:border-green-600 focus:ring-green-600">
                                 <option value="">Select municipality</option>
                                 @foreach ($municipalities as $mun)
                                     <option value="{{ $mun }}">{{ ucwords(strtolower($mun)) }}</option>
                                 @endforeach
                             </select>
-                            @error('municipality') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
+                            @error('municipality') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
-                            <label class="block text-yellow-400 text-sm font-medium mb-1">Cooperative <span class="text-green-300 font-normal">(optional)</span></label>
-                            <select x-model="form.cooperative"
-                                class="w-full px-4 py-2.5 bg-green-600 border-2 border-green-500 rounded-lg text-white focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors">
+                            <label for="cooperative" class="block text-sm font-semibold text-gray-800">Cooperative <span class="font-normal text-gray-500">(optional)</span></label>
+                            <select id="cooperative" x-model="form.cooperative" class="mt-1.5 w-full rounded-lg border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-950 focus:border-green-600 focus:ring-green-600">
                                 <option value="none">None / Not a member</option>
                                 <option value="Benguet Highland Farmers Cooperative">Benguet Highland Farmers Cooperative</option>
                                 <option value="La Trinidad Vegetable Growers Association">La Trinidad Vegetable Growers Association</option>
@@ -201,76 +223,22 @@
                                 <option value="Kabayan Organic Farmers Cooperative">Kabayan Organic Farmers Cooperative</option>
                                 <option value="Tuba Agro-Enterprise Cooperative">Tuba Agro-Enterprise Cooperative</option>
                             </select>
-                            @error('cooperative') <p class="mt-1 text-xs text-yellow-300">{{ $message }}</p> @enderror
+                            @error('cooperative') <p class="mt-1.5 text-xs font-medium text-red-700">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="pt-2 flex justify-between items-center">
-                            <button type="button" @click="step = 2"
-                                class="px-6 py-2.5 rounded-full font-bold text-sm bg-green-600 hover:bg-green-500 text-white transition-colors duration-200">
-                                &larr; Back
-                            </button>
-                            <button type="submit"
-                                :disabled="!form.municipality"
-                                :class="form.municipality ? 'bg-yellow-400 hover:bg-yellow-500 text-black' : 'bg-green-500 text-green-300 cursor-not-allowed'"
-                                class="px-8 py-2.5 rounded-full font-bold text-sm transition-colors duration-200 shadow-lg">
-                                Create Account
-                            </button>
+                        <div class="rounded-lg border border-green-200 bg-green-50 p-4">
+                            <p class="text-sm font-semibold text-green-900">Ready to create your account</p>
+                            <p class="mt-1 text-xs leading-5 text-green-800">PASYA will generate your Farmer ID, sign you in, and open the farmer dashboard.</p>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                            <button type="button" @click="step = 2" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">Back to contact</button>
+                            <button type="submit" :disabled="!form.municipality" class="inline-flex items-center justify-center rounded-lg bg-green-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:bg-gray-300">Create farmer account</button>
                         </div>
                     </div>
-
                 </form>
-
-                <p class="text-center text-green-200 text-sm mt-6">
-                    Already have an account?
-                    <a href="{{ route('login') }}" class="text-yellow-400 hover:text-yellow-300 font-medium underline transition-colors">Sign in</a>
-                </p>
-            </div>
-
-            {{-- Right panel: info / summary --}}
-            <div class="bg-green-100 p-4 sm:p-8 md:p-10 flex flex-col items-center justify-center text-center">
-                <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo"
-                    class="w-28 h-28 sm:w-40 sm:h-40 object-contain mx-auto drop-shadow-lg mb-5" />
-                <h2 class="text-2xl sm:text-3xl font-bold text-green-800 mb-2">Grow With Confidence</h2>
-                <p class="text-green-700 text-sm max-w-sm leading-relaxed mb-6">
-                    Register to access forecasting, analytics, and planning tools built for Benguet farmers.
-                </p>
-
-                {{-- Step-specific help --}}
-                <div class="w-full max-w-sm space-y-3">
-
-                    <div x-show="step === 1" x-transition class="rounded-2xl bg-white/70 border border-green-200 p-5 text-left shadow-sm">
-                        <p class="text-sm font-semibold text-green-800 mb-2">Step 1 of 3 — Personal Info</p>
-                        <p class="text-sm text-green-700">Enter your legal name as it appears on official documents. Middle name and suffix are optional.</p>
-                    </div>
-
-                    <div x-show="step === 2" x-transition class="rounded-2xl bg-white/70 border border-green-200 p-5 text-left shadow-sm">
-                        <p class="text-sm font-semibold text-green-800 mb-2">Step 2 of 3 — Contact Details</p>
-                        <p class="text-sm text-green-700">Your email will be used to send a one-time code each time you log in — no password needed.</p>
-                    </div>
-
-                    <div x-show="step === 3" x-transition class="rounded-2xl bg-white/70 border border-green-200 p-5 text-left shadow-sm">
-                        <p class="text-sm font-semibold text-green-800 mb-2">Step 3 of 3 — Farm Details</p>
-                        <p class="text-sm text-green-700">Select the municipality where your farm is located. Cooperative membership is optional.</p>
-                    </div>
-
-                    {{-- Summary card shown on steps 2 & 3 --}}
-                    <div x-show="step >= 2" x-transition class="rounded-2xl bg-white border border-green-200 p-4 text-left shadow-sm space-y-2">
-                        <p class="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Your info so far</p>
-
-                        <div class="flex items-start gap-2 text-sm text-green-800">
-                            <span class="text-green-500 mt-0.5">&#10003;</span>
-                            <span x-text="fullName || '—'"></span>
-                        </div>
-
-                        <div x-show="step >= 3" class="flex items-start gap-2 text-sm text-green-800">
-                            <span class="text-green-500 mt-0.5">&#10003;</span>
-                            <span x-text="(form.mobile_number || '—') + ' · ' + (form.email || '—')"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            </section>
         </div>
-    </div>
+    </main>
 </body>
 </html>

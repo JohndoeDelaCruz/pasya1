@@ -1,68 +1,68 @@
 <x-farmer-layout>
     <x-slot name="title">Price Watch</x-slot>
 
-    <div class="h-full overflow-auto bg-gray-100" x-data="priceWatch()">
-        <div class="p-3 sm:p-6">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-4 py-4 sm:px-8 sm:py-6 rounded-2xl mb-4 sm:mb-6 shadow-lg">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div class="pasya-text-safe">
-                        <h1 class="text-2xl font-bold mb-1">Daily Price Watch</h1>
-                        <p class="text-green-100 text-sm">La Trinidad Trading Post Prices</p>
+    <div class="farmer-feature-prices h-full overflow-auto bg-gray-50" x-data="priceWatch()">
+        <div class="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
+            <x-ui.page-header
+                eyebrow="Market reference"
+                title="Price Watch"
+                description="Reference prices reported by the La Trinidad Trading Post. Compare current values before making your own selling decision."
+                class="mb-6"
+            >
+                <x-slot:actions>
+                    <div class="min-w-0 rounded-xl border border-gray-200 bg-white px-4 py-2">
+                        <p class="text-xs text-gray-500">Source updated</p>
+                        <p class="text-sm font-semibold text-gray-900">{{ $lastUpdated ? \Carbon\Carbon::parse($lastUpdated)->format('M d, Y g:i A') : 'Not yet available' }}</p>
                     </div>
-                    <div class="flex flex-wrap items-center gap-3 self-start md:self-auto">
-                        <div class="min-w-0 bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-                            <p class="text-xs text-green-100">Last Updated</p>
-                            <p class="font-semibold">{{ $lastUpdated ? \Carbon\Carbon::parse($lastUpdated)->format('M d, Y g:i A') : 'Not yet set' }}</p>
-                        </div>
-                        <button @click="refreshPrices()" class="p-3 bg-white/20 hover:bg-white/30 rounded-xl transition">
+                    <button @click="refreshPrices()" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50" :disabled="loading">
                             <svg class="w-5 h-5" :class="{ 'animate-spin': loading }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
+                            <span x-text="loading ? 'Refreshing' : 'Refresh prices'"></span>
+                    </button>
+                </x-slot:actions>
+            </x-ui.page-header>
 
-            <!-- Filter Tabs - Simple for Farmers -->
-            <div class="mb-6">
-                <p class="text-sm text-gray-600 mb-3">Filter:</p>
-                <div class="flex flex-wrap gap-2">
+            <section aria-labelledby="price-filter-heading" class="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                <h2 id="price-filter-heading" class="text-sm font-semibold text-gray-900">Find a crop</h2>
+                <p class="mt-1 text-xs text-gray-500">Filter by crop group or search by name.</p>
+                <div class="mt-4 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Crop price categories">
                     <template x-for="filter in priceFilters" :key="filter.value">
                         <button
                             type="button"
                             @click="activeCategory = filter.value"
                             :title="filter.title || filter.label"
-                            :class="activeCategory === filter.value ? 'bg-green-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'"
-                            class="inline-flex max-w-full items-center gap-2 rounded-full px-4 py-2 text-sm font-medium shadow-sm transition"
+                            :class="activeCategory === filter.value ? 'border-green-700 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'"
+                            class="inline-flex min-h-11 max-w-full shrink-0 items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition"
+                            :aria-pressed="activeCategory === filter.value"
                         >
                             <span class="truncate" x-text="filter.label"></span>
                             <span
                                 class="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                                :class="activeCategory === filter.value ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'"
+                                :class="activeCategory === filter.value ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'"
                                 x-text="filter.count"
                             ></span>
                         </button>
                     </template>
                 </div>
-            </div>
-
             <!-- Search Bar -->
-            <div class="relative mb-6">
+            <label class="relative mt-4 block">
+                <span class="sr-only">Search crop prices</span>
                 <input type="text" 
                        x-model="searchQuery" 
-                       placeholder="Search crops..." 
-                       class="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent shadow-sm">
+                       placeholder="Search crop prices"
+                       class="min-h-11 w-full rounded-xl border border-gray-300 bg-white py-3 pl-12 pr-4 focus:border-green-600 focus:ring-2 focus:ring-green-600">
                 <svg class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-            </div>
+            </label>
+            </section>
 
             <!-- Price Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
                 <template x-for="price in filteredPrices" :key="price.name">
-                    <div class="pasya-card-safe bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-lg transition-all duration-300 cursor-pointer"
-                         @click="showPriceDetail(price)">
+                    <div class="pasya-card-safe cursor-pointer rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:border-gray-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+                         @click="showPriceDetail(price)" @keydown.enter.prevent="showPriceDetail(price)" @keydown.space.prevent="showPriceDetail(price)" role="button" tabindex="0" :aria-label="'View price details for ' + price.name">
                         <div class="flex items-start justify-between mb-3">
                             <div class="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden"
                                  :class="getCategoryBgClass(price.category)">
@@ -87,15 +87,15 @@
             </div>
 
             <!-- Price Trends Module -->
-            <div class="pasya-card-safe bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+            <section aria-labelledby="price-trends-heading" class="pasya-card-safe rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-800">Price Trends</h2>
-                        <p class="text-sm text-gray-500">Last 6 months comparison</p>
+                        <h2 id="price-trends-heading" class="text-xl font-semibold tracking-tight text-gray-950">Price history</h2>
+                        <p class="mt-1 text-sm text-gray-500">Six-month reference comparison</p>
                     </div>
                     <div class="flex min-w-0 flex-wrap items-center gap-2">
-                        <label class="text-xs font-medium text-gray-500 uppercase tracking-wider">View</label>
-                        <select x-model="selectedTrendCrop" class="min-w-0 flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-green-500 sm:flex-none">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-gray-500">Crop</label>
+                        <select x-model="selectedTrendCrop" class="min-h-11 min-w-0 flex-1 rounded-xl border border-gray-300 px-4 py-2 text-sm focus:border-green-600 focus:ring-2 focus:ring-green-600 sm:flex-none">
                             <option value="all">Market Basket</option>
                             <template x-for="dataset in trendData.datasets" :key="dataset.label">
                                 <option :value="dataset.label" x-text="dataset.label"></option>
@@ -106,25 +106,25 @@
 
                 <!-- Trend Snapshot -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
-                    <div class="bg-green-50 border border-green-100 rounded-xl p-4">
-                        <p class="text-xs text-green-700 uppercase tracking-wider">Latest Avg</p>
-                        <p class="text-2xl font-bold text-green-800" x-text="formatPeso(trendSummary.latest)"></p>
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs uppercase tracking-wider text-gray-500">Latest average</p>
+                        <p class="text-2xl font-semibold tracking-tight text-gray-950" x-text="formatPeso(trendSummary.latest)"></p>
                     </div>
-                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                        <p class="text-xs text-amber-700 uppercase tracking-wider">Peak Price</p>
-                        <p class="text-2xl font-bold text-amber-800" x-text="formatPeso(trendSummary.peak)"></p>
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs uppercase tracking-wider text-gray-500">Highest reference</p>
+                        <p class="text-2xl font-semibold tracking-tight text-gray-950" x-text="formatPeso(trendSummary.peak)"></p>
                     </div>
-                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
-                        <p class="text-xs text-blue-700 uppercase tracking-wider">6-Month Change</p>
-                        <p class="text-2xl font-bold"
-                           :class="trendSummary.momentum >= 0 ? 'text-blue-800' : 'text-red-700'"
+                    <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                        <p class="text-xs uppercase tracking-wider text-gray-500">Six-month change</p>
+                        <p class="text-2xl font-semibold tracking-tight"
+                           :class="trendSummary.momentum >= 0 ? 'text-green-800' : 'text-red-700'"
                            x-text="(trendSummary.momentum >= 0 ? '+' : '') + trendSummary.momentum.toFixed(1) + '%'">
                         </p>
                     </div>
                 </div>
 
                 <!-- Chart Panel -->
-                <div class="trend-chart-panel relative rounded-2xl border border-gray-100 bg-gradient-to-b from-gray-50 to-white p-4 sm:p-5">
+                <div class="trend-chart-panel relative rounded-2xl border border-gray-200 bg-gray-50 p-4 sm:p-5">
                     <template x-if="visibleTrendDatasets.length === 0">
                         <div class="h-64 flex items-center justify-center text-sm text-gray-500">
                             No trend data available yet.
@@ -176,13 +176,13 @@
                 <!-- Interactive Legend -->
                 <div class="flex flex-wrap justify-center gap-2 mt-5 pt-4 border-t border-gray-100">
                     <button @click="selectedTrendCrop = 'all'"
-                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition"
+                            class="inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition"
                             :class="selectedTrendCrop === 'all' ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'">
                         All Crops
                     </button>
                     <template x-for="dataset in trendData.datasets" :key="dataset.label">
                         <button @click="selectedTrendCrop = dataset.label"
-                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border transition"
+                                class="inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition"
                                 :class="selectedTrendCrop === dataset.label ? 'text-white border-transparent' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'"
                                 :style="selectedTrendCrop === dataset.label ? 'background-color:' + dataset.color : ''">
                             <span class="w-2.5 h-2.5 rounded-full"
@@ -191,7 +191,7 @@
                         </button>
                     </template>
                 </div>
-            </div>
+            </section>
         </div>
 
         <!-- Price Detail Modal -->
@@ -204,11 +204,11 @@
             <div class="fixed inset-0 bg-black bg-opacity-50" @click="showDetailModal = false"></div>
             
             <div class="flex min-h-full items-center justify-center p-4">
-                <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden" @click.stop>
-                    <div class="px-6 py-5 bg-gradient-to-r from-green-500 to-emerald-500 text-white">
+                <div class="relative w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl" @click.stop>
+                    <div class="border-b border-gray-200 bg-white px-6 py-5">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-center space-x-3">
-                                <div class="w-16 h-16 rounded-xl overflow-hidden bg-white/20 flex items-center justify-center">
+                                <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-gray-100">
                                     <img :src="selectedPrice?.image"
                                          :alt="selectedPrice?.name"
                                          class="w-full h-full object-cover"
@@ -218,11 +218,11 @@
                                     <span class="text-4xl" x-show="imageLoadError" x-text="selectedPrice?.emoji"></span>
                                 </div>
                                 <div class="min-w-0">
-                                    <h3 class="break-words text-xl font-bold" x-text="selectedPrice?.name"></h3>
-                                    <p class="text-green-100 text-sm" x-text="selectedPrice?.category"></p>
+                                    <h3 class="break-words text-xl font-semibold tracking-tight text-gray-950" x-text="selectedPrice?.name"></h3>
+                                    <p class="text-sm text-gray-500" x-text="selectedPrice?.category"></p>
                                 </div>
                             </div>
-                            <button @click="showDetailModal = false" class="shrink-0 rounded-lg p-2 transition hover:bg-white/20">
+                            <button @click="showDetailModal = false" class="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100" aria-label="Close price details">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
@@ -232,7 +232,7 @@
                     
                     <div class="p-6">
                         <div class="text-center mb-6">
-                            <p class="text-sm text-gray-500 mb-1">Current Price</p>
+                            <p class="text-sm text-gray-500 mb-1">Current reference price</p>
                             <div class="flex items-baseline justify-center space-x-1">
                                 <span class="text-4xl font-bold text-gray-900">₱</span>
                                 <span class="text-4xl font-bold text-gray-900" x-text="selectedPrice?.price?.toFixed(2)"></span>
@@ -266,15 +266,15 @@
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
                                 </svg>
                                 <div>
-                                    <p class="text-sm font-medium text-green-800">Market Insight</p>
-                                    <p class="text-sm text-green-700 mt-1" x-text="selectedPrice?.change >= 0 ? 'Prices are trending up. Good time to sell if you have harvest ready.' : 'Prices are down. Consider storing if possible or selling to cooperatives.'"></p>
+                                    <p class="text-sm font-medium text-green-800">Price context</p>
+                                    <p class="mt-1 text-sm text-green-700" x-text="selectedPrice?.change >= 0 ? 'This reference price is higher than the previous reported price.' : 'This reference price is lower than the previous reported price.'"></p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="px-6 py-4 bg-gray-50 border-t">
-                        <button @click="showDetailModal = false" class="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2.5 rounded-xl transition">
+                        <button @click="showDetailModal = false" class="min-h-11 w-full rounded-xl bg-green-700 py-2.5 font-semibold text-white transition hover:bg-green-800">
                             Close
                         </button>
                     </div>

@@ -63,17 +63,17 @@
         <input id="password_confirmation" name="password_confirmation" type="password" @if(empty($validator)) required @endif autocomplete="new-password" class="mt-1 w-full rounded-xl border-gray-200 text-sm focus:border-green-500 focus:ring-green-500">
     </div>
 
-    <label class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 md:col-span-2">
+    <label class="flex min-h-11 items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 md:col-span-2">
         <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $validator->is_active ?? true)) class="rounded border-gray-300 text-green-600 focus:ring-green-500">
-        <span class="text-sm font-medium text-gray-700">Active staff account</span>
+        <span><span class="block text-sm font-medium text-gray-700">Active staff account</span><span class="mt-0.5 block text-xs text-gray-500">Active accounts can sign in and review records within the assigned scope.</span></span>
     </label>
 </div>
 
 <div class="mt-6 flex flex-wrap gap-3">
-    <button class="inline-flex flex-1 items-center justify-center rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 sm:flex-none">
+    <button class="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 sm:flex-none">
         {{ $submitLabel }}
     </button>
-    <a href="{{ route('admin.lgu-validators.index') }}" class="inline-flex flex-1 items-center justify-center rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">
+    <a href="{{ route('admin.lgu-validators.index') }}" class="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:flex-none">
         Cancel
     </a>
 </div>

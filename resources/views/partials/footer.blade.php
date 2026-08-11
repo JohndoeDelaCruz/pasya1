@@ -1,53 +1,35 @@
-<footer class="relative bg-gradient-to-br from-[#101828] to-[#0D542B]">
-    <div class="mx-auto w-full max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
-        <div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-            <div class="min-w-0">
-                <a href="{{ url('/') }}" class="flex max-w-full flex-wrap items-center gap-x-3 gap-y-2">
-                    <img src="{{ asset('images/PASYA.png') }}" class="h-14 w-14 shrink-0 sm:h-16 sm:w-16" alt="PASYA Logo" />
-                    <img src="{{ asset('images/titleh.png') }}" class="h-10 max-w-[12rem] object-contain sm:h-12 sm:max-w-[16rem]" alt="PASYA" />
+<footer class="border-t border-black/10 bg-white">
+    <div class="mx-auto w-full max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
+        <div class="grid gap-9 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
+            <div class="max-w-xl">
+                <a href="{{ url('/') }}" class="inline-flex items-center gap-3" aria-label="PASYA home">
+                    <img src="{{ asset('images/PASYA.png') }}" class="h-11 w-11 object-contain" alt="" />
+                    <span>
+                        <span class="block text-base font-bold tracking-tight text-gray-950">PASYA</span>
+                        <span class="block text-xs font-medium text-gray-500">Predictive Analytics for Yield Advancement</span>
+                    </span>
                 </a>
-                <p class="mt-5 max-w-md leading-7 text-gray-200">PASYA currently supports decision-making for over <br class="hidden sm:block">10,000 hectares of Benguet's agricultural land.</p>
+                <p class="mt-5 max-w-lg text-sm leading-6 text-gray-600">A crop planning, local validation, and agricultural decision-support platform for Benguet.</p>
+                <p class="mt-3 max-w-lg text-xs leading-5 text-gray-500">PASYA estimates support professional and local judgment. Forecasts are not guarantees of yield or market outcome.</p>
             </div>
-            <div class="grid min-w-0 grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-10 lg:justify-items-start">
-                <div>
-                    <ul class="text-gray-200 font-medium">
-                        <li class="mb-4">
-                            <a href="#" class="hover:underline">Methodology</a>
-                        </li>
-                        <li>
-                            <a href="#blog" class="hover:underline">Blog</a>
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <ul class="text-gray-200 font-medium">
-                        <li class="mb-4">
-                            <a href="#about" class="hover:underline">About Us</a>
-                        </li>
-                        <li class="mb-4">
-                            <a href="#" class="hover:underline">Contact Us</a>
-                        </li>
-                        <li class="mb-4">
-                            <a href="#" class="hover:underline">News</a>
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <h2 class="mb-6 text-sm font-semibold text-gray-200 uppercase">Legal</h2>
-                    <ul class="text-gray-200 font-medium">
-                        <li class="mb-4">
-                            <a href="#" class="hover:underline">Privacy Policy</a>
-                        </li>
-                        <li>
-                            <a href="#" class="hover:underline whitespace-nowrap">Terms &amp; Conditions</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+
+            <nav aria-label="Footer navigation" class="grid grid-cols-2 gap-x-10 gap-y-3 text-sm font-semibold text-gray-700 sm:grid-cols-4">
+                <a href="{{ url('/#home') }}" class="hover:text-green-700">Home</a>
+                <a href="{{ url('/#about') }}" class="hover:text-green-700">About</a>
+                <a href="{{ url('/#work_with_us') }}" class="hover:text-green-700">Capabilities</a>
+                <a href="{{ route('app.download') }}" class="hover:text-green-700">Get the app</a>
+                @if (auth()->guard('web')->check() || auth()->guard('farmer')->check())
+                    <a href="{{ auth()->guard('farmer')->check() ? route('farmers.dashboard') : route('dashboard') }}" class="hover:text-green-700">Dashboard</a>
+                @else
+                    <a href="{{ route('login') }}" class="hover:text-green-700">Log in</a>
+                    <a href="{{ route('register') }}" class="hover:text-green-700">Create account</a>
+                @endif
+            </nav>
         </div>
-        <hr class="my-6 border-gray-200 sm:mx-auto lg:my-8" />
-        <div class="sm:flex sm:items-center sm:justify-between">
-            <span class="text-sm text-gray-200 sm:text-left">© {{ date('Y') }} <a href="{{ url('/') }}" class="hover:underline">PASYA</a>. All Rights Reserved.</span>
+
+        <div class="mt-9 flex flex-col gap-2 border-t border-black/10 pt-6 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+            <span>&copy; {{ date('Y') }} PASYA. All rights reserved.</span>
+            <span>Designed for accountable agricultural workflows.</span>
         </div>
     </div>
 </footer>

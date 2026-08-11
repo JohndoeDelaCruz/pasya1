@@ -94,7 +94,7 @@
                 </div>
             </header>
 
-            <main id="main-content" class="pasya-main mobile-main-content mobile-scroll-area flex-1 overflow-y-auto" data-hide-header-scroll>
+            <main id="main-content" class="pasya-main mobile-main-content mobile-scroll-area mobile-content-area mobile-header-scroll-area mobile-safe-bottom relative min-w-0 flex-1 overflow-y-auto" data-hide-header-scroll>
                 {{ $slot }}
             </main>
         </div>

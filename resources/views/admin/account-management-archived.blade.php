@@ -1,22 +1,23 @@
 <x-admin-layout>
     <x-slot name="title">Archived Farmer Accounts</x-slot>
 
-    <div class="p-3 sm:p-6">
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
-            <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">Archived Farmer Accounts</h1>
-                <p class="text-sm text-gray-600">Review archived farmer accounts and restore them when needed</p>
+    <div class="admin-feature-archived-accounts space-y-5 p-3 sm:p-6">
+        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <div class="max-w-2xl">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Access administration</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Archived farmer accounts</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">Archived farmers cannot sign in. Restore an account only after confirming the farmer should regain access.</p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3 self-start sm:self-auto">
                 <a href="{{ route('admin.farmers.index') }}"
-                   class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center">
+                   class="inline-flex min-h-11 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
                     </svg>
                     Active Accounts
                 </a>
                 <a href="{{ route('admin.farmers.create') }}"
-                   class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center">
+                   class="inline-flex min-h-11 items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
@@ -31,7 +32,7 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
             <div class="bg-white rounded-lg shadow p-4">
                 <div class="flex items-center justify-between">
                     <div>
@@ -75,7 +76,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-4 mb-6">
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
             <form method="GET" action="{{ route('admin.farmers.archived') }}" class="flex flex-wrap gap-3 items-end">
                 <div class="flex-1 min-w-[200px]">
                     <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
@@ -125,9 +126,9 @@
             </form>
         </div>
 
-        <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+                <table class="min-w-[820px] w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer ID</th>

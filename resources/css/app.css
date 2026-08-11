@@ -428,6 +428,24 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
+body.pasya-workspace .overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #a1a1aa transparent;
+}
+
+body.pasya-workspace .overflow-x-auto::-webkit-scrollbar {
+    height: 0.375rem;
+}
+
+body.pasya-workspace .overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+body.pasya-workspace .overflow-x-auto::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #a1a1aa;
+}
+
 .trend-chart-panel {
     min-width: 0;
     max-width: 100%;
@@ -1523,6 +1541,74 @@ textarea {
     }
 }
 
+/* Role sidebar identity
+ * Keep the original PASYA green navigation while retaining the redesigned
+ * spacing, type scale, focus treatment, and responsive behavior.
+ */
+.pasya-admin-shell .pasya-sidebar {
+    background: linear-gradient(180deg, #166534 0%, #14532d 100%) !important;
+    scrollbar-color: #34d399 #14532d;
+}
+
+.pasya-farmer-shell .pasya-sidebar {
+    background: linear-gradient(180deg, #15803d 0%, #166534 100%) !important;
+    scrollbar-color: #4ade80 #166534;
+}
+
+.pasya-lgu-shell .pasya-sidebar {
+    background: linear-gradient(180deg, #14532d 0%, #064e3b 100%) !important;
+    scrollbar-color: #34d399 #14532d;
+}
+
+.pasya-sidebar nav h4,
+.pasya-sidebar nav > p {
+    color: #bbf7d0 !important;
+}
+
+.pasya-sidebar nav a,
+.pasya-sidebar nav a svg {
+    color: #ffffff !important;
+}
+
+.pasya-admin-shell .pasya-sidebar nav a:hover,
+.pasya-lgu-shell .pasya-sidebar nav a:hover {
+    background: #15803d !important;
+}
+
+.pasya-farmer-shell .pasya-sidebar nav a:hover {
+    background: #16a34a !important;
+}
+
+.pasya-sidebar nav a.bg-green-600 {
+    background: #16a34a !important;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.pasya-sidebar nav a.bg-green-700 {
+    background: #15803d !important;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.pasya-admin-shell .pasya-sidebar nav::-webkit-scrollbar-track,
+.pasya-lgu-shell .pasya-sidebar nav::-webkit-scrollbar-track {
+    background: #14532d;
+}
+
+.pasya-admin-shell .pasya-sidebar nav::-webkit-scrollbar-thumb,
+.pasya-lgu-shell .pasya-sidebar nav::-webkit-scrollbar-thumb {
+    background: #34d399;
+}
+
+.pasya-farmer-shell .pasya-sidebar nav::-webkit-scrollbar-track {
+    background: #166534;
+}
+
+.pasya-farmer-shell .pasya-sidebar nav::-webkit-scrollbar-thumb {
+    background: #4ade80;
+}
+
 /* Loading shimmer effect */
 .shimmer {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -1850,6 +1936,19 @@ body.pasya-workspace table tbody tr:hover {
     border: 1px solid var(--pasya-separator) !important;
     border-radius: var(--pasya-radius-lg) !important;
     box-shadow: none !important;
+}
+
+.pasya-surface {
+    border-radius: var(--pasya-radius-lg);
+    box-shadow: var(--pasya-shadow-1);
+}
+
+.pasya-scroll-row {
+    scrollbar-width: none;
+}
+
+.pasya-scroll-row::-webkit-scrollbar {
+    display: none;
 }
 
 .pasya-login-page {

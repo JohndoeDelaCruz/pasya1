@@ -1,25 +1,26 @@
 <x-admin-layout>
     <x-slot name="title">View Announcement</x-slot>
 
-    <div class="p-3 sm:p-6">
+    <div class="admin-feature-announcement-detail space-y-5 p-3 sm:p-6">
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
+        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Announcement Details</h1>
-                <p class="text-sm text-gray-600 mt-1">Viewing announcement information</p>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Communications</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Announcement details</h1>
+                <p class="mt-2 text-sm text-gray-600">Review exactly what the selected audience can see and when.</p>
             </div>
             <div class="flex items-center gap-2 self-start sm:self-auto">
-                <a href="{{ route('admin.announcements.edit', $announcement) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition">
+                <a href="{{ route('admin.announcements.edit', $announcement) }}" class="inline-flex min-h-11 items-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                     Edit
                 </a>
-                <a href="{{ route('admin.announcements.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition">
+                <a href="{{ route('admin.announcements.index') }}" class="inline-flex min-h-11 items-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                     </svg>
-                    Back to List
+                    Back to announcements
                 </a>
             </div>
         </div>
@@ -33,7 +34,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Main Content -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
                     <!-- Priority Banner -->
                     @php
                         $bannerClasses = [
@@ -50,9 +51,9 @@
                         <div class="flex items-start justify-between gap-4 mb-4">
                             <h2 class="text-xl font-bold text-gray-900 leading-snug">{{ $announcement->title }}</h2>
                             @if($announcement->is_active)
-                                <span class="flex-shrink-0 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                <span class="flex-shrink-0 px-2.5 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Enabled</span>
                             @else
-                                <span class="flex-shrink-0 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">Inactive</span>
+                                <span class="flex-shrink-0 px-2.5 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">Disabled</span>
                             @endif
                         </div>
 
@@ -63,7 +64,7 @@
 
             <!-- Sidebar Meta -->
             <div class="space-y-4">
-                <div class="bg-white rounded-xl shadow-lg p-5 space-y-4">
+                <div class="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
                     <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">Details</h3>
 
                     <div>
@@ -120,25 +121,25 @@
                 </div>
 
                 <!-- Actions -->
-                <div class="bg-white rounded-xl shadow-lg p-5 space-y-3">
+                <div class="space-y-3 rounded-xl border border-gray-200 bg-white p-5">
                     <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">Actions</h3>
 
                     <form action="{{ route('admin.announcements.toggle-status', $announcement) }}" method="POST">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-sm transition
+                        <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold transition
                             {{ $announcement->is_active ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200' }}">
                             @if($announcement->is_active)
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                Deactivate
+                                Disable
                             @else
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                Activate
+                                Enable
                             @endif
                         </button>
                     </form>
@@ -147,7 +148,7 @@
                           onsubmit="return confirm('Delete this announcement? This cannot be undone.')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-sm bg-red-100 text-red-700 hover:bg-red-200 transition">
+                        <button type="submit" class="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-100">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                             </svg>

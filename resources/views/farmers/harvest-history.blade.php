@@ -1,28 +1,39 @@
 <x-farmer-layout>
-    <x-slot name="title">Harvest History & Crop List</x-slot>
+    <x-slot name="title">My Crops</x-slot>
 
-    <div class="h-full overflow-auto bg-gray-100" x-data="harvestHistory()">
-        <div class="p-3 sm:p-6">
-            <!-- Harvest History Section -->
+    <div class="farmer-feature-crops h-full overflow-auto bg-gray-50" x-data="harvestHistory()">
+        <div class="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
+            <x-ui.page-header
+                eyebrow="Crop management"
+                title="My Crops"
+                description="Follow each crop from planting through LGU review and verified harvest reporting."
+                class="mb-6"
+            >
+                <x-slot:actions>
+                    <a href="{{ route('farmers.calendar') }}" class="inline-flex min-h-11 items-center justify-center rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800">
+                        Create crop plan
+                    </a>
+                </x-slot:actions>
+            </x-ui.page-header>
+
             <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Harvest History</h2>
                 
                 <!-- Harvest History Table -->
-                <div class="bg-green-100 rounded-2xl p-4 border-2 border-green-400">
+                <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
                     <div class="space-y-3 md:hidden">
                         <template x-if="harvestHistory.length === 0">
-                            <div class="rounded-xl bg-white/80 px-4 py-8 text-center text-gray-500 shadow-sm">
+                            <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-center text-gray-500">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                     </svg>
-                                    <p class="font-medium">No crop plans yet</p>
-                                    <p class="text-sm mt-1">Go to <a href="{{ route('farmers.calendar') }}" class="text-green-600 hover:underline">Calendar</a> to plan your first crop!</p>
+                                    <p class="font-medium text-gray-900">No crop plans yet</p>
+                                    <p class="mt-1 text-sm">Use the <a href="{{ route('farmers.calendar') }}" class="font-semibold text-green-700 hover:underline">Crop Planner</a> to create your first plan.</p>
                                 </div>
                             </div>
                         </template>
                         <template x-for="(record, index) in harvestHistory" :key="'mobile-' + (record.id || index)">
-                            <div class="rounded-xl border border-green-200 bg-white/80 p-4 shadow-sm"
+                            <article class="rounded-xl border border-gray-200 bg-white p-4"
                                  :class="{
                                      'border-red-300 bg-red-50': record.maturityStatus === 'overdue',
                                      'border-amber-300 bg-amber-50': record.maturityStatus === 'ready',
@@ -30,7 +41,7 @@
                                  }">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
-                                        <p class="text-xs font-semibold uppercase tracking-wide text-green-700">Record <span x-text="index + 1"></span></p>
+                                         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Crop <span x-text="index + 1"></span></p>
                                         <h3 class="mt-1 break-words text-base font-semibold text-gray-800" x-text="record.cropType"></h3>
                                     </div>
                                     <span class="text-right text-sm font-medium"
@@ -45,33 +56,33 @@
                                               'text-yellow-600': record.maturityStatus === 'almost_ready',
                                               'text-green-600': record.maturityStatus === 'growing' || record.maturityStatus === 'approaching'
                                           }"
-                                          x-text="record.status"></span>
+                                          x-text="visibleStatus(record)"></span>
                                 </div>
 
                                 <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                    <div class="rounded-lg bg-green-50 px-3 py-2">
-                                        <p class="text-xs uppercase tracking-wide text-gray-500">Date Planted</p>
+                                    <div class="rounded-lg bg-gray-50 px-3 py-2">
+                                        <p class="text-xs uppercase tracking-wide text-gray-500">Planted</p>
                                         <p class="mt-1 text-sm font-medium text-gray-800" x-text="record.datePlanted"></p>
                                     </div>
-                                    <div class="rounded-lg bg-green-50 px-3 py-2">
-                                        <p class="text-xs uppercase tracking-wide text-gray-500">Date Harvested</p>
+                                    <div class="rounded-lg bg-gray-50 px-3 py-2">
+                                        <p class="text-xs uppercase tracking-wide text-gray-500">Harvested</p>
                                         <p class="mt-1 text-sm font-medium text-gray-800" x-text="record.dateHarvested || '--'"></p>
                                     </div>
                                 </div>
 
                                 <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                     <div class="rounded-lg bg-white px-3 py-2">
-                                        <p class="text-xs uppercase tracking-wide text-gray-500">Predicted Harvest</p>
+                                        <p class="text-xs uppercase tracking-wide text-gray-500">Expected harvest</p>
                                         <p class="mt-1 text-sm font-medium text-gray-800" x-text="record.predictedProductionFormatted"></p>
                                     </div>
                                     <div class="rounded-lg bg-white px-3 py-2">
-                                        <p class="text-xs uppercase tracking-wide text-gray-500">Actual Harvest</p>
+                                        <p class="text-xs uppercase tracking-wide text-gray-500">Actual harvest</p>
                                         <p class="mt-1 text-sm font-medium text-gray-800" x-text="record.actualHarvestProductionFormatted"></p>
                                         <template x-if="record.harvestValidationStatus === 'pending'">
-                                            <p class="mt-1 text-xs font-semibold text-amber-700">Pending LGU validation</p>
+                                            <p class="mt-1 text-xs font-semibold text-amber-700">Pending review</p>
                                         </template>
                                         <template x-if="record.harvestValidationStatus === 'rejected'">
-                                            <p class="mt-1 text-xs font-semibold text-red-700">Needs revision</p>
+                                            <p class="mt-1 text-xs font-semibold text-red-700">Needs correction</p>
                                         </template>
                                     </div>
                                 </div>
@@ -104,7 +115,7 @@
                                     </template>
                                 </div>
 
-                                <div class="mt-4 border-t border-green-200 pt-4">
+                                <div class="mt-4 border-t border-gray-200 pt-4">
                                     <template x-if="record.canSubmitHarvestReport && (record.status === 'Growing' || record.status === 'Damaged' || record.status === 'Harvest Revision')">
                                         <div class="space-y-2">
                                             <div class="flex items-center space-x-2">
@@ -115,54 +126,54 @@
                                                 <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                             </div>
                                             <button @click="handleAction(record)"
-                                                    class="w-full rounded-lg px-2 py-1.5 text-xs font-medium transition bg-green-500 hover:bg-green-600 text-white"
+                                                    class="min-h-11 w-full rounded-xl bg-green-700 px-3 py-2 text-sm font-semibold text-white transition hover:bg-green-800"
                                                     :class="{
                                                         'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
                                                         'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
                                                         'bg-yellow-500 hover:bg-yellow-600': record.maturityStatus === 'almost_ready',
                                                         'bg-red-600 hover:bg-red-700': record.status === 'Harvest Revision'
                                                     }"
-                                                    x-text="record.status === 'Harvest Revision' ? 'Revise Harvest Report' : 'Finish Harvest'">
-                                                Finish Harvest
+                                                    x-text="record.status === 'Harvest Revision' ? 'Revise and resubmit' : 'Record actual harvest'">
+                                                Record actual harvest
                                             </button>
                                         </div>
                                     </template>
                                     <template x-if="record.status === 'Plan Pending LGU'">
                                         <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-                                            Crop plan is waiting for LGU approval before harvest reporting.
+                                            Crop plan is pending review. Harvest reporting opens after verification.
                                         </div>
                                     </template>
                                     <template x-if="record.status === 'Plan Revision'">
                                         <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800">
-                                            Revise the crop plan before submitting harvest details.
+                                            Returned for correction. Revise and resubmit the crop plan.
                                         </div>
                                     </template>
                                     <template x-if="record.status === 'Harvest Pending LGU'">
                                         <div class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
-                                            Harvest report is waiting for LGU validation.
+                                            Harvest report is pending review.
                                         </div>
                                     </template>
                                     <template x-if="record.status === 'Completed'">
                                         <button @click="handleAction(record)"
-                                                class="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-medium text-blue-600 transition hover:bg-blue-50 hover:text-blue-700">
-                                            Plant Again
+                                                 class="min-h-11 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                                            Plan this crop again
                                         </button>
                                     </template>
                                 </div>
-                            </div>
+                            </article>
                         </template>
                     </div>
 
                     <div class="pasya-scroll-table hidden overflow-x-auto md:block">
                         <table class="w-full min-w-[760px]">
                             <thead>
-                                <tr class="border-b border-green-300">
+                                <tr class="border-b border-gray-200 bg-gray-50">
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">ID</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Crop Type</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Date Planted</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Date Harvested</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Predicted Harvest</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Actual Harvest</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Crop</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Planted</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Harvested</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Expected harvest</th>
+                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Actual harvest</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
                                     <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Action</th>
                                 </tr>
@@ -175,31 +186,31 @@
                                                 <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                                 </svg>
-                                                <p class="font-medium">No crop plans yet</p>
-                                                <p class="text-sm mt-1">Go to <a href="{{ route('farmers.calendar') }}" class="text-green-600 hover:underline">Calendar</a> to plan your first crop!</p>
+                                                <p class="font-medium text-gray-900">No crop plans yet</p>
+                                                <p class="mt-1 text-sm">Use the <a href="{{ route('farmers.calendar') }}" class="font-semibold text-green-700 hover:underline">Crop Planner</a> to create your first plan.</p>
                                             </div>
                                         </td>
                                     </tr>
                                 </template>
                                 <template x-for="(record, index) in harvestHistory" :key="record.id || index">
-                                    <tr class="border-b border-green-200 hover:bg-green-50 transition"
+                                    <tr class="border-b border-gray-200 transition hover:bg-gray-50"
                                         :class="{
                                             'bg-red-50': record.maturityStatus === 'overdue',
                                             'bg-amber-50': record.maturityStatus === 'ready',
                                             'bg-yellow-50': record.maturityStatus === 'almost_ready'
                                         }">
-                                        <td class="px-4 py-3 text-sm text-green-700 font-medium" x-text="index + 1"></td>
-                                        <td class="px-4 py-3 text-sm text-green-700 font-medium" x-text="record.cropType"></td>
-                                        <td class="px-4 py-3 text-sm text-green-700" x-text="record.datePlanted"></td>
-                                        <td class="px-4 py-3 text-sm text-green-700" x-text="record.dateHarvested || '--'"></td>
-                                        <td class="px-4 py-3 text-sm text-green-700" x-text="record.predictedProductionFormatted"></td>
-                                        <td class="px-4 py-3 text-sm text-green-700">
+                                        <td class="px-4 py-3 text-sm font-medium text-gray-500" x-text="index + 1"></td>
+                                        <td class="px-4 py-3 text-sm font-semibold text-gray-900" x-text="record.cropType"></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700" x-text="record.datePlanted"></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700" x-text="record.dateHarvested || '--'"></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700" x-text="record.predictedProductionFormatted"></td>
+                                        <td class="px-4 py-3 text-sm text-gray-700">
                                             <span x-text="record.actualHarvestProductionFormatted"></span>
                                             <template x-if="record.harvestValidationStatus === 'pending'">
-                                                <p class="mt-1 text-xs font-semibold text-amber-700">Pending LGU</p>
+                                                <p class="mt-1 text-xs font-semibold text-amber-700">Pending review</p>
                                             </template>
                                             <template x-if="record.harvestValidationStatus === 'rejected'">
-                                                <p class="mt-1 text-xs font-semibold text-red-700">Needs revision</p>
+                                                <p class="mt-1 text-xs font-semibold text-red-700">Needs correction</p>
                                             </template>
                                         </td>
                                         <td class="px-4 py-3">
@@ -217,7 +228,7 @@
                                                           'text-yellow-600': record.maturityStatus === 'almost_ready',
                                                           'text-green-600': record.maturityStatus === 'growing' || record.maturityStatus === 'approaching'
                                                       }"
-                                                      x-text="record.status"></span>
+                                                      x-text="visibleStatus(record)"></span>
                                                 <!-- Days until harvest indicator for growing crops -->
                                                 <template x-if="record.status === 'Growing'">
                                                     <span class="text-xs mt-0.5"
@@ -258,41 +269,35 @@
                                                         <span class="text-xs text-gray-500" x-text="Math.round(record.progressPercentage) + '%'"></span>
                                                     </div>
                                                     <button @click="handleAction(record)"
-                                                            class="px-2 py-1 text-xs font-medium rounded-lg transition text-white bg-green-500 hover:bg-green-600"
+                                                            class="min-h-11 rounded-xl bg-green-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-green-800"
                                                             :class="{
                                                                 'bg-red-500 hover:bg-red-600': record.maturityStatus === 'overdue',
                                                                 'bg-amber-500 hover:bg-amber-600': record.maturityStatus === 'ready',
                                                                 'bg-yellow-500 hover:bg-yellow-600': record.maturityStatus === 'almost_ready',
                                                                 'bg-red-600 hover:bg-red-700': record.status === 'Harvest Revision'
                                                             }"
-                                                            x-text="record.status === 'Harvest Revision' ? 'Revise Harvest' : 'Finish Harvest'">
-                                                        Finish Harvest
+                                                            x-text="record.status === 'Harvest Revision' ? 'Revise and resubmit' : 'Record harvest'">
+                                                        Record harvest
                                                     </button>
                                                 </div>
                                             </template>
                                             <template x-if="record.status === 'Plan Pending LGU'">
-                                                <span class="text-xs font-semibold text-amber-700">Plan pending LGU</span>
+                                                <span class="text-xs font-semibold text-amber-700">Plan pending review</span>
                                             </template>
                                             <template x-if="record.status === 'Plan Revision'">
-                                                <span class="text-xs font-semibold text-red-700">Revise plan</span>
+                                                <span class="text-xs font-semibold text-red-700">Needs correction</span>
                                             </template>
                                             <template x-if="record.status === 'Harvest Pending LGU'">
-                                                <span class="text-xs font-semibold text-amber-700">Pending LGU</span>
+                                                <span class="text-xs font-semibold text-amber-700">Pending review</span>
                                             </template>
                                             <!-- Show Plant Again for completed harvests -->
                                             <template x-if="record.status === 'Completed'">
                                                 <button @click="handleAction(record)"
-                                                        class="text-xs font-medium text-blue-600 hover:text-blue-700 transition">
-                                                    Plant Again
+                                                        class="inline-flex min-h-11 items-center rounded-xl border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50">
+                                                    Plan again
                                                 </button>
                                             </template>
                                         </td>
-                                    </tr>
-                                </template>
-                                <!-- Empty rows for design consistency -->
-                                <template x-for="i in Math.max(0, 10 - harvestHistory.length)" :key="'empty-' + i">
-                                    <tr class="border-b border-green-200">
-                                        <td class="px-4 py-3 text-sm text-gray-400" colspan="8">&nbsp;</td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -393,6 +398,14 @@
                 
                 // Harvest History Data from database (farmer's crop plans)
                 harvestHistory: @json($cropPlans ?? []),
+
+                visibleStatus(record) {
+                    if (record.status === 'Harvest Pending LGU' || record.status === 'Plan Pending LGU') return 'Pending review';
+                    if (record.status === 'Harvest Revision' || record.status === 'Plan Revision') return 'Needs correction';
+                    if (record.status === 'Completed') return 'Verified';
+                    if (record.status === 'Growing' && ['ready', 'overdue'].includes(record.maturityStatus)) return 'Harvest due';
+                    return record.status;
+                },
                 
                 async handleAction(record) {
                     if (record.canSubmitHarvestReport && (record.status === 'Growing' || record.status === 'Damaged' || record.status === 'Harvest Revision')) {
@@ -402,9 +415,9 @@
                         this.actualHarvestNotes = record.latestHarvestReport?.harvest_notes || '';
                         this.showHarvestModal = true;
                     } else if (record.status === 'Harvest Pending LGU') {
-                        alert('Your harvest report is waiting for LGU validation.');
+                        alert('Your harvest report is pending LGU review.');
                     } else if (record.status === 'Plan Pending LGU' || record.status === 'Plan Revision') {
-                        alert('This crop plan must be LGU-approved before you can submit an actual harvest report.');
+                        alert('This crop plan must be verified by the LGU before you can submit an actual harvest report.');
                     } else {
                         // Plant Again action - redirect to calendar to create new plan
                         window.location.href = '{{ route("farmers.calendar") }}';

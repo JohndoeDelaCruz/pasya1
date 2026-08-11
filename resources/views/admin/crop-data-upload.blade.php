@@ -1,11 +1,21 @@
 <x-admin-layout>
     <x-slot name="title">Import Crop Data</x-slot>
 
-    <div class="p-6 max-w-6xl mx-auto">
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Import Crop Data</h1>
-            <p class="text-gray-600">Upload your CSV file to import crop data into the system</p>
+    <div class="admin-feature-import mx-auto max-w-6xl space-y-5 p-3 sm:p-6">
+        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <div class="max-w-2xl">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Production records</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Import data file</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">Add administrative production records from CSV or Excel. Duplicate rows are skipped and invalid rows are reported after processing.</p>
+            </div>
+            <a href="{{ route('admin.crop-data.index') }}" class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-50">Back to records</a>
         </div>
+
+        <ol class="admin-feature-import-steps grid gap-3 sm:grid-cols-3" aria-label="Import process">
+            <li class="rounded-xl border border-gray-200 bg-white p-4"><span class="text-xs font-semibold text-green-700">1. Prepare</span><p class="mt-1 text-sm font-semibold text-gray-900">Match required columns</p></li>
+            <li class="rounded-xl border border-gray-200 bg-white p-4"><span class="text-xs font-semibold text-green-700">2. Import</span><p class="mt-1 text-sm font-semibold text-gray-900">Keep this page open</p></li>
+            <li class="rounded-xl border border-gray-200 bg-white p-4"><span class="text-xs font-semibold text-green-700">3. Review</span><p class="mt-1 text-sm font-semibold text-gray-900">Check imported and skipped rows</p></li>
+        </ol>
 
         {{-- Success Message --}}
         @if(session('success'))
@@ -46,8 +56,9 @@
 
         <div class="grid md:grid-cols-3 gap-6">
             {{-- Upload Form --}}
-            <div class="md:col-span-2 bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Upload CSV File</h2>
+            <div class="rounded-xl border border-gray-200 bg-white p-4 sm:p-6 md:col-span-2">
+                <h2 class="mb-1 text-lg font-semibold text-gray-900">Choose a source file</h2>
+                <p class="mb-4 text-sm text-gray-500">The import adds new records; matching duplicates are left unchanged.</p>
                 
                 {{-- Loading Progress Bar --}}
                 <div id="loading-progress" class="hidden mb-6">
@@ -63,7 +74,7 @@
                             <span class="text-blue-600 font-bold text-lg" id="progress-percent">0%</span>
                         </div>
                         <div class="w-full bg-blue-200 rounded-full h-4 overflow-hidden">
-                            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                            <div id="progress-bar" class="h-4 rounded-full bg-blue-600 transition-all duration-500 ease-out" style="width: 0%"></div>
                         </div>
                         <p class="text-xs text-blue-600 mt-2" id="progress-message">Please wait while we process your file...</p>
                         <div class="mt-4 text-sm text-blue-700 space-y-1">
@@ -84,7 +95,7 @@
                         <div class="mt-4">
                             <label for="file-upload" class="cursor-pointer">
                                 <span class="mt-2 block text-sm font-medium text-gray-700">
-                                    Click to select CSV file or drag and drop
+                                    Select a data file or drag and drop
                                 </span>
                                 <input 
                                     id="file-upload" 
@@ -96,7 +107,7 @@
                                     onchange="document.getElementById('file-name').textContent = this.files[0]?.name || 'No file selected'"
                                 >
                             </label>
-                            <p class="text-xs text-gray-500 mt-2">CSV, XLSX, XLS up to 50MB</p>
+                            <p class="text-xs text-gray-500 mt-2">CSV, XLSX, or XLS up to 20 MB</p>
                             <p id="file-name" class="text-sm text-green-600 mt-2 font-medium"></p>
                         </div>
                     </div>
@@ -114,7 +125,7 @@
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
                             </svg>
-                            <span id="button-text">Upload & Import Data</span>
+                            <span id="button-text">Import production records</span>
                         </button>
                     </div>
                 </form>
@@ -124,26 +135,32 @@
                     <h3 class="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
                     <div class="flex gap-3">
                         <a href="{{ route('admin.crop-data.index') }}" 
-                           class="flex-1 text-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition text-sm font-medium">
-                            View All Data
+                           class="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            View records
                         </a>
                         <a href="{{ route('admin.crop-statistics') }}" 
-                           class="flex-1 text-center px-4 py-2 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition text-sm font-medium">
-                            View Statistics
+                           class="flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                            Dataset summary
                         </a>
                     </div>
                 </div>
             </div>
 
             {{-- Instructions --}}
-            <div class="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg shadow-md p-6">
+            <aside class="rounded-xl border border-gray-200 bg-gray-50 p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">📋 CSV Requirements</h2>
+                    <div>
+                        <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Before import</p>
+                        <h2 class="mt-1 text-lg font-semibold text-gray-900">File requirements</h2>
+                    </div>
                     <button 
                         type="button"
                         onclick="toggleRequirements()"
-                        class="bg-white hover:bg-yellow-50 text-yellow-600 hover:text-yellow-700 p-2 rounded-lg transition-all duration-200 shadow-sm border border-gray-200 hover:border-yellow-300"
-                        title="Toggle requirements"
+                        class="rounded-lg border border-gray-300 bg-white p-2 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                        title="Show or hide file requirements"
+                        aria-label="Show or hide file requirements"
+                        aria-controls="requirements-content"
+                        aria-expanded="false"
                     >
                         <svg id="lightbulb-icon" class="w-6 h-6 transition-all duration-200" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
@@ -162,13 +179,13 @@
                             <li>• <strong>CROP</strong></li>
                             <li>• <strong>Area planted(ha)</strong></li>
                             <li>• <strong>Area harvested(ha)</strong></li>
-                            <li>• <strong>Production(mt)</strong></li>
-                            <li>• <strong>Productivity(mt/ha)</strong></li>
+                            <li>• <strong>Production(MT)</strong></li>
+                            <li>• <strong>Productivity(MT/ha)</strong></li>
                         </ul>
                     </div>
 
                     <div class="pt-4 border-t border-gray-200">
-                        <h3 class="font-semibold text-gray-700 mb-2">⚡ Performance Tips:</h3>
+                        <h3 class="font-semibold text-gray-700 mb-2">Processing guidance</h3>
                         <ul class="space-y-1 text-gray-600">
                             <li>• Large files process in batches of 1000 rows</li>
                             <li>• Processing ~25,000 rows takes about 30-60 seconds</li>
@@ -177,14 +194,14 @@
                     </div>
 
                     <div class="pt-4 border-t border-gray-200">
-                        <h3 class="font-semibold text-gray-700 mb-2">✅ Supported Formats:</h3>
+                        <h3 class="font-semibold text-gray-700 mb-2">Supported formats</h3>
                         <ul class="space-y-1 text-gray-600">
                             <li>• CSV (.csv)</li>
                             <li>• Excel (.xlsx, .xls)</li>
                         </ul>
                     </div>
                 </div>
-            </div>
+            </aside>
         </div>
     </div>
 
@@ -198,15 +215,16 @@
         function toggleRequirements() {
             const content = document.getElementById('requirements-content');
             const lightbulb = document.getElementById('lightbulb-icon');
+            const toggle = document.querySelector('[aria-controls="requirements-content"]');
             
             if (content.style.display === 'none') {
                 content.style.display = 'block';
                 lightbulb.style.opacity = '1';
-                lightbulb.style.filter = 'drop-shadow(0 0 8px rgba(234, 179, 8, 0.6))';
+                toggle?.setAttribute('aria-expanded', 'true');
             } else {
                 content.style.display = 'none';
                 lightbulb.style.opacity = '0.5';
-                lightbulb.style.filter = 'none';
+                toggle?.setAttribute('aria-expanded', 'false');
             }
         }
 

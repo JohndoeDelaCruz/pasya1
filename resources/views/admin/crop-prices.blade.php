@@ -1,13 +1,27 @@
 <x-admin-layout>
     <x-slot name="title">Price Watch Management</x-slot>
 
-    <div class="space-y-6">
+    @php
+        $lastPriceUpdate = $cropTypes->pluck('cropPrice.updated_at')->filter()->max();
+    @endphp
+
+    <div class="admin-feature-price-watch space-y-5">
         {{-- Header --}}
-        <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-lg p-4 sm:p-6 text-white">
-            <div class="pasya-text-safe">
-                <h1 class="text-xl sm:text-3xl font-bold mb-1">Price Watch Management</h1>
-                <p class="text-green-100 text-sm">Set the daily market prices shown to farmers on the Price Watch page</p>
+        <div class="admin-feature-page-header flex flex-col gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <div class="pasya-text-safe max-w-2xl">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-500">Farmer-facing reference data</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Price Watch</h1>
+                <p class="mt-2 text-sm leading-6 text-gray-600">Maintain the reference prices shown to farmers as La Trinidad Trading Post prices.</p>
             </div>
+            <div class="rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-600">
+                <span class="font-medium text-gray-900">Last saved:</span>
+                {{ $lastPriceUpdate ? $lastPriceUpdate->timezone(config('app.timezone'))->format('M d, Y · g:i A') : 'No prices saved yet' }}
+            </div>
+        </div>
+
+        <div class="admin-feature-source-note rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <p class="text-sm font-semibold text-amber-950">Changes are visible to farmers</p>
+            <p class="mt-1 text-xs leading-5 text-amber-800">Confirm values and comparison periods against the Trading Post source before saving. Price alone should not be presented as advice to sell or store a crop.</p>
         </div>
 
         @if(session('success'))
@@ -41,23 +55,23 @@
             @csrf
             @method('PUT')
 
-            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="admin-feature-price-table overflow-hidden rounded-xl border border-gray-200 bg-white">
                 <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-800">Crop Prices (₱ per kg)</h2>
-                        <p class="text-sm text-gray-500 mt-0.5">Enter 0 to hide a crop from the Price Watch. Previous price is saved automatically for showing change direction.</p>
+                        <h2 class="text-lg font-semibold text-gray-900">Reference prices</h2>
+                        <p class="mt-0.5 text-sm text-gray-500">All values use price per kg. Entering 0 hides that crop; saving moves the current price into yesterday's comparison.</p>
                     </div>
                     <button type="submit"
-                            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg transition text-sm shadow">
+                            class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Save All Prices
+                        Save prices
                     </button>
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full">
+                    <table class="min-w-[1060px] w-full">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Crop</th>
@@ -94,7 +108,7 @@
                                                    name="prices[{{ $index }}][price_per_kg]"
                                                    value="{{ number_format($currentPrice, 2, '.', '') }}"
                                                    min="0" max="99999.99" step="0.01"
-                                                   class="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                                                   class="min-h-11 w-full rounded-lg border border-gray-300 py-2 pl-7 pr-2 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500"
                                                    placeholder="0.00">
                                         </div>
                                     </td>
@@ -106,7 +120,7 @@
                                                    name="prices[{{ $index }}][weekly_average]"
                                                    value="{{ $weeklyAvg !== null ? number_format($weeklyAvg, 2, '.', '') : '' }}"
                                                    min="0" max="99999.99" step="0.01"
-                                                   class="w-full pl-7 pr-2 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition bg-blue-50/30"
+                                                   class="min-h-11 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-7 pr-2 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500"
                                                    placeholder="optional">
                                         </div>
                                     </td>
@@ -118,7 +132,7 @@
                                                    name="prices[{{ $index }}][monthly_average]"
                                                    value="{{ $monthlyAvg !== null ? number_format($monthlyAvg, 2, '.', '') : '' }}"
                                                    min="0" max="99999.99" step="0.01"
-                                                   class="w-full pl-7 pr-2 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition bg-blue-50/30"
+                                                   class="min-h-11 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-7 pr-2 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500"
                                                    placeholder="optional">
                                         </div>
                                     </td>
@@ -130,7 +144,7 @@
                                                    name="prices[{{ $index }}][last_year_price]"
                                                    value="{{ $lastYear !== null ? number_format($lastYear, 2, '.', '') : '' }}"
                                                    min="0" max="99999.99" step="0.01"
-                                                   class="w-full pl-7 pr-2 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition bg-blue-50/30"
+                                                   class="min-h-11 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-7 pr-2 text-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500"
                                                    placeholder="optional">
                                         </div>
                                     </td>
@@ -154,11 +168,11 @@
 
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
                     <button type="submit"
-                            class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg transition text-sm shadow">
+                            class="inline-flex min-h-11 items-center gap-2 rounded-lg bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-800">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                         </svg>
-                        Save All Prices
+                        Save prices
                     </button>
                 </div>
             </div>

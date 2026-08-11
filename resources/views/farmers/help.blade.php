@@ -1,69 +1,71 @@
 <x-farmer-layout>
-    <x-slot name="title">Help and Support - FAQ</x-slot>
+    <x-slot name="title">Help</x-slot>
 
-    <div class="min-h-full bg-gray-50" x-data="helpPage()">
-        <div class="p-3 sm:p-6">
-            <!-- Header -->
-            <div class="mb-4 sm:mb-6">
-                <h1 class="text-lg sm:text-xl font-semibold text-gray-800">How can we help?</h1>
-            </div>
+    <div class="farmer-feature-help min-h-full bg-gray-50" x-data="helpPage()">
+        <div class="mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
+            <x-ui.page-header
+                eyebrow="Support"
+                title="Help"
+                description="Find answers about your PASYA account, Crop Planner, data, and common technical issues."
+                class="mb-6"
+            />
 
             <!-- Tab Navigation -->
-            <div class="mb-6 grid grid-cols-1 gap-2 sm:mb-8 sm:grid-cols-3 sm:gap-4">
+            <div class="mb-8 grid grid-cols-3 gap-1 rounded-2xl border border-gray-200 bg-white p-1.5 shadow-sm" role="tablist" aria-label="Help sections">
                 <button @click="activeTab = 'topics'" 
-                        :class="activeTab === 'topics' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="w-full px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
-                    Popular Topics
+                        :class="activeTab === 'topics' ? 'bg-gray-100 text-gray-950' : 'text-gray-600 hover:text-gray-900'"
+                        class="min-h-11 w-full rounded-xl px-2 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm" role="tab" :aria-selected="activeTab === 'topics'">
+                    Help topics
                 </button>
                 <button @click="activeTab = 'chat'" 
-                        :class="activeTab === 'chat' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="w-full px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
-                    Chat Support
+                        :class="activeTab === 'chat' ? 'bg-gray-100 text-gray-950' : 'text-gray-600 hover:text-gray-900'"
+                        class="min-h-11 w-full rounded-xl px-2 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm" role="tab" :aria-selected="activeTab === 'chat'">
+                    FAQ assistant
                 </button>
                 <button @click="activeTab = 'tickets'" 
-                        :class="activeTab === 'tickets' ? 'bg-green-500 text-white' : 'bg-white text-gray-700 border border-gray-300'"
-                        class="w-full px-3 py-2.5 sm:px-6 sm:py-3 rounded-full font-medium text-sm sm:text-base transition-colors">
-                    Tickets
+                        :class="activeTab === 'tickets' ? 'bg-gray-100 text-gray-950' : 'text-gray-600 hover:text-gray-900'"
+                        class="min-h-11 w-full rounded-xl px-2 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm" role="tab" :aria-selected="activeTab === 'tickets'">
+                    Contact
                 </button>
             </div>
 
             <!-- Popular Topics Tab -->
             <div x-show="activeTab === 'topics'" class="space-y-8">
                 <!-- Registration and Account Management -->
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-4">Registration and Account Management</h2>
-                    <div class="space-y-3 sm:ml-4">
+                <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h2 class="mb-4 text-lg font-semibold tracking-tight text-gray-950">Account and registration</h2>
+                    <div class="space-y-3">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('reg1')">
                             <p class="text-gray-700">• How do I register for an account?</p>
                             <div x-show="openAnswer === 'reg1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                To register, click the "Sign Up" button on the login page. Fill in your personal information including your name, contact details, municipality, and create a password. You'll need a valid RSBSA ID to complete registration.
+                                Select farmer registration from the sign-in page and complete the required profile and farm details. PASYA generates your Farmer ID after successful registration. Save that ID because you will use it to sign in; farmers do not create a password in this flow.
                             </div>
                         </div>
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('reg2')">
                             <p class="text-gray-700">• What information do I need to provide for registration?</p>
                             <div x-show="openAnswer === 'reg2'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                You'll need: Full name, RSBSA ID number, contact number, municipality in Benguet, and a valid email address (optional). Your RSBSA ID helps verify your farmer status.
+                                Complete every required field shown in the registration form, including your name, contact and location details, and farm information. The form does not ask you to create a password or supply a Farmer ID; PASYA generates the ID after registration.
                             </div>
                         </div>
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('reg3')">
-                            <p class="text-gray-700">• How do I recover my username/reset my password?</p>
+                            <p class="text-gray-700">• How do I recover my Farmer ID?</p>
                             <div x-show="openAnswer === 'reg3'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                Click "Forgot Password" on the login page. Enter your registered email or contact number, and we'll send you instructions to reset your password. If you can't access your account, contact the DA-Benguet office.
+                                Farmer sign-in uses the Farmer ID generated after registration, not a username and password. If you lose the ID or cannot access your account, contact your local agriculture office for identity verification and assistance.
                             </div>
                         </div>
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('reg4')">
                             <p class="text-gray-700">• Can I link multiple farm operations to one account?</p>
                             <div x-show="openAnswer === 'reg4'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                Currently, each account is linked to one RSBSA ID. If you manage multiple farm operations, you can track all of them under one account by adding different crop plans in your calendar.
+                                One farmer account can track multiple crop plans. Use Crop Planner to add each planting plan, then follow their progress in My Crops.
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Technical Support and Troubleshooting -->
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-4">Technical Support and Troubleshooting</h2>
-                    <div class="space-y-3 sm:ml-4">
+                <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h2 class="mb-4 text-lg font-semibold tracking-tight text-gray-950">Technical troubleshooting</h2>
+                    <div class="space-y-3">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('tech1')">
                             <p class="text-gray-700">• Who can I contact for technical support?</p>
                             <div x-show="openAnswer === 'tech1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
@@ -95,12 +97,12 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Data and Privacy -->
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-4">Data and Privacy</h2>
-                    <div class="space-y-3 sm:ml-4">
+                <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h2 class="mb-4 text-lg font-semibold tracking-tight text-gray-950">Data and privacy</h2>
+                    <div class="space-y-3">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('data1')">
                             <p class="text-gray-700">• How is my farm data used?</p>
                             <div x-show="openAnswer === 'data1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
@@ -132,7 +134,7 @@
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('data5')">
                             <p class="text-gray-700">• Can I export my data from the app?</p>
                             <div x-show="openAnswer === 'data5'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                Yes! You can view and print your harvest history from the Harvest History page. For a complete data export, please contact support.
+                                You can review crop plans and harvest records in My Crops. Complete data export is not available in the app; contact your local agriculture office for assistance.
                             </div>
                         </div>
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('data6')">
@@ -142,30 +144,30 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
 
                 <!-- Using PASYA Features -->
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800 mb-4">Using PASYA Features</h2>
-                    <div class="space-y-3 sm:ml-4">
+                <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h2 class="mb-4 text-lg font-semibold tracking-tight text-gray-950">Using PASYA</h2>
+                    <div class="space-y-3">
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('feat1')">
-                            <p class="text-gray-700">• How do I use the Calendar to plan my crops?</p>
+                            <p class="text-gray-700">• How do I use the Crop Planner?</p>
                             <div x-show="openAnswer === 'feat1'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                1. Go to the Calendar page<br>
-                                2. Click "Plan New Crop"<br>
+                                1. Go to Crop Planner<br>
+                                2. Select "Create crop plan"<br>
                                 3. Select your crop type, planting date, and area<br>
-                                4. The system will calculate your expected harvest date and predicted yield<br>
-                                5. Save your plan to track it in your Harvest History
+                                4. Review the expected harvest date and plan estimate<br>
+                                5. Submit the plan for review and follow it in My Crops
                             </div>
                         </div>
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('feat2')">
                             <p class="text-gray-700">• How does Price Watch work?</p>
                             <div x-show="openAnswer === 'feat2'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
-                                Price Watch shows current market prices from La Trinidad Trading Post. Prices are updated regularly. You can filter by crop type and see price trends to help decide the best time to sell your harvest.
+                                Price Watch shows reference prices reported by the La Trinidad Trading Post. You can filter by crop type and compare recent price history. Consider quality, volume, transport cost, and buyer terms before deciding when or where to sell.
                             </div>
                         </div>
                         <div class="cursor-pointer hover:text-green-600 transition" @click="toggleAnswer('feat3')">
-                            <p class="text-gray-700">• How do harvest predictions help with crop planning?</p>
+                            <p class="text-gray-700">• How do plan estimates help with crop planning?</p>
                             <div x-show="openAnswer === 'feat3'" x-collapse class="ml-4 mt-2 text-gray-600 text-sm bg-green-50 p-3 rounded-lg">
                                 PASYA uses your crop plan details and historical records to estimate production and timeline outcomes. Use these values to:<br>
                                 - <strong>Set realistic targets:</strong> Compare expected yield versus your planted area<br>
@@ -174,11 +176,11 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
 
             <!-- Chat Support Tab -->
-            <div x-show="activeTab === 'chat'" class="bg-gray-900 rounded-2xl overflow-hidden shadow-xl" style="height: min(500px, 70vh);">
+            <div x-show="activeTab === 'chat'" class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm" style="height: min(560px, 70vh);">
                 <div class="flex flex-col h-full">
                     <!-- Chat Messages Area -->
                     <div class="flex-1 p-4 overflow-y-auto" id="chatMessages">
@@ -191,7 +193,8 @@
                                 </svg>
                             </div>
                             <div class="bg-green-100 rounded-2xl rounded-tl-none p-4 max-w-md">
-                                <p class="text-gray-800 text-sm font-medium mb-3">Hello! I'm PASYA Assistant. How can I help you today?</p>
+                                <p class="text-gray-800 text-sm font-medium mb-3">I’m the automated PASYA FAQ assistant.</p>
+                                <p class="mb-3 text-xs leading-5 text-gray-600">I can show prepared answers to common questions. I’m not a live support agent.</p>
                                 <p class="text-gray-700 text-sm mb-2">Here are some common questions:</p>
                                 <div class="space-y-2">
                                     <button @click="sendQuickQuestion('How do I register for an account?')" 
@@ -202,9 +205,9 @@
                                             class="block w-full text-left text-sm text-gray-700 hover:text-green-600 transition">
                                         • What information do I need to provide for registration?
                                     </button>
-                                    <button @click="sendQuickQuestion('How do I recover my username/reset my password?')" 
+                                    <button @click="sendQuickQuestion('How do I recover my Farmer ID?')"
                                             class="block w-full text-left text-sm text-gray-700 hover:text-green-600 transition">
-                                        • How do I recover my username/reset my password?
+                                        • How do I recover my Farmer ID?
                                     </button>
                                     <button @click="sendQuickQuestion('Can I link multiple farm operations to one account?')" 
                                             class="block w-full text-left text-sm text-gray-700 hover:text-green-600 transition">
@@ -232,23 +235,23 @@
                         </template>
                     </div>
                     
-                    <!-- Online Status -->
+                    <!-- Assistant status -->
                     <div class="px-4 py-2">
                         <div class="flex items-center space-x-2">
-                            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                            <span class="text-green-400 text-xs">Online</span>
+                            <div class="h-2 w-2 rounded-full bg-gray-400"></div>
+                            <span class="text-xs text-gray-500">Automated FAQ answers · not live support</span>
                         </div>
                     </div>
                     
                     <!-- Chat Input -->
-                    <div class="p-4 border-t border-gray-700">
-                        <div class="flex items-center bg-gray-800 rounded-full px-4 py-2">
+                    <div class="border-t border-gray-200 p-4">
+                        <div class="flex min-h-11 items-center rounded-xl border border-gray-300 bg-white px-4 py-2">
                             <input type="text" 
                                    x-model="chatInput" 
                                    @keyup.enter="sendMessage"
                                    placeholder="Type your question here..."
-                                   class="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm">
-                            <button @click="sendMessage" class="ml-3 text-gray-400 hover:text-green-400 transition">
+                                   class="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:outline-none">
+                            <button @click="sendMessage" class="ml-3 inline-flex min-h-11 min-w-11 items-center justify-center text-gray-400 transition hover:text-green-700" aria-label="Ask FAQ assistant">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
                                 </svg>
@@ -259,27 +262,27 @@
             </div>
 
             <!-- Tickets Tab -->
-            <div x-show="activeTab === 'tickets'" class="bg-white rounded-xl p-6 shadow-sm">
+            <div x-show="activeTab === 'tickets'" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                 <div class="text-center py-8">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Need More Help?</h3>
-                    <p class="text-gray-600 mb-6">Submit a support ticket and we'll get back to you as soon as possible.</p>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Contact support</h3>
+                    <p class="mx-auto mb-6 max-w-lg text-gray-600">In-app ticket submission is not connected yet. Contact your local agriculture office for account or technical assistance.</p>
                     
                     <form @submit.prevent="submitTicket" class="max-w-md mx-auto text-left space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
                             <input type="text" x-model="ticket.subject" 
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                   placeholder="What do you need help with?">
+                                   placeholder="Ticket submission is unavailable" disabled>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                             <select x-model="ticket.category" 
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" disabled>
                                 <option value="">Select a category</option>
                                 <option value="account">Account Issues</option>
                                 <option value="technical">Technical Problem</option>
@@ -292,11 +295,11 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
                             <textarea x-model="ticket.message" rows="4"
                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                      placeholder="Describe your issue or question in detail..."></textarea>
+                                      placeholder="Ticket submission is unavailable" disabled></textarea>
                         </div>
                         <button type="submit" 
-                                class="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition">
-                            Submit Ticket
+                                class="w-full cursor-not-allowed rounded-xl bg-gray-200 py-3 font-semibold text-gray-500" disabled>
+                            Ticket submission unavailable
                         </button>
                     </form>
                 </div>
@@ -312,7 +315,7 @@
         </div>
 
         <!-- Rate Us Button -->
-        <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
+        <div class="hidden fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40" aria-hidden="true">
             <button @click="showRatingModal = true" class="flex flex-col items-center text-gray-600 hover:text-green-600 transition">
                 <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center shadow-lg mb-1">
                     <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -398,10 +401,10 @@
                 
                 // FAQ answers for the chatbot
                 faqAnswers: {
-                    'How do I register for an account?': 'To register, click the "Sign Up" button on the login page. Fill in your personal information including your name, contact details, municipality, and create a password. You\'ll need a valid RSBSA ID to complete registration.',
-                    'What information do I need to provide for registration?': 'You\'ll need: Full name, RSBSA ID number, contact number, municipality in Benguet, and a valid email address (optional). Your RSBSA ID helps verify your farmer status.',
-                    'How do I recover my username/reset my password?': 'Click "Forgot Password" on the login page. Enter your registered email or contact number, and we\'ll send you instructions to reset your password. If you can\'t access your account, contact the DA-Benguet office.',
-                    'Can I link multiple farm operations to one account?': 'Currently, each account is linked to one RSBSA ID. If you manage multiple farm operations, you can track all of them under one account by adding different crop plans in your calendar.'
+                    'How do I register for an account?': 'Select farmer registration from the sign-in page and complete the required profile and farm details. PASYA generates your Farmer ID after registration. Save that ID because farmers use it to sign in without a password.',
+                    'What information do I need to provide for registration?': 'Complete every required field shown in the registration form, including your name, contact and location details, and farm information. PASYA generates your Farmer ID after registration.',
+                    'How do I recover my Farmer ID?': 'Farmer sign-in uses your generated Farmer ID, not a username and password. If you lose the ID or cannot access your account, contact your local agriculture office for assistance.',
+                    'Can I link multiple farm operations to one account?': 'One farmer account can track multiple crop plans. Use Crop Planner to add each planting plan, then follow progress in My Crops.'
                 },
                 
                 toggleAnswer(id) {

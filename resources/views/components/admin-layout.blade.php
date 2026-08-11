@@ -46,7 +46,7 @@
                 <nav class="mobile-scroll-area flex-1 overflow-y-auto py-4 admin-sidebar-scrollbar" @click="if ($event.target.closest('a')) sidebarOpen = false">
                     <!-- Dashboard Section -->
                     <div class="px-4 mb-6">
-                        <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Dashboard</h4>
+                        <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Overview</h4>
                         <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.dashboard') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
@@ -56,11 +56,12 @@
                     </div>
 
                     <div class="px-4 mb-6">
+                        <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Intelligence</h4>
                         <a href="{{ route('admin.crop-trends') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.crop-trends') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="font-medium">Crop Trends & Patterns</span>
+                            <span class="font-medium">Crop Trends</span>
                         </a>
                     </div>
 
@@ -94,6 +95,7 @@
                     </div>
 
                     <div class="px-4 mb-6">
+                        <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Reports</h4>
                         <a href="{{ route('admin.planting-report') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.planting-report') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9.414A2 2 0 0013.414 8L9 3.586A2 2 0 007.586 3H4zm5 1.414L12.586 8H10a1 1 0 01-1-1V4.414zM6 10a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" clip-rule="evenodd"/>
@@ -104,42 +106,44 @@
 
                     <!-- Management Section -->
                     <div class="px-4 mb-6">
-                        <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Management</h4>
+                        <h4 class="text-xs font-semibold text-green-300 uppercase tracking-wider mb-2">Operations</h4>
                         <a href="{{ route('admin.farmers.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.farmers.*') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors mb-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
                             </svg>
-                            <span class="font-medium">Account Management</span>
+                            <span class="font-medium">Farmer Accounts</span>
                         </a>
                         <a href="{{ route('admin.lgu-validators.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.lgu-validators.*') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors mb-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 2l6 3v4c0 3.866-2.239 7.36-6 9-3.761-1.64-6-5.134-6-9V5l6-3zm2.707 6.293a1 1 0 00-1.414 0L9 10.586 8.207 9.793a1 1 0 00-1.414 1.414l1.5 1.5a1 1 0 001.414 0l3-3a1 1 0 000-1.414z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="font-medium">LGU Validators</span>
+                            <span class="font-medium">LGU Accounts</span>
                         </a>
+                        <a href="{{ route('admin.announcements.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.announcements.*') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors mb-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-medium">Announcements</span>
+                        </a>
+
+                        <h4 class="mb-2 mt-5 text-xs font-semibold uppercase tracking-wider text-green-300">Agricultural Data</h4>
                         <a href="{{ route('admin.crop-data.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.crop-data.*') || request()->routeIs('admin.crop-statistics') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors mb-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="font-medium">Crop Production Management</span>
+                            <span class="font-medium">Production Records</span>
                         </a>
                         <a href="{{ route('admin.crop-management.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.crop-management.*') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors mb-2">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-.5a1.5 1.5 0 000 3h.5a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 00-1-1h-.5a1.5 1.5 0 010-3H4a1 1 0 001-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z"/>
                             </svg>
-                            <span class="font-medium">Crop Management</span>
+                            <span class="font-medium">Crops & Municipalities</span>
                         </a>
                         <a href="{{ route('admin.crop-prices.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.crop-prices.*') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors mb-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                            <span class="font-medium">Price Watch</span>
-                        </a>
-                        <a href="{{ route('admin.announcements.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg {{ request()->routeIs('admin.announcements.*') ? 'bg-green-600' : '' }} text-white hover:bg-green-700 transition-colors">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="font-medium">Announcements</span>
+                            <span class="font-medium">Market Prices</span>
                         </a>
                     </div>
                 </nav>

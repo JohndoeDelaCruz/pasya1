@@ -1,39 +1,61 @@
 <x-farmer-layout>
     <x-slot name="title">Crop Planner</x-slot>
 
-    <div class="h-full overflow-auto bg-gray-100" x-data="calendarApp()">
-        <div class="p-3 sm:p-6">
-            <!-- Top Bar with Filter and Add Plan Button -->
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-                <!-- Event Type Filter - Left -->
-                <div class="flex items-center bg-green-200 rounded-full p-1 shadow-sm">
+    <div class="farmer-feature-planner h-full overflow-auto bg-gray-50" x-data="calendarApp()">
+        <div class="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
+            <header class="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                <div class="max-w-2xl">
+                    <p class="text-xs font-semibold uppercase tracking-[0.14em] text-green-700">Crop management</p>
+                    <h1 class="mt-2 text-2xl font-semibold tracking-tight text-gray-950 sm:text-3xl">Crop Planner</h1>
+                    <p class="mt-2 text-sm leading-6 text-gray-600">Schedule planting, review field activities, and submit reports from one timeline.</p>
+                </div>
+                <button @click="resetCropPlanForm(); showCropPlanModal = true"
+                    class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 sm:w-auto">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Create crop plan</span>
+                </button>
+            </header>
+            <section aria-labelledby="planner-filter-heading" class="mb-4 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
+                <div class="mb-3 flex items-start justify-between gap-4">
+                    <div>
+                        <h2 id="planner-filter-heading" class="text-sm font-semibold text-gray-900">Timeline filters</h2>
+                        <p class="mt-0.5 text-xs text-gray-500">Choose which activities appear on the calendar.</p>
+                    </div>
+                    <span class="hidden text-xs font-medium text-gray-500 sm:block" x-text="headerDisplay"></span>
+                </div>
+                <div class="pasya-scroll-row flex items-center gap-2 overflow-x-auto pb-1" role="group" aria-label="Filter calendar activities">
                     <button @click="setEventFilter('all')"
-                        :class="eventFilter === 'all' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
-                        class="p-2 rounded-full transition-all duration-200" title="All Events">
+                        :class="eventFilter === 'all' ? 'border-green-700 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition" aria-label="Show all activities" :aria-pressed="eventFilter === 'all'">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path
                                 d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                         </svg>
+                        <span>All</span>
                     </button>
                     <button @click="setEventFilter('plant')"
-                        :class="eventFilter === 'plant' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
-                        class="p-2 rounded-full transition-all duration-200" title="Planting Events">
+                        :class="eventFilter === 'plant' ? 'border-green-700 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition" aria-label="Show planting activities" :aria-pressed="eventFilter === 'plant'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 19V6M12 6c-2 0-4-1-5-3M12 6c2 0 4-1 5-3M7 14c-2 1-3 3-3 5M17 14c2 1 3 3 3 5" />
                         </svg>
+                        <span>Planting</span>
                     </button>
                     <button @click="setEventFilter('harvest')"
-                        :class="eventFilter === 'harvest' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
-                        class="p-2 rounded-full transition-all duration-200" title="Harvest Events">
+                        :class="eventFilter === 'harvest' ? 'border-green-700 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition" aria-label="Show harvest activities" :aria-pressed="eventFilter === 'harvest'">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
                         </svg>
+                        <span>Harvest</span>
                     </button>
                     <button @click="setEventFilter('claim')"
-                        :class="eventFilter === 'claim' ? 'bg-green-700 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
-                        class="p-2 rounded-full transition-all duration-200" title="Claim Events">
+                        :class="eventFilter === 'claim' ? 'border-green-700 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition" aria-label="Show claim activities" :aria-pressed="eventFilter === 'claim'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="3" />
                             <circle cx="12" cy="5" r="1.5" />
@@ -45,50 +67,45 @@
                             <circle cx="5" cy="12" r="1.5" />
                             <circle cx="7" cy="7" r="1.5" />
                         </svg>
+                        <span>Claims</span>
                     </button>
                     <button @click="setEventFilter('fertilizer')"
-                        :class="eventFilter === 'fertilizer' ? 'bg-teal-600 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
-                        class="p-2 rounded-full transition-all duration-200" title="Fertilizer Events">
+                        :class="eventFilter === 'fertilizer' ? 'border-green-700 bg-green-50 text-green-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition" aria-label="Show fertilizer activities" :aria-pressed="eventFilter === 'fertilizer'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 3v18M12 3c-1.5 2-4 3-6 3M12 3c1.5 2 4 3 6 3M8 11c-1.5 1-3 3-3 5M16 11c1.5 1 3 3 3 5M10 8l-2 4M14 8l2 4" />
                         </svg>
+                        <span>Fertilizer</span>
                     </button>
                     <button @click="setEventFilter('damage')"
-                        :class="eventFilter === 'damage' ? 'bg-orange-600 text-white shadow-md' : 'text-green-800 hover:bg-green-300'"
-                        class="p-2 rounded-full transition-all duration-200" title="Damage Reports">
+                        :class="eventFilter === 'damage' ? 'border-orange-600 bg-orange-50 text-orange-800' : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'"
+                        class="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-semibold transition" aria-label="Show damage reports" :aria-pressed="eventFilter === 'damage'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         </svg>
+                        <span>Damage</span>
                     </button>
                 </div>
 
-                <!-- Plant crop button -->
-                <button @click="resetCropPlanForm(); showCropPlanModal = true"
-                    class="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-2 sm:px-4 rounded-xl shadow-sm transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    <span>Create plan</span>
-                </button>
-            </div>
+            </section>
 
             <!-- Calendar Container -->
-            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <section aria-label="Crop activity calendar" class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
                 <!-- Month Header -->
                 <div class="flex flex-col gap-3 border-b border-gray-100 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
-                    <div class="flex w-full min-w-0 items-center justify-between space-x-2 sm:w-auto sm:justify-start sm:space-x-4">
+                    <div class="flex w-full min-w-0 items-center justify-between gap-2 sm:w-auto sm:justify-start">
                         <button @click="navigatePrev()"
-                            class="p-1 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-600">
+                            class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 hover:text-gray-800" aria-label="Previous period">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
-                        <h2 class="truncate text-base font-bold text-gray-800 sm:text-2xl" x-text="headerDisplay"></h2>
+                        <h2 class="min-w-0 flex-1 truncate px-2 text-center text-lg font-semibold tracking-tight text-gray-950 sm:min-w-[12rem] sm:text-left sm:text-xl" x-text="headerDisplay"></h2>
                         <button @click="navigateNext()"
-                            class="p-1 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-600">
+                            class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 hover:text-gray-800" aria-label="Next period">
                             <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5l7 7-7 7" />
@@ -96,9 +113,9 @@
                         </button>
                     </div>
 
-                    <!-- Right Toolbar - View Mode (hidden on mobile, force month view) -->
-                    <div class="hidden sm:flex items-center space-x-2">
-                        <button class="p-2 hover:bg-gray-100 rounded-lg transition text-gray-400" title="Filter">
+                    <!-- View mode; mobile stays on the month overview. -->
+                    <div class="hidden items-center rounded-xl border border-gray-200 bg-gray-50 p-1 sm:flex" role="group" aria-label="Calendar view">
+                        <button class="hidden" title="Filter" aria-hidden="true" tabindex="-1">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
@@ -106,32 +123,32 @@
                             </svg>
                         </button>
                         <button @click="viewMode = 'day'"
-                            :class="viewMode === 'day' ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:bg-gray-100'"
-                            class="p-2 rounded-lg transition" title="Day View">
+                            :class="viewMode === 'day' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-500 hover:text-gray-800'"
+                            class="inline-flex min-h-9 items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold transition" :aria-pressed="viewMode === 'day'">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
                                     clip-rule="evenodd" />
-                            </svg>
+                            </svg><span>Day</span>
                         </button>
                         <button @click="viewMode = 'week'"
-                            :class="viewMode === 'week' ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:bg-gray-100'"
-                            class="p-2 rounded-lg transition" title="Week View">
+                            :class="viewMode === 'week' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-500 hover:text-gray-800'"
+                            class="inline-flex min-h-9 items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold transition" :aria-pressed="viewMode === 'week'">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path
                                     d="M2 4.5A2.5 2.5 0 014.5 2h11a2.5 2.5 0 010 5h-11A2.5 2.5 0 012 4.5zM2.5 9.5A.5.5 0 013 9h14a.5.5 0 01.5.5v6a2.5 2.5 0 01-2.5 2.5H5A2.5 2.5 0 012.5 15.5v-6z" />
-                            </svg>
+                            </svg><span>Week</span>
                         </button>
                         <button @click="viewMode = 'month'"
-                            :class="viewMode === 'month' ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:bg-gray-100'"
-                            class="p-2 rounded-lg transition" title="Month View">
+                            :class="viewMode === 'month' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-500 hover:text-gray-800'"
+                            class="inline-flex min-h-9 items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold transition" :aria-pressed="viewMode === 'month'">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path
                                     d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                            </svg>
+                            </svg><span>Month</span>
                         </button>
                         <button @click="showSettingsModal = true"
-                            class="p-2 hover:bg-gray-100 rounded-lg transition text-gray-400" title="Settings">
+                            class="hidden" title="Settings" aria-hidden="true" tabindex="-1">
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
                                     d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z"
@@ -235,8 +252,8 @@
 
                 <!-- Month View (Calendar Grid) -->
                 <template x-if="viewMode === 'month'">
-                    <div class="p-2 sm:p-4 overflow-x-auto">
-                        <div class="min-w-[480px]">
+                    <div class="p-2 sm:p-4">
+                        <div>
                         <!-- Day Headers -->
                         <div class="grid grid-cols-7 mb-2">
                             <template x-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day">
@@ -298,7 +315,7 @@
                         </div>
                     </div>
                 </template>
-            </div>
+            </section>
         </div>
 
         <!-- Event Modal -->
@@ -409,14 +426,14 @@
                                             <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
                                                 <span class="rounded-full px-2.5 py-1 font-semibold"
                                                     :class="getValidationBadgeClass(selectedEvent.lgu_validation_status)"
-                                                    x-text="selectedEvent.lgu_validation_status_label"></span>
+                                                    x-text="getValidationStatusLabel(selectedEvent.lgu_validation_status, selectedEvent.lgu_validation_status_label)"></span>
                                                 <span class="text-gray-500" x-show="selectedEvent.lgu_validation_revision > 0"
                                                     x-text="'Revision ' + selectedEvent.lgu_validation_revision"></span>
                                             </div>
                                         </template>
                                         <template x-if="selectedEvent.lgu_validation_notes">
                                             <p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                                                <span class="font-semibold">LGU note:</span>
+                                                <span class="font-semibold">Correction required:</span>
                                                 <span x-text="selectedEvent.lgu_validation_notes"></span>
                                             </p>
                                         </template>
@@ -434,11 +451,11 @@
                                         </template>
                                         <template x-if="selectedEvent.latest_damage_report && selectedEvent.latest_damage_report.lgu_validation_status !== 'approved'">
                                             <div class="mt-3 space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                                                <p class="font-semibold">Pending Damage Validation</p>
-                                                <p><span class="font-medium">Status:</span> <span x-text="selectedEvent.latest_damage_report.lgu_validation_status_label"></span></p>
+                                                <p class="font-semibold">Damage report review</p>
+                                                <p><span class="font-medium">Status:</span> <span x-text="getValidationStatusLabel(selectedEvent.latest_damage_report.lgu_validation_status, selectedEvent.latest_damage_report.lgu_validation_status_label)"></span></p>
                                                 <p><span class="font-medium">Damaged Area:</span> <span x-text="formatHectares(selectedEvent.latest_damage_report.damaged_area_hectares)"></span></p>
                                                 <p x-show="selectedEvent.latest_damage_report.damage_cause_label"><span class="font-medium">Cause:</span> <span x-text="selectedEvent.latest_damage_report.damage_cause_label"></span></p>
-                                                <p x-show="selectedEvent.latest_damage_report.lgu_validation_notes"><span class="font-medium">LGU note:</span> <span x-text="selectedEvent.latest_damage_report.lgu_validation_notes"></span></p>
+                                                <p x-show="selectedEvent.latest_damage_report.lgu_validation_notes"><span class="font-medium">Correction required:</span> <span x-text="selectedEvent.latest_damage_report.lgu_validation_notes"></span></p>
                                             </div>
                                         </template>
                                         <template x-if="selectedEvent.actual_harvest_production_mt !== null">
@@ -450,28 +467,28 @@
                                         </template>
                                         <template x-if="selectedEvent.latest_harvest_report && selectedEvent.latest_harvest_report.lgu_validation_status !== 'approved'">
                                             <div class="mt-3 space-y-1 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                                                <p class="font-semibold">Actual Harvest Validation</p>
-                                                <p><span class="font-medium">Status:</span> <span x-text="selectedEvent.latest_harvest_report.lgu_validation_status_label"></span></p>
+                                                <p class="font-semibold">Harvest report review</p>
+                                                <p><span class="font-medium">Status:</span> <span x-text="getValidationStatusLabel(selectedEvent.latest_harvest_report.lgu_validation_status, selectedEvent.latest_harvest_report.lgu_validation_status_label)"></span></p>
                                                 <p><span class="font-medium">Quantity:</span> <span x-text="formatMetricTons(selectedEvent.latest_harvest_report.actual_production_mt)"></span></p>
                                                 <p x-show="selectedEvent.latest_harvest_report.actual_harvest_date_formatted"><span class="font-medium">Harvested:</span> <span x-text="selectedEvent.latest_harvest_report.actual_harvest_date_formatted"></span></p>
-                                                <p x-show="selectedEvent.latest_harvest_report.lgu_validation_notes"><span class="font-medium">LGU note:</span> <span x-text="selectedEvent.latest_harvest_report.lgu_validation_notes"></span></p>
+                                                <p x-show="selectedEvent.latest_harvest_report.lgu_validation_notes"><span class="font-medium">Correction required:</span> <span x-text="selectedEvent.latest_harvest_report.lgu_validation_notes"></span></p>
                                             </div>
                                         </template>
                                         <div class="mt-3 flex flex-wrap gap-2" x-show="selectedEvent.crop_plan_id && (selectedEvent.can_report_damage || selectedEvent.can_submit_harvest_report || selectedEvent.can_revise_crop_plan)">
                                             <button x-show="selectedEvent.type === 'harvest' && selectedEvent.can_submit_harvest_report"
                                                 @click="openHarvestReportModal(selectedEvent)"
                                                 class="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
-                                                <span x-text="selectedEvent.latest_harvest_report?.lgu_validation_status === 'rejected' ? 'Revise Actual Harvest' : 'Record Actual Harvest'"></span>
+                                                <span x-text="selectedEvent.latest_harvest_report?.lgu_validation_status === 'rejected' ? 'Revise and resubmit' : 'Record actual harvest'"></span>
                                             </button>
                                             <button x-show="selectedEvent.can_report_damage"
                                                 @click="openDamageReportModal(selectedEvent)"
                                                 class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
-                                                <span x-text="selectedEvent.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise Damage Report' : (selectedEvent.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit Pending Damage' : (selectedEvent.has_damage_report ? 'Update Damage Report' : 'Report Damage'))"></span>
+                                                <span x-text="selectedEvent.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise and resubmit' : (selectedEvent.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit pending report' : (selectedEvent.has_damage_report ? 'Update damage report' : 'Report damage'))"></span>
                                             </button>
                                             <button x-show="selectedEvent.can_revise_crop_plan"
                                                 @click="openCropPlanRevisionModal(selectedEvent)"
                                                 class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100">
-                                                <span x-text="selectedEvent.lgu_validation_status === 'rejected' ? 'Revise Crop Planting' : 'Edit Pending Planting'"></span>
+                                                <span x-text="selectedEvent.lgu_validation_status === 'rejected' ? 'Revise and resubmit' : 'Edit pending plan'"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -522,14 +539,14 @@
                                                 <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
                                                     <span class="rounded-full px-2.5 py-1 font-semibold"
                                                         :class="getValidationBadgeClass(event.lgu_validation_status)"
-                                                        x-text="event.lgu_validation_status_label"></span>
+                                                        x-text="getValidationStatusLabel(event.lgu_validation_status, event.lgu_validation_status_label)"></span>
                                                     <span class="text-gray-500" x-show="event.lgu_validation_notes">LGU note available</span>
                                                 </div>
                                             </template>
                                             <template x-if="event.latest_damage_report && event.latest_damage_report.lgu_validation_status !== 'approved'">
                                                 <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                                                    <p class="font-semibold">Pending Damage Validation</p>
-                                                    <p x-text="event.latest_damage_report.lgu_validation_status_label"></p>
+                                                    <p class="font-semibold">Damage report review</p>
+                                                    <p x-text="getValidationStatusLabel(event.latest_damage_report.lgu_validation_status, event.latest_damage_report.lgu_validation_status_label)"></p>
                                                     <p x-show="event.latest_damage_report.lgu_validation_notes" x-text="event.latest_damage_report.lgu_validation_notes"></p>
                                                 </div>
                                             </template>
@@ -542,8 +559,8 @@
                                             </template>
                                             <template x-if="event.latest_harvest_report && event.latest_harvest_report.lgu_validation_status !== 'approved'">
                                                 <div class="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                                                    <p class="font-semibold">Actual Harvest Validation</p>
-                                                    <p x-text="event.latest_harvest_report.lgu_validation_status_label"></p>
+                                                    <p class="font-semibold">Harvest report review</p>
+                                                    <p x-text="getValidationStatusLabel(event.latest_harvest_report.lgu_validation_status, event.latest_harvest_report.lgu_validation_status_label)"></p>
                                                     <p x-show="event.latest_harvest_report.lgu_validation_notes" x-text="event.latest_harvest_report.lgu_validation_notes"></p>
                                                 </div>
                                             </template>
@@ -551,17 +568,17 @@
                                                 <button x-show="event.type === 'harvest' && event.can_submit_harvest_report"
                                                     @click="openHarvestReportModal(event)"
                                                     class="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
-                                                    <span x-text="event.latest_harvest_report?.lgu_validation_status === 'rejected' ? 'Revise Actual Harvest' : 'Record Actual Harvest'"></span>
+                                                    <span x-text="event.latest_harvest_report?.lgu_validation_status === 'rejected' ? 'Revise and resubmit' : 'Record actual harvest'"></span>
                                                 </button>
                                                 <button x-show="event.can_report_damage"
                                                     @click="openDamageReportModal(event)"
                                                     class="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-semibold text-orange-700 transition hover:bg-orange-100">
-                                                    <span x-text="event.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise Damage Report' : (event.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit Pending Damage' : (event.has_damage_report ? 'Update Damage Report' : 'Report Damage'))"></span>
+                                                    <span x-text="event.latest_damage_report?.lgu_validation_status === 'rejected' ? 'Revise and resubmit' : (event.latest_damage_report?.lgu_validation_status === 'pending' ? 'Edit pending report' : (event.has_damage_report ? 'Update damage report' : 'Report damage'))"></span>
                                                 </button>
                                                 <button x-show="event.can_revise_crop_plan"
                                                     @click="openCropPlanRevisionModal(event)"
                                                     class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 transition hover:bg-amber-100">
-                                                    <span x-text="event.lgu_validation_status === 'rejected' ? 'Revise Crop Planting' : 'Edit Pending Planting'"></span>
+                                                    <span x-text="event.lgu_validation_status === 'rejected' ? 'Revise and resubmit' : 'Edit pending plan'"></span>
                                                 </button>
                                             </div>
                                         </div>
@@ -677,26 +694,26 @@
             <div class="flex min-h-full items-center justify-center p-4">
                 <div x-show="showCropPlanModal" x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                    class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden" @click.stop>
+                    class="relative w-full max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl" @click.stop>
 
                     <!-- Modal Header -->
-                    <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-green-500 to-green-600">
+                    <div class="border-b border-gray-200 bg-white px-6 py-5">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex min-w-0 items-start space-x-3">
-                                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2"
+                                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M12 19V6M12 6c-2 0-4-1-5-3M12 6c2 0 4-1 5-3M7 14c-2 1-3 3-3 5M17 14c2 1 3 3 3 5" />
                                     </svg>
                                 </div>
                                 <div class="min-w-0">
-                                    <h3 class="text-lg font-bold text-white" x-text="isEditingCropPlan ? 'Revise Crop Planting' : 'Plant Your Crop'">Plant Your Crop</h3>
-                                    <p class="text-sm text-green-100" x-text="isEditingCropPlan ? 'Update the record and resubmit it to LGU validation' : 'Enter details to see EDOH & predictions'"></p>
+                                    <h3 class="text-lg font-semibold tracking-tight text-gray-950" x-text="isEditingCropPlan ? 'Revise crop plan' : 'Create crop plan'">Create crop plan</h3>
+                                    <p class="mt-0.5 text-sm text-gray-500" x-text="isEditingCropPlan ? 'Correct the details below, then resubmit for LGU review.' : 'Add the field details to calculate an expected harvest.'"></p>
                                 </div>
                             </div>
                             <button @click="showCropPlanModal = false; resetCropPlanForm()"
-                                class="shrink-0 rounded-lg p-2 text-white transition hover:bg-white/20">
+                                class="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl text-gray-500 transition hover:bg-gray-100 hover:text-gray-800" aria-label="Close crop plan form">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M6 18L18 6M6 6l12 12" />
@@ -706,15 +723,15 @@
                     </div>
 
                     <!-- Modal Body - Form -->
-                    <div class="px-6 py-5">
-                        <form @submit.prevent="submitCropPlan" class="space-y-4">
+                    <div class="grid max-h-[calc(100vh-13rem)] gap-6 overflow-y-auto px-6 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.85fr)]">
+                        <form @submit.prevent="submitCropPlan" class="space-y-5">
                             <!-- Crop Type Selection -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Crop to Plant</label>
+                                <label class="mb-1.5 block text-sm font-semibold text-gray-800">Crop</label>
                                 <select x-model="cropPlanForm.crop_type_id" @change="onCropTypeChange"
-                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                    class="min-h-11 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition focus:border-green-600 focus:ring-2 focus:ring-green-600"
                                     required>
-                                    <option value="">Select a crop...</option>
+                                    <option value="">Select a crop</option>
                                     @php /** @var \App\Models\CropType $crop */ @endphp
                                     @foreach($cropTypes ?? [] as $crop)
                                         <option value="{{ $crop->id }}" data-days="{{ $crop->days_to_harvest_value }}"
@@ -727,32 +744,32 @@
 
                             <!-- Planting Date -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Planting Date</label>
+                                <label class="mb-1.5 block text-sm font-semibold text-gray-800">Planting date</label>
                                 <input type="date" x-model="cropPlanForm.planting_date" @change="calculatePreview"
-                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                    class="min-h-11 w-full rounded-xl border border-gray-300 px-4 py-2.5 text-gray-900 transition focus:border-green-600 focus:ring-2 focus:ring-green-600"
                                     required>
                             </div>
 
                             <!-- Area in square meters -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Area (sqm)</label>
+                                <label class="mb-1.5 block text-sm font-semibold text-gray-800">Planting area <span class="font-normal text-gray-500">(square meters)</span></label>
                                 <input type="number" x-model="cropPlanForm.area_sqm" @input="calculatePreview"
                                     step="1" min="1" max="10000000" placeholder="e.g., 25000"
-                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                                    class="min-h-11 w-full rounded-xl border border-gray-300 px-4 py-2.5 text-gray-900 transition focus:border-green-600 focus:ring-2 focus:ring-green-600"
                                     required>
-                                <p class="mt-1 text-xs text-gray-500">DA reports will receive this as <span x-text="formatHectares(cropPlanAreaHectaresForSubmission)"></span>.</p>
+                                <p class="mt-1.5 text-xs leading-5 text-gray-500">Equivalent to <span class="font-medium text-gray-700" x-text="formatHectares(cropPlanAreaHectaresForSubmission)"></span> in DA reporting.</p>
                             </div>
 
                             <!-- Farm Type -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Farm Type</label>
-                                <div class="flex gap-4">
-                                    <label class="flex items-center">
+                                <label class="mb-1.5 block text-sm font-semibold text-gray-800">Water source</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="flex min-h-11 cursor-pointer items-center rounded-xl border border-gray-200 px-3 py-2 hover:bg-gray-50">
                                         <input type="radio" x-model="cropPlanForm.farm_type" value="IRRIGATED" @change="calculatePreview"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Irrigated</span>
                                     </label>
-                                    <label class="flex items-center">
+                                    <label class="flex min-h-11 cursor-pointer items-center rounded-xl border border-gray-200 px-3 py-2 hover:bg-gray-50">
                                         <input type="radio" x-model="cropPlanForm.farm_type" value="RAINFED" @change="calculatePreview"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Rainfed</span>
@@ -761,15 +778,15 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Seed / Seedling Type</label>
-                                <div class="flex gap-4">
-                                    <label class="flex items-center" :class="{ 'opacity-50 cursor-not-allowed': !selectedCropSupportsSeed }">
+                                <label class="mb-1.5 block text-sm font-semibold text-gray-800">Planting material</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="flex min-h-11 cursor-pointer items-center rounded-xl border border-gray-200 px-3 py-2 hover:bg-gray-50" :class="{ 'opacity-50 cursor-not-allowed': !selectedCropSupportsSeed }">
                                         <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEED" @change="calculatePreview"
                                             :disabled="!selectedCropSupportsSeed"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500">
                                         <span class="ml-2 text-gray-700">Seed</span>
                                     </label>
-                                    <label class="flex items-center" :class="{ 'opacity-50 cursor-not-allowed': !selectedCropSupportsSeedling }">
+                                    <label class="flex min-h-11 cursor-pointer items-center rounded-xl border border-gray-200 px-3 py-2 hover:bg-gray-50" :class="{ 'opacity-50 cursor-not-allowed': !selectedCropSupportsSeedling }">
                                         <input type="radio" x-model="cropPlanForm.planting_material_type" value="SEEDLING" @change="calculatePreview"
                                             :disabled="!selectedCropSupportsSeedling"
                                             class="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500 disabled:cursor-not-allowed">
@@ -782,23 +799,23 @@
 
                             <!-- Notes (Optional) -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
-                                <textarea x-model="cropPlanForm.notes" rows="2" placeholder="Any additional notes..."
+                                <label class="mb-1.5 block text-sm font-semibold text-gray-800">Notes <span class="font-normal text-gray-500">(optional)</span></label>
+                                <textarea x-model="cropPlanForm.notes" rows="3" placeholder="Add field details that will help the LGU review this plan"
                                     class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition resize-none"></textarea>
                             </div>
                         </form>
 
                         <!-- Prediction Preview Card -->
                         <div x-show="showPredictionPreview" x-transition
-                            class="mt-5 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                            class="self-start rounded-2xl border border-gray-200 bg-gray-50 p-4 lg:sticky lg:top-0">
                             <div class="mb-3 flex items-center justify-between gap-3">
-                                <h4 class="text-sm font-semibold text-green-800 flex items-center gap-2">
+                                <h4 class="flex items-center gap-2 text-sm font-semibold text-gray-900">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Prediction Preview
+                                    Plan estimate
                                 </h4>
                                 <span x-show="predictionPreview.prediction_source_label"
                                     class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
@@ -809,22 +826,22 @@
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <!-- EDOH -->
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <p class="text-xs text-gray-500 mb-1">Expected Date of Harvest (EDOH)</p>
-                                    <p class="text-lg font-bold text-green-700"
+                                <div class="rounded-xl border border-gray-200 bg-white p-3">
+                                    <p class="mb-1 text-xs text-gray-500">Expected harvest date</p>
+                                    <p class="text-lg font-semibold tracking-tight text-gray-950"
                                         x-text="predictionPreview.edoh_formatted || '-'"></p>
                                 </div>
                                 <!-- Predicted Production -->
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <p class="text-xs text-gray-500 mb-1">Predicted Production</p>
-                                    <p class="text-lg font-bold text-emerald-600"
+                                <div class="rounded-xl border border-gray-200 bg-white p-3">
+                                    <p class="mb-1 text-xs text-gray-500">Expected harvest</p>
+                                    <p class="text-lg font-semibold tracking-tight text-gray-950"
                                         x-text="predictionPreview.predicted_production_formatted || '-'"></p>
                                     <p class="text-xs text-gray-400"
                                         x-text="formatSquareMeters(cropPlanForm.area_sqm) + ' / ' + formatHectares(predictionPreview.area_hectares || 0)"></p>
                                 </div>
                             </div>
-                            <div class="mt-3 bg-white rounded-lg p-3 shadow-sm">
-                                <p class="text-xs text-gray-500 mb-1">Days to Harvest</p>
+                            <div class="mt-3 rounded-xl border border-gray-200 bg-white p-3">
+                                <p class="mb-1 text-xs text-gray-500">Estimated growing period</p>
                                 <p class="text-base font-semibold text-gray-800"
                                     x-text="daysToHarvestDisplay()"></p>
                             </div>
@@ -848,25 +865,25 @@
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                 </path>
                             </svg>
-                            <span class="ml-3 text-gray-600">Calculating prediction...</span>
+                                <span class="ml-3 text-gray-600">Calculating plan estimate...</span>
                         </div>
                     </div>
 
                     <!-- Modal Footer -->
                     <div class="flex flex-col gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 sm:flex-row">
                         <button @click="showCropPlanModal = false; resetCropPlanForm()"
-                            class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 transition font-medium">
+                            class="min-h-11 flex-1 rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
                             Cancel
                         </button>
                         <button @click="submitCropPlan" :disabled="!canSubmitCropPlan || isSubmitting"
-                            class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            class="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-green-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50">
                             <svg x-show="isSubmitting" class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
                                     stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor"
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            <span x-text="isSubmitting ? 'Saving...' : (isEditingCropPlan ? 'Resubmit plan' : 'Submit plan')"></span>
+                            <span x-text="isSubmitting ? 'Saving...' : (isEditingCropPlan ? 'Revise and resubmit' : 'Submit for review')"></span>
                         </button>
                     </div>
                 </div>
@@ -1051,7 +1068,7 @@
 
                         <template x-if="harvestReportForm.latest_status === 'rejected'">
                             <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                                <p class="font-semibold">LGU requested a revision</p>
+                                <p class="font-semibold">Returned for correction</p>
                                 <p class="mt-1 text-xs" x-text="harvestReportForm.latest_notes || 'Update the harvest details and submit again.'"></p>
                             </div>
                         </template>
@@ -1505,6 +1522,13 @@
                         }
 
                         return 'bg-amber-100 text-amber-800';
+                    },
+
+                    getValidationStatusLabel(status, fallback = '') {
+                        if (status === 'approved') return 'Verified';
+                        if (status === 'rejected') return 'Needs correction';
+                        if (status === 'pending') return 'Pending review';
+                        return fallback || 'Not submitted';
                     },
 
                     showToast(message) {
