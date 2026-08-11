@@ -283,10 +283,10 @@ const setupPwaAutoHideHeaders = () => {
 			}
 
 			if (Math.abs(delta) >= scrollThreshold) {
-				if (delta > 0) {
-					showHeader();
-				} else if (delta < 0 && currentScrollTop > headerHeight) {
+				if (delta > 0 && currentScrollTop > headerHeight) {
 					hideHeader();
+				} else if (delta < 0) {
+					showHeader();
 				}
 
 				state.lastScrollTop = currentScrollTop;

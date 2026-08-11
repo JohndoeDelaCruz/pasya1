@@ -37,27 +37,10 @@
     <link rel="apple-touch-startup-image" href="/images/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
     {{-- iPhone 6+/7+/8+ (414×736) --}}
     <link rel="apple-touch-startup-image" href="/images/splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
-    {{-- iPhone X / XS / 11 Pro (375×812) --}}
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
-    {{-- iPhone XR / 11 (414×896) --}}
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
-    {{-- iPhone XS Max / 11 Pro Max (414×896 @3x) --}}
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
-    {{-- iPhone 12 / 13 / 14 (390×844) --}}
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)">
-    {{-- iPhone 12 Pro Max / 13 Pro Max / 14 Plus (428×926) --}}
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)">
-    {{-- iPhone 14 Pro (393×852) --}}
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)">
-    {{-- iPhone 14 Pro Max (430×932) --}}
-    <link rel="apple-touch-startup-image" href="/images/splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)">
-    {{-- iPhone 15 / 15 Pro (393×852) same as 14 Pro --}}
-    {{-- iPhone 15 Plus / 15 Pro Max (430×932) same as 14 Pro Max --}}
-    
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="pasya-app-body bg-gray-50 overflow-x-hidden"
+<body class="pasya-app-body pasya-workspace pasya-farmer-shell bg-gray-50 overflow-x-hidden"
       x-data="pwaInstallPrompt()"
       x-init="initPwaPrompt()"
       :class="{ 'pasya-sidebar-open': sidebarOpen }"
@@ -66,7 +49,7 @@
     @include('partials.page-loader')
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
-        <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
+        <aside class="pasya-sidebar mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 max-w-[85vw] bg-gradient-to-b from-green-700 to-green-800 text-white lg:static lg:inset-0"
                :class="{ 'is-open': sidebarOpen }">
             <div class="flex flex-col h-full">
                 <!-- Farmer Profile Section -->
@@ -109,7 +92,7 @@
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="font-medium">Calendar</span>
+                            <span class="font-medium">Crop Planner</span>
                         </a>
                     </div>
 
@@ -132,7 +115,7 @@
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
                             </svg>
-                            <span class="font-medium">Harvest History & Crop List</span>
+                            <span class="font-medium">My Crops & Harvests</span>
                         </a>
                     </div>
                 </nav>
@@ -165,24 +148,27 @@
         <!-- Main Content Area -->
         <div class="mobile-content-shell flex-1 min-w-0 flex flex-col overflow-hidden">
             <!-- Top Navigation Bar -->
-            <header class="mobile-app-header mobile-safe-top-panel mobile-header-visible bg-white shadow-sm z-10" data-mobile-app-header>
+            <header class="pasya-topbar mobile-app-header mobile-safe-top-panel mobile-header-visible bg-white shadow-sm z-10" data-mobile-app-header>
                 <div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
                     <!-- Logo -->
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
-                        <button @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-2 sm:mr-4">
+                        <button type="button" aria-label="Open navigation" @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="pasya-icon-button lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-1 sm:mr-2">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
                         </button>
                         <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="h-10 w-10 sm:h-11 sm:w-11 object-contain flex-shrink-0">
-                        <img src="{{ asset('images/titleh.png') }}" alt="PASYA Title" class="h-10 sm:h-14 w-auto min-w-0 max-w-[110px] sm:max-w-[190px] object-contain">
+                        <div class="min-w-0">
+                            <p class="pasya-wordmark">PASYA</p>
+                            <p class="pasya-role-label">Farmer workspace</p>
+                        </div>
                     </div>
 
                     <!-- Right side icons -->
                     <div class="flex shrink-0 items-center space-x-2 sm:space-x-4">
                         <!-- Notifications Dropdown -->
                         <div class="relative" x-data="notificationsDropdown()" x-init="fetchNotifications()">
-                            <button @click="$dispatch('pasya-show-mobile-header'); notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="text-gray-600 hover:text-gray-900 relative">
+                            <button type="button" aria-label="Open notifications" @click="$dispatch('pasya-show-mobile-header'); notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="pasya-icon-button text-gray-600 hover:text-gray-900 relative">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>
@@ -253,7 +239,7 @@
 
                         <!-- User Menu Dropdown -->
                         <div class="relative" x-data="{ userOpen: false }">
-                            <button @click="$dispatch('pasya-show-mobile-header'); userOpen = !userOpen" class="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+                            <button type="button" aria-label="Open account menu" @click="$dispatch('pasya-show-mobile-header'); userOpen = !userOpen" class="pasya-icon-button flex items-center space-x-2 text-gray-600 hover:text-gray-900">
                                 <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                                     <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
@@ -298,12 +284,6 @@
                                         </svg>
                                         <span>My Profile</span>
                                     </a>
-                                    <a href="{{ route('farmers.calendar') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                        <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
-                                        </svg>
-                                        <span>Settings</span>
-                                    </a>
                                     <button type="button"
                                             x-show="!isAppInstalled"
                                             @click="openInstallPrompt(); userOpen = false"
@@ -332,7 +312,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area mobile-content-area mobile-header-scroll-area mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto" data-hide-header-scroll>
+            <main id="main-content" class="pasya-main mobile-scroll-area mobile-content-area mobile-header-scroll-area mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto" data-hide-header-scroll>
                 @include('partials.page-loader', ['contentOnly' => true])
 
                 {{ $slot }}

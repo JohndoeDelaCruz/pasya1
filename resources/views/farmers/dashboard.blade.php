@@ -1,33 +1,25 @@
 <x-farmer-layout>
     <x-slot name="title">Home</x-slot>
 
-    <div class="min-h-full bg-gradient-to-br from-gray-50 to-green-50/30" x-data="{ ...dashboardModals(), ...dashboardWeather() }" x-init="initWeather()">
+    <div class="farmer-home min-h-full" x-data="{ ...dashboardModals(), ...dashboardWeather() }" x-init="initWeather()">
         <!-- Welcome Header -->
-        <div class="relative overflow-hidden bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 text-white px-4 py-6 sm:px-8 sm:py-8 mb-4 sm:mb-6 rounded-2xl mx-3 sm:mx-6 mt-3 sm:mt-6 shadow-lg">
-            <!-- Background Pattern -->
-            <div class="absolute inset-0 opacity-10">
-                <svg class="absolute right-0 top-0 h-full" viewBox="0 0 200 200" fill="currentColor">
-                    <circle cx="150" cy="50" r="80" />
-                    <circle cx="180" cy="150" r="60" />
-                </svg>
-            </div>
-            
-            <div class="relative flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+        <div class="farmer-welcome-card relative overflow-hidden px-5 py-5 sm:px-7 sm:py-7 mb-4 sm:mb-6 rounded-2xl mx-3 sm:mx-6 mt-3 sm:mt-6">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div class="pasya-text-safe">
                     @php
                         $hour = now()->hour;
                         $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
                     @endphp
-                    <p class="text-green-100 text-sm font-medium mb-1">{{ $greeting }} 👋</p>
-                    <h1 class="break-words text-xl sm:text-3xl font-bold mb-2">{{ Auth::guard('farmer')->user()->full_name }}</h1>
+                    <p class="farmer-eyebrow text-sm font-semibold mb-1">{{ $greeting }}</p>
+                    <h1 class="break-words text-2xl sm:text-3xl font-semibold tracking-tight mb-3">{{ Auth::guard('farmer')->user()->full_name }}</h1>
                     <div class="flex flex-wrap items-center gap-2 sm:gap-4">
-                        <div class="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
+                        <div class="farmer-location-chip flex items-center space-x-2 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5">
                             <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                             </svg>
                             <span class="text-xs sm:text-sm font-medium">{{ Auth::guard('farmer')->user()->municipality ?? 'Buguias' }}, Benguet</span>
                         </div>
-                        <div class="hidden sm:flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
+                        <div class="farmer-location-chip hidden sm:flex items-center space-x-2 rounded-full px-3 py-1.5">
                             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
                             </svg>
@@ -36,10 +28,10 @@
                     </div>
                 </div>
                 <div class="text-left md:text-right">
-                    <div class="inline-flex flex-col items-start md:items-end bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 sm:px-4 sm:py-3">
-                        <span class="text-green-100 text-xs uppercase tracking-wider">Today</span>
-                        <span class="text-lg sm:text-2xl font-bold">{{ now()->format('l') }}</span>
-                        <span class="text-green-100 text-xs sm:text-sm">{{ now()->format('F d, Y') }}</span>
+                    <div class="farmer-date-card inline-flex flex-col items-start md:items-end rounded-xl px-3 py-2 sm:px-4 sm:py-3">
+                        <span class="farmer-date-label text-xs font-semibold uppercase tracking-wider">Today</span>
+                        <span class="text-lg sm:text-2xl font-semibold text-gray-900">{{ now()->format('l') }}</span>
+                        <span class="text-xs sm:text-sm">{{ now()->format('F d, Y') }}</span>
                     </div>
                 </div>
             </div>
@@ -48,7 +40,7 @@
         <div class="px-3 sm:px-6 pb-4 sm:pb-6">
             <!-- Quick Stats Row -->
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition">
+                <div class="farmer-summary-card bg-white rounded-xl p-4 border border-gray-100">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
                             <svg class="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
@@ -61,7 +53,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition">
+                <div class="farmer-summary-card bg-white rounded-xl p-4 border border-gray-100">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                             <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -75,7 +67,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100 hover:shadow-md transition">
+                <div class="farmer-summary-card bg-white rounded-xl p-4 border border-gray-100">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                             <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
@@ -92,7 +84,7 @@
 
             <!-- Weather Widget -->
             <div class="mb-6">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="farmer-weather-card bg-white rounded-2xl border border-gray-100 overflow-hidden">
                     <!-- Weather Loading State -->
                     <div x-show="weatherLoading && !weatherData" class="px-6 py-8 text-center">
                         <div class="w-8 h-8 border-3 border-sky-300 border-t-sky-600 rounded-full animate-spin mx-auto mb-2"></div>
@@ -206,25 +198,16 @@
                 <!-- Calendar Section (Left - Takes 2 columns) -->
                 <div class="lg:col-span-2 space-y-6">
                     <!-- Calendar Card -->
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="farmer-weather-card bg-white rounded-2xl border border-gray-200 overflow-hidden">
                         <div class="px-6 py-5 border-b border-gray-100">
                             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <h2 class="text-xl font-bold text-gray-800 sm:text-2xl">{{ now()->format('F Y') }}</h2>
-                                <div class="flex self-start space-x-1 sm:self-auto">
-                                    <button class="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-gray-700">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                                        </svg>
-                                    </button>
-                                    <button class="px-3 py-1 bg-green-500 hover:bg-green-600 rounded-lg transition text-white text-sm font-medium">
-                                        Today
-                                    </button>
-                                    <button class="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-gray-700">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                                        </svg>
-                                    </button>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-green-700">Upcoming schedule</p>
+                                    <h2 class="mt-1 text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl">{{ now()->format('F Y') }}</h2>
                                 </div>
+                                <a href="{{ route('farmers.calendar') }}" class="inline-flex min-h-10 items-center justify-center self-start rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 sm:self-auto">
+                                    Open crop planner
+                                </a>
                             </div>
                         </div>
                         
@@ -412,13 +395,13 @@
 
                 <!-- News and Announcements (Right Sidebar) -->
                 <div class="lg:col-span-1">
-                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-6">
-                        <div class="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4">
+                    <div class="farmer-weather-card bg-white rounded-2xl border border-gray-100 overflow-hidden sticky top-6">
+                        <div class="farmer-announcements-header border-b border-gray-100 px-5 py-4">
                             <div class="flex items-center space-x-2">
-                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-green-700" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.276A1 1 0 0018 15V3z" clip-rule="evenodd"/>
                                 </svg>
-                                <h3 class="text-lg font-bold text-white">News & Announcements</h3>
+                                <h3 class="text-lg font-semibold text-gray-900">News & Announcements</h3>
                             </div>
                         </div>
                         

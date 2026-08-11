@@ -1,5 +1,5 @@
 <x-farmer-layout>
-    <x-slot name="title">Calendar</x-slot>
+    <x-slot name="title">Crop Planner</x-slot>
 
     <div class="h-full overflow-auto bg-gray-100" x-data="calendarApp()">
         <div class="p-3 sm:p-6">
@@ -70,7 +70,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                     </svg>
-                    <span class="hidden sm:inline">Plant Crop</span>
+                    <span>Create plan</span>
                 </button>
             </div>
 
@@ -866,7 +866,7 @@
                                 <path class="opacity-75" fill="currentColor"
                                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                             </svg>
-                            <span x-text="isSubmitting ? 'Saving...' : (isEditingCropPlan ? 'Resubmit Planting' : 'Plant Crop')"></span>
+                            <span x-text="isSubmitting ? 'Saving...' : (isEditingCropPlan ? 'Resubmit plan' : 'Submit plan')"></span>
                         </button>
                     </div>
                 </div>

@@ -15,7 +15,7 @@
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="pasya-app-body bg-gray-50 overflow-x-hidden"
+<body class="pasya-app-body pasya-workspace pasya-lgu-shell bg-gray-50 overflow-x-hidden"
       x-data="{ sidebarOpen: false }"
       :class="{ 'pasya-sidebar-open': sidebarOpen }"
       style="--pasya-sidebar-safe-bg: #14532d; --pasya-sidebar-overlay-safe-bg: rgba(0, 0, 0, 0.5);"
@@ -29,7 +29,7 @@
     @include('partials.page-loader')
 
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
-        <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-900 to-emerald-900 text-white lg:static lg:inset-0"
+        <aside class="pasya-sidebar mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-900 to-emerald-900 text-white lg:static lg:inset-0"
                :class="{ 'is-open': sidebarOpen }">
             <div class="flex h-full flex-col">
                 <div class="border-b border-green-700 p-5">
@@ -77,24 +77,24 @@
         </aside>
 
         <div class="mobile-content-shell flex min-w-0 flex-1 flex-col overflow-hidden">
-            <header class="mobile-app-header mobile-safe-top-panel mobile-header-visible z-10 bg-white shadow-sm" data-mobile-app-header data-hide-header-scroll>
+            <header class="pasya-topbar mobile-app-header mobile-safe-top-panel mobile-header-visible z-10 bg-white shadow-sm" data-mobile-app-header>
                 <div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
-                        <button @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="shrink-0 text-gray-600 hover:text-gray-900 lg:hidden">
+                        <button type="button" aria-label="Open navigation" @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="pasya-icon-button shrink-0 text-gray-600 hover:text-gray-900 lg:hidden">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
                         </button>
                         <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="h-10 w-10 shrink-0 object-contain">
                         <div class="min-w-0">
-                            <p class="truncate text-sm font-bold text-gray-900">LGU Validator</p>
-                            <p class="truncate text-xs text-gray-500">{{ $validatorScope }}</p>
+                            <p class="pasya-wordmark">PASYA</p>
+                            <p class="pasya-role-label truncate">LGU validation · {{ $validatorScope }}</p>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main class="mobile-main-content mobile-scroll-area flex-1 overflow-y-auto" data-hide-header-scroll>
+            <main id="main-content" class="pasya-main mobile-main-content mobile-scroll-area flex-1 overflow-y-auto" data-hide-header-scroll>
                 {{ $slot }}
             </main>
         </div>

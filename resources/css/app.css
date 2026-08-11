@@ -1534,3 +1534,360 @@ textarea {
 .page-transition {
     animation: fadeInUp 0.5s ease-out;
 }
+
+/* PASYA product design system
+ * Quiet, legible surfaces for field work and public-sector decision making.
+ * The system intentionally uses the native UI font stack and reserves green
+ * for identity, primary actions, and positive status.
+ */
+:root {
+    --pasya-canvas: #f5f5f7;
+    --pasya-surface: #ffffff;
+    --pasya-surface-raised: rgba(255, 255, 255, 0.88);
+    --pasya-surface-muted: #f0f1f2;
+    --pasya-ink: #1d1d1f;
+    --pasya-ink-secondary: #6e6e73;
+    --pasya-ink-tertiary: #8e8e93;
+    --pasya-separator: rgba(29, 29, 31, 0.12);
+    --pasya-separator-strong: rgba(29, 29, 31, 0.2);
+    --pasya-accent: #18794e;
+    --pasya-accent-hover: #11633e;
+    --pasya-accent-soft: #e8f3ed;
+    --pasya-sidebar: #171a18;
+    --pasya-sidebar-muted: #a9b0ab;
+    --pasya-radius-sm: 0.625rem;
+    --pasya-radius-md: 0.875rem;
+    --pasya-radius-lg: 1.125rem;
+    --pasya-radius-xl: 1.5rem;
+    --pasya-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.03), 0 8px 24px rgba(0, 0, 0, 0.035);
+    --pasya-shadow-2: 0 16px 50px rgba(0, 0, 0, 0.11);
+}
+
+html {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+}
+
+body.pasya-workspace {
+    color: var(--pasya-ink);
+    background: var(--pasya-canvas) !important;
+    letter-spacing: -0.006em;
+}
+
+body.pasya-workspace :where(button, a, input, select, textarea, summary) {
+    transition-duration: 160ms;
+    transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+body.pasya-workspace :where(button, a, input, select, textarea, summary):focus-visible {
+    outline: 3px solid rgba(24, 121, 78, 0.28);
+    outline-offset: 2px;
+}
+
+.pasya-sidebar {
+    width: 17rem;
+    background: var(--pasya-sidebar) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: none !important;
+}
+
+.pasya-sidebar > div > div:first-child {
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    padding: 1.25rem;
+}
+
+.pasya-sidebar nav {
+    padding: 1rem 0.75rem !important;
+}
+
+.pasya-sidebar nav > div {
+    margin-bottom: 0.75rem !important;
+    padding-inline: 0 !important;
+}
+
+.pasya-sidebar nav h4,
+.pasya-sidebar nav > p {
+    margin: 1rem 0.75rem 0.4rem !important;
+    color: var(--pasya-sidebar-muted) !important;
+    font-size: 0.6875rem !important;
+    font-weight: 650 !important;
+    letter-spacing: 0.09em !important;
+}
+
+.pasya-sidebar nav a {
+    min-height: 2.65rem;
+    gap: 0.7rem !important;
+    margin-bottom: 0.125rem !important;
+    padding: 0.65rem 0.75rem !important;
+    border: 1px solid transparent;
+    border-radius: var(--pasya-radius-sm) !important;
+    color: #d9ddda !important;
+    font-size: 0.875rem;
+    line-height: 1.25;
+}
+
+.pasya-sidebar nav a svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    color: #a9b0ab;
+}
+
+.pasya-sidebar nav a:hover {
+    background: rgba(255, 255, 255, 0.075) !important;
+    color: #ffffff !important;
+}
+
+.pasya-sidebar nav a:is(.bg-green-600, .bg-green-700) {
+    color: #ffffff !important;
+    background: rgba(58, 180, 118, 0.17) !important;
+    border-color: rgba(98, 213, 151, 0.22);
+    box-shadow: inset 3px 0 0 #56c68c;
+}
+
+.pasya-sidebar nav a:is(.bg-green-600, .bg-green-700) svg {
+    color: #6fd49d;
+}
+
+.pasya-sidebar {
+    scrollbar-color: rgba(255, 255, 255, 0.24) transparent;
+}
+
+.pasya-sidebar::-webkit-scrollbar,
+.pasya-sidebar nav::-webkit-scrollbar {
+    width: 5px;
+}
+
+.pasya-sidebar::-webkit-scrollbar-track,
+.pasya-sidebar nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.pasya-sidebar::-webkit-scrollbar-thumb,
+.pasya-sidebar nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 999px;
+}
+
+.pasya-sidebar > div > div:last-child {
+    border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+.pasya-topbar {
+    background: rgba(255, 255, 255, 0.82) !important;
+    border-bottom: 1px solid var(--pasya-separator);
+    box-shadow: none !important;
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+}
+
+.pasya-topbar > div {
+    min-height: 4.25rem;
+    padding-block: 0.65rem !important;
+}
+
+.pasya-topbar img[alt*="Logo"] {
+    width: 2.35rem !important;
+    height: 2.35rem !important;
+}
+
+.pasya-wordmark {
+    color: var(--pasya-ink);
+    font-size: 0.9375rem;
+    font-weight: 720;
+    letter-spacing: 0.055em;
+    line-height: 1.15;
+}
+
+.pasya-role-label {
+    margin-top: 0.125rem;
+    color: var(--pasya-ink-secondary);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    line-height: 1.15;
+}
+
+.pasya-icon-button {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+}
+
+.pasya-icon-button:hover {
+    background: rgba(29, 29, 31, 0.06);
+}
+
+.pasya-main,
+.mobile-content-area,
+.mobile-content-shell,
+.mobile-app-shell {
+    background: var(--pasya-canvas) !important;
+}
+
+body.pasya-workspace .admin-section-card,
+body.pasya-workspace .admin-chart-card {
+    border: 1px solid var(--pasya-separator);
+    border-radius: var(--pasya-radius-lg);
+    background: var(--pasya-surface);
+    box-shadow: var(--pasya-shadow-1);
+}
+
+body.pasya-workspace .admin-chart-card {
+    background: #fbfbfc;
+}
+
+body.pasya-workspace .admin-section-title {
+    color: var(--pasya-ink);
+    font-weight: 650;
+    letter-spacing: -0.015em;
+}
+
+body.pasya-workspace .admin-section-subtitle,
+body.pasya-workspace .admin-kpi-meta {
+    color: var(--pasya-ink-secondary);
+}
+
+body.pasya-workspace .admin-kpi-icon {
+    color: var(--pasya-accent);
+    background: var(--pasya-accent-soft);
+    border-radius: var(--pasya-radius-sm);
+}
+
+body.pasya-workspace :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    min-height: 2.65rem;
+    border: 1px solid var(--pasya-separator-strong);
+    border-radius: var(--pasya-radius-sm) !important;
+    color: var(--pasya-ink);
+    background-color: rgba(255, 255, 255, 0.96);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.015);
+}
+
+body.pasya-workspace :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+    border-color: var(--pasya-accent) !important;
+    box-shadow: 0 0 0 3px rgba(24, 121, 78, 0.12) !important;
+}
+
+body.pasya-workspace :where(button, a).bg-green-500,
+body.pasya-workspace :where(button, a).bg-green-600,
+body.pasya-workspace :where(button, a).bg-green-700 {
+    background-color: var(--pasya-accent) !important;
+}
+
+body.pasya-workspace :where(button, a).hover\:bg-green-600:hover,
+body.pasya-workspace :where(button, a).hover\:bg-green-700:hover,
+body.pasya-workspace :where(button, a).hover\:bg-green-800:hover {
+    background-color: var(--pasya-accent-hover) !important;
+}
+
+body.pasya-workspace :where(button, a).shadow-lg,
+body.pasya-workspace :where(button, a).shadow-xl,
+body.pasya-workspace :where(button, a).shadow-2xl {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+body.pasya-workspace table thead {
+    color: var(--pasya-ink-secondary);
+    background: #f7f7f8 !important;
+}
+
+body.pasya-workspace table tbody tr {
+    border-color: var(--pasya-separator) !important;
+}
+
+body.pasya-workspace table tbody tr:hover {
+    background: #fafafa;
+}
+
+.farmer-home {
+    background: var(--pasya-canvas) !important;
+}
+
+.farmer-welcome-card {
+    color: var(--pasya-ink) !important;
+    background: var(--pasya-surface) !important;
+    border: 1px solid var(--pasya-separator);
+    border-radius: var(--pasya-radius-xl) !important;
+    box-shadow: var(--pasya-shadow-1) !important;
+}
+
+.farmer-welcome-card .farmer-eyebrow,
+.farmer-welcome-card .farmer-date-label {
+    color: var(--pasya-accent) !important;
+}
+
+.farmer-welcome-card .farmer-location-chip,
+.farmer-welcome-card .farmer-date-card {
+    color: var(--pasya-ink-secondary) !important;
+    background: var(--pasya-surface-muted) !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+.farmer-summary-card {
+    border: 1px solid var(--pasya-separator) !important;
+    border-radius: var(--pasya-radius-lg) !important;
+    box-shadow: none !important;
+}
+
+.farmer-summary-card:hover {
+    border-color: var(--pasya-separator-strong) !important;
+    box-shadow: var(--pasya-shadow-1) !important;
+    transform: none !important;
+}
+
+.farmer-weather-card {
+    border: 1px solid var(--pasya-separator) !important;
+    border-radius: var(--pasya-radius-xl) !important;
+    box-shadow: var(--pasya-shadow-1) !important;
+}
+
+.lgu-overview-card {
+    border: 1px solid var(--pasya-separator) !important;
+    border-radius: var(--pasya-radius-lg) !important;
+    box-shadow: none !important;
+}
+
+.pasya-login-page {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+}
+
+.pasya-login-card {
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.1);
+}
+
+.pasya-login-aside {
+    isolation: isolate;
+}
+
+@media (min-width: 1024px) {
+    .pasya-main {
+        scrollbar-gutter: stable;
+    }
+
+    .pasya-admin-shell .pasya-main > #pasya-page-loader + *,
+    .pasya-lgu-shell .pasya-main > * {
+        max-width: 100rem;
+        margin-inline: auto;
+    }
+}
+
+@media (max-width: 1023px) {
+    .pasya-sidebar {
+        width: min(17rem, 86vw);
+        box-shadow: var(--pasya-shadow-2) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.pasya-workspace *,
+    body.pasya-workspace *::before,
+    body.pasya-workspace *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

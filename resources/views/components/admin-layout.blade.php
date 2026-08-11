@@ -14,45 +14,8 @@
     <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png">
     <title>{{ $title }} - PASYA</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        /* Smooth scroll behavior */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Smooth transitions for all interactive elements */
-        * {
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Button hover effects */
-        button, a {
-            transition: all 0.3s ease;
-        }
-        
-        /* Card hover effects */
-        .hover-lift:hover {
-            transform: translateY(-2px);
-            transition: transform 0.3s ease;
-        }
-        
-        /* Fade-in animation for page content */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.4s ease-out;
-        }
-        
-        /* Smooth sidebar toggle */
-        .sidebar-transition {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-    </style>
 </head>
-<body class="pasya-app-body bg-gray-50 overflow-x-hidden"
+<body class="pasya-app-body pasya-workspace pasya-admin-shell bg-gray-50 overflow-x-hidden"
       x-data="{ sidebarOpen: false }"
       :class="{ 'pasya-sidebar-open': sidebarOpen }"
       style="--pasya-sidebar-safe-bg: #166534; --pasya-sidebar-overlay-safe-bg: rgba(0, 0, 0, 0.5);"
@@ -60,7 +23,7 @@
     @include('partials.page-loader')
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <!-- Sidebar -->
-        <aside class="mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"
+        <aside class="pasya-sidebar mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-800 to-green-900 text-white lg:static lg:inset-0"
                :class="{ 'is-open': sidebarOpen }">
             <div class="flex flex-col h-full">
                 <!-- Admin Profile Section -->
@@ -199,24 +162,27 @@
         <!-- Main Content Area -->
         <div class="mobile-content-shell flex-1 min-w-0 flex flex-col overflow-hidden">
             <!-- Top Navigation Bar -->
-            <header class="mobile-app-header mobile-safe-top-panel mobile-header-visible bg-white shadow-sm z-10" data-mobile-app-header>
+            <header class="pasya-topbar mobile-app-header mobile-safe-top-panel mobile-header-visible bg-white shadow-sm z-10" data-mobile-app-header>
                 <div class="flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
                     <!-- Logo -->
                     <div class="flex min-w-0 items-center gap-2 sm:gap-3">
-                        <button @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-2 sm:mr-4">
+                        <button type="button" aria-label="Open navigation" @click="$dispatch('pasya-show-mobile-header'); sidebarOpen = !sidebarOpen" class="pasya-icon-button lg:hidden shrink-0 text-gray-600 hover:text-gray-900 mr-1 sm:mr-2">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
                         </button>
                         <img src="{{ asset('images/PASYA.png') }}" alt="PASYA Logo" class="h-10 w-10 sm:h-11 sm:w-11 object-contain flex-shrink-0">
-                        <img src="{{ asset('images/titleh.png') }}" alt="PASYA Title" class="h-10 sm:h-14 w-auto min-w-0 max-w-[105px] sm:max-w-[190px] object-contain">
+                        <div class="min-w-0">
+                            <p class="pasya-wordmark">PASYA</p>
+                            <p class="pasya-role-label">DA administration</p>
+                        </div>
                     </div>
 
                     <!-- Right side icons -->
                     <div class="flex shrink-0 items-center space-x-2 sm:space-x-4">
                         <!-- Notifications -->
                         <div class="relative" x-data="adminNotificationsDropdown()" x-init="fetchNotifications()">
-                            <button @click="$dispatch('pasya-show-mobile-header'); notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="text-gray-600 hover:text-gray-900 relative">
+                            <button type="button" aria-label="Open notifications" @click="$dispatch('pasya-show-mobile-header'); notifOpen = !notifOpen; if(notifOpen) fetchNotifications()" class="pasya-icon-button text-gray-600 hover:text-gray-900 relative">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                                 </svg>
@@ -292,7 +258,7 @@
 
                         <!-- User Account Menu -->
                         <div x-data="{ open: false }" class="relative">
-                            <button @click="$dispatch('pasya-show-mobile-header'); open = !open" class="flex items-center text-gray-600 hover:text-gray-900 focus:outline-none">
+                            <button type="button" aria-label="Open account menu" @click="$dispatch('pasya-show-mobile-header'); open = !open" class="pasya-icon-button flex items-center text-gray-600 hover:text-gray-900 focus:outline-none">
                                 <div class="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
                                     <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
@@ -361,7 +327,7 @@
             </header>
 
             <!-- Main Content -->
-            <main class="mobile-scroll-area mobile-content-area mobile-header-scroll-area mobile-content-pad mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto p-3 sm:p-6" data-hide-header-scroll>
+            <main id="main-content" class="pasya-main mobile-scroll-area mobile-content-area mobile-header-scroll-area mobile-content-pad mobile-safe-bottom relative flex-1 min-w-0 overflow-y-auto p-3 sm:p-6" data-hide-header-scroll>
                 @include('partials.page-loader', ['contentOnly' => true])
 
                 {{ $slot }}

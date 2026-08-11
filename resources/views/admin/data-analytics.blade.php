@@ -37,9 +37,10 @@
             </div>
 
             <div class="pasya-button-row admin-mobile-button-row">
-                <a href="{{ route('admin.export-summary') }}" class="inline-flex flex-1 items-center justify-center px-4 py-2.5 bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-sm sm:flex-none">
-                    Export Summary
-                </a>
+                <button type="button" disabled title="Report export is not available yet"
+                        class="inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 font-semibold text-gray-400 sm:flex-none">
+                    Export coming soon
+                </button>
                 <button onclick="document.getElementById('predictions-section')?.scrollIntoView({ behavior: 'smooth' })"
                         class="inline-flex flex-1 items-center justify-center px-4 py-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-semibold rounded-lg transition-colors border border-emerald-200 sm:flex-none">
                     View AI Predictions
@@ -57,7 +58,7 @@
                     Filters
                 </div>
 
-                <select name="crop" id="cropFilter" onchange="document.getElementById('filterForm').submit()"
+                <select name="crop" id="cropFilter" aria-label="Filter by crop" onchange="document.getElementById('filterForm').submit()"
                     class="min-w-[130px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All crops</option>
                     @foreach(App\Models\Crop::select('crop')->distinct()->orderBy('crop')->pluck('crop') as $crop)
@@ -65,7 +66,7 @@
                     @endforeach
                 </select>
 
-                <select name="municipality" id="municipalityFilter" onchange="document.getElementById('filterForm').submit()"
+                <select name="municipality" id="municipalityFilter" aria-label="Filter by municipality" onchange="document.getElementById('filterForm').submit()"
                     class="min-w-[150px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All municipalities</option>
                     @foreach($allMunicipalities as $municipality)
@@ -73,7 +74,7 @@
                     @endforeach
                 </select>
 
-                <select name="month" id="monthFilter" onchange="document.getElementById('filterForm').submit()"
+                <select name="month" id="monthFilter" aria-label="Filter by month" onchange="document.getElementById('filterForm').submit()"
                     class="min-w-[120px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All months</option>
                     @foreach(['JAN'=>'Jan','FEB'=>'Feb','MAR'=>'Mar','APR'=>'Apr','MAY'=>'May','JUN'=>'Jun','JUL'=>'Jul','AUG'=>'Aug','SEP'=>'Sep','OCT'=>'Oct','NOV'=>'Nov','DEC'=>'Dec'] as $code => $name)
@@ -81,7 +82,7 @@
                     @endforeach
                 </select>
 
-                <select name="year" id="yearFilter" onchange="document.getElementById('filterForm').submit()"
+                <select name="year" id="yearFilter" aria-label="Filter by year" onchange="document.getElementById('filterForm').submit()"
                     class="min-w-[100px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All years</option>
                     @foreach($allYears as $year)
@@ -89,7 +90,7 @@
                     @endforeach
                 </select>
 
-                <select name="farm_type" id="farmTypeFilter" onchange="document.getElementById('filterForm').submit()"
+                <select name="farm_type" id="farmTypeFilter" aria-label="Filter by farm type" onchange="document.getElementById('filterForm').submit()"
                     class="min-w-[110px] flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-gray-700 sm:flex-none">
                     <option value="">All types</option>
                     <option value="RAINFED" {{ $filterFarmType == 'RAINFED' ? 'selected' : '' }}>Rainfed</option>

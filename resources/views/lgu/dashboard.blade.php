@@ -48,43 +48,27 @@
                 </div>
             </div>
 
-            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Plan Pending</p>
-                    <p class="mt-2 text-2xl font-bold text-amber-700">{{ number_format($stats['crop_plans_pending']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Plan Approved</p>
-                    <p class="mt-2 text-2xl font-bold text-green-700">{{ number_format($stats['crop_plans_approved']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Plan Revision</p>
-                    <p class="mt-2 text-2xl font-bold text-red-700">{{ number_format($stats['crop_plans_rejected']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Damage Pending</p>
-                    <p class="mt-2 text-2xl font-bold text-amber-700">{{ number_format($stats['damage_pending']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Damage Approved</p>
-                    <p class="mt-2 text-2xl font-bold text-green-700">{{ number_format($stats['damage_approved']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Damage Revision</p>
-                    <p class="mt-2 text-2xl font-bold text-red-700">{{ number_format($stats['damage_rejected']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Harvest Pending</p>
-                    <p class="mt-2 text-2xl font-bold text-amber-700">{{ number_format($stats['harvest_pending']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Harvest Approved</p>
-                    <p class="mt-2 text-2xl font-bold text-green-700">{{ number_format($stats['harvest_approved']) }}</p>
-                </div>
-                <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Harvest Revision</p>
-                    <p class="mt-2 text-2xl font-bold text-red-700">{{ number_format($stats['harvest_rejected']) }}</p>
-                </div>
+            <div class="grid gap-3 lg:grid-cols-3">
+                @foreach([
+                    ['label' => 'Crop plans', 'pending' => $stats['crop_plans_pending'], 'approved' => $stats['crop_plans_approved'], 'revision' => $stats['crop_plans_rejected']],
+                    ['label' => 'Damage reports', 'pending' => $stats['damage_pending'], 'approved' => $stats['damage_approved'], 'revision' => $stats['damage_rejected']],
+                    ['label' => 'Harvest reports', 'pending' => $stats['harvest_pending'], 'approved' => $stats['harvest_approved'], 'revision' => $stats['harvest_rejected']],
+                ] as $overview)
+                    <div class="lgu-overview-card bg-white p-5">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-gray-700">{{ $overview['label'] }}</p>
+                                <p class="mt-3 text-3xl font-semibold tracking-tight text-gray-900">{{ number_format($overview['pending']) }}</p>
+                                <p class="mt-1 text-xs font-medium text-amber-700">Waiting for review</p>
+                            </div>
+                            <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">Pending</span>
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-3 border-t border-gray-100 pt-4 text-sm">
+                            <p class="text-gray-500"><span class="font-semibold text-green-700">{{ number_format($overview['approved']) }}</span> approved</p>
+                            <p class="text-right text-gray-500"><span class="font-semibold text-red-700">{{ number_format($overview['revision']) }}</span> revisions</p>
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
             <form method="GET" action="{{ route('lgu.dashboard') }}" class="sticky top-0 z-[5] rounded-xl border border-gray-100 bg-white/95 p-4 shadow-sm backdrop-blur" data-lgu-filter-form data-no-page-loader>
