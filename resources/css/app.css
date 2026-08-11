@@ -1976,6 +1976,7 @@ body.pasya-workspace table tbody tr:hover {
 
 .pasya-login-page {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
+    padding: 0;
 }
 
 .pasya-login-card {
