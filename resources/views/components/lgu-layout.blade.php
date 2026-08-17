@@ -26,8 +26,6 @@
             ? ucwords(strtolower($validatorUser->barangay)) . ', ' . ucwords(strtolower($validatorUser->municipality ?? ''))
             : ucwords(strtolower($validatorUser?->municipality ?? 'Assigned LGU'));
     @endphp
-    @include('partials.page-loader')
-
     <div class="mobile-app-shell flex overflow-hidden" data-mobile-app-shell>
         <aside class="pasya-sidebar mobile-sidebar-panel mobile-safe-sidebar fixed inset-y-0 left-0 z-[9999] w-64 bg-gradient-to-b from-green-900 to-emerald-900 text-white lg:static lg:inset-0"
                :class="{ 'is-open': sidebarOpen }">
@@ -95,6 +93,8 @@
             </header>
 
             <main id="main-content" class="pasya-main mobile-main-content mobile-scroll-area mobile-content-area mobile-header-scroll-area mobile-safe-bottom relative min-w-0 flex-1 overflow-y-auto" data-hide-header-scroll>
+                @include('partials.page-loader', ['contentOnly' => true])
+
                 {{ $slot }}
             </main>
         </div>

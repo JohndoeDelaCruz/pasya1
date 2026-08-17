@@ -54,10 +54,9 @@ body {
 }
 
 #pasya-page-loader.pasya-page-loader-content {
-    position: fixed;
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding: max(1.5rem, var(--pasya-safe-top)) max(1.5rem, var(--pasya-safe-right)) max(1.5rem, var(--pasya-safe-bottom)) max(1.5rem, var(--pasya-safe-left));
+    position: absolute;
+    min-height: 0;
+    padding: 1.5rem;
 }
 
 .pasya-page-loader-mark {
@@ -505,12 +504,6 @@ body.pasya-workspace .overflow-x-auto::-webkit-scrollbar-thumb {
 }
 
 @media (min-width: 1024px) {
-    #pasya-page-loader.pasya-page-loader-content {
-        position: absolute;
-        min-height: 0;
-        padding: 1.5rem;
-    }
-
     html.pasya-app-root {
         height: 100%;
         overflow: hidden;
@@ -1815,6 +1808,10 @@ body.pasya-workspace :where(button, a, input, select, textarea, summary):focus-v
     background: var(--pasya-canvas) !important;
 }
 
+.pasya-main {
+    isolation: isolate;
+}
+
 body.pasya-workspace .admin-section-card,
 body.pasya-workspace .admin-chart-card {
     border: 1px solid var(--pasya-separator);
@@ -1993,7 +1990,7 @@ body.pasya-workspace table tbody tr:hover {
     }
 
     .pasya-admin-shell .pasya-main > #pasya-page-loader + *,
-    .pasya-lgu-shell .pasya-main > * {
+    .pasya-lgu-shell .pasya-main > #pasya-page-loader + * {
         max-width: 100rem;
         margin-inline: auto;
     }
